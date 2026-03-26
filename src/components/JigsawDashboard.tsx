@@ -17,53 +17,103 @@ interface JigsawDashboardProps {
   pieces: JigsawPiece[];
 }
 
+// Generate a jigsaw tab/blank on an edge
+// dir: 1 = tab outward, -1 = blank inward
+// horizontal: true = top/bottom edge, false = left/right edge
+function edgePath(
+  x1: number, y1: number, x2: number, y2: number,
+  dir: number, horizontal: boolean
+): string {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len = Math.sqrt(dx * dx + dy * dy);
+  const tabR = len * 0.12; // tab circle radius
+  const neckW = len * 0.04; // neck width
+  const tabPos = 0.5; // tab at center
+
+  if (horizontal) {
+    // Moving left→right (top) or right→left (bottom)
+    const mx = x1 + dx * tabPos;
+    const my = y1 + dy * tabPos;
+    const perpX = 0;
+    const perpY = dir * tabR * 2;
+
+    const startX = mx - tabR * 1.2 * Math.sign(dx);
+    const endX = mx + tabR * 1.2 * Math.sign(dx);
+    const neckStartX = mx - neckW * Math.sign(dx);
+    const neckEndX = mx + neckW * Math.sign(dx);
+
+    return (
+      `L ${startX} ${y1}` +
+      `L ${neckStartX} ${y1}` +
+      `C ${neckStartX} ${y1} ${neckStartX} ${my + perpY * 0.3} ${mx - tabR * 0.8 * Math.sign(dx)} ${my + perpY * 0.5}` +
+      `A ${tabR} ${tabR} 0 1 ${dir > 0 ? (dx > 0 ? 1 : 0) : (dx > 0 ? 0 : 1)} ${mx + tabR * 0.8 * Math.sign(dx)} ${my + perpY * 0.5}` +
+      `C ${neckEndX} ${my + perpY * 0.3} ${neckEndX} ${y1} ${neckEndX} ${y1}` +
+      `L ${endX} ${y1}` +
+      `L ${x2} ${y2}`
+    );
+  } else {
+    // Moving top→bottom (right) or bottom→top (left)
+    const mx = x1 + dx * tabPos;
+    const my = y1 + dy * tabPos;
+    const perpX = dir * tabR * 2;
+
+    const startY = my - tabR * 1.2 * Math.sign(dy);
+    const endY = my + tabR * 1.2 * Math.sign(dy);
+    const neckStartY = my - neckW * Math.sign(dy);
+    const neckEndY = my + neckW * Math.sign(dy);
+
+    return (
+      `L ${x1} ${startY}` +
+      `L ${x1} ${neckStartY}` +
+      `C ${x1} ${neckStartY} ${mx + perpX * 0.3} ${neckStartY} ${mx + perpX * 0.5} ${my - tabR * 0.8 * Math.sign(dy)}` +
+      `A ${tabR} ${tabR} 0 1 ${dir > 0 ? (dy > 0 ? 0 : 1) : (dy > 0 ? 1 : 0)} ${mx + perpX * 0.5} ${my + tabR * 0.8 * Math.sign(dy)}` +
+      `C ${mx + perpX * 0.3} ${neckEndY} ${x1} ${neckEndY} ${x1} ${neckEndY}` +
+      `L ${x1} ${endY}` +
+      `L ${x2} ${y2}`
+    );
+  }
+}
+
 function getPiecePath(
   x: number, y: number, w: number, h: number,
   col: number, row: number, cols: number, rows: number,
 ): string {
-  const tabSize = w * 0.15;
-  const tabWidth = w * 0.28;
+  // Determine tab direction based on position (alternating pattern)
+  // Even col+row = tab out, odd = blank in (for right/bottom)
+  const topDir = row === 0 ? 0 : ((col + row) % 2 === 0 ? -1 : 1);    // blank = match bottom tab of above
+  const rightDir = col === cols - 1 ? 0 : ((col + row) % 2 === 0 ? 1 : -1);
+  const bottomDir = row === rows - 1 ? 0 : ((col + row) % 2 === 0 ? 1 : -1);
+  const leftDir = col === 0 ? 0 : ((col + row) % 2 === 0 ? -1 : 1);
 
   let path = `M ${x} ${y}`;
 
-  // Top edge
-  if (row === 0) {
+  // Top edge (left to right)
+  if (topDir === 0) {
     path += ` L ${x + w} ${y}`;
   } else {
-    path += ` L ${x + w / 2 - tabWidth / 2} ${y}`;
-    path += ` C ${x + w / 2 - tabWidth / 4} ${y} ${x + w / 2 - tabWidth / 4} ${y + tabSize} ${x + w / 2} ${y + tabSize}`;
-    path += ` C ${x + w / 2 + tabWidth / 4} ${y + tabSize} ${x + w / 2 + tabWidth / 4} ${y} ${x + w / 2 + tabWidth / 2} ${y}`;
-    path += ` L ${x + w} ${y}`;
+    path += edgePath(x, y, x + w, y, topDir, true);
   }
 
-  // Right edge
-  if (col === cols - 1) {
+  // Right edge (top to bottom)
+  if (rightDir === 0) {
     path += ` L ${x + w} ${y + h}`;
   } else {
-    path += ` L ${x + w} ${y + h / 2 - tabWidth / 2}`;
-    path += ` C ${x + w} ${y + h / 2 - tabWidth / 4} ${x + w + tabSize} ${y + h / 2 - tabWidth / 4} ${x + w + tabSize} ${y + h / 2}`;
-    path += ` C ${x + w + tabSize} ${y + h / 2 + tabWidth / 4} ${x + w} ${y + h / 2 + tabWidth / 4} ${x + w} ${y + h / 2 + tabWidth / 2}`;
-    path += ` L ${x + w} ${y + h}`;
+    path += edgePath(x + w, y, x + w, y + h, rightDir, false);
   }
 
-  // Bottom edge
-  if (row === rows - 1) {
+  // Bottom edge (right to left)
+  if (bottomDir === 0) {
     path += ` L ${x} ${y + h}`;
   } else {
-    path += ` L ${x + w / 2 + tabWidth / 2} ${y + h}`;
-    path += ` C ${x + w / 2 + tabWidth / 4} ${y + h} ${x + w / 2 + tabWidth / 4} ${y + h + tabSize} ${x + w / 2} ${y + h + tabSize}`;
-    path += ` C ${x + w / 2 - tabWidth / 4} ${y + h + tabSize} ${x + w / 2 - tabWidth / 4} ${y + h} ${x + w / 2 - tabWidth / 2} ${y + h}`;
-    path += ` L ${x} ${y + h}`;
+    path += edgePath(x + w, y + h, x, y + h, -bottomDir, true);
   }
 
-  // Left edge
-  if (col === 0) {
+  // Left edge (bottom to top)
+  if (leftDir === 0) {
     path += ` L ${x} ${y}`;
   } else {
-    path += ` L ${x} ${y + h / 2 + tabWidth / 2}`;
-    path += ` C ${x} ${y + h / 2 + tabWidth / 4} ${x + tabSize} ${y + h / 2 + tabWidth / 4} ${x + tabSize} ${y + h / 2}`;
-    path += ` C ${x + tabSize} ${y + h / 2 - tabWidth / 4} ${x} ${y + h / 2 - tabWidth / 4} ${x} ${y + h / 2 - tabWidth / 2}`;
-    path += ` L ${x} ${y}`;
+    path += edgePath(x, y + h, x, y, -leftDir, false);
   }
 
   path += " Z";
@@ -74,11 +124,11 @@ export default function JigsawDashboard({ pieces }: JigsawDashboardProps) {
   const readyCount = pieces.filter((p) => p.ready).length;
   const cols = 5;
   const rows = Math.ceil(pieces.length / cols);
-  const pieceW = 90;
-  const pieceH = 80;
-  const padding = 18;
-  const svgW = cols * pieceW + padding * 2 + 18;
-  const svgH = rows * pieceH + padding * 2 + 18;
+  const pieceW = 88;
+  const pieceH = 78;
+  const padding = 22;
+  const svgW = cols * pieceW + padding * 2 + 22;
+  const svgH = rows * pieceH + padding * 2 + 22;
 
   return (
     <div className="mx-4 md:mx-8 mb-4 rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-800 text-white overflow-hidden">
