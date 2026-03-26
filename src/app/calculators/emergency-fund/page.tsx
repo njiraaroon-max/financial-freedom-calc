@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ShieldAlert, Save, AlertTriangle, CheckCircle, Lock } from "lucide-react";
+import { ShieldAlert, Save, AlertTriangle, CheckCircle, Lock, ChevronDown, ChevronUp } from "lucide-react";
 import { useVariableStore } from "@/store/variable-store";
+import { useCashFlowStore } from "@/store/cashflow-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 
@@ -19,6 +20,19 @@ export default function EmergencyFundPage() {
   const hasBSData = (variables.total_assets?.value || 0) > 0 || (variables.total_liabilities?.value || 0) > 0;
   const hasData = hasCFData && hasBSData;
 
+  // Get essential expense items from CF
+  const cfStore = useCashFlowStore();
+  const essentialItems = cfStore.expenses
+    .filter((e) => e.isEssential)
+    .map((e) => ({
+      name: e.name,
+      category: e.expenseCategory || "fixed",
+      annualTotal: e.amounts.reduce((s, a) => s + a, 0),
+      monthlyAvg: Math.round(e.amounts.reduce((s, a) => s + a, 0) / 12),
+    }))
+    .filter((e) => e.annualTotal > 0);
+
+  const [showExpenseDetail, setShowExpenseDetail] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
 
   // Manual input fallback
@@ -125,6 +139,59 @@ export default function EmergencyFundPage() {
             {hasCFData && <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-600 rounded">จาก Cash Flow</span>}
             {hasBSData && <span className="px-1.5 py-0.5 bg-purple-100 text-purple-600 rounded">จาก Balance Sheet</span>}
           </div>
+
+          {/* Essential Expense Breakdown */}
+          {essentialItems.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <button
+                onClick={() => setShowExpenseDetail(!showExpenseDetail)}
+                className="w-full flex items-center justify-between text-xs font-bold text-gray-600 hover:text-gray-800 transition"
+              >
+                <span>📋 รายละเอียดรายจ่ายจำเป็น ({essentialItems.length} รายการ)</span>
+                {showExpenseDetail ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+
+              {showExpenseDetail && (
+                <div className="mt-2 overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="text-left px-2 py-1.5 font-bold text-gray-600 rounded-tl-lg">รายการ</th>
+                        <th className="text-center px-2 py-1.5 font-bold text-gray-600">ประเภท</th>
+                        <th className="text-right px-2 py-1.5 font-bold text-gray-600">รวม/ปี</th>
+                        <th className="text-right px-2 py-1.5 font-bold text-gray-600 rounded-tr-lg">เฉลี่ย/เดือน</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {essentialItems.map((item, i) => (
+                        <tr key={i} className="border-t border-gray-50">
+                          <td className="px-2 py-1.5 text-gray-700">{item.name}</td>
+                          <td className="px-2 py-1.5 text-center">
+                            <span className={`px-1.5 py-0.5 rounded text-[9px] font-medium ${
+                              item.category === "fixed" ? "bg-red-50 text-red-500"
+                              : item.category === "variable" ? "bg-amber-50 text-amber-600"
+                              : "bg-blue-50 text-blue-500"
+                            }`}>
+                              {item.category === "fixed" ? "คงที่" : item.category === "variable" ? "ผันแปร" : "ออม/ลงทุน"}
+                            </span>
+                          </td>
+                          <td className="px-2 py-1.5 text-right font-semibold text-gray-700">฿{fmt(item.annualTotal)}</td>
+                          <td className="px-2 py-1.5 text-right font-semibold text-gray-700">฿{fmt(item.monthlyAvg)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t-2 border-gray-200 bg-gray-50">
+                        <td colSpan={2} className="px-2 py-2 font-bold text-gray-700 rounded-bl-lg">รวมรายจ่ายจำเป็น</td>
+                        <td className="px-2 py-2 text-right font-bold text-gray-700">฿{fmt(essentialItems.reduce((s, e) => s + e.annualTotal, 0))}</td>
+                        <td className="px-2 py-2 text-right font-bold text-[var(--color-primary)] rounded-br-lg">฿{fmt(effectiveExpense)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
