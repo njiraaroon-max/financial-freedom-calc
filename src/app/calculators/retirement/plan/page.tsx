@@ -1,0 +1,349 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { Save, Plus, Trash2, Download, ChevronDown, ChevronUp, TrendingUp } from "lucide-react";
+
+/* eslint-disable @next/next/no-img-element */
+import Link from "next/link";
+import { useRetirementStore } from "@/store/retirement-store";
+import PageHeader from "@/components/PageHeader";
+import { useVariableStore } from "@/store/variable-store";
+import { useProfileStore } from "@/store/profile-store";
+import { useCashFlowStore } from "@/store/cashflow-store";
+import {
+  futureValue,
+  calcRetirementFund,
+  calcInvestmentPlan,
+} from "@/types/retirement";
+
+function fmt(n: number): string {
+  return Math.round(n).toLocaleString("th-TH");
+}
+
+function fmtM(n: number): string {
+  if (Math.abs(n) >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+  if (Math.abs(n) >= 1000) return `${(n / 1000).toFixed(0)}K`;
+  return fmt(n);
+}
+
+function parseNum(s: string): number {
+  return Number(s.replace(/[^0-9.-]/g, "")) || 0;
+}
+
+function NumberInput({ value, onChange, placeholder, className }: {
+  value: number; onChange: (v: number) => void; placeholder?: string; className?: string;
+}) {
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      value={value === 0 ? "" : value.toLocaleString("th-TH")}
+      onChange={(e) => onChange(parseNum(e.target.value))}
+      placeholder={placeholder || "0"}
+      className={`text-sm font-semibold bg-gray-50 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition text-right ${className || "w-28"}`}
+    />
+  );
+}
+
+function PercentInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  return (
+    <div className="flex items-center gap-1">
+      <input
+        type="text"
+        inputMode="decimal"
+        value={value === 0 ? "" : (value * 100).toFixed(1)}
+        onChange={(e) => onChange(Number(e.target.value) / 100 || 0)}
+        className="w-16 text-sm font-semibold bg-gray-50 rounded-xl px-2 py-2 outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition text-right"
+        placeholder="0"
+      />
+      <span className="text-xs text-gray-400">%</span>
+    </div>
+  );
+}
+
+export default function RetirementPlanPage() {
+  const store = useRetirementStore();
+  const { markStepCompleted } = store;
+  const { variables, setVariable } = useVariableStore();
+  const profile = useProfileStore();
+  const [openSteps, setOpenSteps] = useState<Set<number>>(new Set([1]));
+  const hasAutoFilled = useRef(false);
+
+  // Auto-compute savedSteps based on data presence
+  const a = store.assumptions;
+  const totalBasicMonthly = store.basicExpenses.reduce((sum, e) => sum + e.monthlyAmount, 0);
+  const totalSpecialAmount = store.specialExpenses.reduce((sum, e) => sum + e.amount, 0);
+  const totalSavingFund = store.savingFunds.reduce((sum, f) => sum + f.value, 0);
+
+  const savedSteps = new Set<number>();
+  // Step 1: สมมติฐาน — saved if age is set (not default 35)
+  if (a.currentAge !== 35 || a.retireAge !== 60) savedSteps.add(1);
+  // Step 2: ค่าใช้จ่ายพื้นฐาน — saved if any expense > 0
+  if (totalBasicMonthly > 0) savedSteps.add(2);
+  // Step 3: ค่าใช้จ่ายพิเศษ — saved if any special expense > 0
+  if (totalSpecialAmount > 0) savedSteps.add(3);
+  // Step 4: แหล่งเงินทุน — saved if any fund > 0
+  if (totalSavingFund > 0) savedSteps.add(4);
+  // Step 5: สรุป — auto if step 2 done
+  if (totalBasicMonthly > 0) savedSteps.add(5);
+  // Step 6: แผนลงทุน — if any investment plan exists
+  if (store.investmentPlans.length > 0) savedSteps.add(6);
+
+  // Auto-fill from Profile + CF on first load (delayed to allow hydration)
+  const cfStore = useCashFlowStore();
+  useEffect(() => {
+    if (hasAutoFilled.current) return;
+    // Delay to ensure Zustand stores have rehydrated from localStorage
+    const timer = setTimeout(() => {
+      const p = useProfileStore.getState();
+      const r = useRetirementStore.getState();
+      const profileAge = p.getAge();
+      // Always sync from Profile if Profile has data
+      if (profileAge > 0 && r.assumptions.currentAge !== profileAge) {
+        store.updateAssumption("currentAge", profileAge);
+      }
+      if (p.retireAge && r.assumptions.retireAge !== p.retireAge) {
+        store.updateAssumption("retireAge", p.retireAge);
+      }
+
+    // Auto-load essential expenses from CF (only if basicExpenses are all 0)
+    const allZero = store.basicExpenses.every((e) => e.monthlyAmount === 0);
+    if (allZero) {
+      const essentialItems = cfStore.expenses
+        .filter((e) => e.isEssential)
+        .map((e) => ({
+          name: e.name,
+          amount: Math.round(e.amounts.reduce((sum, a) => sum + a, 0) / 12),
+        }))
+        .filter((e) => e.amount > 0);
+
+      if (essentialItems.length > 0) {
+        store.loadBasicExpensesFromCF(0, essentialItems);
+      }
+    }
+
+    // Auto-pull saving fund values from calculators (read from getState for latest hydrated data)
+    const latestVars = useVariableStore.getState().variables;
+    const latestFunds = useRetirementStore.getState().savingFunds;
+    latestFunds.forEach((f) => {
+      if (f.calculatorKey && latestVars[f.calculatorKey] !== undefined) {
+        const calcVal = latestVars[f.calculatorKey].value;
+        if (calcVal !== f.value && calcVal > 0) {
+          store.pullFromCalculator(f.id, calcVal);
+        }
+      }
+    });
+
+      hasAutoFilled.current = true;
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const yearsToRetire = a.retireAge - a.currentAge;
+  const yearsAfterRetire = a.lifeExpectancy - a.retireAge;
+
+  // Load CF data
+  const cfMonthlyEssential = variables.monthly_essential_expense?.value || 0;
+
+  // Step 2: Basic expense calculations
+  const basicMonthlyFV = futureValue(totalBasicMonthly, a.generalInflation, yearsToRetire);
+  const basicRetireFund = calcRetirementFund(basicMonthlyFV, a.postRetireReturn, a.generalInflation, yearsAfterRetire, a.residualFund);
+
+  // Step 3: Special expense — เงินก้อน ปรับ FV ด้วยเงินเฟ้อแต่ละรายการ
+  const totalSpecialFV = store.specialExpenses.reduce((sum, e) => {
+    const rate = e.inflationRate ?? a.generalInflation;
+    return sum + futureValue(e.amount, rate, yearsToRetire);
+  }, 0);
+
+  // Total retirement fund needed
+  const totalRetireFund = basicRetireFund + totalSpecialFV;
+
+  // Shortage
+  const shortage = totalRetireFund - totalSavingFund;
+  const isEnough = shortage <= 0;
+
+  // Step 6: Investment plan
+  const investResult = calcInvestmentPlan(store.investmentPlans, a.currentAge, a.retireAge, 0);
+  const investAtRetire = investResult.length > 0 ? investResult[investResult.length - 1].baseCase : 0;
+  const finalShortage = shortage - investAtRetire;
+
+  const toggleStep = (step: number) => {
+    setOpenSteps((prev) => {
+      const next = new Set(prev);
+      if (next.has(step)) next.delete(step);
+      else next.add(step);
+      return next;
+    });
+  };
+
+  const handleSave = () => {
+    setVariable({ key: "retire_fund_needed", label: "ทุนเกษียณที่ต้องมี", value: totalRetireFund, source: "retirement" });
+    setVariable({ key: "retire_fund_existing", label: "แหล่งเงินทุนที่มี", value: totalSavingFund, source: "retirement" });
+    setVariable({ key: "retire_fund_shortage", label: "เงินที่ต้องเตรียมเพิ่ม", value: Math.max(shortage, 0), source: "retirement" });
+    setVariable({ key: "retire_invest_at_retire", label: "พอร์ตลงทุน ณ วันเกษียณ", value: investAtRetire, source: "retirement" });
+    markStepCompleted("retirement_plan");
+    markStepCompleted("investment_plan");
+    alert("บันทึกเรียบร้อยแล้ว!");
+  };
+
+  const StepHeader = ({ step, title, subtitle }: { step: number; title: string; subtitle?: string }) => {
+    const isSaved = savedSteps.has(step);
+    return (
+      <button
+        onClick={() => toggleStep(step)}
+        className={`w-full flex items-center justify-between px-4 py-3 rounded-t-xl transition-colors ${
+          isSaved ? "bg-emerald-600 text-white" : "bg-[#1e3a5f] text-white"
+        }`}
+      >
+        <div className="flex items-center gap-2">
+          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+            isSaved ? "bg-white text-emerald-600" : "bg-white/20"
+          }`}>
+            {isSaved ? "✓" : step}
+          </div>
+          <div className="text-left">
+            <div className="text-xs font-bold">{title}</div>
+            {subtitle && <div className="text-[9px] opacity-60">{subtitle}</div>}
+          </div>
+        </div>
+        {openSteps.has(step) ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+      </button>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-[var(--color-bg)]">
+      <PageHeader
+        title="คำนวณแผนเกษียณ"
+        subtitle="Retirement Plan Calculator"
+        backHref="/calculators/retirement"
+      />
+
+      <div className="px-4 md:px-8 pt-4 pb-8 space-y-4">
+        {/* กรอบใหญ่สีแดง: ค่าใช้จ่ายทั้งหมด A + B = RF */}
+        <div className="rounded-2xl border-2 border-dashed border-red-300 bg-red-50/30 p-4 space-y-3">
+          <div className="text-xs font-bold text-red-600 mb-1">ค่าใช้จ่ายหลังเกษียณ</div>
+
+          {/* A. ค่าใช้จ่ายพื้นฐาน */}
+          <Link href="/calculators/retirement/basic-expenses" className="block">
+            <div className="rounded-xl border border-orange-200 bg-white p-4 hover:bg-orange-50/50 transition active:scale-[0.98]">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] text-orange-500 font-medium">A. ค่าใช้จ่ายพื้นฐานหลังเกษียณ</div>
+                  <div className="text-xl font-extrabold text-orange-600 mt-1">฿{fmt(basicRetireFund)}</div>
+                </div>
+                <div className="text-orange-300 text-lg">›</div>
+              </div>
+            </div>
+          </Link>
+
+          {/* + sign */}
+          <div className="flex justify-center -my-1">
+            <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+              <span className="text-amber-600 font-extrabold text-lg">+</span>
+            </div>
+          </div>
+
+          {/* B. ค่าใช้จ่ายพิเศษ */}
+          <Link href="/calculators/retirement/special-expenses" className="block">
+            <div className="rounded-xl border border-red-200 bg-white p-4 hover:bg-red-50/50 transition active:scale-[0.98]">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] text-red-500 font-medium">B. ค่าใช้จ่ายพิเศษหลังเกษียณ</div>
+                  <div className="text-xl font-extrabold text-red-600 mt-1">฿{fmt(totalSpecialFV)}</div>
+                </div>
+                <div className="text-red-300 text-lg">›</div>
+              </div>
+            </div>
+          </Link>
+
+          {/* = sign */}
+          <div className="flex justify-center -my-1">
+            <div className="w-8 h-8 rounded-full bg-red-200 flex items-center justify-center">
+              <span className="text-red-600 font-extrabold text-lg">=</span>
+            </div>
+          </div>
+
+          {/* ทุนเกษียณรวม (RF) */}
+          <div className="rounded-xl bg-red-100 border border-red-300 p-4">
+            <div className="text-[10px] text-red-600 font-medium">ทุนเกษียณที่ต้องเตรียมทั้งหมด (RF)</div>
+            <div className="text-2xl font-extrabold text-red-700 mt-1">฿{fmt(totalRetireFund)}</div>
+            <div className="text-[10px] text-red-400 mt-1">= A + B</div>
+          </div>
+        </div>
+
+        {/* − sign */}
+        <div className="flex justify-center">
+          <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+            <span className="text-emerald-600 font-extrabold text-xl">−</span>
+          </div>
+        </div>
+
+        {/* C. แหล่งเงินเกษียณที่มีอยู่แล้ว (SF) */}
+        <Link href="/calculators/retirement/saving-funds" className="block">
+          <div className="rounded-2xl border-2 border-dashed border-emerald-400 bg-emerald-50/50 p-5 hover:bg-emerald-50 transition active:scale-[0.98]">
+            <div className="flex items-center justify-between mb-1">
+              <div className="text-[10px] text-emerald-600 font-medium">C. แหล่งเงินเกษียณที่มีอยู่แล้ว (SF)</div>
+              <div className="text-[9px] text-emerald-500 flex items-center gap-0.5">✅ ดึง NPV จากเครื่องคิดเลข</div>
+            </div>
+            <div className="text-2xl font-extrabold text-emerald-700">฿{fmt(totalSavingFund)}</div>
+            {/* Show each saving fund item */}
+            <div className="mt-3 space-y-1">
+              {store.savingFunds.filter(f => f.value > 0).map((f) => (
+                <div key={f.id} className="flex justify-between text-[10px]">
+                  <span className="text-gray-500">{f.name}</span>
+                  <span className="font-medium text-emerald-600">฿{fmt(f.value)}</span>
+                </div>
+              ))}
+            </div>
+            <div className="text-[10px] text-gray-400 mt-2">กดเพื่อดูรายละเอียด / ปรับแก้ →</div>
+          </div>
+        </Link>
+
+        {/* = sign */}
+        <div className="flex justify-center">
+          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+            <span className="text-blue-600 font-extrabold text-xl">=</span>
+          </div>
+        </div>
+
+        {/* ทุนเกษียณที่ต้องเตรียมเพิ่ม */}
+        <div className={`rounded-2xl p-5 text-center ${isEnough ? "bg-gradient-to-r from-emerald-500 to-teal-600 border-2 border-emerald-400" : "bg-gradient-to-r from-blue-600 to-indigo-700 border-2 border-blue-400"} text-white`}>
+          <div className="text-xs opacity-80 mb-1">
+            {isEnough ? "เงินทุนเพียงพอแล้ว! 🎉" : "ทุนเกษียณที่ต้องเตรียมเพิ่มเติม"}
+          </div>
+          <div className="text-3xl font-extrabold">
+            {isEnough ? `เหลือ ฿${fmt(Math.abs(shortage))}` : `฿${fmt(shortage)}`}
+          </div>
+          <div className="text-[10px] opacity-60 mt-1">
+            RF (฿{fmt(totalRetireFund)}) − SF (฿{fmt(totalSavingFund)})
+          </div>
+        </div>
+
+        {/* Save Button */}
+        <button
+          onClick={handleSave}
+          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-[var(--color-primary)] text-white font-bold text-sm hover:bg-[var(--color-primary-dark)] active:scale-[0.98] transition-all shadow-lg shadow-indigo-200"
+        >
+          <Save size={18} />
+          บันทึก
+        </button>
+        <button
+          onClick={() => {
+            if (confirm("ต้องการ reset ค่าทั้งหมดเป็นค่าเริ่มต้นใช่ไหม?\nข้อมูลที่กรอกไว้จะหายทั้งหมด")) {
+              store.clearAll();
+              hasAutoFilled.current = false;
+            }
+          }}
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-red-200 text-red-500 font-medium text-sm hover:bg-red-50 active:scale-[0.98] transition-all"
+        >
+          <Trash2 size={16} />
+          ล้างข้อมูลทั้งหมด
+        </button>
+      </div>
+
+      {/* Spacer to ensure scrollable */}
+      <div className="h-8" />
+    </div>
+  );
+}

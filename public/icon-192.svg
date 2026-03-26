@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="40" fill="#6366f1"/>
+  <text x="96" y="110" text-anchor="middle" font-size="80" font-weight="bold" fill="white" font-family="Arial">FF</text>
+  <text x="96" y="145" text-anchor="middle" font-size="24" fill="rgba(255,255,255,0.8)" font-family="Arial">Planner</text>
+</svg>
