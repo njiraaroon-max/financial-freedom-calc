@@ -53,6 +53,7 @@ export interface PVDParams {
   currentEmployeeBalance: number;
   currentEmployerBalance: number;
   salaryCap: number;         // เพดานเงินเดือน
+  remainingMonths: number;   // เดือนที่เหลือในปีนี้ (1-12)
 }
 
 // ===== Social Security Pension =====
@@ -172,29 +173,35 @@ export function calcPVDProjection(
   retireAge: number,
   currentAge: number,
 ): PVDYearResult[] {
-  const years = retireAge - currentAge;
+  // Stop at retireAge - 1 (last working year before retirement)
+  const years = Math.max(retireAge - currentAge, 0);
   const results: PVDYearResult[] = [];
+  const remainingMonths = params.remainingMonths || 12;
 
   let salary = params.currentSalary;
   let empBalance = params.currentEmployeeBalance;
   let erBalance = params.currentEmployerBalance;
 
   for (let y = 0; y < years; y++) {
-    const cappedSalary = Math.min(salary, params.salaryCap || 999999999);
+    const cappedSalary = Math.min(salary, params.salaryCap || 1000000);
     const empBegin = empBalance;
     const erBegin = erBalance;
 
-    const empReturn = empBalance * params.expectedReturn;
-    const empContrib = cappedSalary * params.employeeRate * 12;
+    // First year uses remaining months, subsequent years use 12
+    const months = y === 0 ? remainingMonths : 12;
+    const monthFraction = months / 12;
+
+    const empReturn = empBalance * params.expectedReturn * monthFraction;
+    const empContrib = cappedSalary * params.employeeRate * months;
     empBalance = empBalance + empReturn + empContrib;
 
-    const erReturn = erBalance * params.expectedReturn;
-    const erContrib = cappedSalary * params.employerRate * 12;
+    const erReturn = erBalance * params.expectedReturn * monthFraction;
+    const erContrib = cappedSalary * params.employerRate * months;
     erBalance = erBalance + erReturn + erContrib;
 
     results.push({
       year: y + 1,
-      age: currentAge + y + 1,
+      age: currentAge + y,
       salary: cappedSalary,
       empBegin,
       erBegin,
@@ -203,7 +210,7 @@ export function calcPVDProjection(
       total: empBalance + erBalance,
     });
 
-    salary = Math.min(salary * (1 + params.salaryIncrease), params.salaryCap || 999999999);
+    salary = Math.min(salary * (1 + params.salaryIncrease), params.salaryCap || 1000000);
   }
 
   return results;

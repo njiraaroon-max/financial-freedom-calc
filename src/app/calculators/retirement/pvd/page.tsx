@@ -93,6 +93,7 @@ export default function PVDPage() {
     { label: "ผลตอบแทนที่คาดหวัง (%)", key: "expectedReturn" as const, type: "percent" },
     { label: "ยอดสะสมลูกจ้าง (ปัจจุบัน)", key: "currentEmployeeBalance" as const, type: "number" },
     { label: "ยอดสมทบนายจ้าง (ปัจจุบัน)", key: "currentEmployerBalance" as const, type: "number" },
+    { label: "เดือนที่เหลือในปีนี้", key: "remainingMonths" as const, type: "months" },
   ];
 
   return (
@@ -130,6 +131,18 @@ export default function PVDPage() {
                     className="w-16 text-sm font-semibold bg-gray-50 rounded-xl px-2 py-2 outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-right"
                   />
                   <span className="text-xs text-gray-400">%</span>
+                </div>
+              ) : f.type === "months" ? (
+                <div className="flex items-center gap-1">
+                  <select
+                    value={p.remainingMonths || 12}
+                    onChange={(e) => updatePVDParam("remainingMonths", Number(e.target.value))}
+                    className="text-sm font-semibold bg-gray-50 rounded-xl px-2 py-2 outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-right"
+                  >
+                    {[1,2,3,4,5,6,7,8,9,10,11,12].map((m) => (
+                      <option key={m} value={m}>{m} เดือน</option>
+                    ))}
+                  </select>
                 </div>
               ) : (
                 <input

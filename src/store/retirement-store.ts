@@ -86,7 +86,8 @@ const DEFAULT_PVD: PVDParams = {
   expectedReturn: 0.03,
   currentEmployeeBalance: 0,
   currentEmployerBalance: 0,
-  salaryCap: 999999999,
+  salaryCap: 1000000,
+  remainingMonths: 12,
 };
 
 const DEFAULT_SS: SocialSecurityParams = {
