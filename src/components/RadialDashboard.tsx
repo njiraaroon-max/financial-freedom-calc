@@ -85,6 +85,70 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
             className="absolute inset-0 w-full h-full"
             style={{ zIndex: 0 }}
           >
+            {/* Outer connecting ring — circle through all cards */}
+            <circle
+              cx={svgCenter}
+              cy={svgCenter}
+              r={svgSize * 0.38}
+              fill="none"
+              stroke="#e5e7eb"
+              strokeWidth={1.5}
+              strokeDasharray="6 4"
+              opacity={0.6}
+            />
+
+            {/* Dots on the ring at each card position */}
+            {pieces.map((piece, idx) => {
+              const angle = angles[idx];
+              const rad = (angle - 90) * (Math.PI / 180);
+              const dotR = svgSize * 0.38;
+              const dx = svgCenter + dotR * Math.cos(rad);
+              const dy = svgCenter + dotR * Math.sin(rad);
+              return (
+                <circle
+                  key={`dot-${idx}`}
+                  cx={dx}
+                  cy={dy}
+                  r={4}
+                  fill={piece.ready ? piece.colorHex : "#d1d5db"}
+                  opacity={piece.ready ? 0.8 : 0.4}
+                />
+              );
+            })}
+
+            {/* Progress arc on outer ring — shows completed portion */}
+            {readyCount > 0 && (() => {
+              const ringR = svgSize * 0.38;
+              const completedAngle = (readyCount / pieces.length) * 360;
+              const startRad = -90 * (Math.PI / 180);
+              const endRad = (completedAngle - 90) * (Math.PI / 180);
+              const sx = svgCenter + ringR * Math.cos(startRad);
+              const sy = svgCenter + ringR * Math.sin(startRad);
+              const ex = svgCenter + ringR * Math.cos(endRad);
+              const ey = svgCenter + ringR * Math.sin(endRad);
+              const la = completedAngle > 180 ? 1 : 0;
+              const arcPath = completedAngle >= 360
+                ? `M ${sx} ${sy} A ${ringR} ${ringR} 0 1 1 ${sx - 0.01} ${sy}`
+                : `M ${sx} ${sy} A ${ringR} ${ringR} 0 ${la} 1 ${ex} ${ey}`;
+              return (
+                <path
+                  d={arcPath}
+                  fill="none"
+                  stroke="url(#ringProgressGrad)"
+                  strokeWidth={3}
+                  strokeLinecap="round"
+                  opacity={0.7}
+                />
+              );
+            })()}
+
+            <defs>
+              <linearGradient id="ringProgressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#10b981" />
+                <stop offset="100%" stopColor="#06b6d4" />
+              </linearGradient>
+            </defs>
+
             {/* Central circle — background ring */}
             <circle
               cx={svgCenter}
