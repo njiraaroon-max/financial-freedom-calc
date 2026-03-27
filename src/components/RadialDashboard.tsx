@@ -28,8 +28,8 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
   // Center and radius for the radial layout
   const centerX = 50; // percentage
   const centerY = 50;
-  const radiusX = 40; // horizontal radius (percentage)
-  const radiusY = 42; // vertical radius
+  const radiusX = 36; // horizontal radius (percentage) — closer to center
+  const radiusY = 38; // vertical radius — closer to center
 
   // Convert angle to position
   function getPosition(angleDeg: number) {
@@ -89,7 +89,7 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
             <circle
               cx={svgCenter}
               cy={svgCenter}
-              r={svgSize * 0.38}
+              r={svgSize * 0.34}
               fill="none"
               stroke="#e5e7eb"
               strokeWidth={1.5}
@@ -101,7 +101,7 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
             {pieces.map((piece, idx) => {
               const angle = angles[idx];
               const rad = (angle - 90) * (Math.PI / 180);
-              const dotR = svgSize * 0.38;
+              const dotR = svgSize * 0.34;
               const dx = svgCenter + dotR * Math.cos(rad);
               const dy = svgCenter + dotR * Math.sin(rad);
               return (
@@ -118,7 +118,7 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
 
             {/* Progress arc on outer ring — shows completed portion */}
             {readyCount > 0 && (() => {
-              const ringR = svgSize * 0.38;
+              const ringR = svgSize * 0.34;
               const completedAngle = (readyCount / pieces.length) * 360;
               const startRad = -90 * (Math.PI / 180);
               const endRad = (completedAngle - 90) * (Math.PI / 180);
