@@ -215,9 +215,7 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
                   zIndex: 10,
                 }}
               >
-                <div className="relative flex items-center gap-1.5 md:gap-2 px-2 py-1.5 md:px-3 md:py-2 rounded-xl bg-white shadow-md border border-gray-100 hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
-                  style={{ minWidth: "90px", maxWidth: "155px" }}
-                >
+                <div className="flex flex-col items-center hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer">
                   {/* Remove button */}
                   <button
                     onClick={(e) => {
@@ -225,39 +223,38 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
                       e.stopPropagation();
                       removeModule(piece.name);
                     }}
-                    className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-400 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute -top-1 -right-1 w-4 h-4 bg-red-400 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
                   >
                     <X size={8} className="text-white" strokeWidth={3} />
                   </button>
 
-                  {/* Status */}
-                  {piece.ready ? (
-                    <div className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
-                      <Check size={9} className="text-white" strokeWidth={3} />
+                  {/* Circle icon with status ring */}
+                  <div className="relative">
+                    <div
+                      className="w-11 h-11 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-md"
+                      style={{
+                        backgroundColor: piece.colorHex + "18",
+                        border: `2.5px solid ${piece.ready ? piece.colorHex : "#d1d5db"}`,
+                      }}
+                    >
+                      <Icon size={20} color={piece.ready ? piece.colorHex : "#9ca3af"} strokeWidth={1.8} />
                     </div>
-                  ) : (
-                    <div className="w-4 h-4 md:w-5 md:h-5 rounded-full border-2 border-gray-300 shrink-0" />
-                  )}
-
-                  {/* Icon */}
-                  <div
-                    className="w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center shrink-0"
-                    style={{ backgroundColor: piece.colorHex + "15" }}
-                  >
-                    <Icon size={15} color={piece.colorHex} strokeWidth={1.8} />
+                    {/* Status badge */}
+                    {piece.ready && (
+                      <div className="absolute -top-0.5 -right-0.5 w-4 h-4 md:w-5 md:h-5 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white">
+                        <Check size={8} className="text-white" strokeWidth={3} />
+                      </div>
+                    )}
                   </div>
 
-                  {/* Text */}
-                  <div className="min-w-0">
-                    <div className="text-[8px] md:text-[10px] font-bold text-gray-700 leading-tight truncate">
-                      {piece.name}
-                    </div>
-                    <div className="text-[6px] md:text-[8px] text-gray-400 leading-tight truncate">
-                      {piece.description}
-                    </div>
+                  {/* Name */}
+                  <div className="text-[8px] md:text-[10px] font-bold text-gray-700 mt-1 text-center leading-tight whitespace-nowrap">
+                    {piece.name}
                   </div>
-
-                  <span className="text-gray-300 text-[10px] shrink-0">›</span>
+                  {/* Description */}
+                  <div className="text-[6px] md:text-[8px] text-gray-400 text-center leading-tight whitespace-nowrap">
+                    {piece.description}
+                  </div>
                 </div>
               </Link>
             );
