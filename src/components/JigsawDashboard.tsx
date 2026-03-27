@@ -38,52 +38,60 @@ export default function JigsawDashboard({ pieces }: JigsawDashboardProps) {
 
           const cardContent = (
             <div
-              className={`relative rounded-2xl p-3 md:p-4 flex flex-col items-center text-center transition-all duration-200 ${
+              className={`relative rounded-2xl overflow-hidden flex flex-col items-center text-center transition-all duration-200 ${
                 piece.ready
-                  ? "bg-white border-2 hover:shadow-lg hover:scale-[1.03] active:scale-[0.98] cursor-pointer"
-                  : "bg-gray-50 border border-gray-200 opacity-50 cursor-not-allowed"
+                  ? "bg-white border border-gray-200 hover:shadow-lg hover:scale-[1.03] active:scale-[0.98] cursor-pointer"
+                  : "bg-gray-50 border border-gray-100 opacity-40 cursor-not-allowed"
               }`}
-              style={{
-                borderColor: piece.ready ? piece.colorHex + "40" : undefined,
-              }}
             >
-              {/* Status badge */}
-              <div className="absolute top-1.5 right-1.5">
-                {piece.ready ? (
-                  <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
-                    <Check size={12} className="text-white" strokeWidth={3} />
-                  </div>
-                ) : (
-                  <Lock size={12} className="text-gray-300" />
-                )}
+              {/* Card content */}
+              <div className="pt-3 pb-2 px-2 md:pt-4 md:pb-3 md:px-3 flex flex-col items-center">
+                {/* Status badge */}
+                <div className="absolute top-1.5 right-1.5">
+                  {piece.ready ? (
+                    <div className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-emerald-500 flex items-center justify-center">
+                      <Check size={10} className="text-white" strokeWidth={3} />
+                    </div>
+                  ) : (
+                    <Lock size={11} className="text-gray-300" />
+                  )}
+                </div>
+
+                {/* Icon */}
+                <div
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-1.5"
+                  style={{
+                    backgroundColor: piece.ready ? piece.colorHex + "12" : "#f3f4f6",
+                  }}
+                >
+                  <Icon
+                    size={22}
+                    color={piece.ready ? piece.colorHex : "#9ca3af"}
+                    strokeWidth={1.8}
+                  />
+                </div>
+
+                {/* Name */}
+                <div
+                  className="text-[10px] md:text-xs font-bold leading-tight"
+                  style={{ color: piece.ready ? "#1f2937" : "#9ca3af" }}
+                >
+                  {piece.name}
+                </div>
+
+                {/* Description */}
+                <div className="text-[7px] md:text-[9px] mt-0.5 leading-tight" style={{ color: piece.ready ? "#6b7280" : "#d1d5db" }}>
+                  {piece.description}
+                </div>
               </div>
 
-              {/* Icon */}
+              {/* Bottom color bar */}
               <div
-                className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-2"
+                className="w-full h-1.5 md:h-2"
                 style={{
-                  backgroundColor: piece.ready ? piece.colorHex + "15" : "#f3f4f6",
+                  backgroundColor: piece.ready ? piece.colorHex : "#e5e7eb",
                 }}
-              >
-                <Icon
-                  size={22}
-                  color={piece.ready ? piece.colorHex : "#9ca3af"}
-                  strokeWidth={1.8}
-                />
-              </div>
-
-              {/* Name */}
-              <div
-                className="text-[11px] md:text-xs font-bold leading-tight"
-                style={{ color: piece.ready ? "#374151" : "#9ca3af" }}
-              >
-                {piece.name}
-              </div>
-
-              {/* Description */}
-              <div className="text-[8px] md:text-[9px] mt-0.5 leading-tight" style={{ color: piece.ready ? "#6b7280" : "#d1d5db" }}>
-                {piece.description}
-              </div>
+              />
             </div>
           );
 
