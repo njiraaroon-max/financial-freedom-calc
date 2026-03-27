@@ -21,20 +21,9 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
   const readyCount = pieces.filter((p) => p.ready).length;
   const progress = Math.round((readyCount / pieces.length) * 100);
 
-  // Angles for 10 items around circle (starting from top-right, going clockwise)
-  // Adjusted to match the reference image layout
-  const angles = [
-    30,   // 1. Goals (top right)
-    60,   // 2. Cash Flow
-    90,   // 3. Balance Sheet (right)
-    120,  // 4. Emergency Fund
-    150,  // 5. Retirement
-    180,  // 6. Tax (bottom center)
-    210,  // 7. Risk Mgmt
-    240,  // 8. Debt (left)
-    300,  // 9. Investment
-    330,  // 10. Education (top left)
-  ];
+  // Angles for 12 items around circle (starting from 12 o'clock = 0°, clockwise)
+  // 360° / 12 = 30° apart, like a clock
+  const angles = pieces.map((_, i) => i * (360 / pieces.length));
 
   // Center and radius for the radial layout
   const centerX = 50; // percentage
@@ -55,24 +44,6 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
   const svgSize = 600;
   const svgCenter = svgSize / 2;
   const circleR = 90; // central circle radius
-  const lineRadiusX = svgSize * 0.40;
-  const lineRadiusY = svgSize * 0.42;
-
-  function getSvgPos(angleDeg: number) {
-    const rad = (angleDeg - 90) * (Math.PI / 180);
-    return {
-      x: svgCenter + lineRadiusX * Math.cos(rad),
-      y: svgCenter + lineRadiusY * Math.sin(rad),
-    };
-  }
-
-  function getCircleEdge(angleDeg: number) {
-    const rad = (angleDeg - 90) * (Math.PI / 180);
-    return {
-      x: svgCenter + (circleR + 8) * Math.cos(rad),
-      y: svgCenter + (circleR + 8) * Math.sin(rad),
-    };
-  }
 
   // Progress arc for central circle
   const progressAngle = (progress / 100) * 360;
@@ -114,27 +85,6 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
             className="absolute inset-0 w-full h-full"
             style={{ zIndex: 0 }}
           >
-            {/* Connection lines */}
-            {pieces.map((piece, idx) => {
-              const angle = angles[idx];
-              const edge = getCircleEdge(angle);
-              const target = getSvgPos(angle);
-              const midX = (edge.x + target.x) / 2;
-              const midY = (edge.y + target.y) / 2;
-
-              return (
-                <path
-                  key={`line-${idx}`}
-                  d={`M ${edge.x} ${edge.y} Q ${midX} ${midY} ${target.x} ${target.y}`}
-                  stroke={piece.ready ? "#10b981" : "#d1d5db"}
-                  strokeWidth={piece.ready ? 2 : 1.5}
-                  strokeDasharray={piece.ready ? "none" : "4 3"}
-                  fill="none"
-                  opacity={piece.ready ? 0.6 : 0.4}
-                />
-              );
-            })}
-
             {/* Central circle — background ring */}
             <circle
               cx={svgCenter}

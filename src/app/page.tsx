@@ -15,6 +15,8 @@ import {
   Users,
   Target,
   GraduationCap,
+  LineChart,
+  BookOpen,
 } from "lucide-react";
 import RadialDashboard from "@/components/RadialDashboard";
 import { useProfileStore } from "@/store/profile-store";
@@ -102,12 +104,30 @@ const calculators = [
     ready: false,
   },
   {
+    name: "CF Projection",
+    description: "ประมาณการเงินสด",
+    icon: LineChart,
+    href: "/calculators/cf-projection",
+    color: "bg-sky-500",
+    colorHex: "#0ea5e9",
+    ready: false,
+  },
+  {
     name: "Education",
     description: "การศึกษาบุตร",
     icon: GraduationCap,
     href: "/calculators/education",
     color: "bg-blue-500",
     colorHex: "#3b82f6",
+    ready: false,
+  },
+  {
+    name: "Must Know",
+    description: "ความรู้การเงิน",
+    icon: BookOpen,
+    href: "/calculators/must-know",
+    color: "bg-rose-500",
+    colorHex: "#f43f5e",
     ready: false,
   },
 ];
