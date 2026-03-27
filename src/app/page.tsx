@@ -16,7 +16,7 @@ import {
   Target,
   GraduationCap,
 } from "lucide-react";
-import JigsawDashboard from "@/components/JigsawDashboard";
+import RadialDashboard from "@/components/RadialDashboard";
 import { useProfileStore } from "@/store/profile-store";
 
 const calculators = [
@@ -141,25 +141,8 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Full-width Jigsaw — clickable pieces replace calculator grid */}
-      <JigsawDashboard pieces={calculators} />
-
-      {/* สรุปแผนการเงิน */}
-      <div className="px-4 md:px-8 pb-8">
-        <Link
-          href="/summary"
-          className="p-4 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-600 to-emerald-500 text-white flex items-center gap-3 hover:shadow-lg active:scale-[0.98] transition-all"
-        >
-          <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
-            <HeartPulse size={22} />
-          </div>
-          <div className="flex-1">
-            <div className="text-sm font-bold">สรุปแผนการเงิน</div>
-            <div className="text-[10px] opacity-80 mt-0.5">สุขภาพการเงิน + แผนองค์รวม</div>
-          </div>
-          <div className="text-white/60 text-lg">›</div>
-        </Link>
-      </div>
+      {/* Radial Dashboard — central circle + radial cards + bottom tabs */}
+      <RadialDashboard pieces={calculators} />
     </div>
   );
 }
