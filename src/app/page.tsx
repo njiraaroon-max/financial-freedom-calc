@@ -23,6 +23,15 @@ import { useProfileStore } from "@/store/profile-store";
 
 const calculators = [
   {
+    name: "ข้อมูลส่วนตัว",
+    description: "ข้อมูลส่วนตัว",
+    icon: UserCircle,
+    href: "/calculators/personal-info",
+    color: "bg-rose-500",
+    colorHex: "#f43f5e",
+    ready: false,
+  },
+  {
     name: "Goals",
     description: "เป้าหมายชีวิต",
     icon: Target,
@@ -119,15 +128,6 @@ const calculators = [
     href: "/calculators/education",
     color: "bg-blue-500",
     colorHex: "#3b82f6",
-    ready: false,
-  },
-  {
-    name: "Must Know",
-    description: "ความรู้การเงิน",
-    icon: BookOpen,
-    href: "/calculators/must-know",
-    color: "bg-rose-500",
-    colorHex: "#f43f5e",
     ready: false,
   },
 ];
