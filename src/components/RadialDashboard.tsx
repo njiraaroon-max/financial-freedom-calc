@@ -185,21 +185,25 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
           {/* Central content — static, image fills circle */}
           <Link
             href="/summary"
-            className="absolute flex items-center justify-center hover:scale-105 transition-transform duration-200"
+            className="absolute flex flex-col items-center justify-center hover:scale-105 transition-transform duration-200"
             style={{
               left: "50%",
               top: "50%",
               transform: "translate(-50%, -50%)",
               width: "28%",
-              height: "28%",
+              height: "34%",
               zIndex: 5,
             }}
           >
             <img
               src="/circle-icons/summary.png"
               alt="Summary"
-              className="w-full h-full object-contain drop-shadow-md"
+              className="w-full object-contain drop-shadow-md"
+              style={{ maxHeight: "80%" }}
             />
+            <div className="text-[9px] md:text-[11px] font-bold text-gray-600 leading-tight mt-1 whitespace-nowrap">
+              สรุปแผนการเงิน
+            </div>
           </Link>
 
           {/* Radial Cards — only selected modules */}
