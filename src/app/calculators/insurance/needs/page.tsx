@@ -134,7 +134,9 @@ function NumInput({
   guideKey?: string;
   onShowGuide?: (key: string) => void;
 }) {
-  const [raw, setRaw] = useState(value ? String(value) : "");
+  const fmtComma = (n: number) => (n ? n.toLocaleString("th-TH") : "");
+  const [raw, setRaw] = useState(value ? fmtComma(value) : "");
+  const [focused, setFocused] = useState(false);
   return (
     <div className="flex items-center gap-2">
       <div className="flex-1 min-w-0">
@@ -157,12 +159,19 @@ function NumInput({
           inputMode="numeric"
           value={raw}
           onChange={(e) => {
-            setRaw(e.target.value);
-            onChange(parseNum(e.target.value));
+            const v = e.target.value;
+            setRaw(v);
+            onChange(parseNum(v));
           }}
-          onBlur={() => {
+          onFocus={() => {
+            setFocused(true);
             const n = parseNum(raw);
             setRaw(n ? String(n) : "");
+          }}
+          onBlur={() => {
+            setFocused(false);
+            const n = parseNum(raw);
+            setRaw(n ? fmtComma(n) : "");
           }}
           className="w-28 text-right text-sm font-semibold bg-gray-50 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400 border border-gray-200"
           placeholder="0"

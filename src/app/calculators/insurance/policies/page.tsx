@@ -20,6 +20,55 @@ function parseNum(s: string): number {
   return Number(s.replace(/[^0-9.-]/g, "")) || 0;
 }
 
+function fmtComma(n: number): string {
+  return n ? n.toLocaleString("th-TH") : "";
+}
+
+function MoneyInput({
+  label,
+  value,
+  onChange,
+  placeholder = "0",
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  const [focused, setFocused] = useState(false);
+  const [display, setDisplay] = useState(() => {
+    const n = parseNum(value);
+    return n ? fmtComma(n) : value;
+  });
+
+  return (
+    <div>
+      <label className="text-[11px] text-gray-500 mb-1 block font-semibold">{label}</label>
+      <input
+        type="text"
+        inputMode="numeric"
+        value={focused ? display : (parseNum(display) ? fmtComma(parseNum(display)) : display)}
+        onChange={(e) => {
+          setDisplay(e.target.value);
+          onChange(e.target.value);
+        }}
+        onFocus={() => {
+          setFocused(true);
+          const n = parseNum(display);
+          setDisplay(n ? String(n) : "");
+        }}
+        onBlur={() => {
+          setFocused(false);
+          const n = parseNum(display);
+          setDisplay(n ? fmtComma(n) : "");
+        }}
+        className="w-full text-sm font-semibold bg-gray-50 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-emerald-400 border border-gray-200"
+        placeholder={placeholder}
+      />
+    </div>
+  );
+}
+
 interface PolicyForm {
   policyNumber: string;
   company: string;
@@ -335,39 +384,21 @@ export default function PoliciesPage() {
 
               {/* ตัวเลข */}
               <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <label className="text-[11px] text-gray-500 mb-1 block font-semibold">ทุนประกัน</label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={form.sumInsured}
-                    onChange={(e) => setForm({ ...form, sumInsured: e.target.value })}
-                    className="w-full text-sm font-semibold bg-gray-50 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-emerald-400 border border-gray-200"
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] text-gray-500 mb-1 block font-semibold">มูลค่าเวนคืน</label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={form.cashValue}
-                    onChange={(e) => setForm({ ...form, cashValue: e.target.value })}
-                    className="w-full text-sm font-semibold bg-gray-50 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-emerald-400 border border-gray-200"
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] text-gray-500 mb-1 block font-semibold">เบี้ยประกัน/ปี</label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={form.premium}
-                    onChange={(e) => setForm({ ...form, premium: e.target.value })}
-                    className="w-full text-sm font-semibold bg-gray-50 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-emerald-400 border border-gray-200"
-                    placeholder="0"
-                  />
-                </div>
+                <MoneyInput
+                  label="ทุนประกัน"
+                  value={form.sumInsured}
+                  onChange={(v) => setForm({ ...form, sumInsured: v })}
+                />
+                <MoneyInput
+                  label="มูลค่าเวนคืน"
+                  value={form.cashValue}
+                  onChange={(v) => setForm({ ...form, cashValue: v })}
+                />
+                <MoneyInput
+                  label="เบี้ยประกัน/ปี"
+                  value={form.premium}
+                  onChange={(v) => setForm({ ...form, premium: v })}
+                />
               </div>
 
               {/* รายละเอียด */}
