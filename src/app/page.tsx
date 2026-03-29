@@ -38,7 +38,7 @@ const calculators = [
     href: "/calculators/goals",
     color: "bg-amber-500",
     colorHex: "#f59e0b",
-    ready: false,
+    ready: true,
   },
   {
     name: "Cash Flow",

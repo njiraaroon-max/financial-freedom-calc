@@ -1,0 +1,824 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import {
+  Plus, Save, Pencil, Trash2, X,
+  ShieldAlert, HeartPulse, Banknote, Palmtree,
+  Plane, Home, Car, Heart, GraduationCap,
+  Briefcase, Star, ArrowRight, Target,
+} from "lucide-react";
+import {
+  useGoalsStore,
+  PRESET_GOALS,
+  GoalItem,
+  GoalCategory,
+  GoalFrequency,
+  PresetGoal,
+} from "@/store/goals-store";
+import { useVariableStore } from "@/store/variable-store";
+import { useProfileStore } from "@/store/profile-store";
+import PageHeader from "@/components/PageHeader";
+import ActionButton from "@/components/ActionButton";
+
+// ─── helpers ────────────────────────────────────────────────────────────────
+const CURRENT_YEAR_CE = new Date().getFullYear(); // 2026
+const CE_TO_BE = 543;
+
+function fmt(n: number): string {
+  return Math.round(n).toLocaleString("th-TH");
+}
+
+// Icon map — all blue-600
+const ICON_MAP: Record<string, React.ReactNode> = {
+  ShieldAlert: <ShieldAlert size={20} className="text-blue-600" />,
+  HeartPulse:  <HeartPulse  size={20} className="text-blue-600" />,
+  Banknote:    <Banknote    size={20} className="text-blue-600" />,
+  Palmtree:    <Palmtree    size={20} className="text-blue-600" />,
+  Plane:       <Plane       size={20} className="text-blue-600" />,
+  Home:        <Home        size={20} className="text-blue-600" />,
+  Car:         <Car         size={20} className="text-blue-600" />,
+  Heart:       <Heart       size={20} className="text-blue-600" />,
+  GraduationCap: <GraduationCap size={20} className="text-blue-600" />,
+  Briefcase:   <Briefcase   size={20} className="text-blue-600" />,
+  Star:        <Star        size={20} className="text-blue-600" />,
+  PiggyBank:   <Banknote    size={20} className="text-blue-600" />,
+};
+
+const ICON_MAP_SM: Record<string, React.ReactNode> = {
+  ShieldAlert: <ShieldAlert size={16} className="text-blue-600" />,
+  HeartPulse:  <HeartPulse  size={16} className="text-blue-600" />,
+  Banknote:    <Banknote    size={16} className="text-blue-600" />,
+  Palmtree:    <Palmtree    size={16} className="text-blue-600" />,
+  Plane:       <Plane       size={16} className="text-blue-600" />,
+  Home:        <Home        size={16} className="text-blue-600" />,
+  Car:         <Car         size={16} className="text-blue-600" />,
+  Heart:       <Heart       size={16} className="text-blue-600" />,
+  GraduationCap: <GraduationCap size={16} className="text-blue-600" />,
+  Briefcase:   <Briefcase   size={16} className="text-blue-600" />,
+  Star:        <Star        size={16} className="text-blue-600" />,
+  PiggyBank:   <Banknote    size={16} className="text-blue-600" />,
+};
+
+function getPreset(category: GoalCategory): PresetGoal {
+  return PRESET_GOALS.find((p) => p.category === category) ?? PRESET_GOALS[PRESET_GOALS.length - 1];
+}
+
+// ─── Timeline Component ──────────────────────────────────────────────────────
+function GoalTimeline({
+  goals,
+  currentAge,
+  retireAge,
+  variables,
+}: {
+  goals: GoalItem[];
+  currentAge: number;
+  retireAge: number;
+  variables: Record<string, { value: number; label: string }>;
+}) {
+  if (goals.length === 0) return null;
+
+  // Resolve amount for a goal
+  function resolveAmount(g: GoalItem): number | null {
+    if (g.amount !== null) return g.amount;
+    if (g.amountSourceKey && variables[g.amountSourceKey]) {
+      return variables[g.amountSourceKey].value;
+    }
+    return null;
+  }
+
+  // Compute each goal's age position
+  const goalAges = goals.map((g) => {
+    if (g.frequency === "immediate") return currentAge;
+    if (g.targetYear) return currentAge + (g.targetYear - CURRENT_YEAR_CE);
+    return currentAge;
+  });
+
+  const minAge = currentAge;
+  const maxAge = Math.max(retireAge, ...goalAges.filter((a) => a > 0), currentAge + 1);
+  const ageRange = maxAge - minAge;
+
+  // Pixel width per year (min 44px)
+  const PX_PER_YEAR = Math.max(44, 360 / Math.max(ageRange, 1));
+  const totalWidth = Math.max(400, ageRange * PX_PER_YEAR + 80);
+
+  // Group by age position to stagger vertical offsets
+  const positionMap: Record<number, GoalItem[]> = {};
+  goals.forEach((g, i) => {
+    const age = goalAges[i];
+    if (!positionMap[age]) positionMap[age] = [];
+    positionMap[age].push(g);
+  });
+
+  // Year ticks to display
+  const ticks: number[] = [];
+  for (let age = minAge; age <= maxAge; age++) {
+    ticks.push(age);
+  }
+
+  const AXIS_Y = 90; // px from top of inner container
+
+  return (
+    <div className="overflow-x-auto pb-2">
+      <div style={{ width: totalWidth, minWidth: totalWidth, position: "relative", height: 200 }}>
+        {/* Horizontal axis line */}
+        <div
+          style={{
+            position: "absolute",
+            top: AXIS_Y,
+            left: 24,
+            right: 24,
+            height: 2,
+            background: "#1d4ed8",
+          }}
+        />
+
+        {/* Arrow at right end */}
+        <div style={{ position: "absolute", top: AXIS_Y - 6, right: 16 }}>
+          <ArrowRight size={14} className="text-blue-700" />
+        </div>
+
+        {/* Age ticks + labels */}
+        {ticks.map((age) => {
+          const x = 24 + ((age - minAge) / ageRange) * (totalWidth - 48);
+          return (
+            <div key={age} style={{ position: "absolute", left: x, top: AXIS_Y - 4 }}>
+              <div style={{ width: 1, height: 10, background: "#1d4ed8", margin: "0 auto" }} />
+              <div
+                style={{
+                  fontSize: 10,
+                  color: "#1e40af",
+                  fontWeight: 600,
+                  transform: "translateX(-50%)",
+                  marginTop: 4,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {age}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Goal items */}
+        {goals.map((g, idx) => {
+          const preset = getPreset(g.category);
+          const age = goalAges[idx];
+          const x = 24 + (ageRange > 0 ? ((age - minAge) / ageRange) * (totalWidth - 48) : 0);
+          const amt = resolveAmount(g);
+          const isYearly = g.frequency === "yearly";
+
+          if (isYearly) {
+            // Yearly: draw a horizontal arrow + label at top
+            return (
+              <div key={g.id} style={{ position: "absolute", left: 24, top: 8, right: 24 }}>
+                <div className="flex items-center gap-1">
+                  <div className="text-blue-600">{ICON_MAP_SM[preset.iconName] ?? <Star size={14} className="text-blue-600" />}</div>
+                  <span style={{ fontSize: 10, color: "#1d4ed8", fontWeight: 600 }}>{g.name}</span>
+                  {amt !== null && (
+                    <span style={{ fontSize: 10, color: "#1e40af" }}>฿{fmt(amt)}</span>
+                  )}
+                </div>
+                {/* Spanning arrow line */}
+                <div style={{ display: "flex", alignItems: "center", marginTop: 2 }}>
+                  <div style={{ flex: 1, height: 2, background: "#93c5fd" }} />
+                  <ArrowRight size={12} className="text-blue-400" />
+                </div>
+              </div>
+            );
+          }
+
+          // Same-age offset: stack vertically
+          const sameAgeGoals = positionMap[age] ?? [];
+          const stackIdx = sameAgeGoals.indexOf(g);
+          const isAbove = stackIdx % 2 === 0;
+          const stackOffset = Math.floor(stackIdx / 2) * 18;
+          const dotY = AXIS_Y;
+
+          return (
+            <div key={g.id} style={{ position: "absolute", left: x }}>
+              {/* Dot */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: dotY - 5,
+                  width: 10,
+                  height: 10,
+                  borderRadius: "50%",
+                  background: "#1d4ed8",
+                  transform: "translateX(-50%)",
+                  zIndex: 2,
+                }}
+              />
+              {/* Vertical stem */}
+              <div
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  width: 1,
+                  background: "#93c5fd",
+                  ...(isAbove
+                    ? { top: dotY - 5 - 30 - stackOffset, height: 30 + stackOffset }
+                    : { top: dotY + 5, height: 30 + stackOffset }),
+                }}
+              />
+              {/* Label box */}
+              <div
+                style={{
+                  position: "absolute",
+                  transform: "translateX(-50%)",
+                  ...(isAbove ? { top: dotY - 5 - 30 - stackOffset - 44 } : { top: dotY + 5 + 30 + stackOffset }),
+                  textAlign: "center",
+                  width: 72,
+                }}
+              >
+                <div className="flex justify-center mb-0.5">
+                  {ICON_MAP_SM[preset.iconName] ?? <Star size={14} className="text-blue-600" />}
+                </div>
+                {amt !== null ? (
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#1e40af", whiteSpace: "nowrap" }}>
+                    {fmt(amt)}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 9, color: "#6b7280" }}>ไม่ทราบ</div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Goal Form ───────────────────────────────────────────────────────────────
+type FormStep = "pick" | "fill";
+
+interface FormState {
+  name: string;
+  category: GoalCategory;
+  amount: string;
+  unknownAmount: boolean;
+  targetYearBE: string; // พ.ศ.
+  frequency: GoalFrequency;
+  notes: string;
+  amountSourceKey: string | null;
+}
+
+const defaultForm = (): FormState => ({
+  name: "",
+  category: "custom",
+  amount: "",
+  unknownAmount: false,
+  targetYearBE: String(CURRENT_YEAR_CE + CE_TO_BE),
+  frequency: "once",
+  notes: "",
+  amountSourceKey: null,
+});
+
+// ─── Main Page ───────────────────────────────────────────────────────────────
+export default function GoalsPage() {
+  const { goals, addGoal, updateGoal, removeGoal } = useGoalsStore();
+  const { variables } = useVariableStore();
+  const profile = useProfileStore();
+
+  const currentAge = profile.getAge ? profile.getAge() : 35;
+  const retireAge = profile.retireAge || 60;
+
+  const [hasSaved, setHasSaved] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [formStep, setFormStep] = useState<FormStep>("pick");
+  const [form, setForm] = useState<FormState>(defaultForm());
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  // Resolve amount for display
+  function resolveAmount(g: GoalItem): { value: number | null; fromLabel: string | null } {
+    if (g.amount !== null) return { value: g.amount, fromLabel: null };
+    if (g.amountSourceKey && variables[g.amountSourceKey]) {
+      const v = variables[g.amountSourceKey];
+      return { value: v.value, fromLabel: v.label };
+    }
+    return { value: null, fromLabel: null };
+  }
+
+  // Format "เมื่อไร" for display
+  function formatWhen(g: GoalItem): string {
+    if (g.frequency === "immediate") return "ทันที";
+    if (g.frequency === "yearly") return "ทุกปี";
+    if (g.targetYear) return `ปี ${g.targetYear + CE_TO_BE}`;
+    return "-";
+  }
+
+  // Format target age
+  function formatAge(g: GoalItem): string {
+    if (g.targetAge) return `อายุ ${g.targetAge}`;
+    if (g.frequency === "immediate") return `อายุ ${currentAge}`;
+    if (g.targetYear) {
+      const age = currentAge + (g.targetYear - CURRENT_YEAR_CE);
+      return age > currentAge ? `อายุ ${age}` : "";
+    }
+    return "";
+  }
+
+  // Total known amount
+  const totalKnown = useMemo(() => {
+    return goals.reduce((sum, g) => {
+      const { value } = resolveAmount(g);
+      return sum + (value ?? 0);
+    }, 0);
+  }, [goals, variables]);
+
+  // ── Open modal to add ──
+  function openAdd() {
+    setForm(defaultForm());
+    setEditingId(null);
+    setFormStep("pick");
+    setShowModal(true);
+  }
+
+  // ── Open modal to edit ──
+  function openEdit(g: GoalItem) {
+    const targetYearBE = g.targetYear ? String(g.targetYear + CE_TO_BE) : String(CURRENT_YEAR_CE + CE_TO_BE);
+    setForm({
+      name: g.name,
+      category: g.category,
+      amount: g.amount !== null ? String(g.amount) : "",
+      unknownAmount: g.amount === null,
+      targetYearBE,
+      frequency: g.frequency,
+      notes: g.notes,
+      amountSourceKey: g.amountSourceKey,
+    });
+    setEditingId(g.id);
+    setFormStep("fill");
+    setShowModal(true);
+  }
+
+  // ── Select preset from picker ──
+  function selectPreset(preset: PresetGoal) {
+    const resolvedAmt =
+      preset.amountSourceKey && variables[preset.amountSourceKey]
+        ? variables[preset.amountSourceKey].value
+        : null;
+
+    setForm({
+      name: preset.name,
+      category: preset.category,
+      amount: resolvedAmt !== null ? String(resolvedAmt) : "",
+      unknownAmount: resolvedAmt === null && preset.amountSourceKey !== null,
+      targetYearBE: String(CURRENT_YEAR_CE + CE_TO_BE),
+      frequency: preset.defaultFrequency,
+      notes: "",
+      amountSourceKey: preset.amountSourceKey,
+    });
+    setFormStep("fill");
+  }
+
+  // ── Save goal ──
+  function handleSaveGoal() {
+    const amountNum = form.unknownAmount ? null : (Number(form.amount.replace(/[^0-9.]/g, "")) || null);
+    const targetYearCE = form.frequency === "once"
+      ? (Number(form.targetYearBE) - CE_TO_BE) || null
+      : null;
+    const targetAge = targetYearCE ? currentAge + (targetYearCE - CURRENT_YEAR_CE) : null;
+
+    const payload = {
+      name: form.name || getPreset(form.category).name,
+      category: form.category,
+      amount: amountNum,
+      amountSourceKey: form.unknownAmount ? form.amountSourceKey : null,
+      targetYear: targetYearCE,
+      targetAge,
+      frequency: form.frequency,
+      notes: form.notes,
+    };
+
+    if (editingId) {
+      updateGoal(editingId, payload);
+    } else {
+      addGoal(payload);
+    }
+    setShowModal(false);
+    setHasSaved(false);
+  }
+
+  // ── Final save to variable store ──
+  const { setVariable } = useVariableStore();
+  function handleFinalSave() {
+    setVariable({ key: "life_goals_count", label: "จำนวนเป้าหมาย", value: goals.length, source: "goals" });
+    setVariable({ key: "life_goals_total", label: "มูลค่าเป้าหมายรวม", value: totalKnown, source: "goals" });
+    setHasSaved(true);
+  }
+
+  // Ordered goals
+  const sortedGoals = [...goals].sort((a, b) => a.order - b.order);
+
+  return (
+    <div className="min-h-screen bg-[var(--color-bg)]">
+      <PageHeader
+        title="เป้าหมายชีวิต"
+        subtitle="Life Goals"
+        characterImg="/character/journey.png"
+      />
+
+      {/* ── Summary bar ── */}
+      {goals.length > 0 && (
+        <div className="px-4 md:px-8 pt-4">
+          <div className="bg-white rounded-2xl border border-gray-200 p-4 flex justify-between items-center">
+            <div>
+              <div className="text-xs text-gray-500">เป้าหมายทั้งหมด</div>
+              <div className="text-xl font-extrabold text-gray-800">{goals.length} เป้าหมาย</div>
+            </div>
+            <div className="text-right">
+              <div className="text-xs text-gray-500">มูลค่ารวม (ที่ทราบ)</div>
+              <div className="text-xl font-extrabold text-blue-600">฿{fmt(totalKnown)}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Goal Table ── */}
+      <div className="px-4 md:px-8 pt-4">
+        {sortedGoals.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-10 text-center">
+            <Target size={36} className="text-gray-300 mx-auto mb-3" />
+            <div className="text-sm font-bold text-gray-500 mb-1">ยังไม่มีเป้าหมาย</div>
+            <div className="text-xs text-gray-400">กดปุ่มด้านล่างเพื่อเพิ่มเป้าหมายแรก</div>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            {/* Header */}
+            <div className="grid grid-cols-[32px_1fr_auto_auto_32px] gap-2 px-3 py-2.5 bg-gray-50 border-b border-gray-100">
+              <div className="text-[10px] font-bold text-gray-500 text-center">#</div>
+              <div className="text-[10px] font-bold text-gray-500">เป้าหมาย</div>
+              <div className="text-[10px] font-bold text-gray-500 text-right">เท่าไร</div>
+              <div className="text-[10px] font-bold text-gray-500 text-right">เมื่อไร</div>
+              <div />
+            </div>
+
+            {/* Rows */}
+            {sortedGoals.map((g, idx) => {
+              const preset = getPreset(g.category);
+              const { value: amt, fromLabel } = resolveAmount(g);
+              const ageStr = formatAge(g);
+
+              return (
+                <div
+                  key={g.id}
+                  className="grid grid-cols-[32px_1fr_auto_auto_32px] gap-2 px-3 py-3 border-b border-gray-50 last:border-b-0 items-center"
+                >
+                  {/* # */}
+                  <div className="text-xs font-bold text-gray-400 text-center">{idx + 1}</div>
+
+                  {/* Name + icon */}
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex-shrink-0 w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center">
+                      {ICON_MAP_SM[preset.iconName] ?? <Star size={14} className="text-blue-600" />}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-gray-800 truncate">{g.name}</div>
+                      {g.notes ? (
+                        <div className="text-[10px] text-gray-400 truncate">{g.notes}</div>
+                      ) : (
+                        ageStr && <div className="text-[10px] text-blue-400">{ageStr}</div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Amount */}
+                  <div className="text-right">
+                    {amt !== null ? (
+                      <div>
+                        <div className="text-xs font-bold text-gray-800">฿{fmt(amt)}</div>
+                        {fromLabel && (
+                          <div className="text-[9px] text-blue-500 whitespace-nowrap">จากแผนเกษียณ</div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-[10px] text-gray-400 italic">ไม่ทราบ</div>
+                    )}
+                  </div>
+
+                  {/* When */}
+                  <div className="text-right text-xs text-gray-600 whitespace-nowrap">
+                    {formatWhen(g)}
+                  </div>
+
+                  {/* Edit button */}
+                  <div className="flex items-center justify-center">
+                    {deleteConfirmId === g.id ? (
+                      <button
+                        onClick={() => { removeGoal(g.id); setDeleteConfirmId(null); }}
+                        className="w-7 h-7 bg-red-100 rounded-full flex items-center justify-center"
+                      >
+                        <Trash2 size={12} className="text-red-500" />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => openEdit(g)}
+                        className="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center active:scale-95"
+                      >
+                        <Pencil size={12} className="text-gray-500" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ── Add Goal Button ── */}
+      <div className="px-4 md:px-8 pt-3">
+        <button
+          onClick={openAdd}
+          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-dashed border-blue-300 text-blue-600 text-sm font-bold active:scale-[0.98] transition-all hover:bg-blue-50"
+        >
+          <Plus size={18} />
+          เพิ่มเป้าหมาย
+        </button>
+      </div>
+
+      {/* ── Timeline ── */}
+      {sortedGoals.length > 0 && (
+        <div className="px-4 md:px-8 pt-4">
+          <div className="bg-white rounded-2xl border border-gray-200 p-4">
+            <div className="text-xs font-bold text-gray-600 mb-4">📅 Timeline เป้าหมาย</div>
+            <GoalTimeline
+              goals={sortedGoals}
+              currentAge={currentAge}
+              retireAge={retireAge}
+              variables={variables}
+            />
+
+            {/* Legend */}
+            <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-3">
+              {sortedGoals.map((g) => {
+                const preset = getPreset(g.category);
+                const { value: amt } = resolveAmount(g);
+                return (
+                  <div key={g.id} className="flex items-center gap-1.5">
+                    <div className="w-6 h-6 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                      {ICON_MAP_SM[preset.iconName] ?? <Star size={12} className="text-blue-600" />}
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-semibold text-gray-700">{g.name}</div>
+                      <div className="text-[9px] text-gray-400">
+                        {formatWhen(g)}{amt !== null ? ` • ฿${fmt(amt)}` : ""}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Save Button ── */}
+      <div className="px-4 md:px-8 pb-8 pt-4">
+        <ActionButton
+          label="บันทึก"
+          successLabel="บันทึกแล้ว"
+          onClick={handleFinalSave}
+          hasCompleted={hasSaved}
+          variant="primary"
+          icon={<Save size={18} />}
+        />
+      </div>
+
+      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* MODAL */}
+      {/* ─────────────────────────────────────────────────────────────────── */}
+      {showModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end justify-center"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
+        >
+          <div className="bg-white w-full max-w-lg rounded-t-3xl shadow-2xl max-h-[90vh] flex flex-col">
+            {/* Modal header */}
+            <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 flex-shrink-0">
+              <div>
+                <div className="text-sm font-extrabold text-gray-800">
+                  {formStep === "pick" ? "เลือกเป้าหมาย" : editingId ? "แก้ไขเป้าหมาย" : "เพิ่มเป้าหมาย"}
+                </div>
+                {formStep === "fill" && (
+                  <button
+                    onClick={() => !editingId && setFormStep("pick")}
+                    className="text-[11px] text-blue-500 mt-0.5"
+                  >
+                    {!editingId && "← เลือกใหม่"}
+                  </button>
+                )}
+              </div>
+              <button
+                onClick={() => setShowModal(false)}
+                className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
+              >
+                <X size={16} className="text-gray-500" />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto flex-1 px-5 py-4">
+              {/* ── STEP 1: PRESET PICKER ── */}
+              {formStep === "pick" && (
+                <div className="grid grid-cols-3 gap-3">
+                  {PRESET_GOALS.map((preset) => {
+                    const resolvedAmt =
+                      preset.amountSourceKey && variables[preset.amountSourceKey]
+                        ? variables[preset.amountSourceKey].value
+                        : null;
+                    return (
+                      <button
+                        key={preset.category}
+                        onClick={() => selectPreset(preset)}
+                        className="flex flex-col items-center gap-2 p-3 rounded-2xl border-2 border-gray-100 hover:border-blue-300 hover:bg-blue-50 active:scale-95 transition-all"
+                      >
+                        <div className="w-10 h-10 bg-blue-50 rounded-2xl flex items-center justify-center">
+                          {ICON_MAP[preset.iconName] ?? <Star size={20} className="text-blue-600" />}
+                        </div>
+                        <div className="text-[11px] font-bold text-gray-700 text-center leading-tight">
+                          {preset.name}
+                        </div>
+                        {resolvedAmt !== null && (
+                          <div className="text-[9px] text-blue-500 font-semibold">
+                            ฿{fmt(resolvedAmt)}
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* ── STEP 2: FILL FORM ── */}
+              {formStep === "fill" && (
+                <div className="space-y-4">
+                  {/* Selected category indicator */}
+                  <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-2xl">
+                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                      {ICON_MAP[getPreset(form.category).iconName] ?? <Star size={20} className="text-blue-600" />}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-blue-700">{getPreset(form.category).name}</div>
+                      <div className="text-[10px] text-blue-400">{getPreset(form.category).description}</div>
+                    </div>
+                  </div>
+
+                  {/* Goal name */}
+                  <div>
+                    <label className="text-[11px] text-gray-500 mb-1.5 block font-semibold">
+                      ชื่อเป้าหมาย
+                    </label>
+                    <input
+                      type="text"
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      className="w-full text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200"
+                      placeholder={getPreset(form.category).name}
+                    />
+                  </div>
+
+                  {/* Amount */}
+                  <div>
+                    <label className="text-[11px] text-gray-500 mb-1.5 block font-semibold">
+                      จำนวนเงิน
+                    </label>
+                    <div className="flex items-center gap-2 mb-2">
+                      <input
+                        type="checkbox"
+                        id="unknownAmount"
+                        checked={form.unknownAmount}
+                        onChange={(e) => setForm({ ...form, unknownAmount: e.target.checked })}
+                        className="accent-blue-500 w-4 h-4"
+                      />
+                      <label htmlFor="unknownAmount" className="text-xs text-gray-500">
+                        ไม่ทราบจำนวน
+                        {form.amountSourceKey && (
+                          <span className="ml-1 text-blue-500">(จะดึงค่าจากแผนอื่นอัตโนมัติ)</span>
+                        )}
+                      </label>
+                    </div>
+                    {!form.unknownAmount && (
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-bold">฿</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={form.amount}
+                          onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                          className="w-full text-sm bg-gray-50 rounded-xl pl-8 pr-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200"
+                          placeholder="0"
+                        />
+                      </div>
+                    )}
+                    {form.unknownAmount && form.amountSourceKey && variables[form.amountSourceKey] && (
+                      <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-xl">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                        <span className="text-xs text-blue-600 font-semibold">
+                          ค่าปัจจุบัน: ฿{fmt(variables[form.amountSourceKey].value)}
+                        </span>
+                        <span className="text-[10px] text-blue-400">จากแผนเกษียณ</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Frequency */}
+                  <div>
+                    <label className="text-[11px] text-gray-500 mb-1.5 block font-semibold">
+                      ความถี่
+                    </label>
+                    <div className="flex gap-2">
+                      {(["immediate", "once", "yearly"] as GoalFrequency[]).map((f) => (
+                        <button
+                          key={f}
+                          onClick={() => setForm({ ...form, frequency: f })}
+                          className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                            form.frequency === f
+                              ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
+                              : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                          }`}
+                        >
+                          {f === "immediate" ? "ทันที" : f === "once" ? "ครั้งเดียว" : "ทุกปี"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Target Year (only for "once") */}
+                  {form.frequency === "once" && (
+                    <div>
+                      <label className="text-[11px] text-gray-500 mb-1.5 block font-semibold">
+                        ปีเป้าหมาย (พ.ศ.)
+                      </label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={form.targetYearBE}
+                        onChange={(e) => setForm({ ...form, targetYearBE: e.target.value })}
+                        className="w-full text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200"
+                        placeholder="เช่น 2573"
+                      />
+                      {form.targetYearBE && (
+                        <div className="text-[10px] text-gray-400 mt-1">
+                          อายุประมาณ {currentAge + (Number(form.targetYearBE) - CE_TO_BE - CURRENT_YEAR_CE)} ปี
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Notes */}
+                  <div>
+                    <label className="text-[11px] text-gray-500 mb-1.5 block font-semibold">
+                      หมายเหตุ (ถ้ามี)
+                    </label>
+                    <textarea
+                      value={form.notes}
+                      onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                      rows={2}
+                      className="w-full text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 resize-none"
+                      placeholder="เช่น รองรับค่าใช้จ่าย 6 เดือน"
+                    />
+                  </div>
+
+                  {/* Save */}
+                  <button
+                    onClick={handleSaveGoal}
+                    className="w-full py-4 rounded-2xl bg-blue-600 text-white text-sm font-extrabold flex items-center justify-center gap-2 shadow-lg shadow-blue-200 active:scale-[0.98] transition-all"
+                  >
+                    <Save size={16} />
+                    {editingId ? "บันทึกการแก้ไข" : "เพิ่มเป้าหมาย"}
+                  </button>
+
+                  {/* Delete (edit mode) */}
+                  {editingId && (
+                    <button
+                      onClick={() => {
+                        if (deleteConfirmId === editingId) {
+                          removeGoal(editingId);
+                          setShowModal(false);
+                          setDeleteConfirmId(null);
+                        } else {
+                          setDeleteConfirmId(editingId);
+                        }
+                      }}
+                      className={`w-full py-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+                        deleteConfirmId === editingId
+                          ? "bg-red-500 text-white"
+                          : "bg-red-50 text-red-500"
+                      }`}
+                    >
+                      <Trash2 size={15} />
+                      {deleteConfirmId === editingId ? "ยืนยันลบ" : "ลบเป้าหมายนี้"}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
