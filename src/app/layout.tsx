@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Financial Freedom Calculator",
+  title: "Financial Friend Calculator",
   description: "เครื่องมือวางแผนการเงินส่วนบุคคลแบบองค์รวม",
   manifest: "/manifest.json",
   appleWebApp: {

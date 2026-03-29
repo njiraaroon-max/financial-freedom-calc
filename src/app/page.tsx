@@ -161,7 +161,7 @@ export default function HomePage() {
         <div className="flex items-center gap-3">
           <img src="/character/home.png" alt="Financial Friend" className="w-14 h-14 md:w-16 md:h-16 object-contain" />
           <div>
-            <h1 className="text-lg font-bold">Financial Freedom</h1>
+            <h1 className="text-lg font-bold">Financial Friend</h1>
             <p className="text-[10px] text-gray-400 mt-0.5">วางแผนการเงินแบบองค์รวม</p>
           </div>
         </div>
