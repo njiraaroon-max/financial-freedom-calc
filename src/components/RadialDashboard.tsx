@@ -188,7 +188,7 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
             className="absolute flex flex-col items-center justify-center hover:scale-105 transition-transform duration-200"
             style={{
               left: "50%",
-              top: "47%",
+              top: "49%",
               transform: "translate(-50%, -50%)",
               width: "26%",
               height: "32%",
