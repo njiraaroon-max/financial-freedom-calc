@@ -21,6 +21,7 @@ export interface GoalItem {
   id: string;
   name: string;
   category: GoalCategory;
+  iconName?: string; // custom icon override (for "อื่นๆ")
   amount: number | null; // null = ไม่ทราบ
   amountSourceKey: string | null; // key ใน variable store
   targetYear: number | null; // null = ทันที

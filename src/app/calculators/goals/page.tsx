@@ -51,22 +51,26 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 };
 
 const ICON_MAP_SM: Record<string, React.ReactNode> = {
-  ShieldAlert:   <ShieldAlert   size={16} style={{ color: NAVY }} />,
-  HeartPulse:    <HeartPulse    size={16} style={{ color: NAVY }} />,
-  Banknote:      <Banknote      size={16} style={{ color: NAVY }} />,
-  Palmtree:      <Palmtree      size={16} style={{ color: NAVY }} />,
-  Plane:         <Plane         size={16} style={{ color: NAVY }} />,
-  Home:          <Home          size={16} style={{ color: NAVY }} />,
-  Car:           <Car           size={16} style={{ color: NAVY }} />,
-  Heart:         <Heart         size={16} style={{ color: NAVY }} />,
-  GraduationCap: <GraduationCap size={16} style={{ color: NAVY }} />,
-  Briefcase:     <Briefcase     size={16} style={{ color: NAVY }} />,
-  Star:          <Star          size={16} style={{ color: NAVY }} />,
-  PiggyBank:     <Banknote      size={16} style={{ color: NAVY }} />,
+  ShieldAlert:   <ShieldAlert   size={24} style={{ color: NAVY }} />,
+  HeartPulse:    <HeartPulse    size={24} style={{ color: NAVY }} />,
+  Banknote:      <Banknote      size={24} style={{ color: NAVY }} />,
+  Palmtree:      <Palmtree      size={24} style={{ color: NAVY }} />,
+  Plane:         <Plane         size={24} style={{ color: NAVY }} />,
+  Home:          <Home          size={24} style={{ color: NAVY }} />,
+  Car:           <Car           size={24} style={{ color: NAVY }} />,
+  Heart:         <Heart         size={24} style={{ color: NAVY }} />,
+  GraduationCap: <GraduationCap size={24} style={{ color: NAVY }} />,
+  Briefcase:     <Briefcase     size={24} style={{ color: NAVY }} />,
+  Star:          <Star          size={24} style={{ color: NAVY }} />,
+  PiggyBank:     <Banknote      size={24} style={{ color: NAVY }} />,
 };
 
 function getPreset(category: GoalCategory): PresetGoal {
   return PRESET_GOALS.find((p) => p.category === category) ?? PRESET_GOALS[PRESET_GOALS.length - 1];
+}
+
+function getGoalIconName(g: GoalItem): string {
+  return g.iconName || getPreset(g.category).iconName;
 }
 
 // ─── Timeline Component ──────────────────────────────────────────────────────
@@ -136,7 +140,7 @@ function GoalTimeline({
 
   // ── Geometry ──
   const YEARLY_ROW_H = 26;
-  const LABEL_H      = 36; // icon(16) + gap(4) + amount(12) + pad(4)
+  const LABEL_H      = 48; // icon(24) + gap(4) + amount(12) + pad(8)
   const STEM_H       = 8;
   const LEVEL_H      = LABEL_H + STEM_H; // 44px per level
 
@@ -172,14 +176,13 @@ function GoalTimeline({
 
         {/* ── Yearly goal rows (top section) ── */}
         {yearlyGoals.map((g, i) => {
-          const preset = getPreset(g.category);
           const amt = resolveAmt(g);
           return (
             <div key={g.id} style={{
               position: "absolute", top: i * YEARLY_ROW_H + 2, left: L, right: R,
               display: "flex", alignItems: "center", gap: 5,
             }}>
-              {ICON_MAP_SM[preset.iconName] ?? <Star size={16} className="text-[#1e3a6e]" />}
+              {ICON_MAP_SM[getGoalIconName(g)] ?? <Star size={24} className="text-[#1e3a6e]" />}
               <span style={{ fontSize: 11, fontWeight: 700, color: NAVY, whiteSpace: "nowrap" }}>
                 {g.name}
               </span>
@@ -247,15 +250,14 @@ function GoalTimeline({
         {assignments.map((a) => (
           <div key={`dot-${a.id}`} style={{
             position: "absolute",
-            left: xOf(a.plotAge) - 5, top: AXIS_Y - 5,
-            width: 10, height: 10, borderRadius: "50%",
+            left: xOf(a.plotAge) - 7, top: AXIS_Y - 7,
+            width: 14, height: 14, borderRadius: "50%",
             background: NAVY, zIndex: 3,
           }} />
         ))}
 
         {/* ── Labels (all above axis) ── */}
         {assignments.map((a) => {
-          const preset = getPreset(a.category);
           const amt    = resolveAmt(a);
           const lt     = labelTopY(a.level);
           return (
@@ -263,12 +265,12 @@ function GoalTimeline({
               position: "absolute",
               left: xOf(a.plotAge), top: lt,
               transform: "translateX(-50%)",
-              width: 52, height: LABEL_H,
+              width: 64, height: LABEL_H,
               display: "flex", flexDirection: "column",
               alignItems: "center", justifyContent: "center", gap: 2,
               zIndex: 2,
             }}>
-              {ICON_MAP_SM[preset.iconName] ?? <Star size={16} className="text-[#1e3a6e]" />}
+              {ICON_MAP_SM[getGoalIconName(a)] ?? <Star size={24} className="text-[#1e3a6e]" />}
               {amt !== null ? (
                 <div style={{
                   fontSize: 9, fontWeight: 700, color: NAVY,
@@ -294,6 +296,7 @@ type FormStep = "pick" | "fill";
 interface FormState {
   name: string;
   category: GoalCategory;
+  iconName: string; // chosen icon name
   amount: string;
   unknownAmount: boolean;
   targetYearBE: string; // พ.ศ.
@@ -302,9 +305,16 @@ interface FormState {
   amountSourceKey: string | null;
 }
 
+const AVAILABLE_ICONS = [
+  "Star", "ShieldAlert", "HeartPulse", "Banknote", "Palmtree",
+  "Plane", "Home", "Car", "Heart", "GraduationCap", "Briefcase",
+  "Target",
+] as const;
+
 const defaultForm = (): FormState => ({
   name: "",
   category: "custom",
+  iconName: "Star",
   amount: "",
   unknownAmount: false,
   targetYearBE: String(CURRENT_YEAR_CE + CE_TO_BE),
@@ -380,6 +390,7 @@ export default function GoalsPage() {
     setForm({
       name: g.name,
       category: g.category,
+      iconName: g.iconName || getPreset(g.category).iconName,
       amount: g.amount !== null ? String(g.amount) : "",
       unknownAmount: g.amount === null,
       targetYearBE,
@@ -402,6 +413,7 @@ export default function GoalsPage() {
     setForm({
       name: preset.name,
       category: preset.category,
+      iconName: preset.iconName,
       amount: resolvedAmt !== null ? String(resolvedAmt) : "",
       unknownAmount: resolvedAmt === null && preset.amountSourceKey !== null,
       targetYearBE: String(CURRENT_YEAR_CE + CE_TO_BE),
@@ -423,6 +435,7 @@ export default function GoalsPage() {
     const payload = {
       name: form.name || getPreset(form.category).name,
       category: form.category,
+      iconName: form.category === "custom" ? form.iconName : undefined,
       amount: amountNum,
       amountSourceKey: form.unknownAmount ? form.amountSourceKey : null,
       targetYear: targetYearCE,
@@ -511,7 +524,7 @@ export default function GoalsPage() {
                   {/* Name + icon */}
                   <div className="flex items-center gap-2 min-w-0">
                     <div className="flex-shrink-0 w-8 h-8 bg-[#e8f0f8] rounded-xl flex items-center justify-center">
-                      {ICON_MAP_SM[preset.iconName] ?? <Star size={14} className="text-[#1e3a6e]" />}
+                      {ICON_MAP_SM[getGoalIconName(g)] ?? <Star size={14} className="text-[#1e3a6e]" />}
                     </div>
                     <div className="min-w-0">
                       <div className="text-xs font-bold text-gray-800 truncate">{g.name}</div>
@@ -638,7 +651,7 @@ export default function GoalsPage() {
                   >
                     <div className="py-2.5 text-center font-bold" style={{ color: NAVY }}>{idx + 1}</div>
                     <div className="py-2.5 px-2 flex items-center gap-1.5">
-                      {ICON_MAP_SM[preset.iconName] ?? <Star size={14} style={{ color: NAVY }} />}
+                      {ICON_MAP_SM[getGoalIconName(g)] ?? <Star size={14} style={{ color: NAVY }} />}
                       <span className="font-semibold text-gray-800">{g.name}</span>
                     </div>
                     <div className="py-2.5 text-center font-bold text-gray-800">
@@ -736,13 +749,40 @@ export default function GoalsPage() {
                   {/* Selected category indicator */}
                   <div className="flex items-center gap-3 p-3 bg-[#e8f0f8] rounded-2xl">
                     <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                      {ICON_MAP[getPreset(form.category).iconName] ?? <Star size={20} className="text-[#1e3a6e]" />}
+                      {ICON_MAP[form.category === "custom" ? form.iconName : getPreset(form.category).iconName] ?? <Star size={20} className="text-[#1e3a6e]" />}
                     </div>
                     <div>
                       <div className="text-xs font-bold text-[#1e3a6e]">{getPreset(form.category).name}</div>
                       <div className="text-[10px] text-[#7a9fc4]">{getPreset(form.category).description}</div>
                     </div>
                   </div>
+
+                  {/* Icon picker for custom goals */}
+                  {form.category === "custom" && (
+                    <div>
+                      <label className="text-[11px] text-gray-500 mb-1.5 block font-semibold">
+                        เลือกไอคอน
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {AVAILABLE_ICONS.map((iconKey) => (
+                          <button
+                            key={iconKey}
+                            type="button"
+                            onClick={() => setForm({ ...form, iconName: iconKey })}
+                            className="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
+                            style={{
+                              background: form.iconName === iconKey ? NAVY : NAVY_PALE,
+                              border: form.iconName === iconKey ? `2px solid ${NAVY}` : "2px solid transparent",
+                            }}
+                          >
+                            <span style={{ color: form.iconName === iconKey ? "#fff" : NAVY }}>
+                              {ICON_MAP[iconKey]}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Goal name */}
                   <div>
