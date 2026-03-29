@@ -9,6 +9,7 @@ interface RadialPiece {
   name: string;
   description: string;
   icon: LucideIcon;
+  customIcon?: string; // path to custom image e.g. "/circle-icons/profile.png"
   colorHex: string;
   href: string;
   ready: boolean; // has saved data
@@ -186,10 +187,11 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
               zIndex: 5,
             }}
           >
-            <div className="w-9 h-9 md:w-10 md:h-10 bg-[var(--color-primary)] rounded-xl flex items-center justify-center mb-0.5">
-              <HeartPulse size={18} className="text-white" />
-            </div>
-            <div className="text-[8px] md:text-[10px] font-bold text-gray-700 leading-tight">สรุปแผนการเงิน</div>
+            <img
+              src="/circle-icons/summary.png"
+              alt="Summary"
+              className="w-10 h-10 md:w-12 md:h-12 object-contain mb-0.5"
+            />
             <div className="text-xl md:text-2xl font-black text-[var(--color-primary)]">{progress}%</div>
             {selectedPieces.length > 0 && (
               <div className="text-[7px] text-gray-400">{completedCount}/{selectedPieces.length} แผน</div>
@@ -230,15 +232,32 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
 
                   {/* Circle icon with status ring */}
                   <div className="relative">
-                    <div
-                      className="w-11 h-11 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-md"
-                      style={{
-                        backgroundColor: piece.colorHex + "18",
-                        border: `2.5px solid ${piece.ready ? piece.colorHex : "#d1d5db"}`,
-                      }}
-                    >
-                      <Icon size={20} color={piece.ready ? piece.colorHex : "#9ca3af"} strokeWidth={1.8} />
-                    </div>
+                    {piece.customIcon ? (
+                      <div
+                        className="w-12 h-12 md:w-16 md:h-16 rounded-full overflow-hidden shadow-md"
+                        style={{
+                          border: `2.5px solid ${piece.ready ? piece.colorHex : "#d1d5db"}`,
+                          backgroundColor: "#f8fafc",
+                        }}
+                      >
+                        <img
+                          src={piece.customIcon}
+                          alt={piece.name}
+                          className="w-full h-full object-contain p-0.5"
+                          style={{ opacity: piece.ready ? 1 : 0.45 }}
+                        />
+                      </div>
+                    ) : (
+                      <div
+                        className="w-11 h-11 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-md"
+                        style={{
+                          backgroundColor: piece.colorHex + "18",
+                          border: `2.5px solid ${piece.ready ? piece.colorHex : "#d1d5db"}`,
+                        }}
+                      >
+                        <Icon size={20} color={piece.ready ? piece.colorHex : "#9ca3af"} strokeWidth={1.8} />
+                      </div>
+                    )}
                     {/* Status badge */}
                     {piece.ready && (
                       <div className="absolute -top-0.5 -right-0.5 w-4 h-4 md:w-5 md:h-5 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white">
@@ -276,12 +295,25 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
                   className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl hover:bg-gray-50 active:scale-95 transition min-w-[52px] md:min-w-[64px]"
                 >
                   <div className="relative">
-                    <div
-                      className="w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: piece.colorHex + "12" }}
-                    >
-                      <Icon size={15} color={piece.colorHex} strokeWidth={1.8} />
-                    </div>
+                    {piece.customIcon ? (
+                      <div
+                        className="w-8 h-8 md:w-9 md:h-9 rounded-full overflow-hidden"
+                        style={{ backgroundColor: "#f8fafc", border: `1.5px solid ${piece.colorHex}40` }}
+                      >
+                        <img
+                          src={piece.customIcon}
+                          alt={piece.name}
+                          className="w-full h-full object-contain p-0.5"
+                        />
+                      </div>
+                    ) : (
+                      <div
+                        className="w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: piece.colorHex + "12" }}
+                      >
+                        <Icon size={15} color={piece.colorHex} strokeWidth={1.8} />
+                      </div>
+                    )}
                     <div className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-indigo-500 rounded-full flex items-center justify-center">
                       <Plus size={8} className="text-white" strokeWidth={3} />
                     </div>
