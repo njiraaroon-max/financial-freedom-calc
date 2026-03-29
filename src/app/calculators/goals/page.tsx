@@ -6,6 +6,7 @@ import {
   ShieldAlert, HeartPulse, Banknote, Palmtree,
   Plane, Home, Car, Heart, GraduationCap,
   Briefcase, Star, ArrowRight, Target,
+  ChevronUp, ChevronDown,
 } from "lucide-react";
 import {
   useGoalsStore,
@@ -325,7 +326,7 @@ const defaultForm = (): FormState => ({
 
 // ─── Main Page ───────────────────────────────────────────────────────────────
 export default function GoalsPage() {
-  const { goals, addGoal, updateGoal, removeGoal } = useGoalsStore();
+  const { goals, addGoal, updateGoal, removeGoal, reorderGoals } = useGoalsStore();
   const { variables } = useVariableStore();
   const profile = useProfileStore();
 
@@ -464,6 +465,15 @@ export default function GoalsPage() {
   // Ordered goals
   const sortedGoals = [...goals].sort((a, b) => a.order - b.order);
 
+  // Move goal up/down in priority
+  function moveGoal(idx: number, direction: "up" | "down") {
+    const arr = [...sortedGoals];
+    const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= arr.length) return;
+    [arr[idx], arr[swapIdx]] = [arr[swapIdx], arr[idx]];
+    reorderGoals(arr);
+  }
+
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
       <PageHeader
@@ -499,8 +509,9 @@ export default function GoalsPage() {
         ) : (
           <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
             {/* Header */}
-            <div className="grid grid-cols-[32px_1fr_auto_auto_32px] gap-2 px-3 py-2.5 bg-gray-50 border-b border-gray-100">
+            <div className="grid grid-cols-[28px_28px_1fr_auto_auto_32px] gap-1.5 px-3 py-2.5 bg-gray-50 border-b border-gray-100">
               <div className="text-[10px] font-bold text-gray-500 text-center">#</div>
+              <div className="text-[10px] font-bold text-gray-400 text-center">จัด</div>
               <div className="text-[10px] font-bold text-gray-500">เป้าหมาย</div>
               <div className="text-[10px] font-bold text-gray-500 text-right">เท่าไร</div>
               <div className="text-[10px] font-bold text-gray-500 text-right">เมื่อไร</div>
@@ -516,10 +527,28 @@ export default function GoalsPage() {
               return (
                 <div
                   key={g.id}
-                  className="grid grid-cols-[32px_1fr_auto_auto_32px] gap-2 px-3 py-3 border-b border-gray-50 last:border-b-0 items-center"
+                  className="grid grid-cols-[28px_28px_1fr_auto_auto_32px] gap-1.5 px-3 py-3 border-b border-gray-50 last:border-b-0 items-center"
                 >
                   {/* # */}
                   <div className="text-xs font-bold text-gray-400 text-center">{idx + 1}</div>
+
+                  {/* Sort up/down */}
+                  <div className="flex flex-col items-center gap-0">
+                    <button
+                      onClick={() => moveGoal(idx, "up")}
+                      disabled={idx === 0}
+                      className="p-0.5 rounded hover:bg-gray-100 disabled:opacity-20 transition"
+                    >
+                      <ChevronUp size={12} className="text-gray-500" />
+                    </button>
+                    <button
+                      onClick={() => moveGoal(idx, "down")}
+                      disabled={idx === sortedGoals.length - 1}
+                      className="p-0.5 rounded hover:bg-gray-100 disabled:opacity-20 transition"
+                    >
+                      <ChevronDown size={12} className="text-gray-500" />
+                    </button>
+                  </div>
 
                   {/* Name + icon */}
                   <div className="flex items-center gap-2 min-w-0">
