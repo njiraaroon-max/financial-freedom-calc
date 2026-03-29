@@ -101,11 +101,11 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
 
   return (
     <div className="mx-4 md:mx-8 mb-2">
-      {/* Floating keyframes */}
+      {/* Floating keyframes for Personal Info */}
       <style>{`
-        @keyframes float {
+        @keyframes floatCard {
           0%, 100% { transform: translate(-50%, -50%) translateY(0px); }
-          50% { transform: translate(-50%, -50%) translateY(-8px); }
+          50% { transform: translate(-50%, -50%) translateY(-6px); }
         }
       `}</style>
 
@@ -182,31 +182,24 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
             />
           </svg>
 
-          {/* Central content — floating */}
+          {/* Central content — static, image fills circle */}
           <Link
-            href="/calculators/personal-info"
-            className="absolute flex flex-col items-center justify-center text-center"
+            href="/summary"
+            className="absolute flex items-center justify-center hover:scale-105 transition-transform duration-200"
             style={{
               left: "50%",
               top: "50%",
               transform: "translate(-50%, -50%)",
-              width: "30%",
-              height: "30%",
+              width: "28%",
+              height: "28%",
               zIndex: 5,
-              animation: "float 3s ease-in-out infinite",
             }}
           >
             <img
               src="/circle-icons/summary.png"
               alt="Summary"
-              className="w-14 h-14 md:w-16 md:h-16 object-contain drop-shadow-md"
+              className="w-full h-full object-contain drop-shadow-md"
             />
-            <div className="text-[10px] md:text-[12px] font-bold text-[var(--color-primary)] leading-tight mt-1">
-              เริ่มต้นที่
-            </div>
-            <div className="text-[10px] md:text-[12px] font-bold text-[var(--color-primary)] leading-tight">
-              ข้อมูลส่วนตัว
-            </div>
           </Link>
 
           {/* Radial Cards — only selected modules */}
@@ -215,78 +208,87 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
             const angle = getAngleForIndex(originalIdx);
             const pos = getCardPos(angle);
             const Icon = piece.icon;
+            const isPersonalInfo = piece.name === "Personal Info";
 
             return (
-              <Link
+              <div
                 key={piece.name}
-                href={piece.href}
                 className="absolute group"
                 style={{
                   left: `${pos.x}%`,
                   top: `${pos.y}%`,
                   transform: "translate(-50%, -50%)",
-                  zIndex: 10,
+                  zIndex: isPersonalInfo ? 15 : 10,
+                  ...(isPersonalInfo ? { animation: "floatCard 3s ease-in-out infinite" } : {}),
                 }}
               >
-                <div className="flex flex-col items-center hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer">
-                  {/* Remove button */}
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      removeModule(piece.name);
-                    }}
-                    className="absolute -top-1 -right-1 w-4 h-4 bg-red-400 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
-                  >
-                    <X size={8} className="text-white" strokeWidth={3} />
-                  </button>
+                {/* "เริ่มต้น" label above Personal Info */}
+                {isPersonalInfo && (
+                  <div className="text-[9px] md:text-[11px] font-bold text-[var(--color-primary)] text-center mb-0.5 whitespace-nowrap">
+                    เริ่มต้น ▼
+                  </div>
+                )}
 
-                  {/* Circle icon with status ring */}
-                  <div className="relative">
-                    {piece.customIcon ? (
-                      <div
-                        className="w-14 h-14 md:w-[72px] md:h-[72px] rounded-full overflow-hidden shadow-lg"
-                        style={{
-                          border: `3px solid ${piece.ready ? piece.colorHex : "#d1d5db"}`,
-                          backgroundColor: "#f8fafc",
+                <Link href={piece.href}>
+                  <div className="flex flex-col items-center hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer">
+                    {/* Circle icon with status ring */}
+                    <div className="relative">
+                      {piece.customIcon ? (
+                        <div
+                          className="w-[60px] h-[60px] md:w-[80px] md:h-[80px] rounded-full overflow-hidden shadow-lg"
+                          style={{
+                            border: `3px solid ${piece.ready ? piece.colorHex : "#d1d5db"}`,
+                            backgroundColor: "#f8fafc",
+                          }}
+                        >
+                          <img
+                            src={piece.customIcon}
+                            alt={piece.name}
+                            className="w-full h-full object-contain"
+                            style={{ opacity: piece.ready ? 1 : 0.45 }}
+                          />
+                        </div>
+                      ) : (
+                        <div
+                          className="w-[60px] h-[60px] md:w-[80px] md:h-[80px] rounded-full flex items-center justify-center shadow-lg"
+                          style={{
+                            backgroundColor: piece.colorHex + "18",
+                            border: `3px solid ${piece.ready ? piece.colorHex : "#d1d5db"}`,
+                          }}
+                        >
+                          <Icon size={24} color={piece.ready ? piece.colorHex : "#9ca3af"} strokeWidth={1.8} />
+                        </div>
+                      )}
+                      {/* Status badge */}
+                      {piece.ready && (
+                        <div className="absolute -top-0.5 -right-0.5 w-4 h-4 md:w-5 md:h-5 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white">
+                          <Check size={8} className="text-white" strokeWidth={3} />
+                        </div>
+                      )}
+                      {/* Remove button — right side */}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          removeModule(piece.name);
                         }}
+                        className="absolute top-1/2 -right-2 -translate-y-1/2 w-4 h-4 bg-red-400 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
                       >
-                        <img
-                          src={piece.customIcon}
-                          alt={piece.name}
-                          className="w-full h-full object-contain p-0.5"
-                          style={{ opacity: piece.ready ? 1 : 0.45 }}
-                        />
-                      </div>
-                    ) : (
-                      <div
-                        className="w-14 h-14 md:w-[72px] md:h-[72px] rounded-full flex items-center justify-center shadow-lg"
-                        style={{
-                          backgroundColor: piece.colorHex + "18",
-                          border: `2.5px solid ${piece.ready ? piece.colorHex : "#d1d5db"}`,
-                        }}
-                      >
-                        <Icon size={20} color={piece.ready ? piece.colorHex : "#9ca3af"} strokeWidth={1.8} />
-                      </div>
-                    )}
-                    {/* Status badge */}
-                    {piece.ready && (
-                      <div className="absolute -top-0.5 -right-0.5 w-4 h-4 md:w-5 md:h-5 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white">
-                        <Check size={8} className="text-white" strokeWidth={3} />
-                      </div>
-                    )}
-                  </div>
+                        <X size={8} className="text-white" strokeWidth={3} />
+                      </button>
+                    </div>
 
-                  {/* Name */}
-                  <div className="text-[10px] md:text-[12px] font-bold text-gray-700 mt-1 text-center leading-tight whitespace-nowrap">
-                    {piece.name}
+                    {/* Name */}
+                    <div className="text-[10px] md:text-[12px] font-bold text-gray-700 mt-1 text-center leading-tight whitespace-nowrap">
+                      {piece.name}
+                    </div>
+                    {/* Description */}
+                    <div className="text-[8px] md:text-[10px] text-gray-400 text-center leading-tight whitespace-nowrap">
+                      {piece.description}
+                    </div>
                   </div>
-                  {/* Description */}
-                  <div className="text-[8px] md:text-[10px] text-gray-400 text-center leading-tight whitespace-nowrap">
-                    {piece.description}
-                  </div>
-                </div>
-              </Link>
+                </Link>
+              </div>
             );
           })}
         </div>
