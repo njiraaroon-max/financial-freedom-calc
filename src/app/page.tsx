@@ -159,7 +159,7 @@ export default function HomePage() {
       {/* Header */}
       <div className="px-4 md:px-8 pt-8 md:pt-6 pb-4 md:pb-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <img src="/character/home.png" alt="Financial Friend" className="w-14 h-14 md:w-16 md:h-16 object-contain" />
+          <img src="/character/icon-home.png" alt="Financial Friend" className="w-14 h-14 md:w-16 md:h-16 object-contain" />
           <div>
             <h1 className="text-lg font-bold">Financial Friend</h1>
             <p className="text-[10px] text-gray-400 mt-0.5">วางแผนการเงินแบบองค์รวม</p>
