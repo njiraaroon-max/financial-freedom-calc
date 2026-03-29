@@ -24,39 +24,45 @@ import ActionButton from "@/components/ActionButton";
 const CURRENT_YEAR_CE = new Date().getFullYear(); // 2026
 const CE_TO_BE = 543;
 
+// Navy blue palette (matches reference table)
+const NAVY       = "#1e3a6e"; // primary — headers, axis, dots
+const NAVY_MID   = "#6b8fbf"; // stems
+const NAVY_LIGHT = "#b8cfe8"; // arrow lines / yearly row
+const NAVY_PALE  = "#e2edf8"; // grid lines / bg tints
+
 function fmt(n: number): string {
   return Math.round(n).toLocaleString("th-TH");
 }
 
-// Icon map — all blue-600
+// Icon map — navy
 const ICON_MAP: Record<string, React.ReactNode> = {
-  ShieldAlert: <ShieldAlert size={20} className="text-blue-600" />,
-  HeartPulse:  <HeartPulse  size={20} className="text-blue-600" />,
-  Banknote:    <Banknote    size={20} className="text-blue-600" />,
-  Palmtree:    <Palmtree    size={20} className="text-blue-600" />,
-  Plane:       <Plane       size={20} className="text-blue-600" />,
-  Home:        <Home        size={20} className="text-blue-600" />,
-  Car:         <Car         size={20} className="text-blue-600" />,
-  Heart:       <Heart       size={20} className="text-blue-600" />,
-  GraduationCap: <GraduationCap size={20} className="text-blue-600" />,
-  Briefcase:   <Briefcase   size={20} className="text-blue-600" />,
-  Star:        <Star        size={20} className="text-blue-600" />,
-  PiggyBank:   <Banknote    size={20} className="text-blue-600" />,
+  ShieldAlert:   <ShieldAlert   size={20} style={{ color: NAVY }} />,
+  HeartPulse:    <HeartPulse    size={20} style={{ color: NAVY }} />,
+  Banknote:      <Banknote      size={20} style={{ color: NAVY }} />,
+  Palmtree:      <Palmtree      size={20} style={{ color: NAVY }} />,
+  Plane:         <Plane         size={20} style={{ color: NAVY }} />,
+  Home:          <Home          size={20} style={{ color: NAVY }} />,
+  Car:           <Car           size={20} style={{ color: NAVY }} />,
+  Heart:         <Heart         size={20} style={{ color: NAVY }} />,
+  GraduationCap: <GraduationCap size={20} style={{ color: NAVY }} />,
+  Briefcase:     <Briefcase     size={20} style={{ color: NAVY }} />,
+  Star:          <Star          size={20} style={{ color: NAVY }} />,
+  PiggyBank:     <Banknote      size={20} style={{ color: NAVY }} />,
 };
 
 const ICON_MAP_SM: Record<string, React.ReactNode> = {
-  ShieldAlert: <ShieldAlert size={16} className="text-blue-600" />,
-  HeartPulse:  <HeartPulse  size={16} className="text-blue-600" />,
-  Banknote:    <Banknote    size={16} className="text-blue-600" />,
-  Palmtree:    <Palmtree    size={16} className="text-blue-600" />,
-  Plane:       <Plane       size={16} className="text-blue-600" />,
-  Home:        <Home        size={16} className="text-blue-600" />,
-  Car:         <Car         size={16} className="text-blue-600" />,
-  Heart:       <Heart       size={16} className="text-blue-600" />,
-  GraduationCap: <GraduationCap size={16} className="text-blue-600" />,
-  Briefcase:   <Briefcase   size={16} className="text-blue-600" />,
-  Star:        <Star        size={16} className="text-blue-600" />,
-  PiggyBank:   <Banknote    size={16} className="text-blue-600" />,
+  ShieldAlert:   <ShieldAlert   size={16} style={{ color: NAVY }} />,
+  HeartPulse:    <HeartPulse    size={16} style={{ color: NAVY }} />,
+  Banknote:      <Banknote      size={16} style={{ color: NAVY }} />,
+  Palmtree:      <Palmtree      size={16} style={{ color: NAVY }} />,
+  Plane:         <Plane         size={16} style={{ color: NAVY }} />,
+  Home:          <Home          size={16} style={{ color: NAVY }} />,
+  Car:           <Car           size={16} style={{ color: NAVY }} />,
+  Heart:         <Heart         size={16} style={{ color: NAVY }} />,
+  GraduationCap: <GraduationCap size={16} style={{ color: NAVY }} />,
+  Briefcase:     <Briefcase     size={16} style={{ color: NAVY }} />,
+  Star:          <Star          size={16} style={{ color: NAVY }} />,
+  PiggyBank:     <Banknote      size={16} style={{ color: NAVY }} />,
 };
 
 function getPreset(category: GoalCategory): PresetGoal {
@@ -173,16 +179,16 @@ function GoalTimeline({
               position: "absolute", top: i * YEARLY_ROW_H + 2, left: L, right: R,
               display: "flex", alignItems: "center", gap: 5,
             }}>
-              {ICON_MAP_SM[preset.iconName] ?? <Star size={16} className="text-blue-600" />}
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#1d4ed8", whiteSpace: "nowrap" }}>
+              {ICON_MAP_SM[preset.iconName] ?? <Star size={16} className="text-[#1e3a6e]" />}
+              <span style={{ fontSize: 11, fontWeight: 700, color: NAVY, whiteSpace: "nowrap" }}>
                 {g.name}
               </span>
               {amt !== null && (
-                <span style={{ fontSize: 11, color: "#1e40af", whiteSpace: "nowrap" }}>
+                <span style={{ fontSize: 11, color: NAVY, whiteSpace: "nowrap" }}>
                   ฿{fmt(amt)}
                 </span>
               )}
-              <div style={{ flex: 1, height: 2, background: "#bfdbfe" }} />
+              <div style={{ flex: 1, height: 2, background: NAVY_LIGHT }} />
               <ArrowRight size={11} className="text-blue-300 flex-shrink-0" />
             </div>
           );
@@ -196,7 +202,7 @@ function GoalTimeline({
             top: yearlyAreaH,
             width: 1,
             height: goalsAreaH + 4,
-            background: "#dbeafe",
+            background: NAVY_PALE,
             zIndex: 0,
           }} />
         ))}
@@ -204,18 +210,18 @@ function GoalTimeline({
         {/* ── Axis line ── */}
         <div style={{
           position: "absolute", top: AXIS_Y, left: L,
-          width: drawW + 10, height: 2, background: "#1d4ed8", zIndex: 1,
+          width: drawW + 10, height: 2, background: NAVY, zIndex: 1,
         }} />
         <div style={{ position: "absolute", top: AXIS_Y - 5, right: R - 12, zIndex: 1 }}>
-          <ArrowRight size={12} className="text-blue-700" />
+          <ArrowRight size={12} className="text-[#1e3a6e]" />
         </div>
 
         {/* ── Age ticks + labels ── */}
         {ticks.map((age) => (
           <div key={age} style={{ position: "absolute", left: xOf(age), top: AXIS_Y, zIndex: 1 }}>
-            <div style={{ width: 1, height: 5, background: "#1d4ed8" }} />
+            <div style={{ width: 1, height: 5, background: NAVY }} />
             <div style={{
-              fontSize: 9, color: "#1e40af", fontWeight: 600,
+              fontSize: 9, color: NAVY, fontWeight: 600,
               transform: "translateX(-50%)", marginTop: 2, whiteSpace: "nowrap",
             }}>
               {age}
@@ -232,7 +238,7 @@ function GoalTimeline({
               position: "absolute",
               left: xOf(a.plotAge), top: stemTop,
               width: 1, height: AXIS_Y - stemTop,
-              background: "#93c5fd", zIndex: 1,
+              background: NAVY_MID, zIndex: 1,
             }} />
           );
         })}
@@ -243,7 +249,7 @@ function GoalTimeline({
             position: "absolute",
             left: xOf(a.plotAge) - 5, top: AXIS_Y - 5,
             width: 10, height: 10, borderRadius: "50%",
-            background: "#1d4ed8", zIndex: 3,
+            background: NAVY, zIndex: 3,
           }} />
         ))}
 
@@ -262,10 +268,10 @@ function GoalTimeline({
               alignItems: "center", justifyContent: "center", gap: 2,
               zIndex: 2,
             }}>
-              {ICON_MAP_SM[preset.iconName] ?? <Star size={16} className="text-blue-600" />}
+              {ICON_MAP_SM[preset.iconName] ?? <Star size={16} className="text-[#1e3a6e]" />}
               {amt !== null ? (
                 <div style={{
-                  fontSize: 9, fontWeight: 700, color: "#1d4ed8",
+                  fontSize: 9, fontWeight: 700, color: NAVY,
                   whiteSpace: "nowrap", textAlign: "center",
                 }}>
                   {fmtShort(amt)}
@@ -463,7 +469,7 @@ export default function GoalsPage() {
             </div>
             <div className="text-right">
               <div className="text-xs text-gray-500">มูลค่ารวม (ที่ทราบ)</div>
-              <div className="text-xl font-extrabold text-blue-600">฿{fmt(totalKnown)}</div>
+              <div className="text-xl font-extrabold text-[#1e3a6e]">฿{fmt(totalKnown)}</div>
             </div>
           </div>
         </div>
@@ -504,15 +510,15 @@ export default function GoalsPage() {
 
                   {/* Name + icon */}
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className="flex-shrink-0 w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center">
-                      {ICON_MAP_SM[preset.iconName] ?? <Star size={14} className="text-blue-600" />}
+                    <div className="flex-shrink-0 w-8 h-8 bg-[#e8f0f8] rounded-xl flex items-center justify-center">
+                      {ICON_MAP_SM[preset.iconName] ?? <Star size={14} className="text-[#1e3a6e]" />}
                     </div>
                     <div className="min-w-0">
                       <div className="text-xs font-bold text-gray-800 truncate">{g.name}</div>
                       {g.notes ? (
                         <div className="text-[10px] text-gray-400 truncate">{g.notes}</div>
                       ) : (
-                        ageStr && <div className="text-[10px] text-blue-400">{ageStr}</div>
+                        ageStr && <div className="text-[10px] text-[#7a9fc4]">{ageStr}</div>
                       )}
                     </div>
                   </div>
@@ -523,7 +529,7 @@ export default function GoalsPage() {
                       <div>
                         <div className="text-xs font-bold text-gray-800">฿{fmt(amt)}</div>
                         {fromLabel && (
-                          <div className="text-[9px] text-blue-500 whitespace-nowrap">จากแผนเกษียณ</div>
+                          <div className="text-[9px] text-[#1e3a6e] whitespace-nowrap">จากแผนเกษียณ</div>
                         )}
                       </div>
                     ) : (
@@ -565,7 +571,7 @@ export default function GoalsPage() {
       <div className="px-4 md:px-8 pt-3">
         <button
           onClick={openAdd}
-          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-dashed border-blue-300 text-blue-600 text-sm font-bold active:scale-[0.98] transition-all hover:bg-blue-50"
+          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-dashed border-[#7a9fc4] text-[#1e3a6e] text-sm font-bold active:scale-[0.98] transition-all hover:bg-[#e8f0f8]"
         >
           <Plus size={18} />
           เพิ่มเป้าหมาย
@@ -584,22 +590,62 @@ export default function GoalsPage() {
               variables={variables}
             />
 
-            {/* Legend */}
-            <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-3">
-              {sortedGoals.map((g) => {
+            {/* Summary Table */}
+            <div className="mt-4 overflow-hidden rounded-xl border border-gray-200">
+              {/* Header */}
+              <div
+                className="grid text-white text-[11px] font-bold"
+                style={{
+                  gridTemplateColumns: "36px 1fr 90px 90px 1fr",
+                  background: NAVY,
+                }}
+              >
+                <div className="py-2.5 text-center">ลำดับ</div>
+                <div className="py-2.5 px-2">อะไร</div>
+                <div className="py-2.5 text-center">เท่าไร</div>
+                <div className="py-2.5 text-center">เมื่อไร</div>
+                <div className="py-2.5 px-2">หมายเหตุ</div>
+              </div>
+
+              {/* Rows */}
+              {sortedGoals.map((g, idx) => {
                 const preset = getPreset(g.category);
                 const { value: amt } = resolveAmount(g);
+
+                // Format "เมื่อไร" detailed
+                let whenStr = "";
+                if (g.frequency === "immediate") {
+                  whenStr = "ทันที";
+                } else if (g.frequency === "yearly") {
+                  whenStr = "ทุกปี";
+                } else if (g.targetYear) {
+                  const yearsAway = g.targetYear - CURRENT_YEAR_CE;
+                  const ageAtGoal = currentAge + yearsAway;
+                  const yearBE = g.targetYear + CE_TO_BE;
+                  whenStr = `${yearsAway} ปี / ${ageAtGoal} / ${yearBE}`;
+                }
+
+                const isEven = idx % 2 === 1;
                 return (
-                  <div key={g.id} className="flex items-center gap-1.5">
-                    <div className="w-6 h-6 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                      {ICON_MAP_SM[preset.iconName] ?? <Star size={12} className="text-blue-600" />}
+                  <div
+                    key={g.id}
+                    className="grid items-center text-[11px]"
+                    style={{
+                      gridTemplateColumns: "36px 1fr 90px 90px 1fr",
+                      background: isEven ? NAVY_PALE : "#ffffff",
+                      borderTop: `1px solid #d4e4f5`,
+                    }}
+                  >
+                    <div className="py-2.5 text-center font-bold" style={{ color: NAVY }}>{idx + 1}</div>
+                    <div className="py-2.5 px-2 flex items-center gap-1.5">
+                      {ICON_MAP_SM[preset.iconName] ?? <Star size={14} style={{ color: NAVY }} />}
+                      <span className="font-semibold text-gray-800">{g.name}</span>
                     </div>
-                    <div>
-                      <div className="text-[10px] font-semibold text-gray-700">{g.name}</div>
-                      <div className="text-[9px] text-gray-400">
-                        {formatWhen(g)}{amt !== null ? ` • ฿${fmt(amt)}` : ""}
-                      </div>
+                    <div className="py-2.5 text-center font-bold text-gray-800">
+                      {amt !== null ? fmt(amt) : <span className="text-gray-400 font-normal text-[10px]">ไม่ทราบ</span>}
                     </div>
+                    <div className="py-2.5 text-center text-gray-700">{whenStr}</div>
+                    <div className="py-2.5 px-2 text-gray-500 text-[10px]">{g.notes || ""}</div>
                   </div>
                 );
               })}
@@ -638,7 +684,7 @@ export default function GoalsPage() {
                 {formStep === "fill" && (
                   <button
                     onClick={() => !editingId && setFormStep("pick")}
-                    className="text-[11px] text-blue-500 mt-0.5"
+                    className="text-[11px] text-[#1e3a6e] mt-0.5"
                   >
                     {!editingId && "← เลือกใหม่"}
                   </button>
@@ -665,16 +711,16 @@ export default function GoalsPage() {
                       <button
                         key={preset.category}
                         onClick={() => selectPreset(preset)}
-                        className="flex flex-col items-center gap-2 p-3 rounded-2xl border-2 border-gray-100 hover:border-blue-300 hover:bg-blue-50 active:scale-95 transition-all"
+                        className="flex flex-col items-center gap-2 p-3 rounded-2xl border-2 border-gray-100 hover:border-[#7a9fc4] hover:bg-[#e8f0f8] active:scale-95 transition-all"
                       >
-                        <div className="w-10 h-10 bg-blue-50 rounded-2xl flex items-center justify-center">
-                          {ICON_MAP[preset.iconName] ?? <Star size={20} className="text-blue-600" />}
+                        <div className="w-10 h-10 bg-[#e8f0f8] rounded-2xl flex items-center justify-center">
+                          {ICON_MAP[preset.iconName] ?? <Star size={20} className="text-[#1e3a6e]" />}
                         </div>
                         <div className="text-[11px] font-bold text-gray-700 text-center leading-tight">
                           {preset.name}
                         </div>
                         {resolvedAmt !== null && (
-                          <div className="text-[9px] text-blue-500 font-semibold">
+                          <div className="text-[9px] text-[#1e3a6e] font-semibold">
                             ฿{fmt(resolvedAmt)}
                           </div>
                         )}
@@ -688,13 +734,13 @@ export default function GoalsPage() {
               {formStep === "fill" && (
                 <div className="space-y-4">
                   {/* Selected category indicator */}
-                  <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-2xl">
+                  <div className="flex items-center gap-3 p-3 bg-[#e8f0f8] rounded-2xl">
                     <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                      {ICON_MAP[getPreset(form.category).iconName] ?? <Star size={20} className="text-blue-600" />}
+                      {ICON_MAP[getPreset(form.category).iconName] ?? <Star size={20} className="text-[#1e3a6e]" />}
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-blue-700">{getPreset(form.category).name}</div>
-                      <div className="text-[10px] text-blue-400">{getPreset(form.category).description}</div>
+                      <div className="text-xs font-bold text-[#1e3a6e]">{getPreset(form.category).name}</div>
+                      <div className="text-[10px] text-[#7a9fc4]">{getPreset(form.category).description}</div>
                     </div>
                   </div>
 
@@ -728,7 +774,7 @@ export default function GoalsPage() {
                       <label htmlFor="unknownAmount" className="text-xs text-gray-500">
                         ไม่ทราบจำนวน
                         {form.amountSourceKey && (
-                          <span className="ml-1 text-blue-500">(จะดึงค่าจากแผนอื่นอัตโนมัติ)</span>
+                          <span className="ml-1 text-[#1e3a6e]">(จะดึงค่าจากแผนอื่นอัตโนมัติ)</span>
                         )}
                       </label>
                     </div>
@@ -746,12 +792,12 @@ export default function GoalsPage() {
                       </div>
                     )}
                     {form.unknownAmount && form.amountSourceKey && variables[form.amountSourceKey] && (
-                      <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-xl">
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                        <span className="text-xs text-blue-600 font-semibold">
+                      <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-[#e8f0f8] rounded-xl">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#e8f0f8]0" />
+                        <span className="text-xs text-[#1e3a6e] font-semibold">
                           ค่าปัจจุบัน: ฿{fmt(variables[form.amountSourceKey].value)}
                         </span>
-                        <span className="text-[10px] text-blue-400">จากแผนเกษียณ</span>
+                        <span className="text-[10px] text-[#7a9fc4]">จากแผนเกษียณ</span>
                       </div>
                     )}
                   </div>
@@ -768,7 +814,7 @@ export default function GoalsPage() {
                           onClick={() => setForm({ ...form, frequency: f })}
                           className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
                             form.frequency === f
-                              ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
+                              ? "bg-[#1e3a6e] text-white shadow-lg shadow-[#b8cfe8]"
                               : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                           }`}
                         >
@@ -817,7 +863,7 @@ export default function GoalsPage() {
                   {/* Save */}
                   <button
                     onClick={handleSaveGoal}
-                    className="w-full py-4 rounded-2xl bg-blue-600 text-white text-sm font-extrabold flex items-center justify-center gap-2 shadow-lg shadow-blue-200 active:scale-[0.98] transition-all"
+                    className="w-full py-4 rounded-2xl bg-[#1e3a6e] text-white text-sm font-extrabold flex items-center justify-center gap-2 shadow-lg shadow-[#b8cfe8] active:scale-[0.98] transition-all"
                   >
                     <Save size={16} />
                     {editingId ? "บันทึกการแก้ไข" : "เพิ่มเป้าหมาย"}
