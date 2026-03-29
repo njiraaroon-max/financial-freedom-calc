@@ -60,7 +60,7 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
   const svgSize = 500;
   const svgCenter = svgSize / 2;
   const circleR = 80;
-  const ringR = svgSize * 0.36;
+  const ringR = svgSize * 0.44;
 
   // Central progress arc
   const arcR = circleR + 5;
@@ -84,8 +84,8 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
   function getCardPos(angleDeg: number) {
     const rad = (angleDeg - 90) * (Math.PI / 180);
     return {
-      x: 50 + 36 * Math.cos(rad),
-      y: 50 + 38 * Math.sin(rad),
+      x: 50 + 44 * Math.cos(rad),
+      y: 50 + 49 * Math.sin(rad),
     };
   }
 
@@ -102,7 +102,7 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
   return (
     <div className="mx-4 md:mx-8 mb-2">
       {/* Radial Container */}
-      <div className="relative w-full" style={{ paddingBottom: "90%", maxHeight: "550px" }}>
+      <div className="relative w-full" style={{ paddingBottom: "105%", maxHeight: "640px" }}>
         <div className="absolute inset-0">
           {/* SVG Layer — rings + central circle */}
           <svg
@@ -182,19 +182,22 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
               left: "50%",
               top: "50%",
               transform: "translate(-50%, -50%)",
-              width: "25%",
-              height: "25%",
+              width: "32%",
+              height: "29%",
               zIndex: 5,
             }}
           >
             <img
               src="/circle-icons/summary.png"
               alt="Summary"
-              className="w-10 h-10 md:w-12 md:h-12 object-contain mb-0.5"
+              className="w-full object-contain"
+              style={{ maxHeight: "65%" }}
             />
-            <div className="text-xl md:text-2xl font-black text-[var(--color-primary)]">{progress}%</div>
+            <div className="text-[9px] md:text-[11px] font-bold text-gray-600 leading-none mt-0.5">Summary</div>
+            <div className="text-[7px] md:text-[9px] text-gray-400 leading-none">สรุปแผนการเงิน</div>
+            <div className="text-lg md:text-xl font-black text-[var(--color-primary)] leading-tight">{progress}%</div>
             {selectedPieces.length > 0 && (
-              <div className="text-[7px] text-gray-400">{completedCount}/{selectedPieces.length} แผน</div>
+              <div className="text-[6px] md:text-[7px] text-gray-400">{completedCount}/{selectedPieces.length} แผน</div>
             )}
           </Link>
 
@@ -267,11 +270,11 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
                   </div>
 
                   {/* Name */}
-                  <div className="text-[8px] md:text-[10px] font-bold text-gray-700 mt-1 text-center leading-tight whitespace-nowrap">
+                  <div className="text-[10px] md:text-[12px] font-bold text-gray-700 mt-1 text-center leading-tight whitespace-nowrap">
                     {piece.name}
                   </div>
                   {/* Description */}
-                  <div className="text-[6px] md:text-[8px] text-gray-400 text-center leading-tight whitespace-nowrap">
+                  <div className="text-[8px] md:text-[10px] text-gray-400 text-center leading-tight whitespace-nowrap">
                     {piece.description}
                   </div>
                 </div>
