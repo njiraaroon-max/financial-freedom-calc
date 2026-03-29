@@ -123,16 +123,6 @@ const calculators = [
     ready: false,
   },
   {
-    name: "CF Projection",
-    description: "ประมาณการเงินสด",
-    icon: LineChart,
-    customIcon: "/circle-icons/cf-projection.png",
-    href: "/calculators/cf-projection",
-    color: "bg-sky-500",
-    colorHex: "#0ea5e9",
-    ready: false,
-  },
-  {
     name: "Education",
     description: "การศึกษาบุตร",
     icon: GraduationCap,
@@ -140,6 +130,16 @@ const calculators = [
     href: "/calculators/education",
     color: "bg-blue-500",
     colorHex: "#3b82f6",
+    ready: false,
+  },
+  {
+    name: "CF Projection",
+    description: "ประมาณการเงินสด",
+    icon: LineChart,
+    customIcon: "/circle-icons/cf-projection.png",
+    href: "/calculators/cf-projection",
+    color: "bg-sky-500",
+    colorHex: "#0ea5e9",
     ready: false,
   },
 ];
