@@ -23,7 +23,7 @@ import { useProfileStore } from "@/store/profile-store";
 
 const calculators = [
   {
-    name: "ข้อมูลส่วนตัว",
+    name: "Personal Info",
     description: "ข้อมูลส่วนตัว",
     icon: UserCircle,
     customIcon: "/circle-icons/profile.png",

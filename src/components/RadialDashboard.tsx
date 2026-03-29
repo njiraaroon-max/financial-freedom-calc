@@ -60,7 +60,7 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
   const svgSize = 500;
   const svgCenter = svgSize / 2;
   const circleR = 80;
-  const ringR = svgSize * 0.44;
+  const ringR = svgSize * 0.32;
 
   // Central progress arc
   const arcR = circleR + 5;
@@ -80,12 +80,12 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
     };
   }
 
-  // Card position as percentage
+  // Card position as percentage — closer to inner circle
   function getCardPos(angleDeg: number) {
     const rad = (angleDeg - 90) * (Math.PI / 180);
     return {
-      x: 50 + 44 * Math.cos(rad),
-      y: 50 + 49 * Math.sin(rad),
+      x: 50 + 32 * Math.cos(rad),
+      y: 50 + 36 * Math.sin(rad),
     };
   }
 
@@ -101,8 +101,16 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
 
   return (
     <div className="mx-4 md:mx-8 mb-2">
+      {/* Floating keyframes */}
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translate(-50%, -50%) translateY(0px); }
+          50% { transform: translate(-50%, -50%) translateY(-8px); }
+        }
+      `}</style>
+
       {/* Radial Container */}
-      <div className="relative w-full" style={{ paddingBottom: "105%", maxHeight: "640px" }}>
+      <div className="relative w-full" style={{ paddingBottom: "90%", maxHeight: "560px" }}>
         <div className="absolute inset-0">
           {/* SVG Layer — rings + central circle */}
           <svg
@@ -174,31 +182,31 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
             />
           </svg>
 
-          {/* Central content */}
+          {/* Central content — floating */}
           <Link
-            href="/summary"
-            className="absolute flex flex-col items-center justify-center text-center hover:scale-105 transition-transform duration-200"
+            href="/calculators/personal-info"
+            className="absolute flex flex-col items-center justify-center text-center"
             style={{
               left: "50%",
               top: "50%",
               transform: "translate(-50%, -50%)",
-              width: "32%",
-              height: "29%",
+              width: "30%",
+              height: "30%",
               zIndex: 5,
+              animation: "float 3s ease-in-out infinite",
             }}
           >
             <img
               src="/circle-icons/summary.png"
               alt="Summary"
-              className="w-full object-contain"
-              style={{ maxHeight: "65%" }}
+              className="w-14 h-14 md:w-16 md:h-16 object-contain drop-shadow-md"
             />
-            <div className="text-[9px] md:text-[11px] font-bold text-gray-600 leading-none mt-0.5">Summary</div>
-            <div className="text-[7px] md:text-[9px] text-gray-400 leading-none">สรุปแผนการเงิน</div>
-            <div className="text-lg md:text-xl font-black text-[var(--color-primary)] leading-tight">{progress}%</div>
-            {selectedPieces.length > 0 && (
-              <div className="text-[6px] md:text-[7px] text-gray-400">{completedCount}/{selectedPieces.length} แผน</div>
-            )}
+            <div className="text-[10px] md:text-[12px] font-bold text-[var(--color-primary)] leading-tight mt-1">
+              เริ่มต้นที่
+            </div>
+            <div className="text-[10px] md:text-[12px] font-bold text-[var(--color-primary)] leading-tight">
+              ข้อมูลส่วนตัว
+            </div>
           </Link>
 
           {/* Radial Cards — only selected modules */}
@@ -237,9 +245,9 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
                   <div className="relative">
                     {piece.customIcon ? (
                       <div
-                        className="w-12 h-12 md:w-16 md:h-16 rounded-full overflow-hidden shadow-md"
+                        className="w-14 h-14 md:w-[72px] md:h-[72px] rounded-full overflow-hidden shadow-lg"
                         style={{
-                          border: `2.5px solid ${piece.ready ? piece.colorHex : "#d1d5db"}`,
+                          border: `3px solid ${piece.ready ? piece.colorHex : "#d1d5db"}`,
                           backgroundColor: "#f8fafc",
                         }}
                       >
@@ -252,7 +260,7 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
                       </div>
                     ) : (
                       <div
-                        className="w-11 h-11 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-md"
+                        className="w-14 h-14 md:w-[72px] md:h-[72px] rounded-full flex items-center justify-center shadow-lg"
                         style={{
                           backgroundColor: piece.colorHex + "18",
                           border: `2.5px solid ${piece.ready ? piece.colorHex : "#d1d5db"}`,
