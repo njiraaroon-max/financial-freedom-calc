@@ -114,7 +114,7 @@ const calculators = [
   },
   {
     name: "Investment",
-    description: "ลงทุน DCA",
+    description: "ลงทุนเพื่อเป้าหมาย",
     icon: TrendingUp,
     customIcon: "/circle-icons/investment.png",
     href: "/calculators/investment",
