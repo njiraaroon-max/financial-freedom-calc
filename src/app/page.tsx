@@ -30,7 +30,7 @@ const calculators = [
     href: "/calculators/personal-info",
     color: "bg-rose-500",
     colorHex: "#f43f5e",
-    ready: false,
+    ready: true, // dynamically set below
   },
   {
     name: "Goals",
@@ -147,6 +147,12 @@ const calculators = [
 export default function HomePage() {
   const profile = useProfileStore();
   const firstName = profile.name ? profile.name.split(" ")[0] : "";
+  const profileReady = !!(profile.name && profile.birthDate);
+
+  // Override ready for Personal Info dynamically
+  const piecesWithDynamic = calculators.map((c) =>
+    c.name === "Personal Info" ? { ...c, ready: profileReady } : c
+  );
 
   return (
     <div className="min-h-dvh bg-[var(--color-bg)]">
@@ -164,17 +170,17 @@ export default function HomePage() {
             <Users size={22} className="text-gray-500" />
             <span className="text-[9px] text-gray-500 font-medium">Users</span>
           </Link>
-          <Link href="/profile" className="flex flex-col items-center gap-0.5 p-2 rounded-xl hover:bg-gray-100 transition">
+          <div className="flex flex-col items-center gap-0.5 p-2">
             <UserCircle size={26} className="text-[var(--color-primary)]" />
             <span className="text-[10px] text-[var(--color-primary)] font-bold">
-              {firstName ? `คุณ${firstName}` : "Profile"}
+              {firstName ? `คุณ${firstName}` : ""}
             </span>
-          </Link>
+          </div>
         </div>
       </div>
 
       {/* Radial Dashboard — central circle + radial cards + bottom tabs */}
-      <RadialDashboard pieces={calculators} />
+      <RadialDashboard pieces={piecesWithDynamic} />
     </div>
   );
 }
