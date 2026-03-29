@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Save, Download } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import PageHeader from "@/components/PageHeader";
@@ -63,6 +63,17 @@ export default function AssumptionsPage() {
   const profile = useProfileStore();
   const a = store.assumptions;
   const [hasSaved, setHasSaved] = useState(false);
+
+  // Auto-sync age & retireAge from profile on mount
+  useEffect(() => {
+    const profileAge = profile.getAge();
+    if (profileAge > 0 && profileAge !== a.currentAge) {
+      store.updateAssumption("currentAge", profileAge);
+    }
+    if (profile.retireAge && profile.retireAge !== a.retireAge) {
+      store.updateAssumption("retireAge", profile.retireAge);
+    }
+  }, [profile.birthDate, profile.retireAge]);
 
   const yearsToRetire = Math.max(a.retireAge - a.currentAge, 0);
   const yearsAfterRetire = Math.max(a.lifeExpectancy - a.retireAge, 0);
