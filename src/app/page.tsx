@@ -94,13 +94,13 @@ const calculators = [
   },
   {
     name: "Risk Mgmt",
-    description: "ความคุ้มครอง",
+    description: "จัดการความเสี่ยง",
     icon: Shield,
     customIcon: "/circle-icons/risk-management.png",
     href: "/calculators/insurance",
     color: "bg-emerald-500",
     colorHex: "#10b981",
-    ready: false,
+    ready: true,
   },
   {
     name: "Debt",
