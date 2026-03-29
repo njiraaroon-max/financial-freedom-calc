@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import {
   Plus, Save, Pencil, Trash2, X,
   ShieldAlert, HeartPulse, Banknote, Palmtree,
@@ -67,7 +67,7 @@ function getPreset(category: GoalCategory): PresetGoal {
 
 function fmtShort(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 100_000) return `${Math.round(n / 1000)}K`;
+  if (n >= 100_000)   return `${Math.round(n / 1000)}K`;
   return Math.round(n).toLocaleString("th-TH");
 }
 
@@ -82,6 +82,19 @@ function GoalTimeline({
   retireAge: number;
   variables: Record<string, { value: number; label: string }>;
 }) {
+  // Measure container width so timeline fits without scrolling
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(320);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    setContainerWidth(el.offsetWidth);
+    const ro = new ResizeObserver((e) => setContainerWidth(e[0].contentRect.width));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   if (goals.length === 0) return null;
 
   function resolveAmt(g: GoalItem): number | null {
@@ -91,7 +104,7 @@ function GoalTimeline({
     return null;
   }
 
-  // Separate yearly vs positioned goals
+  // Separate yearly vs positioned
   const yearlyGoals = goals.filter((g) => g.frequency === "yearly");
   const positioned  = goals.filter((g) => g.frequency !== "yearly");
 
@@ -99,86 +112,67 @@ function GoalTimeline({
   const withAge = positioned.map((g) => ({
     ...g,
     plotAge:
-      g.frequency === "immediate"
-        ? currentAge
-        : g.targetYear
-        ? currentAge + (g.targetYear - CURRENT_YEAR_CE)
-        : currentAge,
+      g.frequency === "immediate" ? currentAge
+      : g.targetYear ? currentAge + (g.targetYear - CURRENT_YEAR_CE)
+      : currentAge,
   }));
   withAge.sort((a, b) => a.plotAge - b.plotAge);
 
-  // Assign side (above/below) and level per goal, alternating within same age
-  type Side = "above" | "below";
-  const slotCount: Record<number, { above: number; below: number }> = {};
+  // All goals go ABOVE the axis — stacked by level within same age
+  const slotCount: Record<number, number> = {};
   const assignments = withAge.map((g) => {
-    const age = g.plotAge;
-    if (!slotCount[age]) slotCount[age] = { above: 0, below: 0 };
-    const total = slotCount[age].above + slotCount[age].below;
-    const side: Side = total % 2 === 0 ? "above" : "below";
-    const level = slotCount[age][side];
-    slotCount[age][side]++;
-    return { ...g, side, level };
+    if (!slotCount[g.plotAge]) slotCount[g.plotAge] = 0;
+    const level = slotCount[g.plotAge]++;
+    return { ...g, level };
   });
 
-  const maxAbove = assignments
-    .filter((a) => a.side === "above")
-    .reduce((m, a) => Math.max(m, a.level + 1), 0);
-  const maxBelow = assignments
-    .filter((a) => a.side === "below")
-    .reduce((m, a) => Math.max(m, a.level + 1), 0);
+  const maxLevel = assignments.reduce((m, a) => Math.max(m, a.level + 1), 0);
 
-  // Geometry
-  const YEARLY_ROW_H = 28;
-  const LABEL_H      = 38; // icon(16) + gap(4) + text(14) + pad(4)
-  const STEM_H       = 14; // stem height for level-0
-  const LEVEL_H      = LABEL_H + STEM_H; // 52px per level
-  const TICK_H       = 22; // tick(6) + gap(2) + text(14)
+  // ── Geometry ──
+  const YEARLY_ROW_H = 26;
+  const LABEL_H      = 36; // icon(16) + gap(4) + amount(12) + pad(4)
+  const STEM_H       = 8;
+  const LEVEL_H      = LABEL_H + STEM_H; // 44px per level
 
-  const yearlyAreaH  = yearlyGoals.length > 0 ? yearlyGoals.length * YEARLY_ROW_H + 8 : 0;
-  const AXIS_Y       = yearlyAreaH + maxAbove * LEVEL_H + 6;
-  const totalH       = AXIS_Y + 2 + TICK_H + maxBelow * LEVEL_H + (maxBelow > 0 ? 16 : 8);
+  const yearlyAreaH = yearlyGoals.length > 0 ? yearlyGoals.length * YEARLY_ROW_H + 6 : 0;
+  const goalsAreaH  = Math.max(maxLevel * LEVEL_H, maxLevel > 0 ? 44 : 0);
+  const AXIS_Y      = yearlyAreaH + goalsAreaH + 4;
+  const TICK_H      = 20;
+  const totalH      = AXIS_Y + 2 + TICK_H + 8;
 
-  // Width
-  const minAge   = currentAge;
-  const maxAge   = Math.max(retireAge, ...withAge.map((g) => g.plotAge), currentAge + 1);
+  // ── Width: fit container, no scrolling ──
+  const L = 20, R = 20;
+  const drawW  = Math.max(containerWidth - L - R, 1);
+  const minAge = currentAge;
+  const maxAge = Math.max(retireAge, ...assignments.map((a) => a.plotAge), currentAge + 1);
   const ageRange = maxAge - minAge;
-  const PX_PER_YEAR = Math.max(56, 320 / Math.max(ageRange, 1));
-  const L = 28, R = 32;
-  const totalW = Math.max(420, ageRange * PX_PER_YEAR + L + R);
 
   function xOf(age: number) {
     if (ageRange === 0) return L;
-    return L + ((age - minAge) / ageRange) * (totalW - L - R);
+    return L + ((age - minAge) / ageRange) * drawW;
   }
 
-  // Label top Y
-  function labelTopY(side: Side, level: number) {
-    if (side === "above") return AXIS_Y - (level + 1) * LEVEL_H;
-    return AXIS_Y + 2 + TICK_H + level * LEVEL_H + 2;
-  }
-
-  // Stem bounds (above only — connects label bottom to axis)
-  function stemBounds(level: number) {
-    return { top: labelTopY("above", level) + LABEL_H + 2, bottom: AXIS_Y };
+  // Label top Y — level 0 is closest to axis
+  function labelTopY(level: number) {
+    return AXIS_Y - (level + 1) * LEVEL_H;
   }
 
   const ticks: number[] = [];
   for (let age = minAge; age <= maxAge; age++) ticks.push(age);
 
   return (
-    <div className="overflow-x-auto">
-      <div style={{ position: "relative", width: totalW, minWidth: totalW, height: totalH }}>
+    <div ref={containerRef} style={{ width: "100%" }}>
+      <div style={{ position: "relative", width: containerWidth, height: totalH }}>
 
-        {/* ── Yearly goal rows (own section at top) ── */}
+        {/* ── Yearly goal rows (top section) ── */}
         {yearlyGoals.map((g, i) => {
           const preset = getPreset(g.category);
           const amt = resolveAmt(g);
           return (
-            <div
-              key={g.id}
-              style={{ position: "absolute", top: i * YEARLY_ROW_H + 2, left: L, right: R,
-                       display: "flex", alignItems: "center", gap: 5 }}
-            >
+            <div key={g.id} style={{
+              position: "absolute", top: i * YEARLY_ROW_H + 2, left: L, right: R,
+              display: "flex", alignItems: "center", gap: 5,
+            }}>
               {ICON_MAP_SM[preset.iconName] ?? <Star size={16} className="text-blue-600" />}
               <span style={{ fontSize: 11, fontWeight: 700, color: "#1d4ed8", whiteSpace: "nowrap" }}>
                 {g.name}
@@ -194,64 +188,90 @@ function GoalTimeline({
           );
         })}
 
+        {/* ── Vertical grid lines at each age (behind everything) ── */}
+        {ticks.map((age) => (
+          <div key={`vl-${age}`} style={{
+            position: "absolute",
+            left: xOf(age),
+            top: yearlyAreaH,
+            width: 1,
+            height: goalsAreaH + 4,
+            background: "#dbeafe",
+            zIndex: 0,
+          }} />
+        ))}
+
         {/* ── Axis line ── */}
-        <div style={{ position: "absolute", top: AXIS_Y, left: L,
-                      width: totalW - L - R + 12, height: 2, background: "#1d4ed8" }} />
-        <div style={{ position: "absolute", top: AXIS_Y - 5, right: R - 14 }}>
+        <div style={{
+          position: "absolute", top: AXIS_Y, left: L,
+          width: drawW + 10, height: 2, background: "#1d4ed8", zIndex: 1,
+        }} />
+        <div style={{ position: "absolute", top: AXIS_Y - 5, right: R - 12, zIndex: 1 }}>
           <ArrowRight size={12} className="text-blue-700" />
         </div>
 
-        {/* ── Age ticks ── */}
-        {ticks.map((age) => {
-          const x = xOf(age);
-          return (
-            <div key={age} style={{ position: "absolute", left: x, top: AXIS_Y }}>
-              <div style={{ width: 1, height: 6, background: "#1d4ed8" }} />
-              <div style={{ fontSize: 10, color: "#1e40af", fontWeight: 600,
-                            transform: "translateX(-50%)", marginTop: 2, whiteSpace: "nowrap" }}>
-                {age}
-              </div>
+        {/* ── Age ticks + labels ── */}
+        {ticks.map((age) => (
+          <div key={age} style={{ position: "absolute", left: xOf(age), top: AXIS_Y, zIndex: 1 }}>
+            <div style={{ width: 1, height: 5, background: "#1d4ed8" }} />
+            <div style={{
+              fontSize: 9, color: "#1e40af", fontWeight: 600,
+              transform: "translateX(-50%)", marginTop: 2, whiteSpace: "nowrap",
+            }}>
+              {age}
             </div>
-          );
-        })}
+          </div>
+        ))}
 
-        {/* ── Stems (above goals only) ── */}
-        {assignments.filter((a) => a.side === "above").map((a) => {
-          const { top, bottom } = stemBounds(a.level);
+        {/* ── Stems (label bottom → axis) ── */}
+        {assignments.map((a) => {
+          const lt = labelTopY(a.level);
+          const stemTop = lt + LABEL_H + 2;
           return (
-            <div key={`stem-${a.id}`} style={{ position: "absolute", left: xOf(a.plotAge),
-                  top, width: 1, height: bottom - top, background: "#93c5fd" }} />
+            <div key={`stem-${a.id}`} style={{
+              position: "absolute",
+              left: xOf(a.plotAge), top: stemTop,
+              width: 1, height: AXIS_Y - stemTop,
+              background: "#93c5fd", zIndex: 1,
+            }} />
           );
         })}
 
         {/* ── Dots on axis ── */}
         {assignments.map((a) => (
-          <div key={`dot-${a.id}`} style={{ position: "absolute",
-                left: xOf(a.plotAge) - 5, top: AXIS_Y - 5,
-                width: 10, height: 10, borderRadius: "50%",
-                background: "#1d4ed8", zIndex: 2 }} />
+          <div key={`dot-${a.id}`} style={{
+            position: "absolute",
+            left: xOf(a.plotAge) - 5, top: AXIS_Y - 5,
+            width: 10, height: 10, borderRadius: "50%",
+            background: "#1d4ed8", zIndex: 3,
+          }} />
         ))}
 
-        {/* ── Labels ── */}
+        {/* ── Labels (all above axis) ── */}
         {assignments.map((a) => {
           const preset = getPreset(a.category);
-          const amt = resolveAmt(a);
-          const lt  = labelTopY(a.side, a.level);
+          const amt    = resolveAmt(a);
+          const lt     = labelTopY(a.level);
           return (
-            <div key={`lbl-${a.id}`} style={{ position: "absolute",
-                  left: xOf(a.plotAge), top: lt,
-                  transform: "translateX(-50%)",
-                  width: 64, height: LABEL_H,
-                  display: "flex", flexDirection: "column",
-                  alignItems: "center", justifyContent: "center", gap: 2 }}>
+            <div key={`lbl-${a.id}`} style={{
+              position: "absolute",
+              left: xOf(a.plotAge), top: lt,
+              transform: "translateX(-50%)",
+              width: 52, height: LABEL_H,
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center", gap: 2,
+              zIndex: 2,
+            }}>
               {ICON_MAP_SM[preset.iconName] ?? <Star size={16} className="text-blue-600" />}
               {amt !== null ? (
-                <div style={{ fontSize: 10, fontWeight: 700, color: "#1d4ed8",
-                              whiteSpace: "nowrap", textAlign: "center" }}>
+                <div style={{
+                  fontSize: 9, fontWeight: 700, color: "#1d4ed8",
+                  whiteSpace: "nowrap", textAlign: "center",
+                }}>
                   {fmtShort(amt)}
                 </div>
               ) : (
-                <div style={{ fontSize: 9, color: "#9ca3af" }}>ไม่ทราบ</div>
+                <div style={{ fontSize: 8, color: "#9ca3af" }}>ไม่ทราบ</div>
               )}
             </div>
           );
