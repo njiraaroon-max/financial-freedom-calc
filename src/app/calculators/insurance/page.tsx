@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FileText, Shield, BarChart3, Check } from "lucide-react";
+import { FileText, Shield, BarChart3, Check, Table2 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { useInsuranceStore } from "@/store/insurance-store";
 
@@ -29,6 +29,14 @@ const steps = [
     title: "สรุปภาพรวมการบริหารความเสี่ยง",
     subtitle: "Risk Overview",
     description: "วิเคราะห์ช่องว่างและเปรียบเทียบเบี้ยประกัน",
+  },
+  {
+    key: "summary",
+    href: "/calculators/insurance/summary",
+    icon: Table2,
+    title: "ตารางสรุปกรมธรรม์",
+    subtitle: "Policy Summary",
+    description: "Gantt chart, สิทธิลดหย่อนภาษี, ทุนคุ้มครองตามอายุ",
   },
 ];
 
