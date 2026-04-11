@@ -111,9 +111,11 @@ const defaultForm = (): FormState => ({
 function GanttChart({
   policies,
   birthYear,
+  currentAge,
 }: {
   policies: InsurancePolicy[];
   birthYear: number;
+  currentAge: number;
 }) {
   if (policies.length === 0) return null;
 
@@ -125,12 +127,12 @@ function GanttChart({
   const maxYear = Math.max(...allEnds, CURRENT_YEAR + 5) + 2;
   const totalYears = maxYear - minYear;
 
-  const labelW = 160;
-  const chartW = 600;
-  const rowH = 44;
-  const padT = 40;
+  const labelW = 180;
+  const chartW = 700;
+  const rowH = 52;
+  const padT = 50;
   const svgW = labelW + chartW + 20;
-  const svgH = padT + sorted.length * rowH + 30;
+  const svgH = padT + sorted.length * rowH + 55;
 
   const xPos = (year: number) => labelW + ((year - minYear) / totalYears) * chartW;
   const currentX = xPos(CURRENT_YEAR);
@@ -141,70 +143,74 @@ function GanttChart({
     ticks.push(y);
   }
 
+  const barsEndY = padT + sorted.length * rowH;
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 overflow-x-auto">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold text-gray-800">
-          Gantt Chart Timeline ({minYear + BE_OFFSET} - {maxYear + BE_OFFSET})
+    <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6 overflow-x-auto">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base font-bold text-gray-800">
+          การชำระเบี้ย / ระยะเวลาการคุ้มครอง
         </h3>
-        <div className="flex items-center gap-4 text-[10px] text-gray-500">
-          <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-sm" style={{ background: NAVY }} />
+        <div className="flex items-center gap-5 text-xs text-gray-600">
+          <span className="flex items-center gap-1.5">
+            <span className="w-4 h-3 rounded-sm" style={{ background: NAVY }} />
             ช่วงจ่ายเบี้ย
           </span>
-          <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-sm" style={{ background: COVERAGE_LIGHT }} />
+          <span className="flex items-center gap-1.5">
+            <span className="w-4 h-3 rounded-sm border" style={{ background: COVERAGE_LIGHT, borderColor: NAVY }} />
             คุ้มครองต่อ
           </span>
         </div>
       </div>
 
       <svg width={svgW} height={svgH} className="block" style={{ minWidth: svgW }}>
+        {/* Grid lines */}
         {ticks.map((y) => (
           <g key={y}>
-            <line x1={xPos(y)} y1={padT - 5} x2={xPos(y)} y2={svgH - 10} stroke="#e5e7eb" strokeWidth="1" />
-            <text x={xPos(y)} y={svgH - 2} textAnchor="middle" className="fill-gray-400" fontSize="9">
-              {y + BE_OFFSET}
-            </text>
+            <line x1={xPos(y)} y1={padT - 5} x2={xPos(y)} y2={barsEndY + 5} stroke="#e5e7eb" strokeWidth="1" />
           </g>
         ))}
 
-        <line x1={currentX} y1={0} x2={currentX} y2={svgH - 15} stroke="#ef4444" strokeWidth="1.5" strokeDasharray="4,3" />
-        <text x={currentX} y={12} textAnchor="middle" className="fill-red-500" fontSize="9" fontWeight="bold">
+        {/* Current year line */}
+        <line x1={currentX} y1={0} x2={currentX} y2={barsEndY + 5} stroke="#ef4444" strokeWidth="2" strokeDasharray="5,4" />
+        <text x={currentX} y={16} textAnchor="middle" className="fill-red-500" fontSize="11" fontWeight="bold">
           ปัจจุบัน {CURRENT_YEAR + BE_OFFSET}
         </text>
 
+        {/* Policy bars */}
         {sorted.map((p, i) => {
-          const y0 = padT + i * rowH + 8;
-          const barH = 26;
+          const y0 = padT + i * rowH + 10;
+          const barH = 32;
           const startY = getStartYear(p);
           const payEnd = getPaymentEndYear(p);
           const covEnd = getCoverageEndYear(p, birthYear);
-          const colors = TYPE_COLORS[p.policyType] || TYPE_COLORS.other;
 
           return (
             <g key={p.id}>
-              <text x={labelW - 8} y={y0 + barH / 2 + 1} textAnchor="end" dominantBaseline="middle" fontSize="10" className="fill-gray-700" fontWeight="600">
-                {p.planName.length > 20 ? p.planName.slice(0, 18) + "…" : p.planName}
+              {/* Label */}
+              <text x={labelW - 10} y={y0 + barH / 2 - 2} textAnchor="end" dominantBaseline="middle" fontSize="12" className="fill-gray-800" fontWeight="700">
+                {p.planName.length > 18 ? p.planName.slice(0, 16) + "…" : p.planName}
               </text>
               {p.paymentYears > 0 && (
-                <text x={labelW - 8} y={y0 + barH / 2 + 12} textAnchor="end" fontSize="7" className="fill-gray-400">
+                <text x={labelW - 10} y={y0 + barH / 2 + 13} textAnchor="end" fontSize="9" className="fill-gray-400">
                   จ่าย {p.paymentYears} ปี
                 </text>
               )}
 
-              <rect x={xPos(startY)} y={y0} width={Math.max(xPos(payEnd) - xPos(startY), 2)} height={barH} rx={4} fill={colors.premium} />
-              {xPos(payEnd) - xPos(startY) > 50 && (
-                <text x={(xPos(startY) + xPos(payEnd)) / 2} y={y0 + barH / 2 + 1} textAnchor="middle" dominantBaseline="middle" fontSize="8" fill="white" fontWeight="bold">
+              {/* Premium bar (dark navy) */}
+              <rect x={xPos(startY)} y={y0} width={Math.max(xPos(payEnd) - xPos(startY), 3)} height={barH} rx={5} fill={NAVY} />
+              {xPos(payEnd) - xPos(startY) > 60 && (
+                <text x={(xPos(startY) + xPos(payEnd)) / 2} y={y0 + barH / 2 + 1} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="white" fontWeight="bold">
                   {startY + BE_OFFSET}-{payEnd + BE_OFFSET}
                 </text>
               )}
 
+              {/* Coverage bar (light blue with navy border) */}
               {covEnd > payEnd && (
                 <>
-                  <rect x={xPos(payEnd)} y={y0} width={Math.max(xPos(covEnd) - xPos(payEnd), 2)} height={barH} rx={4} fill={colors.coverage} stroke={colors.premium} strokeWidth="1" />
-                  {xPos(covEnd) - xPos(payEnd) > 50 && (
-                    <text x={(xPos(payEnd) + xPos(covEnd)) / 2} y={y0 + barH / 2 + 1} textAnchor="middle" dominantBaseline="middle" fontSize="8" fill={colors.text} fontWeight="600">
+                  <rect x={xPos(payEnd)} y={y0} width={Math.max(xPos(covEnd) - xPos(payEnd), 3)} height={barH} rx={5} fill={COVERAGE_LIGHT} stroke={NAVY} strokeWidth="1.5" />
+                  {xPos(covEnd) - xPos(payEnd) > 60 && (
+                    <text x={(xPos(payEnd) + xPos(covEnd)) / 2} y={y0 + barH / 2 + 1} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill={NAVY} fontWeight="700">
                       {payEnd + BE_OFFSET}-{covEnd + BE_OFFSET}
                     </text>
                   )}
@@ -213,15 +219,37 @@ function GanttChart({
             </g>
           );
         })}
+
+        {/* X-axis: Year (พ.ศ.) */}
+        {ticks.map((y) => (
+          <text key={`yr-${y}`} x={xPos(y)} y={barsEndY + 20} textAnchor="middle" className="fill-gray-500" fontSize="10" fontWeight="600">
+            {y + BE_OFFSET}
+          </text>
+        ))}
+
+        {/* X-axis: Age */}
+        {ticks.map((y) => {
+          const age = y - birthYear;
+          if (age < 0 || age > 120) return null;
+          return (
+            <text key={`age-${y}`} x={xPos(y)} y={barsEndY + 36} textAnchor="middle" className="fill-blue-400" fontSize="9">
+              ({age} ปี)
+            </text>
+          );
+        })}
+
+        {/* Axis labels */}
+        <text x={labelW - 10} y={barsEndY + 20} textAnchor="end" className="fill-gray-400" fontSize="9">พ.ศ.</text>
+        <text x={labelW - 10} y={barsEndY + 36} textAnchor="end" className="fill-blue-400" fontSize="9">อายุ</text>
       </svg>
     </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// STEP LINE CHART
+// STEP LINE CHART — รวมทุนชีวิตตามช่วงอายุ
 // ═══════════════════════════════════════════════════════════════════════════════
-function StepLineChart({ policies, birthYear }: { policies: InsurancePolicy[]; birthYear: number }) {
+function StepLineChart({ policies, birthYear, currentAge }: { policies: InsurancePolicy[]; birthYear: number; currentAge: number }) {
   const data = useMemo(() => {
     if (policies.length === 0) return [];
     const allStarts = policies.map(getStartYear);
@@ -229,22 +257,22 @@ function StepLineChart({ policies, birthYear }: { policies: InsurancePolicy[]; b
     const minY = Math.min(...allStarts, CURRENT_YEAR);
     const maxY = Math.max(...allEnds) + 1;
 
-    const points: { year: number; total: number }[] = [];
+    const points: { year: number; age: number; total: number }[] = [];
     for (let y = minY; y <= maxY; y++) {
       const total = policies.reduce((sum, p) => {
         const start = getStartYear(p);
         const end = getCoverageEndYear(p, birthYear);
         return sum + (y >= start && y < end ? p.sumInsured : 0);
       }, 0);
-      points.push({ year: y, total });
+      points.push({ year: y, age: y - birthYear, total });
     }
     return points;
   }, [policies, birthYear]);
 
   if (data.length === 0) return null;
 
-  const W = 400, H = 180;
-  const padL = 60, padR = 15, padT = 15, padB = 25;
+  const W = 600, H = 240;
+  const padL = 70, padR = 20, padT = 20, padB = 50;
   const chartW = W - padL - padR;
   const chartH = H - padT - padB;
 
@@ -271,21 +299,37 @@ function StepLineChart({ policies, birthYear }: { policies: InsurancePolicy[]; b
   for (let yr = Math.ceil(minYear / xStep) * xStep; yr <= maxYear; yr += xStep) xTicks.push(yr);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4">
-      <h3 className="text-sm font-bold text-gray-800 mb-3">ทุนประกันรวมตามเวลา (Step Line)</h3>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: 200 }}>
+    <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+      <h3 className="text-base font-bold text-gray-800 mb-3">รวมทุนชีวิตตามช่วงอายุ</h3>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: 280 }}>
+        {/* Y grid */}
         {yTicks.map((v, i) => (
           <g key={i}>
             <line x1={padL} y1={yPos(v)} x2={W - padR} y2={yPos(v)} stroke="#f0f0f0" />
-            <text x={padL - 5} y={yPos(v) + 3} textAnchor="end" fontSize="7" className="fill-gray-400">{fmtShort(v)}</text>
+            <text x={padL - 8} y={yPos(v) + 4} textAnchor="end" fontSize="9" className="fill-gray-500" fontWeight="500">{fmtShort(v)}</text>
           </g>
         ))}
+
+        {/* X-axis: Year (พ.ศ.) */}
         {xTicks.map((yr) => (
-          <text key={yr} x={xPos(yr)} y={H - 5} textAnchor="middle" fontSize="7" className="fill-gray-400">{yr + BE_OFFSET}</text>
+          <g key={yr}>
+            <line x1={xPos(yr)} y1={padT} x2={xPos(yr)} y2={padT + chartH} stroke="#f5f5f5" />
+            <text x={xPos(yr)} y={padT + chartH + 16} textAnchor="middle" fontSize="9" className="fill-gray-500" fontWeight="600">{yr + BE_OFFSET}</text>
+            <text x={xPos(yr)} y={padT + chartH + 30} textAnchor="middle" fontSize="8" className="fill-blue-400">({yr - birthYear} ปี)</text>
+          </g>
         ))}
-        <path d={pathD} fill="none" stroke={NAVY} strokeWidth="2" />
-        <path d={pathD + `L${xPos(data[data.length - 1].year)},${yPos(0)}L${xPos(data[0].year)},${yPos(0)}Z`} fill={NAVY} fillOpacity="0.08" />
-        <line x1={xPos(CURRENT_YEAR)} y1={padT} x2={xPos(CURRENT_YEAR)} y2={padT + chartH} stroke="#ef4444" strokeWidth="1" strokeDasharray="3,3" />
+
+        {/* Axis labels */}
+        <text x={padL - 8} y={padT + chartH + 16} textAnchor="end" fontSize="8" className="fill-gray-400">พ.ศ.</text>
+        <text x={padL - 8} y={padT + chartH + 30} textAnchor="end" fontSize="8" className="fill-blue-400">อายุ</text>
+
+        {/* Step line */}
+        <path d={pathD} fill="none" stroke={NAVY} strokeWidth="2.5" />
+        <path d={pathD + `L${xPos(data[data.length - 1].year)},${yPos(0)}L${xPos(data[0].year)},${yPos(0)}Z`} fill={NAVY} fillOpacity="0.06" />
+
+        {/* Current year */}
+        <line x1={xPos(CURRENT_YEAR)} y1={padT} x2={xPos(CURRENT_YEAR)} y2={padT + chartH} stroke="#ef4444" strokeWidth="1.5" strokeDasharray="4,3" />
+        <text x={xPos(CURRENT_YEAR)} y={padT - 5} textAnchor="middle" fontSize="9" className="fill-red-500" fontWeight="bold">ปัจจุบัน</text>
       </svg>
     </div>
   );
@@ -314,23 +358,25 @@ function TaxDeduction({ policies }: { policies: InsurancePolicy[] }) {
   ];
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4">
-      <h3 className="text-sm font-bold text-gray-800 mb-3">สิทธิลดหย่อนภาษี ({CURRENT_YEAR + BE_OFFSET})</h3>
-      <div className="space-y-3">
+    <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+      <h3 className="text-base font-bold text-gray-800 mb-4">สิทธิลดหย่อนภาษี ({CURRENT_YEAR + BE_OFFSET})</h3>
+      <div className="space-y-4">
         {bars.map((b) => {
           const pct = b.limit > 0 ? Math.min((b.used / b.limit) * 100, 100) : 0;
           return (
             <div key={b.label}>
-              <div className="flex items-center justify-between text-[10px] text-gray-600 mb-1">
-                <span className="font-medium">{b.label} (เพดาน {fmt(b.limit)})</span>
-                <span className="font-bold" style={{ color: b.color }}>{pct.toFixed(0)}%</span>
+              <div className="flex items-center justify-between text-xs text-gray-700 mb-1.5">
+                <span className="font-semibold">{b.label} <span className="text-gray-400 font-normal">(เพดาน {fmt(b.limit)})</span></span>
+                <span className="font-bold text-sm" style={{ color: b.color }}>{pct.toFixed(0)}%</span>
               </div>
-              <div className="h-5 bg-gray-100 rounded-full overflow-hidden relative">
-                <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: b.color }} />
-                <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white mix-blend-difference">
-                  ใช้ {fmt(b.used)} | เหลือ {fmt(Math.max(b.limit - b.used, 0))}
-                </span>
+              <div className="h-7 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full rounded-full transition-all flex items-center justify-center" style={{ width: `${Math.max(pct, 8)}%`, background: b.color }}>
+                  <span className="text-[10px] font-bold text-white whitespace-nowrap px-2">
+                    ใช้ {fmt(b.used)}
+                  </span>
+                </div>
               </div>
+              <div className="text-[10px] text-gray-400 mt-0.5 text-right">เหลือ {fmt(Math.max(b.limit - b.used, 0))} บาท</div>
             </div>
           );
         })}
@@ -498,11 +544,9 @@ export default function PortfolioDashboard() {
         </div>
       ) : (
         <div className="px-2 space-y-3 pb-8">
-          <div className="overflow-x-auto"><GanttChart policies={policies} birthYear={birthYear} /></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <StepLineChart policies={policies} birthYear={birthYear} />
-            <TaxDeduction policies={policies} />
-          </div>
+          <div className="overflow-x-auto"><GanttChart policies={policies} birthYear={birthYear} currentAge={currentAge} /></div>
+          <StepLineChart policies={policies} birthYear={birthYear} currentAge={currentAge} />
+          <TaxDeduction policies={policies} />
           <div>
             <div className="flex items-center justify-between mb-2 px-1">
               <h3 className="text-sm font-bold text-gray-800">รายการกรมธรรม์ ({totalPolicies})</h3>
