@@ -110,7 +110,7 @@ export default function BalanceSheetPage() {
       />
 
       {/* Net Worth Summary */}
-      <div className="px-4 md:px-8 pt-4 pb-2">
+      <div className="px-2 md:px-8 pt-4 pb-2">
         <div className={`rounded-2xl p-4 text-white ${netWorth >= 0 ? "bg-gradient-to-br from-emerald-500 to-teal-600" : "bg-gradient-to-br from-red-500 to-rose-600"}`}>
           <div className="text-xs opacity-80 mb-1">ความมั่งคั่งสุทธิ (Net Worth)</div>
           <div className="text-2xl font-bold mb-3">{formatCurrency(netWorth)}</div>

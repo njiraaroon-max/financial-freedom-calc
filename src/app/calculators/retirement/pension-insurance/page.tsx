@@ -72,6 +72,17 @@ export default function PensionInsurancePage() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Reactive sync when profile birthDate changes
+  useEffect(() => {
+    const profileAge = profile.getAge();
+    if (profileAge > 0) {
+      setCurrentAge(profileAge);
+      if (profileAge !== a.currentAge) {
+        store.updateAssumption("currentAge", profileAge);
+      }
+    }
+  }, [profile.birthDate]);
+
   // Calculate table
   const totalYears = lifeExpectancy + bufferYears - retireAge + 1;
   const tableRows: TableRow[] = [];

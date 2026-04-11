@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Save, Download, Plus, Trash2 } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
+import { useProfileStore } from "@/store/profile-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 import { useCashFlowStore } from "@/store/cashflow-store";
@@ -28,8 +29,17 @@ function NumberInput({ value, onChange }: { value: number; onChange: (v: number)
 export default function BasicExpensesPage() {
   const store = useRetirementStore();
   const cfStore = useCashFlowStore();
+  const profile = useProfileStore();
   const a = store.assumptions;
   const [hasSaved, setHasSaved] = useState(false);
+
+  // Auto-sync age from profile
+  useEffect(() => {
+    const profileAge = profile.getAge();
+    if (profileAge > 0 && profileAge !== a.currentAge) {
+      store.updateAssumption("currentAge", profileAge);
+    }
+  }, [profile.birthDate]);
 
   const yearsToRetire = Math.max(a.retireAge - a.currentAge, 0);
   const yearsAfterRetire = Math.max(a.lifeExpectancy - a.retireAge, 0);

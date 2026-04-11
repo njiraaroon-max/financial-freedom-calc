@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Settings, UtensilsCrossed, Sparkles, Landmark, ShieldCheck, Gavel, Award, Calculator, Building, TrendingUp, ChevronRight, MousePointerClick, Check, Lock } from "lucide-react";
 import Link from "next/link";
 import { useRetirementStore } from "@/store/retirement-store";
@@ -19,6 +20,16 @@ export default function RetirementHubPage() {
   const profileAge = profile.getAge?.() ?? 0;
   const currentAge = profileAge > 0 ? profileAge : (a.currentAge > 0 ? a.currentAge : 35);
   const retireAge = (profile.retireAge && profile.retireAge > 0) ? profile.retireAge : (a.retireAge > 0 ? a.retireAge : 60);
+
+  // Auto-sync age & retireAge to retirement store when profile changes
+  useEffect(() => {
+    if (profileAge > 0 && profileAge !== a.currentAge) {
+      store.updateAssumption("currentAge", profileAge);
+    }
+    if (profile.retireAge && profile.retireAge !== a.retireAge) {
+      store.updateAssumption("retireAge", profile.retireAge);
+    }
+  }, [profile.birthDate, profile.retireAge]);
   const lifeExpectancy = a.lifeExpectancy > 0 ? a.lifeExpectancy : 85;
   const workYears = Math.max(retireAge - currentAge, 1);
   const retireYears = Math.max(lifeExpectancy - retireAge, 1);

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Save, Plus, Trash2, TrendingUp } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
+import { useProfileStore } from "@/store/profile-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 import { useVariableStore } from "@/store/variable-store";
@@ -28,11 +29,21 @@ function parseNum(s: string): number {
 
 export default function InvestmentPlanPage() {
   const store = useRetirementStore();
+  const profile = useProfileStore();
   const { markStepCompleted } = store;
   const { setVariable } = useVariableStore();
   const [saved, setSaved] = useState(false);
 
   const a = store.assumptions;
+
+  // Auto-sync age from profile
+  useEffect(() => {
+    const profileAge = profile.getAge();
+    if (profileAge > 0 && profileAge !== a.currentAge) {
+      store.updateAssumption("currentAge", profileAge);
+    }
+  }, [profile.birthDate]);
+
   const yearsToRetire = a.retireAge - a.currentAge;
   const yearsAfterRetire = a.lifeExpectancy - a.retireAge;
 

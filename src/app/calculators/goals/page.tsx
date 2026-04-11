@@ -358,13 +358,12 @@ export default function GoalsPage() {
     return "-";
   }
 
-  // Format target age
+  // Format target age — always compute dynamically from targetYear + currentAge
   function formatAge(g: GoalItem): string {
-    if (g.targetAge) return `อายุ ${g.targetAge}`;
     if (g.frequency === "immediate") return `อายุ ${currentAge}`;
     if (g.targetYear) {
       const age = currentAge + (g.targetYear - CURRENT_YEAR_CE);
-      return age > currentAge ? `อายุ ${age}` : "";
+      return age > 0 ? `อายุ ${age}` : "";
     }
     return "";
   }

@@ -36,7 +36,10 @@ export default function SummaryPage() {
 
   const profileAge = profile.getAge();
   const a = retireStore.assumptions;
-  const yearsToRetire = a.retireAge - a.currentAge;
+
+  // Use live age from profile instead of stale store value
+  const currentAge = profileAge > 0 ? profileAge : a.currentAge;
+  const yearsToRetire = a.retireAge - currentAge;
   const yearsAfterRetire = a.lifeExpectancy - a.retireAge;
 
   // Cash Flow data
@@ -87,7 +90,7 @@ export default function SummaryPage() {
   const shortage = totalRetireFund - totalSavingFund;
 
   // Investment plan
-  const investResult = calcInvestmentPlan(retireStore.investmentPlans, a.currentAge, a.retireAge, 0);
+  const investResult = calcInvestmentPlan(retireStore.investmentPlans, currentAge, a.retireAge, 0);
   const investAtRetire = investResult.length > 0 ? investResult[investResult.length - 1].baseCase : 0;
   const badAtRetire = investResult.length > 0 ? investResult[investResult.length - 1].badCase : 0;
   const goodAtRetire = investResult.length > 0 ? investResult[investResult.length - 1].goodCase : 0;
@@ -421,7 +424,7 @@ export default function SummaryPage() {
 
             {/* Age boxes */}
             <div className="flex items-center">
-              <div className="bg-[#1e3a5f] text-white rounded-lg text-xs font-bold flex items-center justify-center" style={{ width: 40, height: 28, flexShrink: 0 }}>{a.currentAge}</div>
+              <div className="bg-[#1e3a5f] text-white rounded-lg text-xs font-bold flex items-center justify-center" style={{ width: 40, height: 28, flexShrink: 0 }}>{currentAge}</div>
               <div style={{ flex: yearsToRetire }} />
               <div className="bg-[#1e3a5f] text-white rounded-lg text-xs font-bold flex items-center justify-center" style={{ width: 40, height: 28, flexShrink: 0 }}>{a.retireAge}</div>
               <div style={{ flex: yearsAfterRetire }} />
