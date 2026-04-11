@@ -17,55 +17,68 @@ export type PolicyGroup =
   | "property"
   | "other";
 
+export type PolicyType =
+  | "whole_life"
+  | "endowment"
+  | "annuity"
+  | "health"
+  | "critical_illness"
+  | "accident"
+  | "property"
+  | "other";
+
+export type CoverageMode = "age" | "years";
+
 export interface InsurancePolicy {
   id: string;
-  policyNumber: string;
-  company: string;
   planName: string;
+  company: string;
+  policyNumber: string;
   group: PolicyGroup;
-  startDate: string;
+  policyType: PolicyType;
+
+  // Time data
+  startDate: string;          // YYYY-MM-DD
+  paymentYears: number;       // จ่ายเบี้ยกี่ปี
+  coverageMode: CoverageMode; // ผู้ใช้เลือกแบบไหน
+  coverageEndAge: number;     // คุ้มครองถึงอายุ (เมื่อ mode = "age")
+  coverageYears: number;      // คุ้มครองกี่ปี (เมื่อ mode = "years")
+
+  // Legacy date fields (computed)
   endDate: string;
   lastPayDate: string;
-  sumInsured: number;
-  cashValue: number;
-  premium: number;
+
+  // Value data
+  sumInsured: number;         // ทุนประกัน
+  premium: number;            // เบี้ยต่อปี
+  cashValue: number;          // มูลค่าเวนคืน
+
+  // Meta
   details: string;
   notes: string;
   order: number;
 }
 
 export interface CoverageNeeds {
-  // ขาดรายได้
   emergencyFund: number;
-
-  // เสียชีวิต
   funeralCost: number;
   debtRepayment: number;
   familyAdjustment: number;
   childEducation: number;
   otherDeath: number;
-
-  // เจ็บป่วย
-  roomRate: number; // per day
+  roomRate: number;
   generalTreatment: number;
   criticalTreatment: number;
   criticalLumpSum: number;
-
-  // ทรัพย์สิน
   vehicleValue: number;
   homeValue: number;
 }
 
 export interface ExistingCoverage {
-  // ขาดรายได้
   liquidAssets: number;
-
-  // เสียชีวิต
   employerDeathBenefit: number;
   personalLifeInsurance: number;
   personalAssets: number;
-
-  // เจ็บป่วย
   employerRoom: number;
   selfRoom: number;
   employerGeneral: number;
@@ -74,8 +87,6 @@ export interface ExistingCoverage {
   selfCritical: number;
   employerCriticalLump: number;
   selfCriticalLump: number;
-
-  // ทรัพย์สิน
   vehicleInsurance: number;
   homeInsurance: number;
 }
@@ -97,6 +108,22 @@ export const POLICY_GROUP_OPTIONS: {
   { value: "critical", label: "ประกันโรคร้ายแรง", description: "ความคุ้มครองโรคร้ายแรง" },
   { value: "property", label: "ประกันทรัพย์สิน", description: "ประกันรถยนต์ บ้าน ทรัพย์สิน" },
   { value: "other", label: "อื่นๆ", description: "ประกันภัยอื่นๆ" },
+];
+
+export const POLICY_TYPE_OPTIONS: {
+  value: PolicyType;
+  label: string;
+  description: string;
+  defaultGroup: PolicyGroup;
+}[] = [
+  { value: "whole_life", label: "ตลอดชีพ (Whole Life)", description: "คุ้มครองตลอดชีวิต", defaultGroup: "life" },
+  { value: "endowment", label: "สะสมทรัพย์ (Endowment)", description: "ออมเงิน + คุ้มครอง", defaultGroup: "saving" },
+  { value: "annuity", label: "บำนาญ (Annuity)", description: "รับเงินบำนาญหลังเกษียณ", defaultGroup: "pension" },
+  { value: "health", label: "สุขภาพ (Health)", description: "ค่ารักษาพยาบาล", defaultGroup: "health" },
+  { value: "critical_illness", label: "โรคร้ายแรง (CI)", description: "คุ้มครองโรคร้ายแรง", defaultGroup: "critical" },
+  { value: "accident", label: "อุบัติเหตุ (PA)", description: "คุ้มครองอุบัติเหตุ", defaultGroup: "accident" },
+  { value: "property", label: "ทรัพย์สิน (Property)", description: "ประกันรถ/บ้าน", defaultGroup: "property" },
+  { value: "other", label: "อื่นๆ", description: "ประกันอื่นๆ", defaultGroup: "other" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -252,7 +279,24 @@ export const useInsuranceStore = create<InsuranceState>()(
     }),
     {
       name: "ffc-insurance",
-      version: 1,
+      version: 2,
+      migrate: (persisted: unknown, version: number) => {
+        const state = persisted as Record<string, unknown>;
+        if (version < 2) {
+          // Migrate old policies to new format
+          const oldPolicies = (state.policies || []) as Record<string, unknown>[];
+          const newPolicies = oldPolicies.map((p) => ({
+            ...p,
+            policyType: p.policyType || "other",
+            paymentYears: p.paymentYears || 0,
+            coverageMode: p.coverageMode || "years",
+            coverageEndAge: p.coverageEndAge || 0,
+            coverageYears: p.coverageYears || 0,
+          }));
+          return { ...state, policies: newPolicies };
+        }
+        return state;
+      },
     }
   )
 );

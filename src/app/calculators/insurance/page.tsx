@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FileText, Shield, BarChart3, Check, Table2, ClipboardList } from "lucide-react";
+import { BarChart3, Shield, ClipboardList, PieChart, Check } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { useInsuranceStore } from "@/store/insurance-store";
 
@@ -9,18 +9,11 @@ const steps = [
   {
     key: "policies",
     href: "/calculators/insurance/policies",
-    icon: FileText,
-    title: "สรุปกรมธรรม์ที่มีอยู่",
-    subtitle: "Insurance Policies",
-    description: "บันทึกข้อมูลกรมธรรม์ประกันภัยทั้งหมด",
-  },
-  {
-    key: "needs",
-    href: "/calculators/insurance/needs",
-    icon: Shield,
-    title: "ความคุ้มครองที่ควรมี",
-    subtitle: "Coverage Needs",
-    description: "ประเมินความคุ้มครองที่เหมาะสม",
+    icon: BarChart3,
+    title: "สรุปกรมธรรม์",
+    subtitle: "Portfolio Dashboard",
+    description: "Gantt chart, ทุนประกันรวม, สิทธิลดหย่อนภาษี",
+    color: "from-[#1e3a5f] to-[#2d5a8e]",
   },
   {
     key: "existing",
@@ -28,29 +21,33 @@ const steps = [
     icon: ClipboardList,
     title: "ความคุ้มครองที่มีอยู่",
     subtitle: "Existing Coverage",
-    description: "สวัสดิการนายจ้าง + ประกันที่ทำเอง + สินทรัพย์",
+    description: "กรมธรรม์ส่วนตัว + สวัสดิการจากที่ทำงาน",
+    color: "from-teal-500 to-emerald-600",
+  },
+  {
+    key: "needs",
+    href: "/calculators/insurance/needs",
+    icon: Shield,
+    title: "ความคุ้มครองที่ควรมี",
+    subtitle: "Coverage Needs",
+    description: "ประเมินความคุ้มครองที่เหมาะสมตามหลัก CFP",
+    color: "from-amber-500 to-orange-600",
   },
   {
     key: "overview",
     href: "/calculators/insurance/overview",
-    icon: BarChart3,
-    title: "สรุปภาพรวมการบริหารความเสี่ยง",
+    icon: PieChart,
+    title: "สรุปภาพรวมการจัดการความเสี่ยง",
     subtitle: "Risk Overview",
-    description: "วิเคราะห์ช่องว่างและเปรียบเทียบเบี้ยประกัน",
-  },
-  {
-    key: "summary",
-    href: "/calculators/insurance/summary",
-    icon: Table2,
-    title: "ตารางสรุปกรมธรรม์",
-    subtitle: "Policy Summary",
-    description: "Gantt chart, สิทธิลดหย่อนภาษี, ทุนคุ้มครองตามอายุ",
+    description: "Gap Analysis: ควรมี − มีอยู่ = ส่วนที่ขาด",
+    color: "from-purple-500 to-indigo-600",
   },
 ];
 
 export default function InsurancePage() {
   const store = useInsuranceStore();
   const policyCount = store.policies.length;
+  const totalSumInsured = store.policies.reduce((s, p) => s + p.sumInsured, 0);
   const totalPremium = store.policies.reduce((s, p) => s + p.premium, 0);
 
   return (
@@ -64,37 +61,47 @@ export default function InsurancePage() {
       <div className="px-4 md:px-8 pt-4 pb-8 space-y-3">
         {/* Summary */}
         {policyCount > 0 && (
-          <div className="bg-gradient-to-br from-emerald-500 to-teal-700 rounded-2xl p-4 text-white">
+          <div className="bg-gradient-to-br from-[#1e3a5f] to-[#2d5a8e] rounded-2xl p-4 text-white">
             <div className="text-xs opacity-70 mb-2">สรุปกรมธรรม์ปัจจุบัน</div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="bg-white/15 rounded-lg p-2">
-                <div className="opacity-70 text-[10px]">จำนวนกรมธรรม์</div>
-                <div className="font-bold text-lg">{policyCount} ฉบับ</div>
+            <div className="grid grid-cols-3 gap-2 text-xs">
+              <div className="bg-white/15 rounded-lg p-2 text-center">
+                <div className="opacity-70 text-[9px]">จำนวน</div>
+                <div className="font-bold text-lg">{policyCount}</div>
               </div>
-              <div className="bg-white/15 rounded-lg p-2">
-                <div className="opacity-70 text-[10px]">เบี้ยประกันรวม/ปี</div>
-                <div className="font-bold text-lg">฿{Math.round(totalPremium).toLocaleString("th-TH")}</div>
+              <div className="bg-white/15 rounded-lg p-2 text-center">
+                <div className="opacity-70 text-[9px]">ทุนรวม</div>
+                <div className="font-bold text-lg">
+                  {totalSumInsured >= 1_000_000
+                    ? `${(totalSumInsured / 1_000_000).toFixed(1)}M`
+                    : `${Math.round(totalSumInsured / 1000)}K`}
+                </div>
+              </div>
+              <div className="bg-white/15 rounded-lg p-2 text-center">
+                <div className="opacity-70 text-[9px]">เบี้ย/ปี</div>
+                <div className="font-bold text-lg">
+                  {totalPremium >= 1_000_000
+                    ? `${(totalPremium / 1_000_000).toFixed(1)}M`
+                    : `${Math.round(totalPremium / 1000)}K`}
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Steps */}
+        {/* 4 Step Cards */}
         {steps.map((step, idx) => {
           const Icon = step.icon;
           const done = store.isStepCompleted(step.key);
           return (
             <Link key={step.key} href={step.href}>
               <div className={`bg-white rounded-2xl border p-4 flex items-center gap-4 transition-all active:scale-[0.98] ${
-                done ? "border-emerald-300" : "border-gray-200 hover:border-emerald-300"
+                done ? "border-emerald-300" : "border-gray-200 hover:border-gray-300"
               }`}>
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
-                  done ? "bg-emerald-100" : "bg-gray-100"
-                }`}>
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br ${step.color}`}>
                   {done ? (
-                    <Check size={20} className="text-emerald-600" />
+                    <Check size={20} className="text-white" />
                   ) : (
-                    <Icon size={20} className="text-gray-500" />
+                    <Icon size={20} className="text-white" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
