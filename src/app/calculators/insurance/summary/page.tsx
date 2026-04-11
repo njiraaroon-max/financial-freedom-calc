@@ -400,7 +400,7 @@ export default function InsuranceSummaryPage() {
           </div>
         )}
 
-        {/* Policy Table + Gantt */}
+        {/* Policy Cards + Gantt */}
         {sorted.length === 0 ? (
           <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-10 text-center">
             <div className="text-sm font-bold text-gray-500 mb-1">ยังไม่มีกรมธรรม์</div>
@@ -431,74 +431,64 @@ export default function InsuranceSummaryPage() {
                 </div>
               </div>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[800px]">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="py-2 px-2 text-[10px] text-gray-500 text-left font-semibold w-6">#</th>
-                    <th className="py-2 px-2 text-[10px] text-gray-500 text-left font-semibold min-w-[140px]">ชื่อแบบสัญญา</th>
-                    <th className="py-2 px-1 text-[10px] text-gray-500 text-right font-semibold">ทุนประกัน</th>
-                    <th className="py-2 px-1 text-[10px] text-gray-500 text-center font-semibold">วันเริ่ม</th>
-                    <th className="py-2 px-1 text-[10px] text-gray-500 text-center font-semibold">วันครบ</th>
-                    <th className="py-2 px-1 text-[10px] text-gray-500 text-center font-semibold">ชำระถึง</th>
-                    <th className="py-2 px-1 text-[10px] text-gray-500 text-center font-semibold w-12">ปี</th>
-                    <th className="py-2 px-1 text-[10px] text-gray-500 text-center font-semibold">สถานะ</th>
-                    <th className="py-2 px-2 text-[10px] text-gray-500 text-left font-semibold min-w-[200px]">
-                      <div className="relative">
-                        <span>Timeline</span>
-                        <div className="flex justify-between mt-0.5">
-                          {ganttYearLabels.map((yr) => (
-                            <span key={yr} className="text-[8px] text-gray-300">{yr + 543}</span>
-                          ))}
-                        </div>
-                      </div>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sorted.map((p, idx) => {
-                    const colors = GROUP_COLORS[p.group] || GROUP_COLORS.other;
-                    const status = getPaymentStatus(p);
-                    const startY = yearFromDate(p.startDate);
-                    const endY = yearFromDate(p.endDate);
-                    const coverageYears = startY && endY ? endY - startY : 0;
-                    const elapsed = startY ? currentYear - startY : 0;
-                    const pct = coverageYears > 0 ? Math.min(Math.round((elapsed / coverageYears) * 100), 100) : 0;
 
-                    return (
-                      <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                        <td className="py-2 px-2 text-[10px] text-gray-400 font-bold">{idx + 1}</td>
-                        <td className="py-2 px-2">
-                          <div className="flex items-center gap-1.5">
-                            <span className={`text-[8px] px-1.5 py-0.5 rounded-full ${colors.bg} ${colors.text} font-bold`}>
-                              {getGroupLabel(p.group)}
-                            </span>
-                          </div>
-                          <div className="text-[11px] font-bold text-gray-800 mt-0.5 truncate max-w-[160px]">{p.planName}</div>
-                          {p.company && <div className="text-[9px] text-gray-400">{p.company}</div>}
-                        </td>
-                        <td className="py-2 px-1 text-[11px] text-right font-bold text-gray-800">{fmt(p.sumInsured)}</td>
-                        <td className="py-2 px-1 text-[10px] text-center text-gray-600">{shortDate(p.startDate)}</td>
-                        <td className="py-2 px-1 text-[10px] text-center text-gray-600">{shortDate(p.endDate)}</td>
-                        <td className="py-2 px-1 text-[10px] text-center text-gray-600">{shortDate(p.lastPayDate)}</td>
-                        <td className="py-2 px-1 text-[10px] text-center font-bold text-gray-700">{coverageYears || "-"}</td>
-                        <td className="py-2 px-1 text-center">
-                          <span className={`text-[8px] px-1.5 py-0.5 rounded-full text-white font-bold ${status.color}`}>
+            {/* Gantt year scale */}
+            <div className="px-4 pt-2">
+              <div className="flex justify-between text-[8px] text-gray-400 border-b border-gray-100 pb-1">
+                {ganttYearLabels.map((yr) => (
+                  <span key={yr}>{yr + 543}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* Policy cards with full-width Gantt */}
+            <div className="divide-y divide-gray-50">
+              {sorted.map((p, idx) => {
+                const colors = GROUP_COLORS[p.group] || GROUP_COLORS.other;
+                const status = getPaymentStatus(p);
+                const startY = yearFromDate(p.startDate);
+                const endY = yearFromDate(p.endDate);
+                const coverageYears = startY && endY ? endY - startY : 0;
+                const elapsed = startY ? currentYear - startY : 0;
+                const pct = coverageYears > 0 ? Math.min(Math.round((elapsed / coverageYears) * 100), 100) : 0;
+
+                return (
+                  <div key={p.id} className="px-4 py-2.5">
+                    {/* Row 1: Info */}
+                    <div className="flex items-start gap-2">
+                      <div className="text-[10px] font-bold text-gray-400 pt-0.5 w-4 shrink-0">{idx + 1}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className={`text-[8px] px-1.5 py-0.5 rounded-full ${colors.bg} ${colors.text} font-bold`}>
+                            {getGroupLabel(p.group)}
+                          </span>
+                          <span className="text-[11px] font-bold text-gray-800 truncate">{p.planName}</span>
+                          {p.company && <span className="text-[9px] text-gray-400">({p.company})</span>}
+                        </div>
+                        <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-[10px]">
+                          <span><span className="text-gray-400">ทุน </span><span className="font-bold text-gray-700">฿{fmt(p.sumInsured)}</span></span>
+                          <span><span className="text-gray-400">เบี้ย </span><span className="font-bold text-orange-600">฿{fmt(p.premium)}</span></span>
+                          <span className="text-gray-400">{shortDate(p.startDate)} — {shortDate(p.endDate)}</span>
+                          <span className="text-gray-400">({coverageYears || "?"} ปี)</span>
+                          <span className={`px-1.5 py-0 rounded-full text-white font-bold text-[8px] ${status.color}`}>
                             {pct > 0 ? `${pct}%` : status.label}
                           </span>
-                        </td>
-                        <td className="py-2 px-2">
-                          <GanttBar policy={p} minYear={minYear} maxYear={maxYear} />
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Row 2: Full-width Gantt bar */}
+                    <div className="mt-1.5 ml-6">
+                      <div className="h-4">
+                        <GanttBar policy={p} minYear={minYear} maxYear={maxYear} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Premium total row */}
-            <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+            <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
               <span className="text-xs font-bold text-gray-600">เบี้ยประกันรวม/ปี</span>
               <span className="text-sm font-extrabold text-orange-600">฿{fmt(totalPremium)}</span>
             </div>
