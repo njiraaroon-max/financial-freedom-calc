@@ -10,6 +10,7 @@ import {
 } from "@/store/insurance-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
+import ThaiDatePicker from "@/components/ThaiDatePicker";
 
 function fmt(n: number): string {
   if (n === 0) return "";
@@ -380,18 +381,18 @@ export default function PoliciesPage() {
               </div>
 
               {/* วันที่ */}
-              <div className="grid grid-cols-3 gap-2">
+              <div className="space-y-3">
                 <div>
                   <label className="text-[11px] text-gray-500 mb-1 block font-semibold">วันเริ่มคุ้มครอง</label>
-                  <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="w-full text-xs bg-gray-50 rounded-xl px-2 py-2.5 outline-none focus:ring-2 focus:ring-emerald-400 border border-gray-200" />
+                  <ThaiDatePicker value={form.startDate} onChange={(v) => setForm({ ...form, startDate: v })} label="วันเริ่มคุ้มครอง" minYear={2500} maxYear={2620} />
                 </div>
                 <div>
                   <label className="text-[11px] text-gray-500 mb-1 block font-semibold">วันครบสัญญา</label>
-                  <input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} className="w-full text-xs bg-gray-50 rounded-xl px-2 py-2.5 outline-none focus:ring-2 focus:ring-emerald-400 border border-gray-200" />
+                  <ThaiDatePicker value={form.endDate} onChange={(v) => setForm({ ...form, endDate: v })} label="วันครบสัญญา" minYear={2500} maxYear={2650} />
                 </div>
                 <div>
                   <label className="text-[11px] text-gray-500 mb-1 block font-semibold">ชำระเบี้ยถึง</label>
-                  <input type="date" value={form.lastPayDate} onChange={(e) => setForm({ ...form, lastPayDate: e.target.value })} className="w-full text-xs bg-gray-50 rounded-xl px-2 py-2.5 outline-none focus:ring-2 focus:ring-emerald-400 border border-gray-200" />
+                  <ThaiDatePicker value={form.lastPayDate} onChange={(v) => setForm({ ...form, lastPayDate: v })} label="ชำระเบี้ยถึง" minYear={2500} maxYear={2650} />
                 </div>
               </div>
 

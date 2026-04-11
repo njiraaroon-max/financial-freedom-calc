@@ -5,6 +5,7 @@ import { Save, User, Briefcase, Heart, Calendar, Banknote, Clock, ShieldCheck, T
 import { useProfileStore, OCCUPATION_OPTIONS, MARITAL_OPTIONS } from "@/store/profile-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
+import ThaiDatePicker from "@/components/ThaiDatePicker";
 import type { OccupationType, MaritalStatus } from "@/store/profile-store";
 
 function fmt(n: number): string {
@@ -134,11 +135,13 @@ export default function PersonalInfoPage() {
               <Calendar size={11} className="inline mr-1" />
               วันเกิด
             </label>
-            <input
-              type="date"
+            <ThaiDatePicker
               value={draft.birthDate}
-              onChange={(e) => updateDraft("birthDate", e.target.value)}
-              className="w-full text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              onChange={(v) => updateDraft("birthDate", v)}
+              label="วันเกิด"
+              placeholder="เลือกวันเกิด"
+              minYear={2453}
+              maxYear={2569}
             />
             {draftAge > 0 && (
               <div className="text-[10px] text-[var(--color-primary)] font-medium mt-1">
