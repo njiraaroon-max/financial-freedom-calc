@@ -504,7 +504,7 @@ export default function PortfolioDashboard() {
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
-      <PageHeader title="สรุปกรมธรรม์" subtitle="Portfolio Dashboard" characterImg="/circle-icons/risk-management.png" />
+      <PageHeader title="สรุปกรมธรรม์" subtitle="Portfolio Dashboard" characterImg="/circle-icons/risk-management.png" backHref="/calculators/insurance" />
 
       {/* Header Stats */}
       <div className="mx-2 mt-3 mb-3">
