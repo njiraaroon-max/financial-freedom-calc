@@ -110,7 +110,7 @@ export default function BalanceSheetPage() {
       />
 
       {/* Net Worth Summary — same mx-2 as BalanceSheetTable */}
-      <div className="mx-2 md:mx-8 mt-4 mb-2">
+      <div className="mx-2 mt-4 mb-2">
         <div className={`rounded-xl overflow-hidden text-white ${netWorth >= 0 ? "bg-gradient-to-br from-emerald-500 to-teal-600" : "bg-gradient-to-br from-red-500 to-rose-600"}`}>
           <div className="p-4">
             <div className="text-xs opacity-80 mb-1">ความมั่งคั่งสุทธิ (Net Worth)</div>
