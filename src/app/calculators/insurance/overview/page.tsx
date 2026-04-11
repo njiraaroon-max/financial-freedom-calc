@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Save, TrendingUp, TrendingDown, Minus, ArrowLeft } from "lucide-react";
+import { Save, TrendingUp, TrendingDown, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { useInsuranceStore } from "@/store/insurance-store";
 import { useVariableStore } from "@/store/variable-store";
@@ -80,7 +80,9 @@ export default function OverviewPage() {
   const variableStore = useVariableStore();
   const [hasSaved, setHasSaved] = useState(false);
 
-  const getVar = (key: string) => variableStore.getVariable(key)?.value ?? 0;
+  // ---- Check if data is filled ----
+  const hasNeeds = Object.values(needs).some((v) => v > 0);
+  const hasExisting = Object.values(cov).some((v) => v > 0);
 
   // ---- Computed totals ----
   const totalPremium = policies.reduce((s, p) => s + p.premium, 0);
@@ -99,7 +101,7 @@ export default function OverviewPage() {
   // เงินสำรอง
   const emergencyGap = needs.emergencyFund - cov.liquidAssets;
 
-  // เจ็บป่วย — ค่าห้อง
+  // เจ็บป่วย — ค่าห้อง (ต่อวัน — เปรียบเทียบหน่วยเดียวกัน)
   const roomGap = needs.roomRate - (cov.employerRoom + cov.selfRoom);
   // เจ็บป่วย — ค่ารักษาทั่วไป
   const generalGap = needs.generalTreatment - (cov.employerGeneral + cov.selfGeneral);
@@ -112,11 +114,10 @@ export default function OverviewPage() {
   const vehicleGap = needs.vehicleValue - cov.vehicleInsurance;
   const homeGap = needs.homeValue - cov.homeInsurance;
 
-  // รวมช่องว่างที่ขาด (เฉพาะที่ขาด ไม่รวมพอ)
+  // รวมช่องว่างที่ขาด (ไม่รวม roomRate เพราะหน่วยต่างกัน)
   const totalShortfall = [
     emergencyGap,
     deathGap,
-    roomGap > 0 ? roomGap : 0,
     generalGap > 0 ? generalGap : 0,
     criticalGap > 0 ? criticalGap : 0,
     criticalLumpGap > 0 ? criticalLumpGap : 0,
@@ -147,7 +148,6 @@ export default function OverviewPage() {
   function handleSave() {
     store.markStepCompleted("overview");
 
-    // Save to variable store
     variableStore.setVariable({
       key: "insurance_total_premium",
       label: "เบี้ยประกันรวม/ปี",
@@ -172,6 +172,7 @@ export default function OverviewPage() {
     health: "ประกันสุขภาพ",
     accident: "ประกันอุบัติเหตุ",
     saving: "ประกันสะสมทรัพย์",
+    pension: "ประกันบำนาญ",
     critical: "ประกันโรคร้ายแรง",
     property: "ประกันทรัพย์สิน",
     other: "อื่นๆ",
@@ -186,6 +187,32 @@ export default function OverviewPage() {
       />
 
       <div className="px-4 md:px-8 pt-4 pb-8 space-y-4">
+        {/* Warning: missing data */}
+        {(!hasNeeds || !hasExisting) && (
+          <div className="bg-amber-50 rounded-2xl p-3 flex gap-2 items-start border border-amber-200">
+            <AlertTriangle size={16} className="text-amber-500 shrink-0 mt-0.5" />
+            <div className="text-[11px] text-amber-700">
+              {!hasNeeds && !hasExisting
+                ? "ยังไม่ได้กรอกข้อมูลความคุ้มครองที่ควรมีและที่มีอยู่ กรุณากรอกก่อนเพื่อให้การวิเคราะห์ถูกต้อง"
+                : !hasNeeds
+                ? "ยังไม่ได้กรอกความคุ้มครองที่ควรมี"
+                : "ยังไม่ได้กรอกความคุ้มครองที่มีอยู่"}
+              <div className="flex gap-2 mt-1.5">
+                {!hasNeeds && (
+                  <Link href="/calculators/insurance/needs" className="underline font-bold text-amber-800">
+                    กรอกความคุ้มครองที่ควรมี →
+                  </Link>
+                )}
+                {!hasExisting && (
+                  <Link href="/calculators/insurance/existing" className="underline font-bold text-amber-800">
+                    กรอกความคุ้มครองที่มีอยู่ →
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Summary cards */}
         <div className="grid grid-cols-3 gap-2">
           <div className="bg-white rounded-2xl border border-gray-200 p-3 text-center">
@@ -301,13 +328,18 @@ export default function OverviewPage() {
           <div className="bg-gradient-to-br from-red-500 to-orange-600 rounded-2xl p-4 text-white">
             <div className="text-xs opacity-80 mb-1">ส่วนที่ยังขาดความคุ้มครอง</div>
             <div className="text-xl font-extrabold">{fmt(totalShortfall)}</div>
+            {roomGap > 0 && (
+              <div className="text-[10px] opacity-70 mt-1">
+                + ค่าห้อง/วัน ยังขาด {fmtUnit(roomGap, " บ./วัน")}
+              </div>
+            )}
             <div className="text-[10px] opacity-70 mt-1">
               แนะนำให้ปรึกษาตัวแทนประกันเพื่อวางแผนเพิ่มความคุ้มครอง
             </div>
           </div>
         )}
 
-        {totalShortfall <= 0 && policies.length > 0 && (
+        {totalShortfall <= 0 && hasNeeds && hasExisting && (
           <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-4 text-white">
             <div className="text-xs opacity-80 mb-1">สถานะความคุ้มครอง</div>
             <div className="text-lg font-extrabold">ครบถ้วน</div>

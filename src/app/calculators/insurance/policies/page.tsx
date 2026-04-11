@@ -140,7 +140,20 @@ export default function PoliciesPage() {
     setShowModal(true);
   }
 
+  const [formError, setFormError] = useState("");
+
   function handleSavePolicy() {
+    // Validation
+    if (!form.planName.trim() && !form.company.trim()) {
+      setFormError("กรุณากรอกชื่อแบบประกันหรือบริษัท");
+      return;
+    }
+    if (form.startDate && form.endDate && form.endDate < form.startDate) {
+      setFormError("วันครบสัญญาต้องหลังวันเริ่มคุ้มครอง");
+      return;
+    }
+    setFormError("");
+
     const payload = {
       policyNumber: form.policyNumber,
       company: form.company,
@@ -149,9 +162,9 @@ export default function PoliciesPage() {
       startDate: form.startDate,
       endDate: form.endDate,
       lastPayDate: form.lastPayDate,
-      sumInsured: parseNum(form.sumInsured),
-      cashValue: parseNum(form.cashValue),
-      premium: parseNum(form.premium),
+      sumInsured: Math.max(0, parseNum(form.sumInsured)),
+      cashValue: Math.max(0, parseNum(form.cashValue)),
+      premium: Math.max(0, parseNum(form.premium)),
       details: form.details,
       notes: form.notes,
     };
@@ -427,6 +440,9 @@ export default function PoliciesPage() {
 
             {/* Footer */}
             <div className="px-5 py-4 border-t border-gray-100 space-y-2">
+              {formError && (
+                <div className="text-xs text-red-500 font-medium bg-red-50 rounded-xl px-3 py-2">{formError}</div>
+              )}
               <button
                 onClick={handleSavePolicy}
                 className="w-full py-3 rounded-2xl bg-emerald-600 text-white font-bold text-sm active:scale-[0.98] transition-all hover:bg-emerald-700"

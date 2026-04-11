@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FileText, Shield, BarChart3, Check, Table2 } from "lucide-react";
+import { FileText, Shield, BarChart3, Check, Table2, ClipboardList } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { useInsuranceStore } from "@/store/insurance-store";
 
@@ -21,6 +21,14 @@ const steps = [
     title: "ความคุ้มครองที่ควรมี",
     subtitle: "Coverage Needs",
     description: "ประเมินความคุ้มครองที่เหมาะสม",
+  },
+  {
+    key: "existing",
+    href: "/calculators/insurance/existing",
+    icon: ClipboardList,
+    title: "ความคุ้มครองที่มีอยู่",
+    subtitle: "Existing Coverage",
+    description: "สวัสดิการนายจ้าง + ประกันที่ทำเอง + สินทรัพย์",
   },
   {
     key: "overview",

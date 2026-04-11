@@ -12,6 +12,7 @@ export type PolicyGroup =
   | "health"
   | "accident"
   | "saving"
+  | "pension"
   | "critical"
   | "property"
   | "other";
@@ -91,7 +92,8 @@ export const POLICY_GROUP_OPTIONS: {
   { value: "life", label: "ประกันชีวิต", description: "ความคุ้มครองกรณีเสียชีวิต" },
   { value: "health", label: "ประกันสุขภาพ", description: "ค่ารักษาพยาบาลและค่าห้อง" },
   { value: "accident", label: "ประกันอุบัติเหตุ", description: "ความคุ้มครองกรณีอุบัติเหตุ" },
-  { value: "saving", label: "ประกันสะสมทรัพย์", description: "ประกันชีวิตแบบสะสมทรัพย์/บำนาญ" },
+  { value: "saving", label: "ประกันสะสมทรัพย์", description: "ประกันชีวิตแบบสะสมทรัพย์" },
+  { value: "pension", label: "ประกันบำนาญ", description: "ประกันชีวิตแบบบำนาญ" },
   { value: "critical", label: "ประกันโรคร้ายแรง", description: "ความคุ้มครองโรคร้ายแรง" },
   { value: "property", label: "ประกันทรัพย์สิน", description: "ประกันรถยนต์ บ้าน ทรัพย์สิน" },
   { value: "other", label: "อื่นๆ", description: "ประกันภัยอื่นๆ" },

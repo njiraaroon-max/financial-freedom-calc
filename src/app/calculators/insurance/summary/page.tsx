@@ -43,6 +43,7 @@ const GROUP_COLORS: Record<string, { bg: string; bar: string; text: string }> = 
   health: { bg: "bg-emerald-100", bar: "bg-emerald-500", text: "text-emerald-700" },
   accident: { bg: "bg-orange-100", bar: "bg-orange-500", text: "text-orange-700" },
   saving: { bg: "bg-purple-100", bar: "bg-purple-500", text: "text-purple-700" },
+  pension: { bg: "bg-indigo-100", bar: "bg-indigo-500", text: "text-indigo-700" },
   critical: { bg: "bg-red-100", bar: "bg-red-500", text: "text-red-700" },
   property: { bg: "bg-amber-100", bar: "bg-amber-500", text: "text-amber-700" },
   other: { bg: "bg-gray-100", bar: "bg-gray-500", text: "text-gray-700" },
@@ -246,9 +247,9 @@ function TaxDeductionSection({ policies, currentYear }: { policies: InsurancePol
   const healthDeduction = Math.min(healthPremium, 25000);
   const combinedDeduction = Math.min(lifeDeduction + healthDeduction, 100000);
 
-  // ประกันบำนาญ — filter saving group with notes containing "บำนาญ" or just saving
+  // ประกันบำนาญ — separate group
   const pensionPremium = policies
-    .filter((p) => p.group === "saving")
+    .filter((p) => p.group === "pension")
     .reduce((s, p) => s + p.premium, 0);
   const pensionDeduction = Math.min(pensionPremium, 200000);
 
