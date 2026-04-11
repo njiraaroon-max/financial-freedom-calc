@@ -109,19 +109,21 @@ export default function BalanceSheetPage() {
         }
       />
 
-      {/* Net Worth Summary */}
-      <div className="px-2 md:px-8 pt-4 pb-2">
-        <div className={`rounded-2xl p-4 text-white ${netWorth >= 0 ? "bg-gradient-to-br from-emerald-500 to-teal-600" : "bg-gradient-to-br from-red-500 to-rose-600"}`}>
-          <div className="text-xs opacity-80 mb-1">ความมั่งคั่งสุทธิ (Net Worth)</div>
-          <div className="text-2xl font-bold mb-3">{formatCurrency(netWorth)}</div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white/20 rounded-xl p-2.5">
-              <div className="text-[10px] opacity-80">สินทรัพย์รวม</div>
-              <div className="text-sm font-bold">{formatCurrency(totalAssets)}</div>
-            </div>
-            <div className="bg-red-500/80 rounded-xl p-2.5">
-              <div className="text-[10px] opacity-90">หนี้สินรวม</div>
-              <div className="text-sm font-bold">{formatCurrency(totalLiabilities)}</div>
+      {/* Net Worth Summary — same mx-2 as BalanceSheetTable */}
+      <div className="mx-2 md:mx-8 mt-4 mb-2">
+        <div className={`rounded-xl overflow-hidden text-white ${netWorth >= 0 ? "bg-gradient-to-br from-emerald-500 to-teal-600" : "bg-gradient-to-br from-red-500 to-rose-600"}`}>
+          <div className="p-4">
+            <div className="text-xs opacity-80 mb-1">ความมั่งคั่งสุทธิ (Net Worth)</div>
+            <div className="text-2xl font-bold mb-3">{formatCurrency(netWorth)}</div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white/20 rounded-xl p-2.5">
+                <div className="text-[10px] opacity-80">สินทรัพย์รวม</div>
+                <div className="text-sm font-bold">{formatCurrency(totalAssets)}</div>
+              </div>
+              <div className="bg-red-500/80 rounded-xl p-2.5">
+                <div className="text-[10px] opacity-90">หนี้สินรวม</div>
+                <div className="text-sm font-bold">{formatCurrency(totalLiabilities)}</div>
+              </div>
             </div>
           </div>
         </div>
