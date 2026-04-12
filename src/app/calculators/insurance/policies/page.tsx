@@ -1366,20 +1366,20 @@ export default function PortfolioDashboard() {
 
               {/* Sum Insured, Cash Value & Premium */}
               <div className={`grid ${form.policyType === "term" ? "grid-cols-2" : "grid-cols-3"} gap-2`}>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">ทุนประกัน</label>
+                  <input type="text" inputMode="numeric" value={form.sumInsured}
+                    onChange={(e) => { const raw = parseNum(e.target.value); setForm({ ...form, sumInsured: raw > 0 ? commaInput(raw) : e.target.value.replace(/[^0-9]/g, "") }); }}
+                    className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold" placeholder="3,000,000" />
+                </div>
                 {form.policyType !== "term" && (
                   <div>
-                    <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">ทุนประกัน</label>
-                    <input type="text" inputMode="numeric" value={form.sumInsured}
-                      onChange={(e) => { const raw = parseNum(e.target.value); setForm({ ...form, sumInsured: raw > 0 ? commaInput(raw) : e.target.value.replace(/[^0-9]/g, "") }); }}
-                      className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold" placeholder="3,000,000" />
+                    <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">มูลค่าเวนคืน</label>
+                    <input type="text" inputMode="numeric" value={form.cashValue}
+                      onChange={(e) => { const raw = parseNum(e.target.value); setForm({ ...form, cashValue: raw > 0 ? commaInput(raw) : e.target.value.replace(/[^0-9]/g, "") }); }}
+                      className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold" placeholder="0" />
                   </div>
                 )}
-                <div>
-                  <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">มูลค่าเวนคืน</label>
-                  <input type="text" inputMode="numeric" value={form.cashValue}
-                    onChange={(e) => { const raw = parseNum(e.target.value); setForm({ ...form, cashValue: raw > 0 ? commaInput(raw) : e.target.value.replace(/[^0-9]/g, "") }); }}
-                    className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold" placeholder="0" />
-                </div>
                 <div>
                   <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">เบี้ยต่อปี</label>
                   <input type="text" inputMode="numeric" value={form.premium}
