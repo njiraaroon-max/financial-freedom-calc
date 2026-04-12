@@ -1444,21 +1444,39 @@ export default function PortfolioDashboard() {
                     </div>
                   </div>
 
-                  {/* CI + Accident */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-[10px] text-gray-500 mb-0.5 block">CI โรคร้ายแรง (เงินก้อน)</label>
+                  {/* CI โรคร้ายแรง */}
+                  <div>
+                    <label className="text-[10px] text-gray-500 mb-0.5 block">CI โรคร้ายแรง (เงินก้อน)</label>
+                    <div className="flex items-center gap-1">
                       <input type="text" inputMode="numeric"
                         value={form.healthDetails.ciLumpSum ? commaInput(form.healthDetails.ciLumpSum) : ""}
                         onChange={(e) => setForm({ ...form, healthDetails: { ...form.healthDetails, ciLumpSum: parseNum(e.target.value) } })}
-                        className="w-full text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-teal-400 border border-gray-200 text-center font-bold" placeholder="1,000,000" />
+                        className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-teal-400 border border-gray-200 text-center font-bold" placeholder="1,000,000" />
+                      <span className="text-[10px] text-gray-500 shrink-0">บาท</span>
                     </div>
-                    <div>
-                      <label className="text-[10px] text-gray-500 mb-0.5 block">คุ้มครองอุบัติเหตุ</label>
+                  </div>
+
+                  {/* คุ้มครองอุบัติเหตุ */}
+                  <div>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <label className="text-[10px] text-gray-500">คุ้มครองอุบัติเหตุ</label>
+                      <div className="flex bg-gray-100 rounded-full p-0.5">
+                        <button type="button" onClick={() => setForm({ ...form, healthDetails: { ...form.healthDetails, accidentMode: "per_visit" } })}
+                          className={`px-2 py-0.5 rounded-full text-[9px] font-medium transition ${form.healthDetails.accidentMode === "per_visit" ? "bg-teal-600 text-white shadow" : "text-gray-500"}`}>
+                          ต่อครั้ง
+                        </button>
+                        <button type="button" onClick={() => setForm({ ...form, healthDetails: { ...form.healthDetails, accidentMode: "per_year" } })}
+                          className={`px-2 py-0.5 rounded-full text-[9px] font-medium transition ${form.healthDetails.accidentMode === "per_year" ? "bg-teal-600 text-white shadow" : "text-gray-500"}`}>
+                          ต่อปี
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
                       <input type="text" inputMode="numeric"
                         value={form.healthDetails.accidentCoverage ? commaInput(form.healthDetails.accidentCoverage) : ""}
                         onChange={(e) => setForm({ ...form, healthDetails: { ...form.healthDetails, accidentCoverage: parseNum(e.target.value) } })}
-                        className="w-full text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-teal-400 border border-gray-200 text-center font-bold" placeholder="500,000" />
+                        className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-teal-400 border border-gray-200 text-center font-bold" placeholder="500,000" />
+                      <span className="text-[10px] text-gray-500 shrink-0">บาท</span>
                     </div>
                   </div>
                 </div>
