@@ -27,10 +27,10 @@ type PillarStatus = "not_started" | "adequate" | "warning" | "critical";
 
 function getStatusStyle(status: PillarStatus) {
   switch (status) {
-    case "adequate":  return { dot: "bg-emerald-500", text: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200", label: "เพียงพอ" };
-    case "warning":   return { dot: "bg-amber-500",   text: "text-amber-700",   bg: "bg-amber-50",   border: "border-amber-200",   label: "ควรเพิ่ม" };
-    case "critical":  return { dot: "bg-red-500",     text: "text-red-700",     bg: "bg-red-50",     border: "border-red-200",     label: "ไม่เพียงพอ" };
-    default:          return { dot: "bg-gray-300",    text: "text-gray-500",    bg: "bg-gray-50",    border: "border-gray-200",    label: "ยังไม่ประเมิน" };
+    case "adequate":  return { dot: "bg-emerald-500", text: "text-emerald-700", label: "เพียงพอ" };
+    case "warning":   return { dot: "bg-amber-500",   text: "text-amber-700",   label: "ควรเพิ่ม" };
+    case "critical":  return { dot: "bg-red-500",     text: "text-red-700",     label: "ไม่เพียงพอ" };
+    default:          return { dot: "bg-gray-300",    text: "text-gray-500",    label: "ยังไม่ประเมิน" };
   }
 }
 
@@ -45,24 +45,20 @@ function RadarChart({ data }: {
   const rings = [25, 50, 75, 100];
   const n = data.length;
 
-  // angle for each axis (start from top, clockwise)
   const angle = (i: number) => (i / n) * Math.PI * 2 - Math.PI / 2;
   const px = (i: number, r: number) => cx + Math.cos(angle(i)) * r;
   const py = (i: number, r: number) => cy + Math.sin(angle(i)) * r;
 
-  // Build ring polygons
   const ringPoly = (pct: number) => {
     const r = (pct / 100) * maxR;
     return data.map((_, i) => `${px(i, r)},${py(i, r)}`).join(" ");
   };
 
-  // Data polygon (cap at 125% for visual)
   const dataPoly = data.map((d, i) => {
     const r = (Math.min(d.value, 130) / 100) * maxR;
     return `${px(i, r)},${py(i, r)}`;
   }).join(" ");
 
-  // Label positions (offset outside)
   const labelOffset = 22;
   type Anchor = "middle" | "start" | "end";
   const labelPositions = data.map((_, i) => ({
@@ -74,28 +70,19 @@ function RadarChart({ data }: {
 
   return (
     <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[280px] mx-auto">
-      {/* Background rings */}
       {rings.map((pct) => (
         <polygon key={pct} points={ringPoly(pct)} fill="none" stroke="#e5e7eb" strokeWidth="0.8" />
       ))}
-
-      {/* Axis lines */}
       {data.map((_, i) => (
         <line key={i} x1={cx} y1={cy} x2={px(i, maxR)} y2={py(i, maxR)} stroke="#d1d5db" strokeWidth="0.5" />
       ))}
-
-      {/* Ring labels (only on top axis) */}
       {rings.map((pct) => (
         <text key={pct} x={cx - 4} y={cy - (pct / 100) * maxR + 3} fontSize="7" fill="#9ca3af" textAnchor="end">
           {pct}%
         </text>
       ))}
       <text x={cx - 4} y={cy + 3} fontSize="7" fill="#9ca3af" textAnchor="end">0%</text>
-
-      {/* Data polygon */}
       <polygon points={dataPoly} fill="rgba(30, 58, 95, 0.12)" stroke="#1e3a5f" strokeWidth="2" />
-
-      {/* Data points + segment fills */}
       {data.map((d, i) => {
         const r = (Math.min(d.value, 130) / 100) * maxR;
         const dotColor = d.status === "adequate" ? "#10b981" : d.status === "warning" ? "#f59e0b" : d.status === "critical" ? "#ef4444" : "#9ca3af";
@@ -103,8 +90,6 @@ function RadarChart({ data }: {
           <circle key={i} cx={px(i, r)} cy={py(i, r)} r="4" fill={dotColor} stroke="white" strokeWidth="2" />
         );
       })}
-
-      {/* Labels */}
       {data.map((d, i) => {
         const lp = labelPositions[i];
         const statusColor = d.status === "adequate" ? "#10b981" : d.status === "warning" ? "#f59e0b" : d.status === "critical" ? "#ef4444" : "#9ca3af";
@@ -124,7 +109,7 @@ function RadarChart({ data }: {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// MAIN PAGE — Risk Management Hub (Roman Temple Design)
+// MAIN PAGE — Risk Management Hub (Roman Temple Design — Reference Style)
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function InsuranceHubPage() {
   const store = useInsuranceStore();
@@ -245,7 +230,6 @@ export default function InsuranceHubPage() {
     const premiumRatio = annualIncome > 0 ? totalPremium / annualIncome : 0;
     const status = premiumRatio <= 0.10 ? "adequate" : premiumRatio <= 0.15 ? "warning" : "critical";
 
-    // Tax deduction used
     const lifePolicies = policies.filter((p) => ["whole_life", "endowment"].includes(p.policyType));
     const healthPolicies = policies.filter((p) => p.policyType === "health");
     const lifePremium = Math.min(lifePolicies.reduce((s, p) => s + p.premium, 0), 100000);
@@ -268,18 +252,15 @@ export default function InsuranceHubPage() {
   const recommendations = useMemo(() => {
     const items: { priority: "critical" | "warning" | "info"; text: string; href: string }[] = [];
 
-    // Critical
     if (pillar1.status === "critical") items.push({ priority: "critical", text: `เพิ่มทุนประกันชีวิตอีก ${fmtShort(pillar1.gap)} บาท`, href: "/calculators/insurance/pillar-1" });
     if (pillar2.status === "critical") items.push({ priority: "critical", text: "วงเงินค่ารักษาพยาบาลไม่เพียงพอ — ควรเพิ่มความคุ้มครอง", href: "/calculators/insurance/pillar-2" });
     if (pillar3.status === "critical") items.push({ priority: "critical", text: "ทรัพย์สินยังไม่มีความคุ้มครองเพียงพอ", href: "/calculators/insurance/pillar-3" });
     if (pillar4LongLive.status === "critical") items.push({ priority: "critical", text: `ทุนเกษียณขาดอีก ${fmtShort(pillar4LongLive.gap)}`, href: "/calculators/insurance/long-live" });
 
-    // Warning
     if (pillar1.status === "warning") items.push({ priority: "warning", text: "ทุนประกันชีวิตใกล้เพียงพอ — ควรเพิ่มอีกเล็กน้อย", href: "/calculators/insurance/pillar-1" });
     if (pillar2.status === "warning") items.push({ priority: "warning", text: "ความคุ้มครองสุขภาพยังขาดบางส่วน", href: "/calculators/insurance/pillar-2" });
     if (foundation.premiumRatio > 0.15) items.push({ priority: "warning", text: `เบี้ยประกัน ${(foundation.premiumRatio * 100).toFixed(0)}% ของรายได้ — สูงเกินไป`, href: "/calculators/insurance/pillar-4" });
 
-    // Info — not started
     if (pillar1.status === "not_started") items.push({ priority: "info", text: "ยังไม่ได้ประเมิน Income & Life Protection", href: "/calculators/insurance/pillar-1" });
     if (pillar2.status === "not_started") items.push({ priority: "info", text: "ยังไม่ได้ประเมิน Health & Accident", href: "/calculators/insurance/pillar-2" });
     if (pillar3.status === "not_started") items.push({ priority: "info", text: "ยังไม่ได้ประเมิน Asset Protection", href: "/calculators/insurance/pillar-3" });
@@ -290,30 +271,37 @@ export default function InsuranceHubPage() {
     return items.slice(0, 5);
   }, [pillar1, pillar2, pillar3, pillar4LongLive, foundation, totalPolicies]);
 
-  // ─── Pillar definitions ────────────────────────────────────────────────
+  // ─── Pillar definitions with distinct colors ───────────────────────────
+  const pillarColors = [
+    { bg: "#2563eb", bgLight: "#3b82f6", bgDark: "#1d4ed8", textOnBg: "white" },  // Blue
+    { bg: "#0d9488", bgLight: "#14b8a6", bgDark: "#0f766e", textOnBg: "white" },  // Teal
+    { bg: "#d97706", bgLight: "#f59e0b", bgDark: "#b45309", textOnBg: "white" },  // Amber
+    { bg: "#7c3aed", bgLight: "#8b5cf6", bgDark: "#6d28d9", textOnBg: "white" },  // Purple
+  ];
+
   const pillars = [
     {
       key: "p1", href: "/calculators/insurance/pillar-1",
       icon: Shield, title: "Income & Life", subtitle: "เราไม่อยู่ใครเดือดร้อน", subtitleEn: "Die too soon",
-      color: "from-[#1e3a5f] to-[#3b6fa0]", status: pillar1.status, pct: pillar1.pct,
+      status: pillar1.status, pct: pillar1.pct,
       metric: pillar1.status !== "not_started" ? (pillar1.gap > 0 ? `Gap -${fmtShort(pillar1.gap)}` : `OK +${fmtShort(Math.abs(pillar1.gap))}`) : `${pillar1.lifePolicies} เล่ม`,
     },
     {
       key: "p2", href: "/calculators/insurance/pillar-2",
       icon: HeartPulse, title: "Health & Accident", subtitle: "เข้ารพ.ใครจ่าย", subtitleEn: "Large expense",
-      color: "from-teal-500 to-cyan-600", status: pillar2.status, pct: pillar2.pct,
+      status: pillar2.status, pct: pillar2.pct,
       metric: pillar2.status !== "not_started" ? `${pillar2.okCount}/3 ผ่าน` : `${pillar2.healthPolicies} เล่ม`,
     },
     {
       key: "p3", href: "/calculators/insurance/pillar-3",
       icon: Home, title: "Asset Protection", subtitle: "สินทรัพย์มั่นคง?", subtitleEn: "Property stability",
-      color: "from-amber-500 to-orange-600", status: pillar3.status, pct: pillar3.pct,
+      status: pillar3.status, pct: pillar3.pct,
       metric: pillar3.status !== "not_started" ? `${pillar3.pct}% คุ้มครอง` : "ยังไม่ประเมิน",
     },
     {
       key: "p4", href: "/calculators/insurance/long-live",
       icon: Landmark, title: "Long Live", subtitle: "เกษียณไปใครเลี้ยง", subtitleEn: "Live too long",
-      color: "from-indigo-500 to-purple-600", status: pillar4LongLive.status, pct: pillar4LongLive.pct,
+      status: pillar4LongLive.status, pct: pillar4LongLive.pct,
       metric: pillar4LongLive.status !== "not_started" ? (pillar4LongLive.gap > 0 ? `Gap -${fmtShort(pillar4LongLive.gap)}` : "OK") : "ยังไม่ประเมิน",
     },
   ];
@@ -335,144 +323,211 @@ export default function InsuranceHubPage() {
         {/* ═══ THE TEMPLE ═══════════════════════════════════════════ */}
         <div className="mx-1">
 
-          {/* ── ROOF — หลังคา ─────────────────────────────────────── */}
+          {/* ── ROOF / PEDIMENT — หลังคา ─────────────────────────── */}
           <Link href="/calculators/insurance/policies">
             <div className="group cursor-pointer">
-              {/* Triangle */}
+              {/* Pediment triangle */}
               <div className="relative">
                 <div
-                  className="w-full h-14 bg-gradient-to-b from-[#1e3a5f] to-[#2d5a8e]"
-                  style={{ clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }}
+                  className="w-full h-20 md:h-24"
+                  style={{
+                    clipPath: "polygon(50% 0%, 2% 100%, 98% 100%)",
+                    background: "linear-gradient(180deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%)",
+                  }}
                 />
-              </div>
-              {/* Architrave beam */}
-              <div className="bg-gradient-to-r from-[#1e3a5f] via-[#2d5a8e] to-[#1e3a5f] px-4 py-2.5 flex items-center justify-between text-white group-hover:brightness-110 transition-all group-active:scale-x-[0.99]">
-                <div className="flex items-center gap-2">
-                  <ClipboardList size={14} />
-                  <span className="text-xs font-bold">สรุปกรมธรรม์</span>
+                {/* Content inside pediment */}
+                <div className="absolute inset-0 flex flex-col items-center justify-end pb-3">
+                  <ClipboardList size={14} className="text-white/60 mb-1" />
+                  <span className="text-white text-xs font-bold tracking-wider">สรุปกรมธรรม์</span>
                 </div>
-                <div className="flex items-center gap-3 text-[10px]">
+              </div>
+
+              {/* Entablature — summary stats bar */}
+              <div
+                className="px-4 py-2.5 flex items-center justify-center text-white transition-all group-hover:brightness-110 group-active:scale-x-[0.99]"
+                style={{ background: "linear-gradient(90deg, #0f3460 0%, #1a1a2e 50%, #0f3460 100%)" }}
+              >
+                <div className="flex items-center gap-5 text-[11px] font-medium">
                   <span>{totalPolicies} เล่ม</span>
+                  <span className="opacity-30">|</span>
                   <span>ทุน {fmtShort(totalSumInsured)}</span>
+                  <span className="opacity-30">|</span>
                   <span>เบี้ย {fmtShort(totalPremium)}/ปี</span>
                 </div>
-                <ChevronRight size={14} className="opacity-70 group-hover:translate-x-0.5 transition-transform" />
+                <ChevronRight size={16} className="opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all absolute right-4" />
               </div>
+
+              {/* Cornice — decorative molding line */}
+              <div className="h-1.5" style={{ background: "linear-gradient(90deg, #b8860b, #daa520, #ffd700, #daa520, #b8860b)" }} />
             </div>
           </Link>
 
-          {/* ── Beam: Roof → Pillars ─────────────────────────────── */}
-          <div className="h-2 bg-gradient-to-r from-[#1e3a5f]/30 via-[#1e3a5f]/60 to-[#1e3a5f]/30" />
+          {/* ── COLUMNS SECTION ───────────────────────────────────── */}
+          <div className="relative bg-gradient-to-b from-gray-50 to-gray-100/50">
+            {/* Top beam connecting to columns */}
+            <div className="h-2.5" style={{ background: "linear-gradient(180deg, #555 0%, #888 50%, #aaa 100%)" }} />
 
-          {/* ── 4 PILLARS — เสา 4 ต้น ────────────────────────────── */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 p-2.5 bg-gradient-to-b from-slate-50 to-white">
-            {pillars.map((pillar, idx) => {
-              const Icon = pillar.icon;
-              const ss = getStatusStyle(pillar.status);
-              return (
-                <Link key={pillar.key} href={pillar.href}>
-                  <div className="group cursor-pointer">
-                    {/* Column capital (top) */}
-                    <div className={`h-1.5 bg-gradient-to-r ${pillar.color} rounded-t-xl`} />
+            {/* 4 PILLARS — Classic Columns */}
+            <div className="grid grid-cols-4 gap-3 md:gap-5 px-2 md:px-4 py-4 md:py-6">
+              {pillars.map((pillar, idx) => {
+                const Icon = pillar.icon;
+                const ss = getStatusStyle(pillar.status);
+                const c = pillarColors[idx];
+                return (
+                  <Link key={pillar.key} href={pillar.href}>
+                    <div className="group cursor-pointer flex flex-col items-center">
 
-                    {/* Column body */}
-                    <div className={`bg-white border ${ss.border} border-t-0 rounded-b-xl px-3 py-4 min-h-[170px] flex flex-col items-center text-center transition-all shadow-sm group-hover:shadow-md group-hover:-translate-y-0.5 group-active:scale-[0.97]`}>
-                      {/* Traffic light */}
-                      <div className={`w-3.5 h-3.5 rounded-full ${ss.dot} mb-2.5 shadow-sm ring-2 ring-white`} />
-
-                      {/* Icon */}
-                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center bg-gradient-to-br ${pillar.color} shadow-lg mb-2.5`}>
-                        <Icon size={20} className="text-white" />
+                      {/* ── Column Capital — flared top ── */}
+                      <div className="w-full relative">
+                        {/* Abacus (flat top) */}
+                        <div className="h-2 rounded-t-md mx-[-6px] md:mx-[-10px]" style={{ background: c.bg }} />
+                        {/* Echinus (curved flare) */}
+                        <div className="h-1.5 mx-[-4px] md:mx-[-7px]" style={{ background: c.bgLight, opacity: 0.85 }} />
+                        {/* Necking */}
+                        <div className="h-1 mx-[-2px] md:mx-[-4px]" style={{ background: c.bg, opacity: 0.7 }} />
                       </div>
 
-                      {/* Pillar number */}
-                      <div className="text-[8px] font-extrabold text-gray-400 uppercase tracking-wider">Pillar {idx + 1}</div>
+                      {/* ── Column Shaft — main body ── */}
+                      <div
+                        className="w-full relative overflow-hidden transition-all group-hover:-translate-y-1 group-hover:shadow-xl group-active:scale-[0.97]"
+                        style={{
+                          background: `linear-gradient(135deg, ${c.bgLight} 0%, ${c.bg} 40%, ${c.bgDark} 100%)`,
+                          minHeight: "200px",
+                        }}
+                      >
+                        {/* Fluting (vertical grooves for 3D effect) */}
+                        <div className="absolute inset-0 pointer-events-none" style={{ opacity: 0.08 }}>
+                          {[15, 30, 45, 60, 75, 85].map((pct) => (
+                            <div key={pct} className="absolute top-0 bottom-0" style={{ left: `${pct}%`, width: "1px", background: "black" }} />
+                          ))}
+                        </div>
 
-                      {/* Title */}
-                      <div className="text-[11px] font-bold text-gray-800 mt-0.5 leading-tight">{pillar.title}</div>
+                        {/* Column content */}
+                        <div className="relative z-10 flex flex-col items-center text-center px-2 py-4 md:px-3 h-full">
+                          {/* Traffic light dot */}
+                          <div className={`w-3 h-3 md:w-4 md:h-4 rounded-full ${ss.dot} mb-2 shadow ring-2 ring-white/30`} />
 
-                      {/* Subtitle */}
-                      <div className="text-[9px] text-gray-400 mt-0.5">{pillar.subtitle}</div>
+                          {/* Icon */}
+                          <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center bg-white/20 backdrop-blur-sm shadow-lg mb-2">
+                            <Icon size={20} className="text-white drop-shadow" />
+                          </div>
 
-                      {/* Status badge */}
-                      <div className={`text-[8px] px-2.5 py-0.5 rounded-full ${ss.dot} text-white font-bold mt-2.5`}>
-                        {ss.label}
-                      </div>
+                          {/* Pillar number */}
+                          <div className="text-[7px] md:text-[8px] font-extrabold uppercase tracking-[0.15em] text-white/50">
+                            Pillar {idx + 1}
+                          </div>
 
-                      {/* Metric */}
-                      <div className={`text-[10px] font-bold mt-1.5 ${pillar.metric.startsWith("Gap") ? "text-red-600" : ss.text}`}>
-                        {pillar.metric}
-                      </div>
+                          {/* Title */}
+                          <div className="text-[10px] md:text-[12px] font-bold text-white mt-1 leading-tight drop-shadow">
+                            {pillar.title}
+                          </div>
 
-                      {/* Mini bar */}
-                      {pillar.status !== "not_started" && (
-                        <div className="w-full mt-2">
-                          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full ${pillar.pct >= 100 ? "bg-emerald-400" : pillar.pct >= 50 ? "bg-amber-400" : "bg-red-400"}`}
-                              style={{ width: `${Math.min(pillar.pct, 100)}%` }}
-                            />
+                          {/* Subtitle */}
+                          <div className="text-[8px] md:text-[9px] text-white/60 mt-0.5 leading-tight">
+                            {pillar.subtitle}
+                          </div>
+
+                          {/* Status badge */}
+                          <div className={`text-[7px] md:text-[8px] px-2 py-0.5 rounded-full mt-2 font-bold shadow ${
+                            pillar.status === "adequate" ? "bg-emerald-500 text-white" :
+                            pillar.status === "warning" ? "bg-amber-400 text-amber-900" :
+                            pillar.status === "critical" ? "bg-red-500 text-white" :
+                            "bg-white/30 text-white/80"
+                          }`}>
+                            {ss.label}
+                          </div>
+
+                          {/* Metric */}
+                          <div className={`text-[9px] md:text-[10px] font-bold mt-1 ${
+                            pillar.metric.startsWith("Gap") ? "text-red-200" : "text-white/90"
+                          }`}>
+                            {pillar.metric}
+                          </div>
+
+                          {/* Mini bar */}
+                          {pillar.status !== "not_started" && (
+                            <div className="w-full mt-2 px-1">
+                              <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full ${pillar.pct >= 100 ? "bg-emerald-300" : pillar.pct >= 50 ? "bg-amber-300" : "bg-red-300"}`}
+                                  style={{ width: `${Math.min(pillar.pct, 100)}%` }}
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Tap hint */}
+                          <div className="flex items-center gap-0.5 mt-auto pt-2 text-[8px] md:text-[9px] text-white/40 group-hover:text-white/90 transition-colors">
+                            <span>ดูเพิ่ม</span>
+                            <ChevronRight size={10} className="group-hover:translate-x-0.5 transition-transform" />
                           </div>
                         </div>
-                      )}
-
-                      {/* Tap hint */}
-                      <div className="flex items-center gap-0.5 mt-auto pt-2 text-[9px] text-gray-300 group-hover:text-blue-400 transition-colors">
-                        <span>ดูรายละเอียด</span>
-                        <ChevronRight size={10} className="group-hover:translate-x-0.5 transition-transform" />
                       </div>
+
+                      {/* ── Column Base — flared bottom ── */}
+                      <div className="w-full">
+                        {/* Torus (bottom ring) */}
+                        <div className="h-1 mx-[-2px] md:mx-[-4px]" style={{ background: c.bg, opacity: 0.7 }} />
+                        {/* Scotia */}
+                        <div className="h-1.5 mx-[-4px] md:mx-[-7px]" style={{ background: c.bgLight, opacity: 0.85 }} />
+                        {/* Plinth (flat base) */}
+                        <div className="h-2 rounded-b-md mx-[-6px] md:mx-[-10px]" style={{ background: c.bg }} />
+                      </div>
+
                     </div>
-                  </div>
-                </Link>
-              );
-            })}
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Bottom beam connecting to foundation */}
+            <div className="h-2.5" style={{ background: "linear-gradient(180deg, #aaa 0%, #888 50%, #555 100%)" }} />
           </div>
 
-          {/* ── Beam: Pillars → Foundation ────────────────────────── */}
-          <div className="h-2 bg-gradient-to-r from-stone-300/40 via-stone-400/70 to-stone-300/40" />
-
-          {/* ── FOUNDATION — ฐานราก ───────────────────────────────── */}
+          {/* ── FOUNDATION — ฐานราก (Tax & Cash Flow) ──────────── */}
           <Link href="/calculators/insurance/pillar-4">
-            <div className="group cursor-pointer bg-gradient-to-b from-stone-100 to-stone-200 rounded-b-2xl p-4 transition-all hover:brightness-[0.98] active:scale-[0.99] shadow-sm">
-              <div className="flex items-center gap-2 mb-2.5">
-                <Wallet size={16} className="text-stone-600" />
-                <span className="text-xs font-bold text-stone-700">ฐานราก: Tax & Cash Flow Optimization</span>
-                <ChevronRight size={14} className="text-stone-400 ml-auto group-hover:translate-x-0.5 transition-transform" />
-              </div>
+            <div className="group cursor-pointer transition-all hover:brightness-110 active:scale-[0.99]">
+              {/* Golden cornice above foundation */}
+              <div className="h-1" style={{ background: "linear-gradient(90deg, #b8860b, #daa520, #ffd700, #daa520, #b8860b)" }} />
 
-              <div className="flex items-center gap-4">
-                {/* Premium ratio */}
-                <div className="flex-1">
-                  <div className="flex items-center justify-between text-[10px] mb-1">
-                    <span className="text-stone-600">Premium Ratio</span>
-                    <span className={`font-bold ${foundation.status === "adequate" ? "text-emerald-600" : foundation.status === "warning" ? "text-amber-600" : "text-red-600"}`}>
-                      {annualIncome > 0 ? `${(foundation.premiumRatio * 100).toFixed(1)}%` : "—"}
-                    </span>
-                  </div>
-                  <div className="h-2.5 bg-stone-300/60 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full ${foundation.status === "adequate" ? "bg-emerald-400" : foundation.status === "warning" ? "bg-amber-400" : "bg-red-400"}`}
-                      style={{ width: `${Math.min(foundation.premiumRatio * 100 / 20 * 100, 100)}%` }} />
-                  </div>
-                  <div className="flex justify-between text-[8px] text-stone-400 mt-0.5">
-                    <span>0%</span>
-                    <span>10%</span>
-                    <span>15%</span>
-                    <span>20%</span>
-                  </div>
+              <div className="rounded-b-2xl p-4 shadow-lg" style={{ background: "linear-gradient(180deg, #3d3d3d 0%, #2a2a2a 100%)" }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Wallet size={16} className="text-stone-300" />
+                  <span className="text-xs font-bold text-stone-200">ฐานราก: Tax & Cash Flow Optimization</span>
+                  <ChevronRight size={14} className="text-stone-400 ml-auto group-hover:translate-x-0.5 group-hover:text-stone-200 transition-all" />
                 </div>
 
-                {/* Tax deduction */}
-                <div className="flex-1">
-                  <div className="flex items-center justify-between text-[10px] mb-1">
-                    <span className="text-stone-600">สิทธิลดหย่อน</span>
-                    <span className="font-bold text-stone-700">{fmtShort(foundation.taxUsed)}/{fmtShort(foundation.taxMax)}</span>
+                <div className="flex items-center gap-4">
+                  {/* Premium ratio */}
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between text-[10px] mb-1">
+                      <span className="text-stone-400">Premium Ratio</span>
+                      <span className={`font-bold ${foundation.status === "adequate" ? "text-emerald-400" : foundation.status === "warning" ? "text-amber-400" : "text-red-400"}`}>
+                        {annualIncome > 0 ? `${(foundation.premiumRatio * 100).toFixed(1)}%` : "—"}
+                      </span>
+                    </div>
+                    <div className="h-2.5 bg-stone-600/50 rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${foundation.status === "adequate" ? "bg-emerald-400" : foundation.status === "warning" ? "bg-amber-400" : "bg-red-400"}`}
+                        style={{ width: `${Math.min(foundation.premiumRatio * 100 / 20 * 100, 100)}%` }} />
+                    </div>
+                    <div className="flex justify-between text-[8px] text-stone-500 mt-0.5">
+                      <span>0%</span><span>10%</span><span>15%</span><span>20%</span>
+                    </div>
                   </div>
-                  <div className="h-2.5 bg-stone-300/60 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full bg-indigo-400"
-                      style={{ width: `${foundation.taxMax > 0 ? (foundation.taxUsed / foundation.taxMax) * 100 : 0}%` }} />
-                  </div>
-                  <div className="text-[8px] text-stone-400 mt-0.5 text-right">
-                    เหลือ {fmtShort(foundation.taxMax - foundation.taxUsed)}
+
+                  {/* Tax deduction */}
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between text-[10px] mb-1">
+                      <span className="text-stone-400">สิทธิลดหย่อน</span>
+                      <span className="font-bold text-stone-200">{fmtShort(foundation.taxUsed)}/{fmtShort(foundation.taxMax)}</span>
+                    </div>
+                    <div className="h-2.5 bg-stone-600/50 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full bg-indigo-400"
+                        style={{ width: `${foundation.taxMax > 0 ? (foundation.taxUsed / foundation.taxMax) * 100 : 0}%` }} />
+                    </div>
+                    <div className="text-[8px] text-stone-500 mt-0.5 text-right">
+                      เหลือ {fmtShort(foundation.taxMax - foundation.taxUsed)}
+                    </div>
                   </div>
                 </div>
               </div>
