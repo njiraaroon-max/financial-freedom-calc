@@ -338,7 +338,7 @@ export default function InsuranceHubPage() {
           <div className="relative">
             {/* SVG: triangle + bar as one seamless piece */}
             <Link href="/calculators/insurance/policies">
-              <svg viewBox="0 0 1000 370" overflow="visible" className="w-full h-auto block" preserveAspectRatio="none">
+              <svg viewBox="0 0 1000 320" overflow="visible" className="w-full h-auto block" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="roofFill" x1="0.5" y1="0" x2="0.5" y2="1">
                     <stop offset="0%" stopColor="#1a1a2e" />
@@ -361,11 +361,11 @@ export default function InsuranceHubPage() {
                 {/* Triangle pediment */}
                 <polygon points="500,8 -30,195 1030,195" fill="url(#roofFill)" stroke="url(#roofStroke)" strokeWidth="4" strokeLinejoin="round" />
                 {/* Bar seamless with triangle */}
-                <rect x="0" y="193" width="1000" height="177" fill="url(#barFill)" />
+                <rect x="0" y="193" width="1000" height="127" fill="url(#barFill)" />
                 <line x1="0" y1="193" x2="1000" y2="193" stroke="url(#roofStroke)" strokeWidth="2" opacity="0.4" />
-                <line x1="0" y1="193" x2="0" y2="370" stroke="url(#roofStroke)" strokeWidth="2" />
-                <line x1="1000" y1="193" x2="1000" y2="370" stroke="url(#roofStroke)" strokeWidth="2" />
-                <line x1="0" y1="370" x2="1000" y2="370" stroke="url(#roofStroke)" strokeWidth="2" />
+                <line x1="0" y1="193" x2="0" y2="320" stroke="url(#roofStroke)" strokeWidth="2" />
+                <line x1="1000" y1="193" x2="1000" y2="320" stroke="url(#roofStroke)" strokeWidth="2" />
+                <line x1="0" y1="320" x2="1000" y2="320" stroke="url(#roofStroke)" strokeWidth="2" />
               </svg>
             </Link>
 
@@ -379,33 +379,33 @@ export default function InsuranceHubPage() {
             </Link>
 
             {/* Stats bar content — bottom area */}
-            <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5 md:px-4 md:pb-3.5">
+            <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-2 md:px-4 md:pb-2.5">
               {/* + เพิ่มกรมธรรม์ — top right of bar */}
-              <div className="flex justify-end mb-2">
+              <div className="flex justify-end pr-6 md:pr-16 mb-1.5">
                 <Link href="/calculators/insurance/policies?add=true">
-                  <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/20 hover:bg-white/30 active:scale-95 transition text-white text-[10px] md:text-xs font-bold shadow-lg backdrop-blur-sm border border-white/10">
-                    <Plus size={14} />
+                  <div className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition text-white/80 hover:text-white text-[10px] md:text-xs font-medium backdrop-blur-md border border-white/20">
+                    <Plus size={13} strokeWidth={2} />
                     <span>เพิ่มกรมธรรม์</span>
                   </div>
                 </Link>
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <Link href="/calculators/insurance/policies">
-                  <div className="bg-white/12 hover:bg-white/20 transition rounded-lg px-2 py-2.5 text-center text-white">
+                  <div className="bg-white/12 hover:bg-white/20 transition rounded-lg px-2 py-2 text-center text-white">
                     <div className="text-[8px] md:text-[9px] opacity-50">จำนวนกรมธรรม์</div>
-                    <div className="text-base md:text-lg font-bold">{totalPolicies}</div>
+                    <div className="text-sm md:text-base font-bold">{totalPolicies}</div>
                   </div>
                 </Link>
                 <Link href="/calculators/insurance/policies">
-                  <div className="bg-white/12 hover:bg-white/20 transition rounded-lg px-2 py-2.5 text-center text-white">
+                  <div className="bg-white/12 hover:bg-white/20 transition rounded-lg px-2 py-2 text-center text-white">
                     <div className="text-[8px] md:text-[9px] opacity-50">ทุนประกันรวม</div>
-                    <div className="text-base md:text-lg font-bold">{fmtShort(totalSumInsured)}</div>
+                    <div className="text-sm md:text-base font-bold">{fmtShort(totalSumInsured)}</div>
                   </div>
                 </Link>
                 <Link href="/calculators/insurance/policies">
-                  <div className="bg-white/12 hover:bg-white/20 transition rounded-lg px-2 py-2.5 text-center text-white">
+                  <div className="bg-white/12 hover:bg-white/20 transition rounded-lg px-2 py-2 text-center text-white">
                     <div className="text-[8px] md:text-[9px] opacity-50">เบี้ยรวม/ปี</div>
-                    <div className="text-base md:text-lg font-bold">{fmtShort(totalPremium)}</div>
+                    <div className="text-sm md:text-base font-bold">{fmtShort(totalPremium)}</div>
                   </div>
                 </Link>
               </div>
