@@ -151,8 +151,9 @@ function GanttChart({
   const barR = 8;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6 overflow-x-auto">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
+      {/* Header — sticky ไม่เลื่อนตามแนวนอน */}
+      <div className="flex items-center justify-between mb-4 sticky left-0">
         <h3 className="text-base font-bold text-gray-800">
           การชำระเบี้ย / ระยะเวลาการคุ้มครอง
         </h3>
@@ -168,6 +169,7 @@ function GanttChart({
         </div>
       </div>
 
+      <div className="overflow-x-auto">
       <svg width={svgW} height={svgH} className="block" style={{ minWidth: svgW }}>
         <defs>
           {/* Clip paths for each policy — unified rounded rect */}
@@ -275,6 +277,7 @@ function GanttChart({
           ปัจจุบัน
         </text>
       </svg>
+      </div>
     </div>
   );
 }
@@ -1100,7 +1103,7 @@ export default function PortfolioDashboard() {
         </div>
       ) : (
         <div className="px-2 space-y-3 pb-8">
-          <div className="overflow-x-auto"><GanttChart policies={policies} birthYear={birthYear} currentAge={currentAge} /></div>
+          <GanttChart policies={policies} birthYear={birthYear} currentAge={currentAge} />
           <StepLineChart policies={policies} birthYear={birthYear} currentAge={currentAge} />
           <TaxDeduction policies={policies} />
           <PremiumByAgeBracket policies={policies} birthYear={birthYear} currentAge={currentAge} retireAge={retireAge} lifeExpectancy={lifeExpectancy} />
