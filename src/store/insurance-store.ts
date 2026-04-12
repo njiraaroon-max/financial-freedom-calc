@@ -180,39 +180,81 @@ export interface Pillar1Data {
   useCashflowExpense: boolean;      // ดึงค่าใช้จ่ายจาก cashflow
 }
 
+export type HospitalTier = "government" | "private_basic" | "private_mid" | "private_premium";
+
 export interface Pillar2Data {
-  targetHospital: string;           // รพ เป้าหมาย
+  // Hospital tier
+  hospitalTier: HospitalTier;
+  // Desired coverage
   desiredRoomRate: number;          // ค่าห้อง/วัน ที่ต้องการ
   desiredIPDPerYear: number;        // วงเงิน IPD ต่อปี
   desiredOPDPerVisit: number;       // วงเงิน OPD ต่อครั้ง
   desiredCICoverage: number;        // ทุน CI ที่ต้องการ
+  desiredAccidentCoverage: number;  // ทุน PA ที่ต้องการ
+  // Medical inflation
+  medicalInflationRate: number;     // % ต่อปี (default 5)
+  projectionYears: number;          // คำนวณไปกี่ปี (default = retire age - current age)
+  // Welfare
   hasSocialSecurity: boolean;
-  governmentScheme: "none" | "gold_card" | "government";
-  groupInsurance: {
-    roomRate: number;
-    ipdPerYear: number;
-    opdPerVisit: number;
-  };
+  governmentScheme: "none" | "gold_card" | "government_officer";
+  // Group insurance from employer
+  groupRoomRate: number;
+  groupIPDPerYear: number;
+  groupOPDPerVisit: number;
+  groupCI: number;
+  groupAccident: number;
+  // Notes
+  healthNotes: string;
 }
 
+export type VehicleInsuranceType = "class1" | "class2plus" | "class3plus" | "class3" | "none";
+
 export interface Pillar3Data {
+  // Home
+  hasHome: boolean;
+  homeType: "house" | "condo" | "townhouse" | "none";
   homeReplacementCost: number;      // ต้นทุนสร้างบ้านใหม่ (ไม่รวมที่ดิน)
   homeInsuredAmount: number;        // ทุนประกันบ้านปัจจุบัน
+  homeFireInsured: boolean;
+  homeFloodInsured: boolean;
+  // Vehicle
+  hasVehicle: boolean;
   vehicleValue: number;             // มูลค่ารถปัจจุบัน
-  vehicleInsuranceType: "class1" | "class2plus" | "class3plus" | "class3" | "none";
+  vehicleInsuranceType: VehicleInsuranceType;
   vehicleInsuredAmount: number;     // ทุนประกันรถ
+  vehiclePremium: number;           // เบี้ยประกันรถ/ปี
+  // Liability
   thirdPartyLimit: number;          // วงเงินคุ้มครองบุคคลภายนอก
+  desiredThirdPartyLimit: number;   // วงเงินที่ต้องการ
+  // Other assets
+  otherAssetValue: number;
+  otherAssetInsured: number;
+  otherAssetDescription: string;
 }
 
 export interface Pillar4Data {
   targetPremiumRatio: number;       // % ของรายได้ (default 0.10)
+  // Tax deduction
+  lifePremiumDeduction: number;     // เบี้ยประกันชีวิตลดหย่อนได้ (max 100,000)
+  healthPremiumDeduction: number;   // เบี้ยประกันสุขภาพลดหย่อนได้ (max 25,000)
+  pensionPremiumDeduction: number;  // เบี้ยประกันบำนาญลดหย่อนได้ (max 200,000 รวม retirement)
+  parentHealthDeduction: number;    // เบี้ยประกันสุขภาพพ่อแม่ (max 15,000)
+}
+
+export interface LongLiveProtectionData {
+  useRetirementGap: boolean;           // ดึง gap จาก retirement module
+  retirementFundNeeded: number;        // ทุนเกษียณที่ต้องการ
+  retirementFundHave: number;          // ทุนเกษียณที่มี
+  desiredPensionMonthly: number;       // เงินบำนาญที่ต้องการ/เดือน
+  longLiveNotes: string;
 }
 
 export interface RiskManagementData {
   pillar1: Pillar1Data;
   pillar2: Pillar2Data;
   pillar3: Pillar3Data;
-  pillar4: Pillar4Data;
+  pillar4: Pillar4Data;                    // Tax & CF = Foundation
+  longLiveProtection: LongLiveProtectionData;  // Long Live Protection = Pillar 4 ใหม่
   completedPillars: Record<string, boolean>;
 }
 
@@ -231,27 +273,57 @@ export const DEFAULT_PILLAR1: Pillar1Data = {
 };
 
 export const DEFAULT_PILLAR2: Pillar2Data = {
-  targetHospital: "",
+  hospitalTier: "private_mid",
   desiredRoomRate: 5000,
   desiredIPDPerYear: 500000,
   desiredOPDPerVisit: 2000,
   desiredCICoverage: 1000000,
+  desiredAccidentCoverage: 1000000,
+  medicalInflationRate: 5,
+  projectionYears: 25,
   hasSocialSecurity: true,
   governmentScheme: "none",
-  groupInsurance: { roomRate: 0, ipdPerYear: 0, opdPerVisit: 0 },
+  groupRoomRate: 0,
+  groupIPDPerYear: 0,
+  groupOPDPerVisit: 0,
+  groupCI: 0,
+  groupAccident: 0,
+  healthNotes: "",
 };
 
 export const DEFAULT_PILLAR3: Pillar3Data = {
+  hasHome: false,
+  homeType: "none",
   homeReplacementCost: 0,
   homeInsuredAmount: 0,
+  homeFireInsured: false,
+  homeFloodInsured: false,
+  hasVehicle: false,
   vehicleValue: 0,
   vehicleInsuranceType: "none",
   vehicleInsuredAmount: 0,
+  vehiclePremium: 0,
   thirdPartyLimit: 0,
+  desiredThirdPartyLimit: 1000000,
+  otherAssetValue: 0,
+  otherAssetInsured: 0,
+  otherAssetDescription: "",
 };
 
 export const DEFAULT_PILLAR4: Pillar4Data = {
   targetPremiumRatio: 0.10,
+  lifePremiumDeduction: 0,
+  healthPremiumDeduction: 0,
+  pensionPremiumDeduction: 0,
+  parentHealthDeduction: 0,
+};
+
+export const DEFAULT_LONG_LIVE: LongLiveProtectionData = {
+  useRetirementGap: false,
+  retirementFundNeeded: 0,
+  retirementFundHave: 0,
+  desiredPensionMonthly: 0,
+  longLiveNotes: "",
 };
 
 export const DEFAULT_RISK_MANAGEMENT: RiskManagementData = {
@@ -259,6 +331,7 @@ export const DEFAULT_RISK_MANAGEMENT: RiskManagementData = {
   pillar2: { ...DEFAULT_PILLAR2 },
   pillar3: { ...DEFAULT_PILLAR3 },
   pillar4: { ...DEFAULT_PILLAR4 },
+  longLiveProtection: { ...DEFAULT_LONG_LIVE },
   completedPillars: {},
 };
 
@@ -298,6 +371,7 @@ interface InsuranceState {
   updatePillar2: (updates: Partial<Pillar2Data>) => void;
   updatePillar3: (updates: Partial<Pillar3Data>) => void;
   updatePillar4: (updates: Partial<Pillar4Data>) => void;
+  updateLongLiveProtection: (updates: Partial<LongLiveProtectionData>) => void;
   markPillarCompleted: (pillar: string) => void;
 
   // Completion tracking
@@ -384,6 +458,10 @@ export const useInsuranceStore = create<InsuranceState>()(
         set((s) => ({
           riskManagement: { ...s.riskManagement, pillar4: { ...s.riskManagement.pillar4, ...updates } },
         })),
+      updateLongLiveProtection: (updates) =>
+        set((s) => ({
+          riskManagement: { ...s.riskManagement, longLiveProtection: { ...s.riskManagement.longLiveProtection, ...updates } },
+        })),
       markPillarCompleted: (pillar) =>
         set((s) => ({
           riskManagement: {
@@ -414,7 +492,7 @@ export const useInsuranceStore = create<InsuranceState>()(
     }),
     {
       name: "ffc-insurance",
-      version: 3,
+      version: 6,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
         if (version < 2) {
@@ -431,6 +509,31 @@ export const useInsuranceStore = create<InsuranceState>()(
         }
         if (version < 3) {
           state.riskManagement = { ...DEFAULT_RISK_MANAGEMENT };
+        }
+        if (version < 4) {
+          const rm = state.riskManagement as RiskManagementData | undefined;
+          if (rm) {
+            rm.pillar2 = { ...DEFAULT_PILLAR2 };
+          } else {
+            state.riskManagement = { ...DEFAULT_RISK_MANAGEMENT };
+          }
+        }
+        if (version < 5) {
+          const rm = state.riskManagement as RiskManagementData | undefined;
+          if (rm) {
+            rm.pillar3 = { ...DEFAULT_PILLAR3 };
+            rm.pillar4 = { ...DEFAULT_PILLAR4 };
+          } else {
+            state.riskManagement = { ...DEFAULT_RISK_MANAGEMENT };
+          }
+        }
+        if (version < 6) {
+          const rm = state.riskManagement as RiskManagementData | undefined;
+          if (rm) {
+            rm.longLiveProtection = { ...DEFAULT_LONG_LIVE };
+          } else {
+            state.riskManagement = { ...DEFAULT_RISK_MANAGEMENT };
+          }
         }
         return state;
       },
