@@ -379,7 +379,7 @@ export default function InsuranceHubPage() {
             <div className="h-2.5" style={{ background: "linear-gradient(180deg, #555 0%, #888 50%, #aaa 100%)" }} />
 
             {/* 4 PILLARS — Minimal Gray Columns with Colored Icons */}
-            <div className="grid grid-cols-4 gap-3 md:gap-5 px-2 md:px-4 py-4 md:py-6">
+            <div className="grid grid-cols-4 gap-5 md:gap-7 px-3 md:px-6 py-4 md:py-6">
               {pillars.map((pillar, idx) => {
                 const Icon = pillar.icon;
                 const ss = getStatusStyle(pillar.status);
@@ -389,19 +389,20 @@ export default function InsuranceHubPage() {
                   <Link key={pillar.key} href={pillar.href}>
                     <div className="group cursor-pointer flex flex-col items-center">
 
-                      {/* ── Column Capital — stone flare ── */}
+                      {/* ── Column Capital — stone flare (wider) ── */}
                       <div className="w-full">
-                        <div className="h-2 rounded-t-md mx-[-6px] md:mx-[-10px]" style={{ background: g.capital }} />
-                        <div className="h-1.5 mx-[-4px] md:mx-[-7px]" style={{ background: g.shaftDark }} />
+                        <div className="h-2 rounded-t-md mx-[-8px] md:mx-[-12px]" style={{ background: g.capital }} />
+                        <div className="h-1.5 mx-[-5px] md:mx-[-8px]" style={{ background: g.shaftDark }} />
                         <div className="h-1 mx-[-2px] md:mx-[-4px]" style={{ background: g.shaft }} />
                       </div>
 
-                      {/* ── Column Shaft — gray body ── */}
+                      {/* ── Column Shaft — narrower gray body with rounded edges + shadow ── */}
                       <div
-                        className="w-full relative overflow-hidden transition-all group-hover:-translate-y-1 group-hover:shadow-xl group-active:scale-[0.97]"
+                        className="w-[85%] relative overflow-hidden rounded-sm transition-all group-hover:-translate-y-1 group-hover:shadow-xl group-active:scale-[0.97]"
                         style={{
                           background: `linear-gradient(180deg, ${g.shaft} 0%, ${g.shaftDark} 100%)`,
                           minHeight: "210px",
+                          boxShadow: "2px 3px 8px rgba(0,0,0,0.12), -1px 0 4px rgba(0,0,0,0.05)",
                         }}
                       >
                         {/* Column content */}
@@ -469,11 +470,11 @@ export default function InsuranceHubPage() {
                         </div>
                       </div>
 
-                      {/* ── Column Base — stone flare ── */}
+                      {/* ── Column Base — stone flare (wider, matching capital) ── */}
                       <div className="w-full">
                         <div className="h-1 mx-[-2px] md:mx-[-4px]" style={{ background: g.shaft }} />
-                        <div className="h-1.5 mx-[-4px] md:mx-[-7px]" style={{ background: g.shaftDark }} />
-                        <div className="h-2 rounded-b-md mx-[-6px] md:mx-[-10px]" style={{ background: g.capital }} />
+                        <div className="h-1.5 mx-[-5px] md:mx-[-8px]" style={{ background: g.shaftDark }} />
+                        <div className="h-2 rounded-b-md mx-[-8px] md:mx-[-12px]" style={{ background: g.capital }} />
                       </div>
 
                     </div>
