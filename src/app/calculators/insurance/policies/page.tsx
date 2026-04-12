@@ -128,21 +128,19 @@ function GanttChart({
   const maxYear = Math.max(...allEnds, CURRENT_YEAR + 5) + 1;
   const totalYears = maxYear - minYear;
 
-  // Layout — every year gets its own column
-  const labelW = 120;
+  // Layout
+  const labelW = 120; // fixed left column width
   const yearColW = 32;
   const chartW = totalYears * yearColW;
   const rowH = 48;
   const axisH = 75;
   const padT = 30;
-  const svgW = labelW + chartW + 10;
+  const chartSvgW = chartW + 10;
   const barsEndY = padT + sorted.length * rowH;
   const svgH = barsEndY + axisH;
 
-  const xPos = (year: number) => labelW + ((year - minYear) / totalYears) * chartW;
+  const xPos = (year: number) => ((year - minYear) / totalYears) * chartW;
   const currentX = xPos(CURRENT_YEAR);
-
-  const majorStep = totalYears > 40 ? 10 : 5;
 
   // All years
   const allYears: number[] = [];
@@ -152,8 +150,8 @@ function GanttChart({
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
-      {/* Header — sticky ไม่เลื่อนตามแนวนอน */}
-      <div className="flex items-center justify-between mb-4 sticky left-0">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-bold text-gray-800">
           การชำระเบี้ย / ระยะเวลาการคุ้มครอง
         </h3>
@@ -169,114 +167,114 @@ function GanttChart({
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-      <svg width={svgW} height={svgH} className="block" style={{ minWidth: svgW }}>
-        <defs>
-          {/* Clip paths for each policy — unified rounded rect */}
-          {sorted.map((p, i) => {
-            const startY = getStartYear(p);
-            const covEnd = getCoverageEndYear(p, birthYear);
-            const y0 = padT + i * rowH + 8;
-            const barH = 32;
-            return (
-              <clipPath key={`clip-${p.id}`} id={`clip-${p.id}`}>
-                <rect x={xPos(startY)} y={y0} width={Math.max(xPos(covEnd) - xPos(startY), 4)} height={barH} rx={barR} />
-              </clipPath>
-            );
-          })}
-        </defs>
+      {/* Split layout: fixed labels + scrollable chart */}
+      <div className="flex">
+        {/* Fixed left column — policy names + axis labels */}
+        <div className="shrink-0" style={{ width: labelW }}>
+          {/* Spacer for padT */}
+          <div style={{ height: padT }} />
+          {sorted.map((p, i) => (
+            <div key={p.id} className="flex items-center justify-end pr-2" style={{ height: rowH }}>
+              <span className="text-[11px] font-bold text-gray-800 text-right truncate block" style={{ maxWidth: labelW - 8 }}>
+                {p.planName}
+              </span>
+            </div>
+          ))}
+          {/* Axis row labels */}
+          <div className="text-right pr-2 pt-2 space-y-5">
+            <div className="text-[9px] font-semibold text-gray-500">พ.ศ.</div>
+            <div className="text-[9px] font-semibold text-blue-500">อายุ</div>
+          </div>
+        </div>
 
-        {/* Grid lines — minor (every year) */}
-        {allYears.map((y) => {
-          const age = y - birthYear;
-          const isMajor = age % 10 === 0 && age >= 0;
-          return (
-            <line key={`grid-${y}`} x1={xPos(y)} y1={padT - 3} x2={xPos(y)} y2={barsEndY + 3}
-              stroke={isMajor ? "#d1d5db" : "#f0f0f0"} strokeWidth={isMajor ? 1 : 0.5} />
-          );
-        })}
+        {/* Scrollable chart area */}
+        <div className="flex-1 overflow-x-auto">
+          <svg width={chartSvgW} height={svgH} className="block" style={{ minWidth: chartSvgW }}>
+            <defs>
+              {sorted.map((p, i) => {
+                const startY = getStartYear(p);
+                const covEnd = getCoverageEndYear(p, birthYear);
+                const y0 = padT + i * rowH + 8;
+                const barH = 32;
+                return (
+                  <clipPath key={`clip-${p.id}`} id={`clip-${p.id}`}>
+                    <rect x={xPos(startY)} y={y0} width={Math.max(xPos(covEnd) - xPos(startY), 4)} height={barH} rx={barR} />
+                  </clipPath>
+                );
+              })}
+            </defs>
 
-        {/* Policy bars — unified shape */}
-        {sorted.map((p, i) => {
-          const y0 = padT + i * rowH + 8;
-          const barH = 32;
-          const startY = getStartYear(p);
-          const payEnd = getPaymentEndYear(p);
-          const covEnd = getCoverageEndYear(p, birthYear);
-          const totalBarW = Math.max(xPos(covEnd) - xPos(startY), 4);
-          const premiumW = Math.max(xPos(payEnd) - xPos(startY), 2);
+            {/* Grid lines */}
+            {allYears.map((y) => {
+              const age = y - birthYear;
+              const isMajor = age % 10 === 0 && age >= 0;
+              return (
+                <line key={`grid-${y}`} x1={xPos(y)} y1={padT - 3} x2={xPos(y)} y2={barsEndY + 3}
+                  stroke={isMajor ? "#d1d5db" : "#f0f0f0"} strokeWidth={isMajor ? 1 : 0.5} />
+              );
+            })}
 
-          return (
-            <g key={p.id}>
-              {/* Label */}
-              <text x={labelW - 8} y={y0 + barH / 2} textAnchor="end" dominantBaseline="middle" fontSize="11" className="fill-gray-800" fontWeight="700">
-                {p.planName.length > 12 ? p.planName.slice(0, 10) + "…" : p.planName}
-              </text>
+            {/* Policy bars */}
+            {sorted.map((p, i) => {
+              const y0 = padT + i * rowH + 8;
+              const barH = 32;
+              const startY = getStartYear(p);
+              const payEnd = getPaymentEndYear(p);
+              const covEnd = getCoverageEndYear(p, birthYear);
+              const totalBarW = Math.max(xPos(covEnd) - xPos(startY), 4);
+              const premiumW = Math.max(xPos(payEnd) - xPos(startY), 2);
 
-              {/* Unified bar with clip path */}
-              <g clipPath={`url(#clip-${p.id})`}>
-                {/* Coverage background (light) — full bar */}
-                <rect x={xPos(startY)} y={y0} width={totalBarW} height={barH} fill={COVERAGE_LIGHT} />
-                {/* Premium portion (dark) — left part */}
-                <rect x={xPos(startY)} y={y0} width={premiumW} height={barH} fill={NAVY} />
-              </g>
+              return (
+                <g key={p.id}>
+                  <g clipPath={`url(#clip-${p.id})`}>
+                    <rect x={xPos(startY)} y={y0} width={totalBarW} height={barH} fill={COVERAGE_LIGHT} />
+                    <rect x={xPos(startY)} y={y0} width={premiumW} height={barH} fill={NAVY} />
+                  </g>
+                  <rect x={xPos(startY)} y={y0} width={totalBarW} height={barH} rx={barR} fill="none" stroke={NAVY} strokeWidth="1.5" />
 
-              {/* Unified border */}
-              <rect x={xPos(startY)} y={y0} width={totalBarW} height={barH} rx={barR} fill="none" stroke={NAVY} strokeWidth="1.5" />
+                  {premiumW > 55 && (
+                    <text x={xPos(startY) + premiumW / 2} y={y0 + barH / 2 + 1} textAnchor="middle" dominantBaseline="middle" fontSize="9" fill="white" fontWeight="bold">
+                      {startY + BE_OFFSET}-{payEnd + BE_OFFSET}
+                    </text>
+                  )}
+                  {covEnd > payEnd && (xPos(covEnd) - xPos(payEnd)) > 55 && (
+                    <text x={(xPos(payEnd) + xPos(covEnd)) / 2} y={y0 + barH / 2 + 1} textAnchor="middle" dominantBaseline="middle" fontSize="9" fill={NAVY} fontWeight="700">
+                      {payEnd + BE_OFFSET}-{covEnd + BE_OFFSET}
+                    </text>
+                  )}
+                </g>
+              );
+            })}
 
-              {/* Premium period text */}
-              {premiumW > 55 && (
-                <text x={xPos(startY) + premiumW / 2} y={y0 + barH / 2 + 1} textAnchor="middle" dominantBaseline="middle" fontSize="9" fill="white" fontWeight="bold">
-                  {startY + BE_OFFSET}-{payEnd + BE_OFFSET}
-                </text>
-              )}
+            {/* X-axis — every year */}
+            {allYears.map((y) => {
+              const age = y - birthYear;
+              const isMajor = age % 10 === 0 && age >= 0;
 
-              {/* Coverage period text */}
-              {covEnd > payEnd && (xPos(covEnd) - xPos(payEnd)) > 55 && (
-                <text x={(xPos(payEnd) + xPos(covEnd)) / 2} y={y0 + barH / 2 + 1} textAnchor="middle" dominantBaseline="middle" fontSize="9" fill={NAVY} fontWeight="700">
-                  {payEnd + BE_OFFSET}-{covEnd + BE_OFFSET}
-                </text>
-              )}
-            </g>
-          );
-        })}
+              return (
+                <g key={`axis-${y}`}>
+                  <line x1={xPos(y)} y1={barsEndY + 3} x2={xPos(y)} y2={barsEndY + 8} stroke={isMajor ? "#6b7280" : "#d1d5db"} strokeWidth={isMajor ? 1.5 : 0.5} />
+                  <g transform={`translate(${xPos(y)}, ${barsEndY + 12}) rotate(90)`}>
+                    <text x={0} y={4} fontSize="8" className="fill-gray-600" fontWeight={isMajor ? "700" : "400"}>
+                      {y + BE_OFFSET}
+                    </text>
+                  </g>
+                  <g transform={`translate(${xPos(y)}, ${barsEndY + 44}) rotate(90)`}>
+                    <text x={0} y={4} fontSize="8" className="fill-blue-600" fontWeight={isMajor ? "700" : "400"}>
+                      {age}
+                    </text>
+                  </g>
+                </g>
+              );
+            })}
 
-        {/* X-axis — every year, rotated text, bold at age % 10 */}
-        {allYears.map((y) => {
-          const age = y - birthYear;
-          const isMajor = age % 10 === 0 && age >= 0;
-
-          return (
-            <g key={`axis-${y}`}>
-              <line x1={xPos(y)} y1={barsEndY + 3} x2={xPos(y)} y2={barsEndY + 8} stroke={isMajor ? "#6b7280" : "#d1d5db"} strokeWidth={isMajor ? 1.5 : 0.5} />
-
-              {/* พ.ศ. rotated */}
-              <g transform={`translate(${xPos(y)}, ${barsEndY + 12}) rotate(90)`}>
-                <text x={0} y={4} fontSize="8" className="fill-gray-600" fontWeight={isMajor ? "700" : "400"}>
-                  {y + BE_OFFSET}
-                </text>
-              </g>
-
-              {/* อายุ rotated */}
-              <g transform={`translate(${xPos(y)}, ${barsEndY + 44}) rotate(90)`}>
-                <text x={0} y={4} fontSize="8" className="fill-blue-600" fontWeight={isMajor ? "700" : "400"}>
-                  {age}
-                </text>
-              </g>
-            </g>
-          );
-        })}
-
-        {/* Axis row labels */}
-        <text x={labelW - 8} y={barsEndY + 22} textAnchor="end" className="fill-gray-500" fontSize="9" fontWeight="600">พ.ศ.</text>
-        <text x={labelW - 8} y={barsEndY + 54} textAnchor="end" className="fill-blue-500" fontSize="9" fontWeight="600">อายุ</text>
-
-        {/* Current year line — LAST element = always on top */}
-        <line x1={currentX} y1={padT - 10} x2={currentX} y2={barsEndY + 3} stroke="#ef4444" strokeWidth="2.5" strokeDasharray="6,4" pointerEvents="none" />
-        <text x={currentX} y={padT - 14} textAnchor="middle" className="fill-red-500" fontSize="10" fontWeight="bold" pointerEvents="none">
-          ปัจจุบัน
-        </text>
-      </svg>
+            {/* Current year line — LAST = always on top */}
+            <line x1={currentX} y1={padT - 10} x2={currentX} y2={barsEndY + 3} stroke="#ef4444" strokeWidth="2.5" strokeDasharray="6,4" pointerEvents="none" />
+            <text x={currentX} y={padT - 14} textAnchor="middle" className="fill-red-500" fontSize="10" fontWeight="bold" pointerEvents="none">
+              ปัจจุบัน
+            </text>
+          </svg>
+        </div>
       </div>
     </div>
   );
