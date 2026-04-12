@@ -332,6 +332,156 @@ export default function InsuranceHubPage() {
 
       <div className="px-2 md:px-4 pt-3 pb-8 space-y-3">
 
+        {/* ═══ THE TEMPLE ═══════════════════════════════════════════ */}
+        <div className="mx-1">
+
+          {/* ── ROOF — หลังคา ─────────────────────────────────────── */}
+          <Link href="/calculators/insurance/policies">
+            <div className="group cursor-pointer">
+              {/* Triangle */}
+              <div className="relative">
+                <div
+                  className="w-full h-14 bg-gradient-to-b from-[#1e3a5f] to-[#2d5a8e]"
+                  style={{ clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }}
+                />
+              </div>
+              {/* Architrave beam */}
+              <div className="bg-gradient-to-r from-[#1e3a5f] via-[#2d5a8e] to-[#1e3a5f] px-4 py-2.5 flex items-center justify-between text-white group-hover:brightness-110 transition-all group-active:scale-x-[0.99]">
+                <div className="flex items-center gap-2">
+                  <ClipboardList size={14} />
+                  <span className="text-xs font-bold">สรุปกรมธรรม์</span>
+                </div>
+                <div className="flex items-center gap-3 text-[10px]">
+                  <span>{totalPolicies} เล่ม</span>
+                  <span>ทุน {fmtShort(totalSumInsured)}</span>
+                  <span>เบี้ย {fmtShort(totalPremium)}/ปี</span>
+                </div>
+                <ChevronRight size={14} className="opacity-70 group-hover:translate-x-0.5 transition-transform" />
+              </div>
+            </div>
+          </Link>
+
+          {/* ── Beam: Roof → Pillars ─────────────────────────────── */}
+          <div className="h-2 bg-gradient-to-r from-[#1e3a5f]/30 via-[#1e3a5f]/60 to-[#1e3a5f]/30" />
+
+          {/* ── 4 PILLARS — เสา 4 ต้น ────────────────────────────── */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 p-2.5 bg-gradient-to-b from-slate-50 to-white">
+            {pillars.map((pillar, idx) => {
+              const Icon = pillar.icon;
+              const ss = getStatusStyle(pillar.status);
+              return (
+                <Link key={pillar.key} href={pillar.href}>
+                  <div className="group cursor-pointer">
+                    {/* Column capital (top) */}
+                    <div className={`h-1.5 bg-gradient-to-r ${pillar.color} rounded-t-xl`} />
+
+                    {/* Column body */}
+                    <div className={`bg-white border ${ss.border} border-t-0 rounded-b-xl px-3 py-4 min-h-[170px] flex flex-col items-center text-center transition-all shadow-sm group-hover:shadow-md group-hover:-translate-y-0.5 group-active:scale-[0.97]`}>
+                      {/* Traffic light */}
+                      <div className={`w-3.5 h-3.5 rounded-full ${ss.dot} mb-2.5 shadow-sm ring-2 ring-white`} />
+
+                      {/* Icon */}
+                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center bg-gradient-to-br ${pillar.color} shadow-lg mb-2.5`}>
+                        <Icon size={20} className="text-white" />
+                      </div>
+
+                      {/* Pillar number */}
+                      <div className="text-[8px] font-extrabold text-gray-400 uppercase tracking-wider">Pillar {idx + 1}</div>
+
+                      {/* Title */}
+                      <div className="text-[11px] font-bold text-gray-800 mt-0.5 leading-tight">{pillar.title}</div>
+
+                      {/* Subtitle */}
+                      <div className="text-[9px] text-gray-400 mt-0.5">{pillar.subtitle}</div>
+
+                      {/* Status badge */}
+                      <div className={`text-[8px] px-2.5 py-0.5 rounded-full ${ss.dot} text-white font-bold mt-2.5`}>
+                        {ss.label}
+                      </div>
+
+                      {/* Metric */}
+                      <div className={`text-[10px] font-bold mt-1.5 ${pillar.metric.startsWith("Gap") ? "text-red-600" : ss.text}`}>
+                        {pillar.metric}
+                      </div>
+
+                      {/* Mini bar */}
+                      {pillar.status !== "not_started" && (
+                        <div className="w-full mt-2">
+                          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${pillar.pct >= 100 ? "bg-emerald-400" : pillar.pct >= 50 ? "bg-amber-400" : "bg-red-400"}`}
+                              style={{ width: `${Math.min(pillar.pct, 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Tap hint */}
+                      <div className="flex items-center gap-0.5 mt-auto pt-2 text-[9px] text-gray-300 group-hover:text-blue-400 transition-colors">
+                        <span>ดูรายละเอียด</span>
+                        <ChevronRight size={10} className="group-hover:translate-x-0.5 transition-transform" />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* ── Beam: Pillars → Foundation ────────────────────────── */}
+          <div className="h-2 bg-gradient-to-r from-stone-300/40 via-stone-400/70 to-stone-300/40" />
+
+          {/* ── FOUNDATION — ฐานราก ───────────────────────────────── */}
+          <Link href="/calculators/insurance/pillar-4">
+            <div className="group cursor-pointer bg-gradient-to-b from-stone-100 to-stone-200 rounded-b-2xl p-4 transition-all hover:brightness-[0.98] active:scale-[0.99] shadow-sm">
+              <div className="flex items-center gap-2 mb-2.5">
+                <Wallet size={16} className="text-stone-600" />
+                <span className="text-xs font-bold text-stone-700">ฐานราก: Tax & Cash Flow Optimization</span>
+                <ChevronRight size={14} className="text-stone-400 ml-auto group-hover:translate-x-0.5 transition-transform" />
+              </div>
+
+              <div className="flex items-center gap-4">
+                {/* Premium ratio */}
+                <div className="flex-1">
+                  <div className="flex items-center justify-between text-[10px] mb-1">
+                    <span className="text-stone-600">Premium Ratio</span>
+                    <span className={`font-bold ${foundation.status === "adequate" ? "text-emerald-600" : foundation.status === "warning" ? "text-amber-600" : "text-red-600"}`}>
+                      {annualIncome > 0 ? `${(foundation.premiumRatio * 100).toFixed(1)}%` : "—"}
+                    </span>
+                  </div>
+                  <div className="h-2.5 bg-stone-300/60 rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${foundation.status === "adequate" ? "bg-emerald-400" : foundation.status === "warning" ? "bg-amber-400" : "bg-red-400"}`}
+                      style={{ width: `${Math.min(foundation.premiumRatio * 100 / 20 * 100, 100)}%` }} />
+                  </div>
+                  <div className="flex justify-between text-[8px] text-stone-400 mt-0.5">
+                    <span>0%</span>
+                    <span>10%</span>
+                    <span>15%</span>
+                    <span>20%</span>
+                  </div>
+                </div>
+
+                {/* Tax deduction */}
+                <div className="flex-1">
+                  <div className="flex items-center justify-between text-[10px] mb-1">
+                    <span className="text-stone-600">สิทธิลดหย่อน</span>
+                    <span className="font-bold text-stone-700">{fmtShort(foundation.taxUsed)}/{fmtShort(foundation.taxMax)}</span>
+                  </div>
+                  <div className="h-2.5 bg-stone-300/60 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full bg-indigo-400"
+                      style={{ width: `${foundation.taxMax > 0 ? (foundation.taxUsed / foundation.taxMax) * 100 : 0}%` }} />
+                  </div>
+                  <div className="text-[8px] text-stone-400 mt-0.5 text-right">
+                    เหลือ {fmtShort(foundation.taxMax - foundation.taxUsed)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Link>
+
+        </div>
+        {/* ═══ END TEMPLE ══════════════════════════════════════════ */}
+
         {/* ═══ RADAR CHART ═══════════════════════════════════════════ */}
         <div className="bg-white rounded-2xl shadow-sm p-4 mx-1">
           <div className="text-center mb-2">
@@ -354,144 +504,6 @@ export default function InsuranceHubPage() {
             </div>
           </div>
         </div>
-
-        {/* ═══ ROOF — กรมธรรม์ทั้งหมด ══════════════════════════════ */}
-        <Link href="/calculators/insurance/policies">
-          <div className="mx-1">
-            {/* Triangle roof */}
-            <div className="relative">
-              <div
-                className="w-full h-12 bg-gradient-to-b from-[#1e3a5f] to-[#2d5a8e]"
-                style={{ clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }}
-              />
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 text-white text-[8px] font-bold opacity-80">
-                PORTFOLIO
-              </div>
-            </div>
-            {/* Architrave beam */}
-            <div className="bg-gradient-to-r from-[#1e3a5f] via-[#2d5a8e] to-[#1e3a5f] px-4 py-2.5 flex items-center justify-between text-white">
-              <div className="flex items-center gap-2">
-                <ClipboardList size={14} />
-                <span className="text-xs font-bold">สรุปกรมธรรม์</span>
-              </div>
-              <div className="flex items-center gap-3 text-[10px]">
-                <span>{totalPolicies} เล่ม</span>
-                <span>ทุน {fmtShort(totalSumInsured)}</span>
-                <span>เบี้ย {fmtShort(totalPremium)}/ปี</span>
-              </div>
-              <ChevronRight size={14} className="opacity-60" />
-            </div>
-          </div>
-        </Link>
-
-        {/* ═══ 4 PILLARS — เสา 4 ต้น ═══════════════════════════════ */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-0 mx-1">
-          {pillars.map((pillar, idx) => {
-            const Icon = pillar.icon;
-            const ss = getStatusStyle(pillar.status);
-            return (
-              <Link key={pillar.key} href={pillar.href}>
-                <div className="relative group">
-                  {/* Column capital (top decoration) */}
-                  <div className={`h-2 bg-gradient-to-r ${pillar.color} rounded-t-lg mx-1`} />
-
-                  {/* Column body */}
-                  <div className={`${ss.bg} border-x-2 ${ss.border} mx-1 px-3 py-4 min-h-[160px] flex flex-col items-center text-center transition-all group-active:scale-[0.97]`}>
-                    {/* Traffic light */}
-                    <div className={`w-3 h-3 rounded-full ${ss.dot} mb-2 shadow-sm`} />
-
-                    {/* Icon */}
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br ${pillar.color} shadow-md mb-2`}>
-                      <Icon size={18} className="text-white" />
-                    </div>
-
-                    {/* Pillar number */}
-                    <div className="text-[8px] font-extrabold text-gray-400 uppercase tracking-wider">Pillar {idx + 1}</div>
-
-                    {/* Title */}
-                    <div className="text-[11px] font-bold text-gray-800 mt-0.5 leading-tight">{pillar.title}</div>
-
-                    {/* Subtitle */}
-                    <div className="text-[9px] text-gray-400 mt-0.5">{pillar.subtitle}</div>
-
-                    {/* Status badge */}
-                    <div className={`text-[8px] px-2 py-0.5 rounded-full ${ss.dot} text-white font-bold mt-2`}>
-                      {ss.label}
-                    </div>
-
-                    {/* Metric */}
-                    <div className={`text-[10px] font-bold mt-1.5 ${pillar.metric.startsWith("Gap") ? "text-red-600" : ss.text}`}>
-                      {pillar.metric}
-                    </div>
-
-                    {/* Mini bar */}
-                    {pillar.status !== "not_started" && (
-                      <div className="w-full mt-2">
-                        <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${pillar.pct >= 100 ? "bg-emerald-400" : pillar.pct >= 50 ? "bg-amber-400" : "bg-red-400"}`}
-                            style={{ width: `${Math.min(pillar.pct, 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Column base */}
-                  <div className={`h-2 bg-gradient-to-r ${pillar.color} rounded-b-lg mx-1 opacity-50`} />
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* ═══ FOUNDATION — Tax & Cash Flow ═════════════════════════ */}
-        <Link href="/calculators/insurance/pillar-4">
-          <div className="mx-1 bg-gradient-to-r from-stone-100 via-stone-200 to-stone-100 border-t-4 border-stone-400 rounded-b-2xl p-4 transition-all active:scale-[0.99]">
-            <div className="flex items-center gap-2 mb-2">
-              <Wallet size={16} className="text-stone-600" />
-              <span className="text-xs font-bold text-stone-700">ฐานราก: Tax & Cash Flow Optimization</span>
-              <ChevronRight size={14} className="text-stone-400 ml-auto" />
-            </div>
-
-            <div className="flex items-center gap-4">
-              {/* Premium ratio */}
-              <div className="flex-1">
-                <div className="flex items-center justify-between text-[10px] mb-1">
-                  <span className="text-stone-600">Premium Ratio</span>
-                  <span className={`font-bold ${foundation.status === "adequate" ? "text-emerald-600" : foundation.status === "warning" ? "text-amber-600" : "text-red-600"}`}>
-                    {annualIncome > 0 ? `${(foundation.premiumRatio * 100).toFixed(1)}%` : "—"}
-                  </span>
-                </div>
-                <div className="h-2 bg-stone-300 rounded-full overflow-hidden">
-                  <div className={`h-full rounded-full ${foundation.status === "adequate" ? "bg-emerald-400" : foundation.status === "warning" ? "bg-amber-400" : "bg-red-400"}`}
-                    style={{ width: `${Math.min(foundation.premiumRatio * 100 / 20 * 100, 100)}%` }} />
-                </div>
-                <div className="flex justify-between text-[8px] text-stone-400 mt-0.5">
-                  <span>0%</span>
-                  <span>10%</span>
-                  <span>15%</span>
-                  <span>20%</span>
-                </div>
-              </div>
-
-              {/* Tax deduction */}
-              <div className="flex-1">
-                <div className="flex items-center justify-between text-[10px] mb-1">
-                  <span className="text-stone-600">สิทธิลดหย่อน</span>
-                  <span className="font-bold text-stone-700">{fmtShort(foundation.taxUsed)}/{fmtShort(foundation.taxMax)}</span>
-                </div>
-                <div className="h-2 bg-stone-300 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full bg-indigo-400"
-                    style={{ width: `${foundation.taxMax > 0 ? (foundation.taxUsed / foundation.taxMax) * 100 : 0}%` }} />
-                </div>
-                <div className="text-[8px] text-stone-400 mt-0.5 text-right">
-                  เหลือ {fmtShort(foundation.taxMax - foundation.taxUsed)}
-                </div>
-              </div>
-            </div>
-          </div>
-        </Link>
 
         {/* ═══ RECOMMENDED NEXT STEPS ══════════════════════════════ */}
         {recommendations.length > 0 && (
