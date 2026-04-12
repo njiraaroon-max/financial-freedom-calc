@@ -1227,17 +1227,13 @@ export default function PortfolioDashboard() {
                 <div>
                   <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">ทุนประกัน (บาท)</label>
                   <input type="text" inputMode="numeric" value={form.sumInsured}
-                    onChange={(e) => setForm({ ...form, sumInsured: e.target.value })}
-                    onFocus={() => { const raw = parseNum(form.sumInsured); if (raw > 0) setForm((f) => ({ ...f, sumInsured: String(raw) })); }}
-                    onBlur={() => { const raw = parseNum(form.sumInsured); if (raw > 0) setForm((f) => ({ ...f, sumInsured: commaInput(raw) })); }}
+                    onChange={(e) => { const raw = parseNum(e.target.value); setForm({ ...form, sumInsured: raw > 0 ? commaInput(raw) : e.target.value.replace(/[^0-9]/g, "") }); }}
                     className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold" placeholder="3,000,000" />
                 </div>
                 <div>
                   <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">เบี้ยต่อปี (บาท)</label>
                   <input type="text" inputMode="numeric" value={form.premium}
-                    onChange={(e) => setForm({ ...form, premium: e.target.value })}
-                    onFocus={() => { const raw = parseNum(form.premium); if (raw > 0) setForm((f) => ({ ...f, premium: String(raw) })); }}
-                    onBlur={() => { const raw = parseNum(form.premium); if (raw > 0) setForm((f) => ({ ...f, premium: commaInput(raw) })); }}
+                    onChange={(e) => { const raw = parseNum(e.target.value); setForm({ ...form, premium: raw > 0 ? commaInput(raw) : e.target.value.replace(/[^0-9]/g, "") }); }}
                     className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold" placeholder="55,000" />
                 </div>
               </div>
