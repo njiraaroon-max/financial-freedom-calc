@@ -125,9 +125,13 @@ export default function InsuranceHubPage() {
   const totalSumInsured = policies.reduce((s, p) => s + p.sumInsured, 0);
   const totalPremium = policies.reduce((s, p) => s + p.premium, 0);
 
+  // ─── Helper: match by group OR policyType (support old & new data) ───
+  const matchPolicy = (p: { group?: string; policyType?: string }, groups: string[], types: string[]) =>
+    groups.includes(p.group || "") || types.includes(p.policyType || "");
+
   // ─── Pillar 1: Income & Life Protection ────────────────────────────────
   const pillar1 = useMemo(() => {
-    const lifePolicies = policies.filter((p) => ["whole_life", "endowment"].includes(p.policyType));
+    const lifePolicies = policies.filter((p) => matchPolicy(p, ["life", "saving"], ["whole_life", "endowment"]));
     const totalLifeCoverage = lifePolicies.reduce((s, p) => s + p.sumInsured, 0);
     const p1 = rm.pillar1;
     const totalDebts = p1.useBalanceSheetDebts
@@ -152,10 +156,10 @@ export default function InsuranceHubPage() {
 
   // ─── Pillar 2: Health & Accident ───────────────────────────────────────
   const pillar2 = useMemo(() => {
-    const healthPolicies = policies.filter((p) => ["health", "critical_illness", "accident"].includes(p.policyType));
-    const personalIPD = healthPolicies.filter((p) => p.policyType === "health").reduce((s, p) => s + p.sumInsured, 0);
-    const personalCI = healthPolicies.filter((p) => p.policyType === "critical_illness").reduce((s, p) => s + p.sumInsured, 0);
-    const personalAccident = healthPolicies.filter((p) => p.policyType === "accident").reduce((s, p) => s + p.sumInsured, 0);
+    const healthPolicies = policies.filter((p) => matchPolicy(p, ["health", "critical", "accident"], ["health", "critical_illness", "accident"]));
+    const personalIPD = healthPolicies.filter((p) => matchPolicy(p, ["health"], ["health"])).reduce((s, p) => s + p.sumInsured, 0);
+    const personalCI = healthPolicies.filter((p) => matchPolicy(p, ["critical"], ["critical_illness"])).reduce((s, p) => s + p.sumInsured, 0);
+    const personalAccident = healthPolicies.filter((p) => matchPolicy(p, ["accident"], ["accident"])).reduce((s, p) => s + p.sumInsured, 0);
     const p2 = rm.pillar2;
     const totalIPD = (p2.groupIPDPerYear || 0) + personalIPD;
     const totalCI = (p2.groupCI || 0) + personalCI;
@@ -209,8 +213,8 @@ export default function InsuranceHubPage() {
     const fundNeeded = ll.useRetirementGap && retireFundNeeded ? retireFundNeeded.value : ll.retirementFundNeeded;
     const fundHave = ll.useRetirementGap && retireFundHave ? retireFundHave.value : ll.retirementFundHave;
 
-    const savingCV = policies.filter((p) => p.policyType === "endowment").reduce((s, p) => s + p.cashValue, 0);
-    const pensionSum = policies.filter((p) => p.policyType === "annuity").reduce((s, p) => s + p.sumInsured, 0);
+    const savingCV = policies.filter((p) => matchPolicy(p, ["saving"], ["endowment"])).reduce((s, p) => s + p.cashValue, 0);
+    const pensionSum = policies.filter((p) => matchPolicy(p, ["pension"], ["annuity"])).reduce((s, p) => s + p.sumInsured, 0);
     const totalHave = fundHave + savingCV + pensionSum;
     const gap = fundNeeded > 0 ? fundNeeded - totalHave : 0;
     const pct = fundNeeded > 0 ? Math.round((totalHave / fundNeeded) * 100) : 0;
@@ -230,8 +234,8 @@ export default function InsuranceHubPage() {
     const premiumRatio = annualIncome > 0 ? totalPremium / annualIncome : 0;
     const status = premiumRatio <= 0.10 ? "adequate" : premiumRatio <= 0.15 ? "warning" : "critical";
 
-    const lifePolicies = policies.filter((p) => ["whole_life", "endowment"].includes(p.policyType));
-    const healthPolicies = policies.filter((p) => p.policyType === "health");
+    const lifePolicies = policies.filter((p) => matchPolicy(p, ["life", "saving"], ["whole_life", "endowment"]));
+    const healthPolicies = policies.filter((p) => matchPolicy(p, ["health"], ["health"]));
     const lifePremium = Math.min(lifePolicies.reduce((s, p) => s + p.premium, 0), 100000);
     const healthPremium = Math.min(healthPolicies.reduce((s, p) => s + p.premium, 0), 25000);
     const taxUsed = Math.min(lifePremium + healthPremium, 100000);
