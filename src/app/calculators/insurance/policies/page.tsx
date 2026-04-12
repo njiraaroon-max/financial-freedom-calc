@@ -6,8 +6,21 @@ import {
   useInsuranceStore,
   InsurancePolicy,
   PolicyType,
+  InsuranceCategory,
   CoverageMode,
+  AmountMode,
+  HealthDetails,
+  AnnuityDetails,
+  EndowmentDetails,
+  DividendEntry,
   POLICY_TYPE_OPTIONS,
+  CATEGORY_OPTIONS,
+  LIFE_TYPES,
+  NONLIFE_TYPES,
+  DEFAULT_HEALTH_DETAILS,
+  DEFAULT_ANNUITY_DETAILS,
+  DEFAULT_ENDOWMENT_DETAILS,
+  getCategoryForType,
 } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
 import { useRetirementStore } from "@/store/retirement-store";
@@ -71,39 +84,61 @@ const TYPE_COLORS: Record<PolicyType, { premium: string; coverage: string; text:
   health: { premium: "#0891b2", coverage: "#a5f3fc", text: "#0891b2" },
   critical_illness: { premium: "#dc2626", coverage: "#fca5a5", text: "#dc2626" },
   accident: { premium: "#ea580c", coverage: "#fed7aa", text: "#ea580c" },
+  term: { premium: "#4f46e5", coverage: "#c7d2fe", text: "#4f46e5" },
+  motor: { premium: "#854d0e", coverage: "#fde68a", text: "#854d0e" },
+  fire_property: { premium: "#b45309", coverage: "#fed7aa", text: "#b45309" },
+  misc: { premium: "#6b7280", coverage: "#e5e7eb", text: "#6b7280" },
+  nonlife_health: { premium: "#0891b2", coverage: "#a5f3fc", text: "#0891b2" },
   property: { premium: "#854d0e", coverage: "#fde68a", text: "#854d0e" },
   other: { premium: "#6b7280", coverage: "#d1d5db", text: "#6b7280" },
 };
 
 // ─── Default form state ────────────────────────────────────────────────────────
 interface FormState {
+  category: InsuranceCategory;
   planName: string;
   company: string;
   policyNumber: string;
   policyType: PolicyType;
   startDate: string;
+  endDate: string;
+  lastPayDate: string;
   paymentYears: string;
   coverageMode: CoverageMode;
   coverageEndAge: string;
   coverageYears: string;
   sumInsured: string;
   premium: string;
+  cashValue: string;
   notes: string;
+  // Health
+  healthDetails: HealthDetails;
+  // Annuity
+  annuityDetails: AnnuityDetails;
+  // Endowment
+  endowmentDetails: EndowmentDetails;
 }
 
 const defaultForm = (): FormState => ({
+  category: "life",
   planName: "",
   company: "",
   policyNumber: "",
   policyType: "whole_life",
   startDate: "",
+  endDate: "",
+  lastPayDate: "",
   paymentYears: "",
   coverageMode: "age",
   coverageEndAge: "90",
   coverageYears: "",
   sumInsured: "",
   premium: "",
+  cashValue: "",
   notes: "",
+  healthDetails: { ...DEFAULT_HEALTH_DETAILS },
+  annuityDetails: { ...DEFAULT_ANNUITY_DETAILS },
+  endowmentDetails: { ...DEFAULT_ENDOWMENT_DETAILS },
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1024,15 +1059,22 @@ export default function PortfolioDashboard() {
 
   const openEdit = (p: InsurancePolicy) => {
     setForm({
+      category: p.category || getCategoryForType(p.policyType || "other"),
       planName: p.planName, company: p.company, policyNumber: p.policyNumber,
       policyType: p.policyType || "other", startDate: p.startDate,
+      endDate: p.endDate || "",
+      lastPayDate: p.lastPayDate || "",
       paymentYears: p.paymentYears ? String(p.paymentYears) : "",
       coverageMode: p.coverageMode || "age",
       coverageEndAge: p.coverageEndAge ? String(p.coverageEndAge) : "",
       coverageYears: p.coverageYears ? String(p.coverageYears) : "",
       sumInsured: p.sumInsured ? commaInput(p.sumInsured) : "",
       premium: p.premium ? commaInput(p.premium) : "",
+      cashValue: p.cashValue ? commaInput(p.cashValue) : "",
       notes: p.notes,
+      healthDetails: p.healthDetails ? { ...p.healthDetails } : { ...DEFAULT_HEALTH_DETAILS },
+      annuityDetails: p.annuityDetails ? { ...p.annuityDetails } : { ...DEFAULT_ANNUITY_DETAILS },
+      endowmentDetails: p.endowmentDetails ? { ...p.endowmentDetails } : { ...DEFAULT_ENDOWMENT_DETAILS },
     });
     setEditingId(p.id); setFormError(""); setShowModal(true);
   };
@@ -1046,18 +1088,29 @@ export default function PortfolioDashboard() {
     const covYears = parseInt(form.coverageYears) || 0;
     const sumIns = parseNum(form.sumInsured);
     const prem = parseNum(form.premium);
+    const cv = parseNum(form.cashValue);
 
     const startYear = form.startDate ? new Date(form.startDate).getFullYear() : CURRENT_YEAR;
     const payEndYear = startYear + payYears;
     const covEndYear = form.coverageMode === "age" ? birthYear + covEndAge : startYear + covYears;
 
+    // Determine which details to include
+    const needsHealth = ["health", "nonlife_health", "critical_illness"].includes(form.policyType);
+    const needsAnnuity = form.policyType === "annuity";
+    const needsEndowment = form.policyType === "endowment";
+
     const payload: Omit<InsurancePolicy, "id" | "order"> = {
       planName: form.planName.trim(), company: form.company.trim(), policyNumber: form.policyNumber.trim(),
+      category: form.category,
       group: typeOpt?.defaultGroup || "other", policyType: form.policyType,
       startDate: form.startDate, paymentYears: payYears, coverageMode: form.coverageMode,
       coverageEndAge: covEndAge, coverageYears: covYears,
-      endDate: `${covEndYear}-12-31`, lastPayDate: `${payEndYear}-12-31`,
-      sumInsured: sumIns, premium: prem, cashValue: 0, details: "", notes: form.notes,
+      endDate: form.endDate || `${covEndYear}-12-31`,
+      lastPayDate: form.lastPayDate || `${payEndYear}-12-31`,
+      sumInsured: sumIns, premium: prem, cashValue: cv, details: "", notes: form.notes,
+      ...(needsHealth ? { healthDetails: form.healthDetails } : {}),
+      ...(needsAnnuity ? { annuityDetails: form.annuityDetails } : {}),
+      ...(needsEndowment ? { endowmentDetails: form.endowmentDetails } : {}),
     };
 
     if (editingId) store.updatePolicy(editingId, payload);
@@ -1139,19 +1192,26 @@ export default function PortfolioDashboard() {
             </div>
 
             <div className="px-5 py-4 space-y-4">
-              {/* Plan Name */}
+              {/* Category Selector */}
               <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">ชื่อแผนประกัน *</label>
-                <input type="text" value={form.planName} onChange={(e) => setForm({ ...form, planName: e.target.value })}
-                  className="w-full text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200"
-                  placeholder="เช่น My Whole Life 90/21" autoFocus />
+                <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">หมวดประกัน</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {CATEGORY_OPTIONS.map((c) => (
+                    <button key={c.value} type="button"
+                      onClick={() => setForm({ ...form, category: c.value, policyType: (c.value === "life" ? LIFE_TYPES : NONLIFE_TYPES)[0].value })}
+                      className={`px-3 py-3 rounded-xl border text-center transition ${form.category === c.value ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200" : "border-gray-200 hover:border-gray-300"}`}>
+                      <div className="text-sm font-bold text-gray-800">{c.label}</div>
+                      <div className="text-[10px] text-gray-400">{c.description}</div>
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              {/* Policy Type */}
+              {/* Policy Sub-type */}
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">ประเภทประกัน</label>
                 <div className="grid grid-cols-2 gap-1.5">
-                  {POLICY_TYPE_OPTIONS.map((t) => {
+                  {(form.category === "life" ? LIFE_TYPES : NONLIFE_TYPES).map((t) => {
                     const colors = TYPE_COLORS[t.value];
                     const selected = form.policyType === t.value;
                     return (
@@ -1165,17 +1225,37 @@ export default function PortfolioDashboard() {
                 </div>
               </div>
 
+              {/* Plan Name */}
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">ชื่อแผนประกัน *</label>
+                <input type="text" value={form.planName} onChange={(e) => setForm({ ...form, planName: e.target.value })}
+                  className="w-full text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200"
+                  placeholder="เช่น My Whole Life 90/21" autoFocus />
+              </div>
+
               {/* Company */}
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">บริษัทประกัน</label>
                 <input type="text" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })}
-                  className="w-full text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200" placeholder="เช่น ไทยประกันชีวิต" />
+                  className="w-full text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200" placeholder="เช่น Allianz Ayudhya" />
               </div>
 
               {/* Start Date */}
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">วันเริ่มต้นคุ้มครอง</label>
                 <ThaiDatePicker value={form.startDate} onChange={(v) => setForm({ ...form, startDate: v })} placeholder="เลือกวันที่" minYear={2490} maxYear={2600} />
+              </div>
+
+              {/* End Date */}
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">วันครบกำหนดสัญญา</label>
+                <ThaiDatePicker value={form.endDate} onChange={(v) => setForm({ ...form, endDate: v })} placeholder="เลือกวันที่" minYear={2490} maxYear={2650} />
+              </div>
+
+              {/* Last Pay Date */}
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">วันชำระเบี้ยงวดสุดท้าย</label>
+                <ThaiDatePicker value={form.lastPayDate} onChange={(v) => setForm({ ...form, lastPayDate: v })} placeholder="เลือกวันที่" minYear={2490} maxYear={2650} />
               </div>
 
               {/* Payment Years */}
@@ -1227,21 +1307,180 @@ export default function PortfolioDashboard() {
                 )}
               </div>
 
-              {/* Sum Insured & Premium */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Sum Insured, Cash Value & Premium */}
+              <div className={`grid ${form.policyType === "term" ? "grid-cols-2" : "grid-cols-3"} gap-2`}>
+                {form.policyType !== "term" && (
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">ทุนประกัน</label>
+                    <input type="text" inputMode="numeric" value={form.sumInsured}
+                      onChange={(e) => { const raw = parseNum(e.target.value); setForm({ ...form, sumInsured: raw > 0 ? commaInput(raw) : e.target.value.replace(/[^0-9]/g, "") }); }}
+                      className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold" placeholder="3,000,000" />
+                  </div>
+                )}
                 <div>
-                  <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">ทุนประกัน (บาท)</label>
-                  <input type="text" inputMode="numeric" value={form.sumInsured}
-                    onChange={(e) => { const raw = parseNum(e.target.value); setForm({ ...form, sumInsured: raw > 0 ? commaInput(raw) : e.target.value.replace(/[^0-9]/g, "") }); }}
-                    className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold" placeholder="3,000,000" />
+                  <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">มูลค่าเวนคืน</label>
+                  <input type="text" inputMode="numeric" value={form.cashValue}
+                    onChange={(e) => { const raw = parseNum(e.target.value); setForm({ ...form, cashValue: raw > 0 ? commaInput(raw) : e.target.value.replace(/[^0-9]/g, "") }); }}
+                    className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold" placeholder="0" />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">เบี้ยต่อปี (บาท)</label>
+                  <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">เบี้ยต่อปี</label>
                   <input type="text" inputMode="numeric" value={form.premium}
                     onChange={(e) => { const raw = parseNum(e.target.value); setForm({ ...form, premium: raw > 0 ? commaInput(raw) : e.target.value.replace(/[^0-9]/g, "") }); }}
                     className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold" placeholder="55,000" />
                 </div>
               </div>
+
+              {/* Health Details */}
+              {["health", "nonlife_health", "critical_illness"].includes(form.policyType) && (
+                <div className="border border-teal-200 bg-teal-50/30 rounded-xl p-3 space-y-3">
+                  <div className="text-[10px] font-bold text-teal-700 uppercase">ข้อมูลสุขภาพเพิ่มเติม</div>
+
+                  {/* Room Rate + Standard Room toggle */}
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <label className="text-[10px] text-gray-500 mb-0.5 block">ค่าห้อง (ต่อวัน)</label>
+                      <input type="text" inputMode="numeric"
+                        value={form.healthDetails.roomRatePerDay ? commaInput(form.healthDetails.roomRatePerDay) : ""}
+                        onChange={(e) => setForm({ ...form, healthDetails: { ...form.healthDetails, roomRatePerDay: parseNum(e.target.value) } })}
+                        className="w-full text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-teal-400 border border-gray-200 text-center font-bold" placeholder="5,000" />
+                    </div>
+                    <label className="flex items-center gap-1.5 cursor-pointer mt-4">
+                      <input type="checkbox" checked={form.healthDetails.isStandardPrivateRoom}
+                        onChange={(e) => setForm({ ...form, healthDetails: { ...form.healthDetails, isStandardPrivateRoom: e.target.checked } })}
+                        className="w-4 h-4 rounded accent-teal-500" />
+                      <span className="text-[10px] text-gray-600">ห้องเดี่ยวมาตรฐาน</span>
+                    </label>
+                  </div>
+
+                  {/* IPD */}
+                  <div>
+                    <label className="text-[10px] text-gray-500 mb-0.5 block">ค่ารักษา IPD (ผู้ป่วยใน)</label>
+                    <div className="flex items-center gap-2">
+                      <input type="text" inputMode="numeric"
+                        value={form.healthDetails.ipdAmount ? commaInput(form.healthDetails.ipdAmount) : ""}
+                        onChange={(e) => setForm({ ...form, healthDetails: { ...form.healthDetails, ipdAmount: parseNum(e.target.value) } })}
+                        className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-teal-400 border border-gray-200 text-center font-bold" placeholder="1,000,000" />
+                      <div className="flex bg-gray-100 rounded-full p-0.5 shrink-0">
+                        <button type="button" onClick={() => setForm({ ...form, healthDetails: { ...form.healthDetails, ipdMode: "per_year" } })}
+                          className={`px-2 py-1 rounded-full text-[10px] font-medium transition ${form.healthDetails.ipdMode === "per_year" ? "bg-teal-600 text-white" : "text-gray-500"}`}>ต่อปี</button>
+                        <button type="button" onClick={() => setForm({ ...form, healthDetails: { ...form.healthDetails, ipdMode: "per_visit" } })}
+                          className={`px-2 py-1 rounded-full text-[10px] font-medium transition ${form.healthDetails.ipdMode === "per_visit" ? "bg-teal-600 text-white" : "text-gray-500"}`}>ต่อครั้ง</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* OPD */}
+                  <div>
+                    <label className="text-[10px] text-gray-500 mb-0.5 block">ค่ารักษา OPD (ผู้ป่วยนอก)</label>
+                    <div className="flex items-center gap-2">
+                      <input type="text" inputMode="numeric"
+                        value={form.healthDetails.opdAmount ? commaInput(form.healthDetails.opdAmount) : ""}
+                        onChange={(e) => setForm({ ...form, healthDetails: { ...form.healthDetails, opdAmount: parseNum(e.target.value) } })}
+                        className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-teal-400 border border-gray-200 text-center font-bold" placeholder="2,000" />
+                      <div className="flex bg-gray-100 rounded-full p-0.5 shrink-0">
+                        <button type="button" onClick={() => setForm({ ...form, healthDetails: { ...form.healthDetails, opdMode: "per_year" } })}
+                          className={`px-2 py-1 rounded-full text-[10px] font-medium transition ${form.healthDetails.opdMode === "per_year" ? "bg-teal-600 text-white" : "text-gray-500"}`}>ต่อปี</button>
+                        <button type="button" onClick={() => setForm({ ...form, healthDetails: { ...form.healthDetails, opdMode: "per_visit" } })}
+                          className={`px-2 py-1 rounded-full text-[10px] font-medium transition ${form.healthDetails.opdMode === "per_visit" ? "bg-teal-600 text-white" : "text-gray-500"}`}>ต่อครั้ง</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CI + Accident */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] text-gray-500 mb-0.5 block">CI โรคร้ายแรง (เงินก้อน)</label>
+                      <input type="text" inputMode="numeric"
+                        value={form.healthDetails.ciLumpSum ? commaInput(form.healthDetails.ciLumpSum) : ""}
+                        onChange={(e) => setForm({ ...form, healthDetails: { ...form.healthDetails, ciLumpSum: parseNum(e.target.value) } })}
+                        className="w-full text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-teal-400 border border-gray-200 text-center font-bold" placeholder="1,000,000" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-gray-500 mb-0.5 block">คุ้มครองอุบัติเหตุ</label>
+                      <input type="text" inputMode="numeric"
+                        value={form.healthDetails.accidentCoverage ? commaInput(form.healthDetails.accidentCoverage) : ""}
+                        onChange={(e) => setForm({ ...form, healthDetails: { ...form.healthDetails, accidentCoverage: parseNum(e.target.value) } })}
+                        className="w-full text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-teal-400 border border-gray-200 text-center font-bold" placeholder="500,000" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Annuity Details */}
+              {form.policyType === "annuity" && (
+                <div className="border border-purple-200 bg-purple-50/30 rounded-xl p-3 space-y-3">
+                  <div className="text-[10px] font-bold text-purple-700 uppercase">ข้อมูลบำนาญ</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] text-gray-500 mb-0.5 block">จ่ายเงินตอนอายุ</label>
+                      <div className="flex items-center gap-1">
+                        <input type="text" inputMode="numeric" value={form.annuityDetails.payoutStartAge || ""}
+                          onChange={(e) => setForm({ ...form, annuityDetails: { ...form.annuityDetails, payoutStartAge: parseInt(e.target.value.replace(/[^0-9]/g, "")) || 0 } })}
+                          className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-purple-400 border border-gray-200 text-center font-bold" placeholder="60" />
+                        <span className="text-[10px] text-gray-500">ปี</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-gray-500 mb-0.5 block">จ่ายต่อปี</label>
+                      <div className="flex items-center gap-1">
+                        <input type="text" inputMode="numeric"
+                          value={form.annuityDetails.payoutPerYear ? commaInput(form.annuityDetails.payoutPerYear) : ""}
+                          onChange={(e) => setForm({ ...form, annuityDetails: { ...form.annuityDetails, payoutPerYear: parseNum(e.target.value) } })}
+                          className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-purple-400 border border-gray-200 text-center font-bold" placeholder="120,000" />
+                        <span className="text-[10px] text-gray-500">บาท</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Endowment Details */}
+              {form.policyType === "endowment" && (
+                <div className="border border-green-200 bg-green-50/30 rounded-xl p-3 space-y-3">
+                  <div className="text-[10px] font-bold text-green-700 uppercase">ข้อมูลสะสมทรัพย์</div>
+
+                  {/* Dividends */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[10px] text-gray-500">เงินปันผล</label>
+                      <button type="button" onClick={() => setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, dividends: [...form.endowmentDetails.dividends, { year: 0, amount: 0 }] } })}
+                        className="text-[10px] text-green-600 font-bold hover:underline">+ เพิ่มปี</button>
+                    </div>
+                    {form.endowmentDetails.dividends.map((d, i) => (
+                      <div key={i} className="flex items-center gap-2 mb-1.5">
+                        <span className="text-[10px] text-gray-400 shrink-0">ปีที่</span>
+                        <input type="text" inputMode="numeric" value={d.year || ""}
+                          onChange={(e) => { const arr = [...form.endowmentDetails.dividends]; arr[i] = { ...arr[i], year: parseInt(e.target.value.replace(/[^0-9]/g, "")) || 0 }; setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, dividends: arr } }); }}
+                          className="w-14 text-sm bg-white rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-green-400 border border-gray-200 text-center font-bold" />
+                        <span className="text-[10px] text-gray-400 shrink-0">จำนวน</span>
+                        <input type="text" inputMode="numeric" value={d.amount ? commaInput(d.amount) : ""}
+                          onChange={(e) => { const arr = [...form.endowmentDetails.dividends]; arr[i] = { ...arr[i], amount: parseNum(e.target.value) }; setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, dividends: arr } }); }}
+                          className="flex-1 text-sm bg-white rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-green-400 border border-gray-200 text-center font-bold" placeholder="50,000" />
+                        <button type="button" onClick={() => { const arr = form.endowmentDetails.dividends.filter((_, idx) => idx !== i); setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, dividends: arr } }); }}
+                          className="text-red-400 hover:text-red-600"><X size={14} /></button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Maturity */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] text-gray-500 mb-0.5 block">เงินก้อนจบโครงการ</label>
+                      <input type="text" inputMode="numeric"
+                        value={form.endowmentDetails.maturityPayout ? commaInput(form.endowmentDetails.maturityPayout) : ""}
+                        onChange={(e) => setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, maturityPayout: parseNum(e.target.value) } })}
+                        className="w-full text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-green-400 border border-gray-200 text-center font-bold" placeholder="1,000,000" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-gray-500 mb-0.5 block">ปีที่ได้เงินก้อน</label>
+                      <input type="text" inputMode="numeric" value={form.endowmentDetails.maturityYear || ""}
+                        onChange={(e) => setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, maturityYear: parseInt(e.target.value.replace(/[^0-9]/g, "")) || 0 } })}
+                        className="w-full text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-green-400 border border-gray-200 text-center font-bold" placeholder="20" />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Notes */}
               <div>

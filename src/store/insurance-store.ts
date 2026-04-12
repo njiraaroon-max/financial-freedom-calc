@@ -7,6 +7,8 @@ import { persist } from "zustand/middleware";
 // Types
 // ---------------------------------------------------------------------------
 
+export type InsuranceCategory = "life" | "nonlife";
+
 export type PolicyGroup =
   | "life"
   | "health"
@@ -18,40 +20,85 @@ export type PolicyGroup =
   | "other";
 
 export type PolicyType =
+  // Life company sub-types
   | "whole_life"
   | "endowment"
+  | "term"
   | "annuity"
   | "health"
   | "critical_illness"
   | "accident"
+  // Non-life company sub-types
+  | "motor"
+  | "fire_property"
+  | "misc"
+  | "nonlife_health"
+  // Catch-all
   | "property"
   | "other";
 
 export type CoverageMode = "age" | "years";
+export type AmountMode = "per_year" | "per_visit";
+
+// ─── Type-specific detail interfaces ─────────────────────────────────────────
+
+export interface HealthDetails {
+  roomRatePerDay: number;
+  isStandardPrivateRoom: boolean;
+  ipdAmount: number;
+  ipdMode: AmountMode;
+  opdAmount: number;
+  opdMode: AmountMode;
+  ciLumpSum: number;
+  accidentCoverage: number;
+  accidentMode: AmountMode;
+}
+
+export interface AnnuityDetails {
+  payoutStartAge: number;
+  payoutPerYear: number;
+}
+
+export interface DividendEntry {
+  year: number;
+  amount: number;
+}
+
+export interface EndowmentDetails {
+  dividends: DividendEntry[];
+  maturityPayout: number;
+  maturityYear: number;
+}
 
 export interface InsurancePolicy {
   id: string;
   planName: string;
   company: string;
   policyNumber: string;
+  category: InsuranceCategory; // NEW — "life" | "nonlife"
   group: PolicyGroup;
   policyType: PolicyType;
 
   // Time data
-  startDate: string;          // YYYY-MM-DD
+  startDate: string;          // YYYY-MM-DD  วันเริ่มมีผลคุ้มครอง
   paymentYears: number;       // จ่ายเบี้ยกี่ปี
   coverageMode: CoverageMode; // ผู้ใช้เลือกแบบไหน
   coverageEndAge: number;     // คุ้มครองถึงอายุ (เมื่อ mode = "age")
   coverageYears: number;      // คุ้มครองกี่ปี (เมื่อ mode = "years")
 
-  // Legacy date fields (computed)
-  endDate: string;
-  lastPayDate: string;
+  // Date fields
+  endDate: string;            // วันครบกำหนดสัญญา
+  lastPayDate: string;        // วันชำระเบี้ยงวดสุดท้าย
 
   // Value data
-  sumInsured: number;         // ทุนประกัน
+  sumInsured: number;         // ทุนประกัน (ทุนชีวิต)
   premium: number;            // เบี้ยต่อปี
   cashValue: number;          // มูลค่าเวนคืน
+
+  // Type-specific details (optional)
+  healthDetails?: HealthDetails;
+  annuityDetails?: AnnuityDetails;
+  endowmentDetails?: EndowmentDetails;
 
   // Meta
   details: string;
@@ -115,16 +162,66 @@ export const POLICY_TYPE_OPTIONS: {
   label: string;
   description: string;
   defaultGroup: PolicyGroup;
+  category: InsuranceCategory;
 }[] = [
-  { value: "whole_life", label: "ตลอดชีพ (Whole Life)", description: "คุ้มครองตลอดชีวิต", defaultGroup: "life" },
-  { value: "endowment", label: "สะสมทรัพย์ (Endowment)", description: "ออมเงิน + คุ้มครอง", defaultGroup: "saving" },
-  { value: "annuity", label: "บำนาญ (Annuity)", description: "รับเงินบำนาญหลังเกษียณ", defaultGroup: "pension" },
-  { value: "health", label: "สุขภาพ (Health)", description: "ค่ารักษาพยาบาล", defaultGroup: "health" },
-  { value: "critical_illness", label: "โรคร้ายแรง (CI)", description: "คุ้มครองโรคร้ายแรง", defaultGroup: "critical" },
-  { value: "accident", label: "อุบัติเหตุ (PA)", description: "คุ้มครองอุบัติเหตุ", defaultGroup: "accident" },
-  { value: "property", label: "ทรัพย์สิน (Property)", description: "ประกันรถ/บ้าน", defaultGroup: "property" },
-  { value: "other", label: "อื่นๆ", description: "ประกันอื่นๆ", defaultGroup: "other" },
+  // Life company sub-types
+  { value: "whole_life", label: "ตลอดชีพ (Whole Life)", description: "คุ้มครองตลอดชีวิต", defaultGroup: "life", category: "life" },
+  { value: "endowment", label: "สะสมทรัพย์ (Endowment)", description: "ออมเงิน + คุ้มครอง", defaultGroup: "saving", category: "life" },
+  { value: "term", label: "ชั่วระยะเวลา (Term)", description: "คุ้มครองตามระยะเวลา", defaultGroup: "life", category: "life" },
+  { value: "annuity", label: "บำนาญ (Annuity)", description: "รับเงินบำนาญหลังเกษียณ", defaultGroup: "pension", category: "life" },
+  { value: "health", label: "สุขภาพ (Health)", description: "ค่ารักษาพยาบาล", defaultGroup: "health", category: "life" },
+  { value: "critical_illness", label: "โรคร้ายแรง (CI)", description: "คุ้มครองโรคร้ายแรง", defaultGroup: "critical", category: "life" },
+  { value: "accident", label: "อุบัติเหตุ (PA)", description: "คุ้มครองอุบัติเหตุ", defaultGroup: "accident", category: "life" },
+  // Non-life company sub-types
+  { value: "motor", label: "ประกันรถยนต์ (Motor)", description: "ประกันภัยรถยนต์", defaultGroup: "property", category: "nonlife" },
+  { value: "fire_property", label: "อัคคีภัย/บ้าน (Fire)", description: "ประกันอัคคีภัยและบ้าน", defaultGroup: "property", category: "nonlife" },
+  { value: "misc", label: "เบ็ดเตล็ด (Misc)", description: "ประกันภัยเบ็ดเตล็ด", defaultGroup: "other", category: "nonlife" },
+  { value: "nonlife_health", label: "สุขภาพวินาศภัย", description: "ประกันสุขภาพจากบริษัทวินาศภัย", defaultGroup: "health", category: "nonlife" },
+  { value: "property", label: "ทรัพย์สิน (Property)", description: "ประกันทรัพย์สินอื่นๆ", defaultGroup: "property", category: "nonlife" },
+  { value: "other", label: "อื่นๆ", description: "ประกันอื่นๆ", defaultGroup: "other", category: "nonlife" },
 ];
+
+// Helper: filter types by category
+export const LIFE_TYPES = POLICY_TYPE_OPTIONS.filter(t => t.category === "life");
+export const NONLIFE_TYPES = POLICY_TYPE_OPTIONS.filter(t => t.category === "nonlife");
+
+// Category options for selector
+export const CATEGORY_OPTIONS: { value: InsuranceCategory; label: string; description: string }[] = [
+  { value: "life", label: "ประกันชีวิต", description: "บริษัทประกันชีวิต" },
+  { value: "nonlife", label: "ประกันวินาศภัย", description: "บริษัทประกันวินาศภัย" },
+];
+
+// Default health details
+export const DEFAULT_HEALTH_DETAILS: HealthDetails = {
+  roomRatePerDay: 0,
+  isStandardPrivateRoom: false,
+  ipdAmount: 0,
+  ipdMode: "per_year",
+  opdAmount: 0,
+  opdMode: "per_visit",
+  ciLumpSum: 0,
+  accidentCoverage: 0,
+  accidentMode: "per_visit",
+};
+
+// Default annuity details
+export const DEFAULT_ANNUITY_DETAILS: AnnuityDetails = {
+  payoutStartAge: 60,
+  payoutPerYear: 0,
+};
+
+// Default endowment details
+export const DEFAULT_ENDOWMENT_DETAILS: EndowmentDetails = {
+  dividends: [],
+  maturityPayout: 0,
+  maturityYear: 0,
+};
+
+// Map policyType to default category (for migration)
+export function getCategoryForType(t: PolicyType): InsuranceCategory {
+  const opt = POLICY_TYPE_OPTIONS.find(o => o.value === t);
+  return opt?.category ?? "life";
+}
 
 // ---------------------------------------------------------------------------
 // Defaults
@@ -492,7 +589,7 @@ export const useInsuranceStore = create<InsuranceState>()(
     }),
     {
       name: "ffc-insurance",
-      version: 6,
+      version: 7,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
         if (version < 2) {
@@ -534,6 +631,14 @@ export const useInsuranceStore = create<InsuranceState>()(
           } else {
             state.riskManagement = { ...DEFAULT_RISK_MANAGEMENT };
           }
+        }
+        if (version < 7) {
+          // Add category field to existing policies
+          const policies = (state.policies || []) as Record<string, unknown>[];
+          state.policies = policies.map((p) => ({
+            ...p,
+            category: p.category || getCategoryForType((p.policyType as PolicyType) || "other"),
+          }));
         }
         return state;
       },
