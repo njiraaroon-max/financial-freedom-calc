@@ -37,7 +37,8 @@ export type PolicyType =
   | "property"
   | "other";
 
-export type CoverageMode = "age" | "years";
+export type PaymentMode = "years" | "age" | "date";   // จ่ายกี่ปี | ถึงอายุ | วันที่
+export type CoverageMode = "age" | "years" | "date";  // ถึงอายุ | กี่ปี | วันที่
 export type AmountMode = "per_year" | "per_visit";
 
 // ─── Type-specific detail interfaces ─────────────────────────────────────────
@@ -79,16 +80,18 @@ export interface InsurancePolicy {
   group: PolicyGroup;
   policyType: PolicyType;
 
-  // Time data
-  startDate: string;          // YYYY-MM-DD  วันเริ่มมีผลคุ้มครอง
-  paymentYears: number;       // จ่ายเบี้ยกี่ปี
-  coverageMode: CoverageMode; // ผู้ใช้เลือกแบบไหน
-  coverageEndAge: number;     // คุ้มครองถึงอายุ (เมื่อ mode = "age")
-  coverageYears: number;      // คุ้มครองกี่ปี (เมื่อ mode = "years")
+  // Payment period
+  paymentMode: PaymentMode;   // "years" | "age" | "date"
+  paymentYears: number;       // จ่ายเบี้ยกี่ปี (mode=years)
+  paymentEndAge: number;      // ชำระถึงอายุ (mode=age)
+  lastPayDate: string;        // วันชำระเบี้ยงวดสุดท้าย (mode=date)
 
-  // Date fields
-  endDate: string;            // วันครบกำหนดสัญญา
-  lastPayDate: string;        // วันชำระเบี้ยงวดสุดท้าย
+  // Coverage period
+  startDate: string;          // YYYY-MM-DD  วันเริ่มมีผลคุ้มครอง
+  coverageMode: CoverageMode; // "age" | "years" | "date"
+  coverageEndAge: number;     // คุ้มครองถึงอายุ (mode=age)
+  coverageYears: number;      // คุ้มครองกี่ปี (mode=years)
+  endDate: string;            // วันครบกำหนดสัญญา (mode=date)
 
   // Value data
   sumInsured: number;         // ทุนประกัน (ทุนชีวิต)
@@ -589,7 +592,7 @@ export const useInsuranceStore = create<InsuranceState>()(
     }),
     {
       name: "ffc-insurance",
-      version: 7,
+      version: 8,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
         if (version < 2) {
@@ -638,6 +641,16 @@ export const useInsuranceStore = create<InsuranceState>()(
           state.policies = policies.map((p) => ({
             ...p,
             category: p.category || getCategoryForType((p.policyType as PolicyType) || "other"),
+          }));
+        }
+        if (version < 8) {
+          // Add paymentMode + paymentEndAge to existing policies
+          const policies = (state.policies || []) as Record<string, unknown>[];
+          state.policies = policies.map((p) => ({
+            ...p,
+            paymentMode: p.paymentMode || "years",
+            paymentEndAge: p.paymentEndAge || 0,
+            coverageMode: p.coverageMode || "age",
           }));
         }
         return state;

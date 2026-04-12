@@ -7,6 +7,7 @@ import {
   InsurancePolicy,
   PolicyType,
   InsuranceCategory,
+  PaymentMode,
   CoverageMode,
   AmountMode,
   HealthDetails,
@@ -49,20 +50,21 @@ function getStartYear(p: InsurancePolicy): number {
   return CURRENT_YEAR;
 }
 
-function getPaymentEndYear(p: InsurancePolicy): number {
+function getPaymentEndYear(p: InsurancePolicy, birthYear: number): number {
   const start = getStartYear(p);
+  if (p.paymentMode === "age" && p.paymentEndAge > 0) return birthYear + p.paymentEndAge;
+  if (p.paymentMode === "date" && p.lastPayDate) return new Date(p.lastPayDate).getFullYear();
   if (p.paymentYears > 0) return start + p.paymentYears;
   if (p.lastPayDate) return new Date(p.lastPayDate).getFullYear();
   return start;
 }
 
 function getCoverageEndYear(p: InsurancePolicy, birthYear: number): number {
-  if (p.coverageMode === "age" && p.coverageEndAge > 0) {
-    return birthYear + p.coverageEndAge;
-  }
-  if (p.coverageYears > 0) {
-    return getStartYear(p) + p.coverageYears;
-  }
+  if (p.coverageMode === "date" && p.endDate) return new Date(p.endDate).getFullYear();
+  if (p.coverageMode === "age" && p.coverageEndAge > 0) return birthYear + p.coverageEndAge;
+  if (p.coverageMode === "years" && p.coverageYears > 0) return getStartYear(p) + p.coverageYears;
+  if (p.coverageEndAge > 0) return birthYear + p.coverageEndAge;
+  if (p.coverageYears > 0) return getStartYear(p) + p.coverageYears;
   if (p.endDate) return new Date(p.endDate).getFullYear();
   return getStartYear(p) + 20;
 }
@@ -101,21 +103,24 @@ interface FormState {
   policyNumber: string;
   policyType: PolicyType;
   startDate: string;
-  endDate: string;
-  lastPayDate: string;
+  // Payment period (choose mode)
+  paymentMode: PaymentMode;
   paymentYears: string;
+  paymentEndAge: string;
+  lastPayDate: string;
+  // Coverage period (choose mode)
   coverageMode: CoverageMode;
   coverageEndAge: string;
   coverageYears: string;
+  endDate: string;
+  // Values
   sumInsured: string;
   premium: string;
   cashValue: string;
   notes: string;
-  // Health
+  // Type-specific
   healthDetails: HealthDetails;
-  // Annuity
   annuityDetails: AnnuityDetails;
-  // Endowment
   endowmentDetails: EndowmentDetails;
 }
 
@@ -126,12 +131,14 @@ const defaultForm = (): FormState => ({
   policyNumber: "",
   policyType: "whole_life",
   startDate: "",
-  endDate: "",
-  lastPayDate: "",
+  paymentMode: "years",
   paymentYears: "",
+  paymentEndAge: "",
+  lastPayDate: "",
   coverageMode: "age",
   coverageEndAge: "90",
   coverageYears: "",
+  endDate: "",
   sumInsured: "",
   premium: "",
   cashValue: "",
@@ -255,7 +262,7 @@ function GanttChart({
               const y0 = padT + i * rowH + 8;
               const barH = 32;
               const startY = getStartYear(p);
-              const payEnd = getPaymentEndYear(p);
+              const payEnd = getPaymentEndYear(p, birthYear);
               const covEnd = getCoverageEndYear(p, birthYear);
               const totalBarW = Math.max(xPos(covEnd) - xPos(startY), 4);
               const premiumW = Math.max(xPos(payEnd) - xPos(startY), 2);
@@ -545,7 +552,7 @@ function PremiumByAgeBracket({ policies, birthYear, currentAge, retireAge: defau
 
       for (const p of policies) {
         const startY = getStartYear(p);
-        const payEndY = getPaymentEndYear(p);
+        const payEndY = getPaymentEndYear(p, birthYear);
         const overlapStart = Math.max(startY, fromYear);
         const overlapEnd = Math.min(payEndY, toYear + 1);
         const yearsOverlap = Math.max(0, overlapEnd - overlapStart);
@@ -570,7 +577,7 @@ function PremiumByAgeBracket({ policies, birthYear, currentAge, retireAge: defau
     // Brackets after retirement: every 10 years
     const maxEndAge = Math.max(
       lifeExpectancy,
-      ...policies.map((p) => getPaymentEndYear(p) - birthYear)
+      ...policies.map((p) => getPaymentEndYear(p, birthYear) - birthYear)
     );
 
     for (let startAge = retireAge; startAge < maxEndAge; startAge += 10) {
@@ -985,7 +992,7 @@ function PolicyCard({ policy, birthYear, onEdit, onDelete }: {
   const colors = TYPE_COLORS[policy.policyType] || TYPE_COLORS.other;
   const typeLabel = POLICY_TYPE_OPTIONS.find((t) => t.value === policy.policyType)?.label || "";
   const startY = getStartYear(policy);
-  const payEnd = getPaymentEndYear(policy);
+  const payEnd = getPaymentEndYear(policy, birthYear);
   const covEnd = getCoverageEndYear(policy, birthYear);
 
   return (
@@ -1062,12 +1069,14 @@ export default function PortfolioDashboard() {
       category: p.category || getCategoryForType(p.policyType || "other"),
       planName: p.planName, company: p.company, policyNumber: p.policyNumber,
       policyType: p.policyType || "other", startDate: p.startDate,
-      endDate: p.endDate || "",
-      lastPayDate: p.lastPayDate || "",
+      paymentMode: (p.paymentMode as PaymentMode) || "years",
       paymentYears: p.paymentYears ? String(p.paymentYears) : "",
+      paymentEndAge: p.paymentEndAge ? String(p.paymentEndAge) : "",
+      lastPayDate: p.lastPayDate || "",
       coverageMode: p.coverageMode || "age",
       coverageEndAge: p.coverageEndAge ? String(p.coverageEndAge) : "",
       coverageYears: p.coverageYears ? String(p.coverageYears) : "",
+      endDate: p.endDate || "",
       sumInsured: p.sumInsured ? commaInput(p.sumInsured) : "",
       premium: p.premium ? commaInput(p.premium) : "",
       cashValue: p.cashValue ? commaInput(p.cashValue) : "",
@@ -1084,6 +1093,7 @@ export default function PortfolioDashboard() {
 
     const typeOpt = POLICY_TYPE_OPTIONS.find((t) => t.value === form.policyType);
     const payYears = parseInt(form.paymentYears) || 0;
+    const payEndAge = parseInt(form.paymentEndAge) || 0;
     const covEndAge = parseInt(form.coverageEndAge) || 0;
     const covYears = parseInt(form.coverageYears) || 0;
     const sumIns = parseNum(form.sumInsured);
@@ -1091,8 +1101,14 @@ export default function PortfolioDashboard() {
     const cv = parseNum(form.cashValue);
 
     const startYear = form.startDate ? new Date(form.startDate).getFullYear() : CURRENT_YEAR;
-    const payEndYear = startYear + payYears;
-    const covEndYear = form.coverageMode === "age" ? birthYear + covEndAge : startYear + covYears;
+
+    // Compute fallback dates
+    const payEndYear = form.paymentMode === "age" ? birthYear + payEndAge
+      : form.paymentMode === "date" && form.lastPayDate ? new Date(form.lastPayDate).getFullYear()
+      : startYear + payYears;
+    const covEndYear = form.coverageMode === "age" ? birthYear + covEndAge
+      : form.coverageMode === "date" && form.endDate ? new Date(form.endDate).getFullYear()
+      : startYear + covYears;
 
     // Determine which details to include
     const needsHealth = ["health", "nonlife_health", "critical_illness"].includes(form.policyType);
@@ -1103,10 +1119,11 @@ export default function PortfolioDashboard() {
       planName: form.planName.trim(), company: form.company.trim(), policyNumber: form.policyNumber.trim(),
       category: form.category,
       group: typeOpt?.defaultGroup || "other", policyType: form.policyType,
-      startDate: form.startDate, paymentYears: payYears, coverageMode: form.coverageMode,
-      coverageEndAge: covEndAge, coverageYears: covYears,
-      endDate: form.endDate || `${covEndYear}-12-31`,
+      startDate: form.startDate,
+      paymentMode: form.paymentMode, paymentYears: payYears, paymentEndAge: payEndAge,
       lastPayDate: form.lastPayDate || `${payEndYear}-12-31`,
+      coverageMode: form.coverageMode, coverageEndAge: covEndAge, coverageYears: covYears,
+      endDate: form.endDate || `${covEndYear}-12-31`,
       sumInsured: sumIns, premium: prem, cashValue: cv, details: "", notes: form.notes,
       ...(needsHealth ? { healthDetails: form.healthDetails } : {}),
       ...(needsAnnuity ? { annuityDetails: form.annuityDetails } : {}),
@@ -1246,49 +1263,70 @@ export default function PortfolioDashboard() {
                 <ThaiDatePicker value={form.startDate} onChange={(v) => setForm({ ...form, startDate: v })} placeholder="เลือกวันที่" minYear={2490} maxYear={2600} />
               </div>
 
-              {/* End Date */}
-              <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">วันครบกำหนดสัญญา</label>
-                <ThaiDatePicker value={form.endDate} onChange={(v) => setForm({ ...form, endDate: v })} placeholder="เลือกวันที่" minYear={2490} maxYear={2650} />
-              </div>
-
-              {/* Last Pay Date */}
-              <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">วันชำระเบี้ยงวดสุดท้าย</label>
-                <ThaiDatePicker value={form.lastPayDate} onChange={(v) => setForm({ ...form, lastPayDate: v })} placeholder="เลือกวันที่" minYear={2490} maxYear={2650} />
-              </div>
-
-              {/* Payment Years */}
+              {/* ── Payment Period (3 modes) ── */}
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">ระยะจ่ายเบี้ย</label>
-                <div className="flex items-center gap-2">
-                  <input type="text" inputMode="numeric" value={form.paymentYears} onChange={(e) => setForm({ ...form, paymentYears: e.target.value.replace(/[^0-9]/g, "") })}
-                    className="flex-1 text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold" placeholder="เช่น 21" />
-                  <span className="text-xs text-gray-500 shrink-0">ปี</span>
+                <div className="flex bg-gray-100 rounded-full p-0.5 mb-2">
+                  <button type="button" onClick={() => setForm({ ...form, paymentMode: "years" })}
+                    className={`flex-1 py-1.5 rounded-full text-[10px] font-medium transition ${form.paymentMode === "years" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
+                    จ่าย ___ ปี
+                  </button>
+                  <button type="button" onClick={() => setForm({ ...form, paymentMode: "age" })}
+                    className={`flex-1 py-1.5 rounded-full text-[10px] font-medium transition ${form.paymentMode === "age" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
+                    ถึงอายุ ___ ปี
+                  </button>
+                  <button type="button" onClick={() => setForm({ ...form, paymentMode: "date" })}
+                    className={`flex-1 py-1.5 rounded-full text-[10px] font-medium transition ${form.paymentMode === "date" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
+                    เลือกวันที่
+                  </button>
                 </div>
+                {form.paymentMode === "years" && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500 shrink-0">จ่ายเบี้ย</span>
+                    <input type="text" inputMode="numeric" value={form.paymentYears} onChange={(e) => setForm({ ...form, paymentYears: e.target.value.replace(/[^0-9]/g, "") })}
+                      className="flex-1 text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold" placeholder="เช่น 21" />
+                    <span className="text-xs text-gray-500 shrink-0">ปี</span>
+                  </div>
+                )}
+                {form.paymentMode === "age" && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500 shrink-0">ชำระถึงอายุ</span>
+                    <input type="text" inputMode="numeric" value={form.paymentEndAge} onChange={(e) => setForm({ ...form, paymentEndAge: e.target.value.replace(/[^0-9]/g, "") })}
+                      className="flex-1 text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold" placeholder="เช่น 60" />
+                    <span className="text-xs text-gray-500 shrink-0">ปี</span>
+                  </div>
+                )}
+                {form.paymentMode === "date" && (
+                  <ThaiDatePicker value={form.lastPayDate} onChange={(v) => setForm({ ...form, lastPayDate: v })} placeholder="วันชำระเบี้ยงวดสุดท้าย" minYear={2490} maxYear={2650} />
+                )}
               </div>
 
-              {/* Coverage Period Toggle */}
+              {/* ── Coverage Period (3 modes) ── */}
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">ระยะคุ้มครอง</label>
                 <div className="flex bg-gray-100 rounded-full p-0.5 mb-2">
                   <button type="button" onClick={() => setForm({ ...form, coverageMode: "age" })}
-                    className={`flex-1 py-1.5 rounded-full text-xs font-medium transition ${form.coverageMode === "age" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
+                    className={`flex-1 py-1.5 rounded-full text-[10px] font-medium transition ${form.coverageMode === "age" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
                     ถึงอายุ ___ ปี
                   </button>
                   <button type="button" onClick={() => setForm({ ...form, coverageMode: "years" })}
-                    className={`flex-1 py-1.5 rounded-full text-xs font-medium transition ${form.coverageMode === "years" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
+                    className={`flex-1 py-1.5 rounded-full text-[10px] font-medium transition ${form.coverageMode === "years" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
                     ระยะเวลา ___ ปี
                   </button>
+                  <button type="button" onClick={() => setForm({ ...form, coverageMode: "date" })}
+                    className={`flex-1 py-1.5 rounded-full text-[10px] font-medium transition ${form.coverageMode === "date" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
+                    เลือกวันที่
+                  </button>
                 </div>
-                {form.coverageMode === "age" ? (
+                {form.coverageMode === "age" && (
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-500 shrink-0">ถึงอายุ</span>
                     <input type="text" inputMode="numeric" value={form.coverageEndAge} onChange={(e) => setForm({ ...form, coverageEndAge: e.target.value.replace(/[^0-9]/g, "") })}
                       className="flex-1 text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold" placeholder="เช่น 90" />
                     <span className="text-xs text-gray-500 shrink-0">ปี</span>
                   </div>
-                ) : (
+                )}
+                {form.coverageMode === "years" && (
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-500 shrink-0">ระยะเวลา</span>
                     <input type="text" inputMode="numeric" value={form.coverageYears} onChange={(e) => setForm({ ...form, coverageYears: e.target.value.replace(/[^0-9]/g, "") })}
@@ -1296,7 +1334,10 @@ export default function PortfolioDashboard() {
                     <span className="text-xs text-gray-500 shrink-0">ปี</span>
                   </div>
                 )}
-                {form.startDate && (
+                {form.coverageMode === "date" && (
+                  <ThaiDatePicker value={form.endDate} onChange={(v) => setForm({ ...form, endDate: v })} placeholder="วันครบกำหนดสัญญา" minYear={2490} maxYear={2650} />
+                )}
+                {form.startDate && form.coverageMode !== "date" && (
                   <div className="text-[10px] text-gray-400 mt-1 text-center">
                     {form.coverageMode === "age" && form.coverageEndAge
                       ? `คุ้มครองถึง พ.ศ. ${birthYear + parseInt(form.coverageEndAge) + BE_OFFSET}`
