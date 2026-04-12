@@ -367,14 +367,13 @@ export default function InsuranceHubPage() {
                     strokeWidth="4"
                     strokeLinejoin="round"
                   />
-                  {/* Entablature bar — seamless with triangle */}
-                  <rect x="0" y="198" width="1000" height="82" fill="url(#barFill)" />
-                  {/* Bottom gold line */}
-                  <rect x="0" y="198" width="1000" height="3" fill="url(#roofStroke)" opacity="0.5" />
-                  {/* Gold border sides + bottom */}
-                  <line x1="0" y1="198" x2="0" y2="280" stroke="url(#roofStroke)" strokeWidth="3" />
-                  <line x1="1000" y1="198" x2="1000" y2="280" stroke="url(#roofStroke)" strokeWidth="3" />
-                  <line x1="0" y1="280" x2="1000" y2="280" stroke="url(#roofStroke)" strokeWidth="3" />
+                  {/* Entablature bar — narrower than triangle base */}
+                  <rect x="40" y="198" width="920" height="82" fill="url(#barFill)" />
+                  {/* Gold border around bar */}
+                  <line x1="40" y1="198" x2="960" y2="198" stroke="url(#roofStroke)" strokeWidth="3" opacity="0.5" />
+                  <line x1="40" y1="198" x2="40" y2="280" stroke="url(#roofStroke)" strokeWidth="3" />
+                  <line x1="960" y1="198" x2="960" y2="280" stroke="url(#roofStroke)" strokeWidth="3" />
+                  <line x1="40" y1="280" x2="960" y2="280" stroke="url(#roofStroke)" strokeWidth="3" />
                 </svg>
 
                 {/* Content overlay — centered in the full shape */}
