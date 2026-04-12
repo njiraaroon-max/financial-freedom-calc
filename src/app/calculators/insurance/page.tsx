@@ -275,12 +275,19 @@ export default function InsuranceHubPage() {
     return items.slice(0, 5);
   }, [pillar1, pillar2, pillar3, pillar4LongLive, foundation, totalPolicies]);
 
-  // ─── Pillar definitions with distinct colors ───────────────────────────
-  const pillarColors = [
-    { bg: "#2563eb", bgLight: "#3b82f6", bgDark: "#1d4ed8", textOnBg: "white" },  // Blue
-    { bg: "#0d9488", bgLight: "#14b8a6", bgDark: "#0f766e", textOnBg: "white" },  // Teal
-    { bg: "#d97706", bgLight: "#f59e0b", bgDark: "#b45309", textOnBg: "white" },  // Amber
-    { bg: "#7c3aed", bgLight: "#8b5cf6", bgDark: "#6d28d9", textOnBg: "white" },  // Purple
+  // ─── Pillar accent colors (icon only) + gray shaft tones ────────────────
+  const pillarAccents = [
+    { accent: "#2563eb", accentLight: "#3b82f6", accentBg: "bg-blue-500",   accentBgLight: "bg-blue-50",  accentText: "text-blue-600" },   // Blue
+    { accent: "#0d9488", accentLight: "#14b8a6", accentBg: "bg-teal-500",   accentBgLight: "bg-teal-50",  accentText: "text-teal-600" },   // Teal
+    { accent: "#d97706", accentLight: "#f59e0b", accentBg: "bg-amber-500",  accentBgLight: "bg-amber-50", accentText: "text-amber-600" },  // Amber
+    { accent: "#7c3aed", accentLight: "#8b5cf6", accentBg: "bg-violet-500", accentBgLight: "bg-violet-50", accentText: "text-violet-600" }, // Purple
+  ];
+  // Gray tones per pillar (lightest → darkest for visual depth)
+  const pillarGrays = [
+    { shaft: "#f0f0f0", shaftDark: "#e2e2e2", capital: "#d4d4d4" },
+    { shaft: "#eaeaea", shaftDark: "#dcdcdc", capital: "#cecece" },
+    { shaft: "#e4e4e4", shaftDark: "#d6d6d6", capital: "#c8c8c8" },
+    { shaft: "#dedede", shaftDark: "#d0d0d0", capital: "#c2c2c2" },
   ];
 
   const pillars = [
@@ -371,79 +378,73 @@ export default function InsuranceHubPage() {
             {/* Top beam connecting to columns */}
             <div className="h-2.5" style={{ background: "linear-gradient(180deg, #555 0%, #888 50%, #aaa 100%)" }} />
 
-            {/* 4 PILLARS — Classic Columns */}
+            {/* 4 PILLARS — Minimal Gray Columns with Colored Icons */}
             <div className="grid grid-cols-4 gap-3 md:gap-5 px-2 md:px-4 py-4 md:py-6">
               {pillars.map((pillar, idx) => {
                 const Icon = pillar.icon;
                 const ss = getStatusStyle(pillar.status);
-                const c = pillarColors[idx];
+                const ac = pillarAccents[idx];
+                const g = pillarGrays[idx];
                 return (
                   <Link key={pillar.key} href={pillar.href}>
                     <div className="group cursor-pointer flex flex-col items-center">
 
-                      {/* ── Column Capital — flared top ── */}
-                      <div className="w-full relative">
-                        {/* Abacus (flat top) */}
-                        <div className="h-2 rounded-t-md mx-[-6px] md:mx-[-10px]" style={{ background: c.bg }} />
-                        {/* Echinus (curved flare) */}
-                        <div className="h-1.5 mx-[-4px] md:mx-[-7px]" style={{ background: c.bgLight, opacity: 0.85 }} />
-                        {/* Necking */}
-                        <div className="h-1 mx-[-2px] md:mx-[-4px]" style={{ background: c.bg, opacity: 0.7 }} />
+                      {/* ── Column Capital — stone flare ── */}
+                      <div className="w-full">
+                        <div className="h-2 rounded-t-md mx-[-6px] md:mx-[-10px]" style={{ background: g.capital }} />
+                        <div className="h-1.5 mx-[-4px] md:mx-[-7px]" style={{ background: g.shaftDark }} />
+                        <div className="h-1 mx-[-2px] md:mx-[-4px]" style={{ background: g.shaft }} />
                       </div>
 
-                      {/* ── Column Shaft — main body ── */}
+                      {/* ── Column Shaft — gray body ── */}
                       <div
                         className="w-full relative overflow-hidden transition-all group-hover:-translate-y-1 group-hover:shadow-xl group-active:scale-[0.97]"
                         style={{
-                          background: `linear-gradient(135deg, ${c.bgLight} 0%, ${c.bg} 40%, ${c.bgDark} 100%)`,
-                          minHeight: "200px",
+                          background: `linear-gradient(180deg, ${g.shaft} 0%, ${g.shaftDark} 100%)`,
+                          minHeight: "210px",
                         }}
                       >
-                        {/* Fluting (vertical grooves for 3D effect) */}
-                        <div className="absolute inset-0 pointer-events-none" style={{ opacity: 0.08 }}>
-                          {[15, 30, 45, 60, 75, 85].map((pct) => (
-                            <div key={pct} className="absolute top-0 bottom-0" style={{ left: `${pct}%`, width: "1px", background: "black" }} />
-                          ))}
-                        </div>
-
                         {/* Column content */}
                         <div className="relative z-10 flex flex-col items-center text-center px-2 py-4 md:px-3 h-full">
                           {/* Traffic light dot */}
-                          <div className={`w-3 h-3 md:w-4 md:h-4 rounded-full ${ss.dot} mb-2 shadow ring-2 ring-white/30`} />
+                          <div className={`w-3 h-3 md:w-4 md:h-4 rounded-full ${ss.dot} mb-3 shadow-sm ring-2 ring-white/60`} />
 
-                          {/* Icon */}
-                          <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center bg-white/20 backdrop-blur-sm shadow-lg mb-2">
-                            <Icon size={20} className="text-white drop-shadow" />
+                          {/* Colored Icon — the accent pop */}
+                          <div
+                            className="w-11 h-11 md:w-13 md:h-13 rounded-2xl flex items-center justify-center shadow-lg mb-3 ring-1 ring-white/50"
+                            style={{ background: `linear-gradient(135deg, ${ac.accentLight}, ${ac.accent})` }}
+                          >
+                            <Icon size={22} className="text-white drop-shadow-sm" />
                           </div>
 
                           {/* Pillar number */}
-                          <div className="text-[7px] md:text-[8px] font-extrabold uppercase tracking-[0.15em] text-white/50">
+                          <div className="text-[7px] md:text-[8px] font-extrabold uppercase tracking-[0.15em] text-gray-500">
                             Pillar {idx + 1}
                           </div>
 
                           {/* Title */}
-                          <div className="text-[10px] md:text-[12px] font-bold text-white mt-1 leading-tight drop-shadow">
+                          <div className="text-[10px] md:text-[12px] font-bold text-gray-900 mt-1 leading-tight">
                             {pillar.title}
                           </div>
 
                           {/* Subtitle */}
-                          <div className="text-[8px] md:text-[9px] text-white/60 mt-0.5 leading-tight">
+                          <div className="text-[8px] md:text-[9px] text-gray-500 mt-0.5 leading-tight">
                             {pillar.subtitle}
                           </div>
 
                           {/* Status badge */}
-                          <div className={`text-[7px] md:text-[8px] px-2 py-0.5 rounded-full mt-2 font-bold shadow ${
-                            pillar.status === "adequate" ? "bg-emerald-500 text-white" :
-                            pillar.status === "warning" ? "bg-amber-400 text-amber-900" :
-                            pillar.status === "critical" ? "bg-red-500 text-white" :
-                            "bg-white/30 text-white/80"
+                          <div className={`text-[7px] md:text-[8px] px-2 py-0.5 rounded-full mt-2.5 font-bold ${
+                            pillar.status === "adequate" ? "bg-emerald-100 text-emerald-700" :
+                            pillar.status === "warning" ? "bg-amber-100 text-amber-700" :
+                            pillar.status === "critical" ? "bg-red-100 text-red-700" :
+                            "bg-gray-200 text-gray-500"
                           }`}>
                             {ss.label}
                           </div>
 
                           {/* Metric */}
-                          <div className={`text-[9px] md:text-[10px] font-bold mt-1 ${
-                            pillar.metric.startsWith("Gap") ? "text-red-200" : "text-white/90"
+                          <div className={`text-[9px] md:text-[10px] font-bold mt-1.5 ${
+                            pillar.metric.startsWith("Gap") ? "text-red-700" : "text-gray-700"
                           }`}>
                             {pillar.metric}
                           </div>
@@ -451,9 +452,9 @@ export default function InsuranceHubPage() {
                           {/* Mini bar */}
                           {pillar.status !== "not_started" && (
                             <div className="w-full mt-2 px-1">
-                              <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
+                              <div className="h-1.5 bg-gray-300/50 rounded-full overflow-hidden">
                                 <div
-                                  className={`h-full rounded-full ${pillar.pct >= 100 ? "bg-emerald-300" : pillar.pct >= 50 ? "bg-amber-300" : "bg-red-300"}`}
+                                  className={`h-full rounded-full ${pillar.pct >= 100 ? "bg-emerald-400" : pillar.pct >= 50 ? "bg-amber-400" : "bg-red-400"}`}
                                   style={{ width: `${Math.min(pillar.pct, 100)}%` }}
                                 />
                               </div>
@@ -461,21 +462,18 @@ export default function InsuranceHubPage() {
                           )}
 
                           {/* Tap hint */}
-                          <div className="flex items-center gap-0.5 mt-auto pt-2 text-[8px] md:text-[9px] text-white/40 group-hover:text-white/90 transition-colors">
+                          <div className="flex items-center gap-0.5 mt-auto pt-2 text-[8px] md:text-[9px] text-gray-400 group-hover:text-gray-700 transition-colors">
                             <span>ดูเพิ่ม</span>
                             <ChevronRight size={10} className="group-hover:translate-x-0.5 transition-transform" />
                           </div>
                         </div>
                       </div>
 
-                      {/* ── Column Base — flared bottom ── */}
+                      {/* ── Column Base — stone flare ── */}
                       <div className="w-full">
-                        {/* Torus (bottom ring) */}
-                        <div className="h-1 mx-[-2px] md:mx-[-4px]" style={{ background: c.bg, opacity: 0.7 }} />
-                        {/* Scotia */}
-                        <div className="h-1.5 mx-[-4px] md:mx-[-7px]" style={{ background: c.bgLight, opacity: 0.85 }} />
-                        {/* Plinth (flat base) */}
-                        <div className="h-2 rounded-b-md mx-[-6px] md:mx-[-10px]" style={{ background: c.bg }} />
+                        <div className="h-1 mx-[-2px] md:mx-[-4px]" style={{ background: g.shaft }} />
+                        <div className="h-1.5 mx-[-4px] md:mx-[-7px]" style={{ background: g.shaftDark }} />
+                        <div className="h-2 rounded-b-md mx-[-6px] md:mx-[-10px]" style={{ background: g.capital }} />
                       </div>
 
                     </div>
