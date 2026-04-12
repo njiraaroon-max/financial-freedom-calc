@@ -378,22 +378,20 @@ export default function InsuranceHubPage() {
               </div>
             </Link>
 
-            {/* Stats bar content — truly centered text + pill absolute right */}
-            <div className="absolute bottom-0 left-0 right-0 pb-2 md:pb-3">
-              {/* Centered stats text */}
-              <div className="flex justify-center">
-                <Link href="/calculators/insurance/policies" className="text-white/90 hover:text-white transition">
-                  <span className="text-[11px] md:text-sm font-medium">
-                    กรมธรรม์ <span className="font-bold">{totalPolicies}</span> เล่ม
-                    <span className="text-white/30 mx-1.5">|</span>
-                    ทุนชีวิตรวม <span className="font-bold">{fmtShort(totalSumInsured)}</span>
-                    <span className="text-white/30 mx-1.5">|</span>
-                    เบี้ยรายปี <span className="font-bold">{fmtShort(totalPremium)}</span>
-                  </span>
-                </Link>
-              </div>
-              {/* Pill button — absolute right */}
-              <Link href="/calculators/insurance/policies?add=true" className="absolute right-3 md:right-5 top-1/2 -translate-y-1/2">
+            {/* Stats bar content — centered text + pill same level */}
+            <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center pb-2 md:pb-3 px-3 md:px-5">
+              {/* Centered stats text (absolute so pill doesn't affect centering) */}
+              <Link href="/calculators/insurance/policies" className="text-white/90 hover:text-white transition">
+                <span className="text-[11px] md:text-sm font-medium">
+                  กรมธรรม์ <span className="font-bold">{totalPolicies}</span> เล่ม
+                  <span className="text-white/30 mx-1.5">|</span>
+                  ทุนชีวิตรวม <span className="font-bold">{fmtShort(totalSumInsured)}</span>
+                  <span className="text-white/30 mx-1.5">|</span>
+                  เบี้ยรายปี <span className="font-bold">{fmtShort(totalPremium)}</span>
+                </span>
+              </Link>
+              {/* Pill button — same line, pushed right */}
+              <Link href="/calculators/insurance/policies?add=true" className="absolute right-3 md:right-5">
                 <div className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition text-white/80 hover:text-white text-[10px] md:text-xs font-medium backdrop-blur-md border border-white/20">
                   <Plus size={13} strokeWidth={2} />
                   <span>เพิ่มกรมธรรม์</span>
