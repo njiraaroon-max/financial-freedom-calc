@@ -1289,11 +1289,21 @@ export default function PortfolioDashboard() {
                   </div>
                 )}
                 {form.paymentMode === "age" && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500 shrink-0">ชำระถึงอายุ</span>
-                    <input type="text" inputMode="numeric" value={form.paymentEndAge} onChange={(e) => setForm({ ...form, paymentEndAge: e.target.value.replace(/[^0-9]/g, "") })}
-                      className="flex-1 text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold" placeholder="เช่น 60" />
-                    <span className="text-xs text-gray-500 shrink-0">ปี</span>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500 shrink-0">ชำระถึงอายุ</span>
+                      <select value={form.paymentEndAge || ""}
+                        onChange={(e) => setForm({ ...form, paymentEndAge: e.target.value })}
+                        className="flex-1 text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold appearance-none">
+                        <option value="">เลือกอายุ</option>
+                        {Array.from({ length: 100 - currentAge + 1 }, (_, i) => currentAge + i).map((age) => (
+                          <option key={age} value={String(age)}>{age} ปี</option>
+                        ))}
+                      </select>
+                    </div>
+                    {parseInt(form.paymentEndAge) > 0 && parseInt(form.paymentEndAge) < currentAge && (
+                      <div className="text-[10px] text-red-500 mt-1">อายุต้องไม่น้อยกว่าอายุปัจจุบัน ({currentAge} ปี)</div>
+                    )}
                   </div>
                 )}
                 {form.paymentMode === "date" && (
@@ -1301,37 +1311,47 @@ export default function PortfolioDashboard() {
                 )}
               </div>
 
-              {/* ── Coverage Period (3 modes) ── */}
+              {/* ── Coverage Period (3 modes) — same order: years | age | date ── */}
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">ระยะคุ้มครอง</label>
                 <div className="flex bg-gray-100 rounded-full p-0.5 mb-2">
-                  <button type="button" onClick={() => setForm({ ...form, coverageMode: "age" })}
-                    className={`flex-1 py-1.5 rounded-full text-[10px] font-medium transition ${form.coverageMode === "age" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
-                    ถึงอายุ ___ ปี
-                  </button>
                   <button type="button" onClick={() => setForm({ ...form, coverageMode: "years" })}
                     className={`flex-1 py-1.5 rounded-full text-[10px] font-medium transition ${form.coverageMode === "years" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
                     ระยะเวลา ___ ปี
+                  </button>
+                  <button type="button" onClick={() => setForm({ ...form, coverageMode: "age" })}
+                    className={`flex-1 py-1.5 rounded-full text-[10px] font-medium transition ${form.coverageMode === "age" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
+                    ถึงอายุ ___ ปี
                   </button>
                   <button type="button" onClick={() => setForm({ ...form, coverageMode: "date" })}
                     className={`flex-1 py-1.5 rounded-full text-[10px] font-medium transition ${form.coverageMode === "date" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
                     เลือกวันที่
                   </button>
                 </div>
-                {form.coverageMode === "age" && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500 shrink-0">ถึงอายุ</span>
-                    <input type="text" inputMode="numeric" value={form.coverageEndAge} onChange={(e) => setForm({ ...form, coverageEndAge: e.target.value.replace(/[^0-9]/g, "") })}
-                      className="flex-1 text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold" placeholder="เช่น 90" />
-                    <span className="text-xs text-gray-500 shrink-0">ปี</span>
-                  </div>
-                )}
                 {form.coverageMode === "years" && (
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-500 shrink-0">ระยะเวลา</span>
                     <input type="text" inputMode="numeric" value={form.coverageYears} onChange={(e) => setForm({ ...form, coverageYears: e.target.value.replace(/[^0-9]/g, "") })}
                       className="flex-1 text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold" placeholder="เช่น 25" />
                     <span className="text-xs text-gray-500 shrink-0">ปี</span>
+                  </div>
+                )}
+                {form.coverageMode === "age" && (
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500 shrink-0">ถึงอายุ</span>
+                      <select value={form.coverageEndAge || ""}
+                        onChange={(e) => setForm({ ...form, coverageEndAge: e.target.value })}
+                        className="flex-1 text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold appearance-none">
+                        <option value="">เลือกอายุ</option>
+                        {Array.from({ length: 100 - currentAge + 1 }, (_, i) => currentAge + i).map((age) => (
+                          <option key={age} value={String(age)}>{age} ปี</option>
+                        ))}
+                      </select>
+                    </div>
+                    {parseInt(form.coverageEndAge) > 0 && parseInt(form.coverageEndAge) < currentAge && (
+                      <div className="text-[10px] text-red-500 mt-1">อายุต้องไม่น้อยกว่าอายุปัจจุบัน ({currentAge} ปี)</div>
+                    )}
                   </div>
                 )}
                 {form.coverageMode === "date" && (
