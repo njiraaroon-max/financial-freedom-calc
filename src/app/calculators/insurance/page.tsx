@@ -339,7 +339,7 @@ export default function InsuranceHubPage() {
             <div className="group cursor-pointer">
               <div className="relative">
                 {/* Combined SVG: triangle + rectangle as one piece */}
-                <svg viewBox="0 0 1000 280" className="w-full h-auto block" preserveAspectRatio="none">
+                <svg viewBox="-40 0 1080 280" className="w-full h-auto block" preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="roofFill" x1="0.5" y1="0" x2="0.5" y2="1">
                       <stop offset="0%" stopColor="#1a1a2e" />
@@ -359,27 +359,28 @@ export default function InsuranceHubPage() {
                       <stop offset="100%" stopColor="#0f3460" />
                     </linearGradient>
                   </defs>
-                  {/* Triangle pediment */}
+                  {/* Triangle pediment — wider than bar */}
                   <polygon
-                    points="500,8 15,200 985,200"
+                    points="500,8 -30,200 1030,200"
                     fill="url(#roofFill)"
                     stroke="url(#roofStroke)"
                     strokeWidth="4"
                     strokeLinejoin="round"
                   />
-                  {/* Entablature bar — narrower than triangle base */}
-                  <rect x="40" y="198" width="920" height="82" fill="url(#barFill)" />
+                  {/* Entablature bar — original full width */}
+                  <rect x="0" y="198" width="1000" height="82" fill="url(#barFill)" />
                   {/* Gold border around bar */}
-                  <line x1="40" y1="198" x2="960" y2="198" stroke="url(#roofStroke)" strokeWidth="3" opacity="0.5" />
-                  <line x1="40" y1="198" x2="40" y2="280" stroke="url(#roofStroke)" strokeWidth="3" />
-                  <line x1="960" y1="198" x2="960" y2="280" stroke="url(#roofStroke)" strokeWidth="3" />
-                  <line x1="40" y1="280" x2="960" y2="280" stroke="url(#roofStroke)" strokeWidth="3" />
+                  <line x1="0" y1="198" x2="1000" y2="198" stroke="url(#roofStroke)" strokeWidth="3" opacity="0.5" />
+                  <line x1="0" y1="198" x2="0" y2="280" stroke="url(#roofStroke)" strokeWidth="3" />
+                  <line x1="1000" y1="198" x2="1000" y2="280" stroke="url(#roofStroke)" strokeWidth="3" />
+                  <line x1="0" y1="280" x2="1000" y2="280" stroke="url(#roofStroke)" strokeWidth="3" />
                 </svg>
 
                 {/* Content overlay — centered in the full shape */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ paddingBottom: "2%" }}>
                   <ClipboardList size={16} className="text-white/60 mb-1" />
                   <span className="text-white text-sm md:text-base font-bold tracking-wider">สรุปกรมธรรม์</span>
+                  <span className="text-white/50 text-[9px] md:text-[10px] tracking-widest mt-0.5">Policy Summary</span>
                 </div>
 
                 {/* Stats row — positioned in the bar area */}
