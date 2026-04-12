@@ -334,76 +334,86 @@ export default function InsuranceHubPage() {
         {/* ═══ THE TEMPLE ═══════════════════════════════════════════ */}
         <div className="mx-1">
 
-          {/* ── ROOF / PEDIMENT — หลังคา (unified triangle + bar) ── */}
-          <Link href="/calculators/insurance/policies">
-            <div className="group cursor-pointer">
-              <div className="relative">
-                {/* Combined SVG: triangle + rectangle as one piece */}
-                <svg viewBox="0 0 1000 280" overflow="visible" className="w-full h-auto block" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="roofFill" x1="0.5" y1="0" x2="0.5" y2="1">
-                      <stop offset="0%" stopColor="#1a1a2e" />
-                      <stop offset="50%" stopColor="#16213e" />
-                      <stop offset="100%" stopColor="#0f3460" />
-                    </linearGradient>
-                    <linearGradient id="roofStroke" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#8a7a5a" />
-                      <stop offset="30%" stopColor="#c4a862" />
-                      <stop offset="50%" stopColor="#dcc07a" />
-                      <stop offset="70%" stopColor="#c4a862" />
-                      <stop offset="100%" stopColor="#8a7a5a" />
-                    </linearGradient>
-                    <linearGradient id="barFill" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#0f3460" />
-                      <stop offset="50%" stopColor="#1a1a2e" />
-                      <stop offset="100%" stopColor="#0f3460" />
-                    </linearGradient>
-                  </defs>
-                  {/* Triangle pediment — wider than bar */}
-                  <polygon
-                    points="500,8 -30,200 1030,200"
-                    fill="url(#roofFill)"
-                    stroke="url(#roofStroke)"
-                    strokeWidth="4"
-                    strokeLinejoin="round"
-                  />
-                  {/* Entablature bar — original full width */}
-                  <rect x="0" y="198" width="1000" height="82" fill="url(#barFill)" />
-                  {/* Gold border around bar */}
-                  <line x1="0" y1="198" x2="1000" y2="198" stroke="url(#roofStroke)" strokeWidth="3" opacity="0.5" />
-                  <line x1="0" y1="198" x2="0" y2="280" stroke="url(#roofStroke)" strokeWidth="3" />
-                  <line x1="1000" y1="198" x2="1000" y2="280" stroke="url(#roofStroke)" strokeWidth="3" />
-                  <line x1="0" y1="280" x2="1000" y2="280" stroke="url(#roofStroke)" strokeWidth="3" />
-                </svg>
+          {/* ── ROOF / PEDIMENT — หลังคา (unified triangle + stats bar) ── */}
+          <div className="relative">
+            {/* SVG: triangle + bar as one seamless piece */}
+            <Link href="/calculators/insurance/policies">
+              <svg viewBox="0 0 1000 370" overflow="visible" className="w-full h-auto block" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="roofFill" x1="0.5" y1="0" x2="0.5" y2="1">
+                    <stop offset="0%" stopColor="#1a1a2e" />
+                    <stop offset="50%" stopColor="#16213e" />
+                    <stop offset="100%" stopColor="#0f3460" />
+                  </linearGradient>
+                  <linearGradient id="roofStroke" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#8a7a5a" />
+                    <stop offset="30%" stopColor="#c4a862" />
+                    <stop offset="50%" stopColor="#dcc07a" />
+                    <stop offset="70%" stopColor="#c4a862" />
+                    <stop offset="100%" stopColor="#8a7a5a" />
+                  </linearGradient>
+                  <linearGradient id="barFill" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#0f3460" />
+                    <stop offset="50%" stopColor="#1a1a2e" />
+                    <stop offset="100%" stopColor="#0f3460" />
+                  </linearGradient>
+                </defs>
+                {/* Triangle pediment */}
+                <polygon points="500,8 -30,195 1030,195" fill="url(#roofFill)" stroke="url(#roofStroke)" strokeWidth="4" strokeLinejoin="round" />
+                {/* Bar seamless with triangle */}
+                <rect x="0" y="193" width="1000" height="177" fill="url(#barFill)" />
+                <line x1="0" y1="193" x2="1000" y2="193" stroke="url(#roofStroke)" strokeWidth="2" opacity="0.4" />
+                <line x1="0" y1="193" x2="0" y2="370" stroke="url(#roofStroke)" strokeWidth="2" />
+                <line x1="1000" y1="193" x2="1000" y2="370" stroke="url(#roofStroke)" strokeWidth="2" />
+                <line x1="0" y1="370" x2="1000" y2="370" stroke="url(#roofStroke)" strokeWidth="2" />
+              </svg>
+            </Link>
 
-                {/* Content overlay — centered in the triangle area */}
-                <div className="absolute left-0 right-0 top-0 bottom-[30%] flex flex-col items-center justify-end pb-2">
-                  <ClipboardList size={20} className="text-white/60 mb-1.5" />
-                  <span className="text-white text-lg md:text-xl font-bold tracking-wider">สรุปกรมธรรม์</span>
-                  <span className="text-white/40 text-[10px] md:text-xs tracking-[0.2em] mt-1 font-medium">Policy Summary</span>
-                </div>
-
-                {/* Stats row — positioned in the bar area */}
-                <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center py-2 md:py-3 transition-all group-hover:brightness-110">
-                  <div className="flex items-center gap-5 text-[11px] font-medium text-white">
-                    <span>{totalPolicies} เล่ม</span>
-                    <span className="opacity-30">|</span>
-                    <span>ทุน {fmtShort(totalSumInsured)}</span>
-                    <span className="opacity-30">|</span>
-                    <span>เบี้ย {fmtShort(totalPremium)}/ปี</span>
-                  </div>
-                  {/* + เพิ่มกรมธรรม์ pill button */}
-                  <div className="absolute right-2 md:right-3 flex items-center gap-1 bg-white/15 hover:bg-white/25 active:scale-95 rounded-full px-2.5 py-1 transition-all cursor-pointer">
-                    <Plus size={13} className="text-white" />
-                    <span className="text-[9px] md:text-[10px] text-white font-medium">เพิ่มกรมธรรม์</span>
-                  </div>
-                </div>
+            {/* สรุปกรมธรรม์ — centered in triangle */}
+            <Link href="/calculators/insurance/policies">
+              <div className="absolute left-0 right-0 top-0 bottom-[38%] flex flex-col items-center justify-center cursor-pointer group">
+                <ClipboardList size={18} className="text-white/60 mb-1" />
+                <span className="text-white text-lg md:text-xl font-bold tracking-wider group-hover:brightness-125 transition">สรุปกรมธรรม์</span>
+                <span className="text-white/40 text-[9px] md:text-[11px] tracking-[0.2em] mt-0.5 font-medium">Policy Summary</span>
               </div>
+            </Link>
 
-              {/* Cornice — decorative molding line */}
-              <div className="h-1.5" style={{ background: "linear-gradient(90deg, #b8860b, #daa520, #ffd700, #daa520, #b8860b)" }} />
+            {/* Stats bar content — bottom area */}
+            <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5 md:px-4 md:pb-3.5">
+              {/* + เพิ่มกรมธรรม์ — top right of bar */}
+              <div className="flex justify-end mb-2">
+                <Link href="/calculators/insurance/policies?add=true">
+                  <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/20 hover:bg-white/30 active:scale-95 transition text-white text-[10px] md:text-xs font-bold shadow-lg backdrop-blur-sm border border-white/10">
+                    <Plus size={14} />
+                    <span>เพิ่มกรมธรรม์</span>
+                  </div>
+                </Link>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <Link href="/calculators/insurance/policies">
+                  <div className="bg-white/12 hover:bg-white/20 transition rounded-lg px-2 py-2.5 text-center text-white">
+                    <div className="text-[8px] md:text-[9px] opacity-50">จำนวนกรมธรรม์</div>
+                    <div className="text-base md:text-lg font-bold">{totalPolicies}</div>
+                  </div>
+                </Link>
+                <Link href="/calculators/insurance/policies">
+                  <div className="bg-white/12 hover:bg-white/20 transition rounded-lg px-2 py-2.5 text-center text-white">
+                    <div className="text-[8px] md:text-[9px] opacity-50">ทุนประกันรวม</div>
+                    <div className="text-base md:text-lg font-bold">{fmtShort(totalSumInsured)}</div>
+                  </div>
+                </Link>
+                <Link href="/calculators/insurance/policies">
+                  <div className="bg-white/12 hover:bg-white/20 transition rounded-lg px-2 py-2.5 text-center text-white">
+                    <div className="text-[8px] md:text-[9px] opacity-50">เบี้ยรวม/ปี</div>
+                    <div className="text-base md:text-lg font-bold">{fmtShort(totalPremium)}</div>
+                  </div>
+                </Link>
+              </div>
             </div>
-          </Link>
+          </div>
+
+          {/* Cornice — gold molding line */}
+          <div className="h-1.5" style={{ background: "linear-gradient(90deg, #b8860b, #daa520, #ffd700, #daa520, #b8860b)" }} />
 
           {/* ── COLUMNS SECTION ───────────────────────────────────── */}
           <div className="relative bg-gradient-to-b from-gray-50 to-gray-100/50">

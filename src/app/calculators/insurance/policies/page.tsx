@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Plus, Pencil, Trash2, X, ChevronDown, ChevronUp } from "lucide-react";
 import {
   useInsuranceStore,
@@ -1016,6 +1016,11 @@ export default function PortfolioDashboard() {
   const [formError, setFormError] = useState("");
 
   const openAdd = () => { setForm(defaultForm()); setEditingId(null); setFormError(""); setShowModal(true); };
+
+  // Auto-open add modal when ?add=true
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.search.includes("add=true")) openAdd();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openEdit = (p: InsurancePolicy) => {
     setForm({
