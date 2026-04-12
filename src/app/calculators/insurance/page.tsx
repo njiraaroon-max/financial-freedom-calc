@@ -512,7 +512,55 @@ export default function InsuranceHubPage() {
             <div className="h-2.5" style={{ background: "linear-gradient(180deg, #aaa 0%, #888 50%, #555 100%)" }} />
           </div>
 
-          {/* Foundation removed — Tax & CF accessible via Pillar 4 */}
+          {/* ── FOUNDATION — Tax & Cash Flow ──────────── */}
+          <Link href="/calculators/insurance/pillar-4">
+            <div className="group cursor-pointer transition-all hover:brightness-110 active:scale-[0.99]">
+              {/* Golden cornice above foundation */}
+              <div className="h-1" style={{ background: "linear-gradient(90deg, #b8860b, #daa520, #ffd700, #daa520, #b8860b)" }} />
+
+              <div className="rounded-b-2xl p-4 shadow-lg" style={{ background: "linear-gradient(180deg, #3d3d3d 0%, #2a2a2a 100%)" }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Wallet size={16} className="text-stone-300" />
+                  <span className="text-xs font-bold text-stone-200">Tax & Cash Flow Optimization</span>
+                  <ChevronRight size={14} className="text-stone-400 ml-auto group-hover:translate-x-0.5 group-hover:text-stone-200 transition-all" />
+                </div>
+
+                <div className="flex items-center gap-4">
+                  {/* Premium ratio */}
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between text-[10px] mb-1">
+                      <span className="text-stone-400">Premium Ratio</span>
+                      <span className={`font-bold ${foundation.status === "adequate" ? "text-emerald-400" : foundation.status === "warning" ? "text-amber-400" : "text-red-400"}`}>
+                        {annualIncome > 0 ? `${(foundation.premiumRatio * 100).toFixed(1)}%` : "—"}
+                      </span>
+                    </div>
+                    <div className="h-2.5 bg-stone-600/50 rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${foundation.status === "adequate" ? "bg-emerald-400" : foundation.status === "warning" ? "bg-amber-400" : "bg-red-400"}`}
+                        style={{ width: `${Math.min(foundation.premiumRatio * 100 / 20 * 100, 100)}%` }} />
+                    </div>
+                    <div className="flex justify-between text-[8px] text-stone-500 mt-0.5">
+                      <span>0%</span><span>10%</span><span>15%</span><span>20%</span>
+                    </div>
+                  </div>
+
+                  {/* Tax deduction */}
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between text-[10px] mb-1">
+                      <span className="text-stone-400">สิทธิลดหย่อน</span>
+                      <span className="font-bold text-stone-200">{fmtShort(foundation.taxUsed)}/{fmtShort(foundation.taxMax)}</span>
+                    </div>
+                    <div className="h-2.5 bg-stone-600/50 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full bg-indigo-400"
+                        style={{ width: `${foundation.taxMax > 0 ? (foundation.taxUsed / foundation.taxMax) * 100 : 0}%` }} />
+                    </div>
+                    <div className="text-[8px] text-stone-500 mt-0.5 text-right">
+                      เหลือ {fmtShort(foundation.taxMax - foundation.taxUsed)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Link>
 
         </div>
         {/* ═══ END TEMPLE ══════════════════════════════════════════ */}
