@@ -35,6 +35,15 @@ function fmt(n: number): string {
   return Math.round(n).toLocaleString("th-TH");
 }
 
+function commaInput(n: number): string {
+  if (n === 0) return "";
+  return n.toLocaleString("th-TH");
+}
+
+function parseNum(s: string): number {
+  return Number(s.replace(/[^0-9.-]/g, "")) || 0;
+}
+
 // Icon map — navy
 const ICON_MAP: Record<string, React.ReactNode> = {
   ShieldAlert:   <ShieldAlert   size={20} style={{ color: NAVY }} />,
@@ -391,7 +400,7 @@ export default function GoalsPage() {
       name: g.name,
       category: g.category,
       iconName: g.iconName || getPreset(g.category).iconName,
-      amount: g.amount !== null ? String(g.amount) : "",
+      amount: g.amount !== null ? commaInput(g.amount) : "",
       unknownAmount: g.amount === null,
       targetYearBE,
       frequency: g.frequency,
@@ -414,7 +423,7 @@ export default function GoalsPage() {
       name: preset.name,
       category: preset.category,
       iconName: preset.iconName,
-      amount: resolvedAmt !== null ? String(resolvedAmt) : "",
+      amount: resolvedAmt !== null ? commaInput(resolvedAmt) : "",
       unknownAmount: resolvedAmt === null && preset.amountSourceKey !== null,
       targetYearBE: String(CURRENT_YEAR_CE + CE_TO_BE),
       frequency: preset.defaultFrequency,
@@ -853,7 +862,7 @@ export default function GoalsPage() {
                           type="text"
                           inputMode="numeric"
                           value={form.amount}
-                          onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                          onChange={(e) => { const raw = parseNum(e.target.value); setForm({ ...form, amount: raw > 0 ? commaInput(raw) : e.target.value.replace(/[^0-9]/g, "") }); }}
                           className="w-full text-sm bg-gray-50 rounded-xl pl-8 pr-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200"
                           placeholder="0"
                         />
