@@ -38,10 +38,10 @@ function getStatusStyle(status: PillarStatus) {
 function RadarChart({ data }: {
   data: { label: string; labelEn: string; value: number; color: string; status: PillarStatus }[];
 }) {
-  const size = 280;
+  const size = 340;
   const cx = size / 2;
   const cy = size / 2;
-  const maxR = 90;
+  const maxR = 100;
   const rings = [25, 50, 75, 100];
   const n = data.length;
 
@@ -59,17 +59,17 @@ function RadarChart({ data }: {
     return `${px(i, r)},${py(i, r)}`;
   }).join(" ");
 
-  const labelOffset = 22;
+  const labelOffset = 30;
   type Anchor = "middle" | "start" | "end";
   const labelPositions = data.map((_, i) => ({
     x: px(i, maxR + labelOffset),
     y: py(i, maxR + labelOffset),
     anchor: (i === 0 ? "middle" : i < n / 2 ? "start" : i === n / 2 ? "middle" : "end") as Anchor,
-    dy: i === 0 ? -4 : i === n / 2 ? 12 : 4,
+    dy: i === 0 ? -4 : i === n / 2 ? 14 : 4,
   }));
 
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[280px] mx-auto">
+    <svg viewBox={`-50 -10 ${size + 100} ${size + 20}`} className="w-full max-w-[340px] mx-auto">
       {rings.map((pct) => (
         <polygon key={pct} points={ringPoly(pct)} fill="none" stroke="#e5e7eb" strokeWidth="0.8" />
       ))}
@@ -95,10 +95,10 @@ function RadarChart({ data }: {
         const statusColor = d.status === "adequate" ? "#10b981" : d.status === "warning" ? "#f59e0b" : d.status === "critical" ? "#ef4444" : "#9ca3af";
         return (
           <g key={i}>
-            <text x={lp.x} y={lp.y + (lp.dy || 0) - 6} fontSize="8.5" fontWeight="bold" fill="#374151" textAnchor={lp.anchor}>
+            <text x={lp.x} y={lp.y + (lp.dy || 0) - 7} fontSize="11" fontWeight="bold" fill="#374151" textAnchor={lp.anchor}>
               {d.label}
             </text>
-            <text x={lp.x} y={lp.y + (lp.dy || 0) + 5} fontSize="9" fontWeight="bold" fill={statusColor} textAnchor={lp.anchor}>
+            <text x={lp.x} y={lp.y + (lp.dy || 0) + 6} fontSize="11" fontWeight="bold" fill={statusColor} textAnchor={lp.anchor}>
               {d.value > 0 ? `${d.value}%` : "—"}
             </text>
           </g>
@@ -246,10 +246,10 @@ export default function InsuranceHubPage() {
 
   // ─── Radar chart data ──────────────────────────────────────────────────
   const radarData = [
-    { label: "Income Protection", labelEn: "Life", value: pillar1.pct, color: "#1e3a5f", status: pillar1.status },
+    { label: "Life Protection", labelEn: "Life", value: pillar1.pct, color: "#1e3a5f", status: pillar1.status },
     { label: "Health Cover", labelEn: "IPD/OPD/CI", value: pillar2.pct, color: "#0891b2", status: pillar2.status },
     { label: "Asset Protection", labelEn: "Property", value: pillar3.pct, color: "#d97706", status: pillar3.status },
-    { label: "Long Live", labelEn: "Retirement", value: pillar4LongLive.pct, color: "#7c3aed", status: pillar4LongLive.status },
+    { label: "Live too long", labelEn: "Retirement", value: pillar4LongLive.pct, color: "#7c3aed", status: pillar4LongLive.status },
   ];
 
   // ─── Recommended Next Steps ────────────────────────────────────────────
@@ -378,9 +378,9 @@ export default function InsuranceHubPage() {
 
                 {/* Content overlay — centered in the triangle area */}
                 <div className="absolute left-0 right-0 top-0 bottom-[30%] flex flex-col items-center justify-end pb-2">
-                  <ClipboardList size={18} className="text-white/60 mb-1" />
-                  <span className="text-white text-base md:text-lg font-bold tracking-wider">สรุปกรมธรรม์</span>
-                  <span className="text-white/40 text-[9px] md:text-[11px] tracking-[0.2em] mt-0.5 font-medium">Policy Summary</span>
+                  <ClipboardList size={20} className="text-white/60 mb-1.5" />
+                  <span className="text-white text-lg md:text-xl font-bold tracking-wider">สรุปกรมธรรม์</span>
+                  <span className="text-white/40 text-[10px] md:text-xs tracking-[0.2em] mt-1 font-medium">Policy Summary</span>
                 </div>
 
                 {/* Stats row — positioned in the bar area */}
@@ -395,7 +395,7 @@ export default function InsuranceHubPage() {
                   {/* + เพิ่มกรมธรรม์ pill button */}
                   <div className="absolute right-2 md:right-3 flex items-center gap-1 bg-white/15 hover:bg-white/25 active:scale-95 rounded-full px-2.5 py-1 transition-all cursor-pointer">
                     <Plus size={13} className="text-white" />
-                    <span className="text-[9px] md:text-[10px] text-white font-medium">เพิ่ม</span>
+                    <span className="text-[9px] md:text-[10px] text-white font-medium">เพิ่มกรมธรรม์</span>
                   </div>
                 </div>
               </div>
