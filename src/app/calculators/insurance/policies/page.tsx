@@ -185,7 +185,8 @@ function GanttChart({
 
         {/* Grid lines — minor (every year) */}
         {allYears.map((y) => {
-          const isMajor = y % majorStep === 0;
+          const age = y - birthYear;
+          const isMajor = age % 10 === 0 && age >= 0;
           return (
             <line key={`grid-${y}`} x1={xPos(y)} y1={padT - 3} x2={xPos(y)} y2={barsEndY + 3}
               stroke={isMajor ? "#d1d5db" : "#f0f0f0"} strokeWidth={isMajor ? 1 : 0.5} />
@@ -240,7 +241,7 @@ function GanttChart({
         {/* X-axis — every year: พ.ศ. row + อายุ row */}
         {allYears.map((y) => {
           const age = y - birthYear;
-          const isMajor = y % majorStep === 0;
+          const isMajor = age % 10 === 0 && age >= 0;
 
           return (
             <g key={`axis-${y}`}>
@@ -346,7 +347,7 @@ function StepLineChart({ policies, birthYear, currentAge }: { policies: Insuranc
         {/* X grid + axis: every year */}
         {data.map((d) => {
           const age = d.year - birthYear;
-          const isMajor = d.year % slMajorStep === 0;
+          const isMajor = age % 10 === 0 && age >= 0;
 
           return (
             <g key={`xax-${d.year}`}>
@@ -693,8 +694,8 @@ function HealthPremiumProjection({ policies, birthYear, currentAge }: { policies
 
           {/* X axis labels */}
           {projection.map((d, i) => {
-            const isMajor = (d.age - currentAge) % majorStep === 0 || i === 0 || i === projection.length - 1;
-            if (!isMajor && projection.length > 20) return null;
+            const isMajor = d.age % 10 === 0;
+            if (!isMajor && projection.length > 20 && i !== 0 && i !== projection.length - 1) return null;
 
             return (
               <g key={`xax-${d.age}`}>
