@@ -10,6 +10,7 @@ import {
   POLICY_TYPE_OPTIONS,
 } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
+import { useRetirementStore } from "@/store/retirement-store";
 import PageHeader from "@/components/PageHeader";
 import ThaiDatePicker from "@/components/ThaiDatePicker";
 
@@ -483,33 +484,31 @@ function TaxDeduction({ policies }: { policies: InsurancePolicy[] }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// PREMIUM BY AGE BRACKET — สรุปเบี้ยรวมแยกตามช่วงอายุ (ทุก 10 ปี)
+// PREMIUM BY AGE BRACKET — สรุปเบี้ยรวมแยกตามช่วงอายุ
+// ช่วงแรก: อายุปัจจุบัน → เกษียณ, หลังเกษียณ: ทีละ 10 ปี จนถึงอายุขัย
 // ═══════════════════════════════════════════════════════════════════════════════
-function PremiumByAgeBracket({ policies, birthYear, currentAge }: { policies: InsurancePolicy[]; birthYear: number; currentAge: number }) {
+function PremiumByAgeBracket({ policies, birthYear, currentAge, retireAge: defaultRetireAge, lifeExpectancy: defaultLifeExpect }: {
+  policies: InsurancePolicy[]; birthYear: number; currentAge: number; retireAge: number; lifeExpectancy: number;
+}) {
+  const [retireAge, setRetireAge] = useState(defaultRetireAge);
+  const [lifeExpectancy, setLifeExpectancy] = useState(defaultLifeExpect);
+
   const brackets = useMemo(() => {
     if (policies.length === 0) return [];
 
-    // Find age range
-    const allStartAges = policies.map((p) => getStartYear(p) - birthYear);
-    const allPayEndAges = policies.map((p) => getPaymentEndYear(p) - birthYear);
-    const minAge = Math.max(0, Math.floor(Math.min(...allStartAges) / 10) * 10);
-    const maxAge = Math.ceil(Math.max(...allPayEndAges) / 10) * 10;
+    type Bracket = { label: string; tag: string; fromAge: number; toAge: number; total: number; perYear: number; policies: { name: string; amount: number }[] };
+    const result: Bracket[] = [];
 
-    const result: { label: string; fromAge: number; toAge: number; total: number; policies: { name: string; amount: number }[] }[] = [];
-
-    for (let decade = minAge; decade < maxAge; decade += 10) {
-      const fromAge = decade;
-      const toAge = decade + 9;
+    // Helper: compute premium for a bracket
+    const calcBracket = (fromAge: number, toAge: number, label: string, tag: string) => {
       const fromYear = birthYear + fromAge;
       const toYear = birthYear + toAge;
-
       let total = 0;
       const pList: { name: string; amount: number }[] = [];
 
       for (const p of policies) {
         const startY = getStartYear(p);
         const payEndY = getPaymentEndYear(p);
-        // How many years of payment overlap with this decade?
         const overlapStart = Math.max(startY, fromYear);
         const overlapEnd = Math.min(payEndY, toYear + 1);
         const yearsOverlap = Math.max(0, overlapEnd - overlapStart);
@@ -520,41 +519,83 @@ function PremiumByAgeBracket({ policies, birthYear, currentAge }: { policies: In
         }
       }
 
+      const years = toAge - fromAge + 1;
       if (total > 0) {
-        result.push({ label: `อายุ ${fromAge}-${toAge}`, fromAge, toAge, total, policies: pList });
+        result.push({ label, tag, fromAge, toAge, total, perYear: Math.round(total / years), policies: pList });
       }
+    };
+
+    // Bracket 1: อายุปัจจุบัน → เกษียณ
+    if (currentAge < retireAge) {
+      calcBracket(currentAge, retireAge - 1, `อายุ ${currentAge}-${retireAge - 1}`, "ก่อนเกษียณ");
     }
+
+    // Brackets after retirement: every 10 years
+    const maxEndAge = Math.max(
+      lifeExpectancy,
+      ...policies.map((p) => getPaymentEndYear(p) - birthYear)
+    );
+
+    for (let startAge = retireAge; startAge < maxEndAge; startAge += 10) {
+      const endAge = Math.min(startAge + 9, maxEndAge);
+      if (endAge < startAge) break;
+      calcBracket(startAge, endAge, `อายุ ${startAge}-${endAge}`, startAge === retireAge ? "หลังเกษียณ" : "");
+    }
+
     return result;
-  }, [policies, birthYear]);
+  }, [policies, birthYear, currentAge, retireAge, lifeExpectancy]);
 
   if (brackets.length === 0) return null;
 
   const maxTotal = Math.max(...brackets.map((b) => b.total));
   const grandTotal = brackets.reduce((s, b) => s + b.total, 0);
-  const currentBracketIdx = brackets.findIndex((b) => currentAge >= b.fromAge && currentAge <= b.toAge);
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-2">
         <h3 className="text-base font-bold text-gray-800">สรุปเบี้ยรวมตามช่วงอายุ</h3>
         <div className="text-xs text-gray-400">รวมทั้งหมด <span className="font-bold text-gray-700">{fmt(grandTotal)}</span> บาท</div>
+      </div>
+
+      {/* Settings: retireAge & lifeExpectancy */}
+      <div className="flex items-center gap-4 mb-4">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] text-gray-500">เกษียณ</span>
+          <input type="text" inputMode="numeric" value={retireAge}
+            onChange={(e) => { const v = parseInt(e.target.value) || 0; setRetireAge(v); }}
+            className="w-10 text-center text-xs font-bold bg-gray-100 rounded-lg px-1 py-1 border border-gray-200 outline-none focus:ring-1 focus:ring-blue-400"
+          />
+          <span className="text-[10px] text-gray-400">ปี</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] text-gray-500">อายุขัย</span>
+          <input type="text" inputMode="numeric" value={lifeExpectancy}
+            onChange={(e) => { const v = parseInt(e.target.value) || 0; setLifeExpectancy(v); }}
+            className="w-10 text-center text-xs font-bold bg-gray-100 rounded-lg px-1 py-1 border border-gray-200 outline-none focus:ring-1 focus:ring-blue-400"
+          />
+          <span className="text-[10px] text-gray-400">ปี</span>
+        </div>
       </div>
       <div className="space-y-2.5">
         {brackets.map((b, i) => {
           const pct = maxTotal > 0 ? (b.total / maxTotal) * 100 : 0;
-          const isCurrent = i === currentBracketIdx;
+          const isFirst = i === 0 && currentAge < retireAge;
           return (
             <div key={b.label}>
               <div className="flex items-center justify-between text-xs mb-1">
-                <span className={`font-semibold ${isCurrent ? "text-blue-600" : "text-gray-600"}`}>
-                  {b.label} {isCurrent && <span className="text-[9px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full ml-1">ปัจจุบัน</span>}
+                <span className={`font-semibold ${isFirst ? "text-blue-600" : "text-gray-600"}`}>
+                  {b.label}
+                  {b.tag && <span className={`text-[9px] px-1.5 py-0.5 rounded-full ml-1 ${isFirst ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500"}`}>{b.tag}</span>}
                 </span>
-                <span className="font-bold text-gray-800">{fmt(b.total)} บาท</span>
+                <div className="text-right">
+                  <span className="font-bold text-gray-800">{fmt(b.total)} บาท</span>
+                  <span className="text-[9px] text-gray-400 ml-1">({fmt(b.perYear)}/ปี)</span>
+                </div>
               </div>
               <div className="h-6 bg-gray-100 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all flex items-center"
-                  style={{ width: `${Math.max(pct, 5)}%`, background: isCurrent ? "#2563eb" : NAVY }}
+                  style={{ width: `${Math.max(pct, 5)}%`, background: isFirst ? "#2563eb" : NAVY }}
                 >
                   {pct > 25 && (
                     <span className="text-[9px] font-bold text-white pl-2 whitespace-nowrap">
@@ -563,7 +604,6 @@ function PremiumByAgeBracket({ policies, birthYear, currentAge }: { policies: In
                   )}
                 </div>
               </div>
-              {/* Breakdown per policy */}
               <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 pl-1">
                 {b.policies.map((pp) => (
                   <span key={pp.name} className="text-[9px] text-gray-400">
@@ -955,11 +995,14 @@ function PolicyCard({ policy, birthYear, onEdit, onDelete }: {
 export default function PortfolioDashboard() {
   const store = useInsuranceStore();
   const profile = useProfileStore();
+  const retirementStore = useRetirementStore();
   const policies = store.policies;
 
   const currentAge = profile.getAge?.() || 35;
   const birthYear = CURRENT_YEAR - currentAge;
   const profileName = profile.name || "ผู้ใช้";
+  const retireAge = profile.retireAge || 60;
+  const lifeExpectancy = retirementStore.assumptions?.lifeExpectancy || 85;
 
   const totalPolicies = policies.length;
   const totalSumInsured = policies.reduce((s, p) => s + p.sumInsured, 0);
@@ -1060,7 +1103,7 @@ export default function PortfolioDashboard() {
           <div className="overflow-x-auto"><GanttChart policies={policies} birthYear={birthYear} currentAge={currentAge} /></div>
           <StepLineChart policies={policies} birthYear={birthYear} currentAge={currentAge} />
           <TaxDeduction policies={policies} />
-          <PremiumByAgeBracket policies={policies} birthYear={birthYear} currentAge={currentAge} />
+          <PremiumByAgeBracket policies={policies} birthYear={birthYear} currentAge={currentAge} retireAge={retireAge} lifeExpectancy={lifeExpectancy} />
           <HealthPremiumProjection policies={policies} birthYear={birthYear} currentAge={currentAge} />
           <NPVHealthRetirement policies={policies} birthYear={birthYear} currentAge={currentAge} />
           <div>
