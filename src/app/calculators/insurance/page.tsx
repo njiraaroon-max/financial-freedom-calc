@@ -337,19 +337,36 @@ export default function InsuranceHubPage() {
           {/* ── ROOF / PEDIMENT — หลังคา ─────────────────────────── */}
           <Link href="/calculators/insurance/policies">
             <div className="group cursor-pointer">
-              {/* Pediment triangle */}
+              {/* Pediment triangle with border outline */}
               <div className="relative">
-                <div
-                  className="w-full h-20 md:h-24"
-                  style={{
-                    clipPath: "polygon(50% 0%, 2% 100%, 98% 100%)",
-                    background: "linear-gradient(180deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%)",
-                  }}
-                />
+                {/* Outer border triangle (gold/stone outline) */}
+                <svg viewBox="0 0 1000 200" className="w-full h-auto block" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="roofFill" x1="0.5" y1="0" x2="0.5" y2="1">
+                      <stop offset="0%" stopColor="#1a1a2e" />
+                      <stop offset="60%" stopColor="#16213e" />
+                      <stop offset="100%" stopColor="#0f3460" />
+                    </linearGradient>
+                    <linearGradient id="roofStroke" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#8a7a5a" />
+                      <stop offset="30%" stopColor="#c4a862" />
+                      <stop offset="50%" stopColor="#dcc07a" />
+                      <stop offset="70%" stopColor="#c4a862" />
+                      <stop offset="100%" stopColor="#8a7a5a" />
+                    </linearGradient>
+                  </defs>
+                  <polygon
+                    points="500,8 15,192 985,192"
+                    fill="url(#roofFill)"
+                    stroke="url(#roofStroke)"
+                    strokeWidth="4"
+                    strokeLinejoin="round"
+                  />
+                </svg>
                 {/* Content inside pediment */}
-                <div className="absolute inset-0 flex flex-col items-center justify-end pb-3">
-                  <ClipboardList size={14} className="text-white/60 mb-1" />
-                  <span className="text-white text-xs font-bold tracking-wider">สรุปกรมธรรม์</span>
+                <div className="absolute inset-0 flex flex-col items-center justify-end pb-[12%]">
+                  <ClipboardList size={16} className="text-white/60 mb-1" />
+                  <span className="text-white text-sm md:text-base font-bold tracking-wider">สรุปกรมธรรม์</span>
                 </div>
               </div>
 
