@@ -339,7 +339,7 @@ export default function InsuranceHubPage() {
             <div className="group cursor-pointer">
               <div className="relative">
                 {/* Combined SVG: triangle + rectangle as one piece */}
-                <svg viewBox="-40 0 1080 280" className="w-full h-auto block" preserveAspectRatio="none">
+                <svg viewBox="0 0 1000 280" overflow="visible" className="w-full h-auto block" preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="roofFill" x1="0.5" y1="0" x2="0.5" y2="1">
                       <stop offset="0%" stopColor="#1a1a2e" />
@@ -376,11 +376,11 @@ export default function InsuranceHubPage() {
                   <line x1="0" y1="280" x2="1000" y2="280" stroke="url(#roofStroke)" strokeWidth="3" />
                 </svg>
 
-                {/* Content overlay — centered in the full shape */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ paddingBottom: "2%" }}>
-                  <ClipboardList size={16} className="text-white/60 mb-1" />
-                  <span className="text-white text-sm md:text-base font-bold tracking-wider">สรุปกรมธรรม์</span>
-                  <span className="text-white/50 text-[9px] md:text-[10px] tracking-widest mt-0.5">Policy Summary</span>
+                {/* Content overlay — centered in the triangle area */}
+                <div className="absolute left-0 right-0 top-0 bottom-[30%] flex flex-col items-center justify-end pb-2">
+                  <ClipboardList size={18} className="text-white/60 mb-1" />
+                  <span className="text-white text-base md:text-lg font-bold tracking-wider">สรุปกรมธรรม์</span>
+                  <span className="text-white/40 text-[9px] md:text-[11px] tracking-[0.2em] mt-0.5 font-medium">Policy Summary</span>
                 </div>
 
                 {/* Stats row — positioned in the bar area */}
