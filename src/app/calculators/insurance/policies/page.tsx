@@ -130,16 +130,17 @@ function GanttChart({
 
   // Layout
   const labelW = 120; // fixed left column width
+  const padL = 15;    // left padding inside chart SVG
   const yearColW = 32;
   const chartW = totalYears * yearColW;
   const rowH = 48;
   const axisH = 75;
   const padT = 30;
-  const chartSvgW = chartW + 10;
+  const chartSvgW = padL + chartW + 10;
   const barsEndY = padT + sorted.length * rowH;
   const svgH = barsEndY + axisH;
 
-  const xPos = (year: number) => ((year - minYear) / totalYears) * chartW;
+  const xPos = (year: number) => padL + ((year - minYear) / totalYears) * chartW;
   const currentX = xPos(CURRENT_YEAR);
 
   // All years
