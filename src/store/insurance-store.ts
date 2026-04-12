@@ -163,6 +163,106 @@ export const DEFAULT_EXISTING_COVERAGE: ExistingCoverage = {
 };
 
 // ---------------------------------------------------------------------------
+// Risk Management — 4 Pillars Data
+// ---------------------------------------------------------------------------
+
+export interface Pillar1Data {
+  funeralCost: number;              // ค่าจัดงานศพ
+  familyExpenseMonthly: number;     // ค่าใช้จ่ายครอบครัว/เดือน
+  familyAdjustmentYears: number;    // จำนวนปีที่ต้องดูแล
+  additionalDebts: number;          // หนี้เพิ่มเติม (ที่ไม่อยู่ใน balance sheet)
+  educationFund: number;            // ทุนการศึกษาบุตร
+  parentSupportMonthly: number;     // เงินดูแลพ่อแม่/เดือน
+  parentSupportYears: number;       // อีกกี่ปี
+  otherNeeds: number;               // ความต้องการอื่นๆ
+  existingSavings: number;          // เงินออม/สินทรัพย์สภาพคล่องที่เตรียมไว้
+  useBalanceSheetDebts: boolean;    // ดึงหนี้จาก balance sheet
+  useCashflowExpense: boolean;      // ดึงค่าใช้จ่ายจาก cashflow
+}
+
+export interface Pillar2Data {
+  targetHospital: string;           // รพ เป้าหมาย
+  desiredRoomRate: number;          // ค่าห้อง/วัน ที่ต้องการ
+  desiredIPDPerYear: number;        // วงเงิน IPD ต่อปี
+  desiredOPDPerVisit: number;       // วงเงิน OPD ต่อครั้ง
+  desiredCICoverage: number;        // ทุน CI ที่ต้องการ
+  hasSocialSecurity: boolean;
+  governmentScheme: "none" | "gold_card" | "government";
+  groupInsurance: {
+    roomRate: number;
+    ipdPerYear: number;
+    opdPerVisit: number;
+  };
+}
+
+export interface Pillar3Data {
+  homeReplacementCost: number;      // ต้นทุนสร้างบ้านใหม่ (ไม่รวมที่ดิน)
+  homeInsuredAmount: number;        // ทุนประกันบ้านปัจจุบัน
+  vehicleValue: number;             // มูลค่ารถปัจจุบัน
+  vehicleInsuranceType: "class1" | "class2plus" | "class3plus" | "class3" | "none";
+  vehicleInsuredAmount: number;     // ทุนประกันรถ
+  thirdPartyLimit: number;          // วงเงินคุ้มครองบุคคลภายนอก
+}
+
+export interface Pillar4Data {
+  targetPremiumRatio: number;       // % ของรายได้ (default 0.10)
+}
+
+export interface RiskManagementData {
+  pillar1: Pillar1Data;
+  pillar2: Pillar2Data;
+  pillar3: Pillar3Data;
+  pillar4: Pillar4Data;
+  completedPillars: Record<string, boolean>;
+}
+
+export const DEFAULT_PILLAR1: Pillar1Data = {
+  funeralCost: 300000,
+  familyExpenseMonthly: 0,
+  familyAdjustmentYears: 5,
+  additionalDebts: 0,
+  educationFund: 0,
+  parentSupportMonthly: 0,
+  parentSupportYears: 10,
+  otherNeeds: 0,
+  existingSavings: 0,
+  useBalanceSheetDebts: false,
+  useCashflowExpense: false,
+};
+
+export const DEFAULT_PILLAR2: Pillar2Data = {
+  targetHospital: "",
+  desiredRoomRate: 5000,
+  desiredIPDPerYear: 500000,
+  desiredOPDPerVisit: 2000,
+  desiredCICoverage: 1000000,
+  hasSocialSecurity: true,
+  governmentScheme: "none",
+  groupInsurance: { roomRate: 0, ipdPerYear: 0, opdPerVisit: 0 },
+};
+
+export const DEFAULT_PILLAR3: Pillar3Data = {
+  homeReplacementCost: 0,
+  homeInsuredAmount: 0,
+  vehicleValue: 0,
+  vehicleInsuranceType: "none",
+  vehicleInsuredAmount: 0,
+  thirdPartyLimit: 0,
+};
+
+export const DEFAULT_PILLAR4: Pillar4Data = {
+  targetPremiumRatio: 0.10,
+};
+
+export const DEFAULT_RISK_MANAGEMENT: RiskManagementData = {
+  pillar1: { ...DEFAULT_PILLAR1 },
+  pillar2: { ...DEFAULT_PILLAR2 },
+  pillar3: { ...DEFAULT_PILLAR3 },
+  pillar4: { ...DEFAULT_PILLAR4 },
+  completedPillars: {},
+};
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -178,6 +278,7 @@ interface InsuranceState {
   policies: InsurancePolicy[];
   coverageNeeds: CoverageNeeds;
   existingCoverage: ExistingCoverage;
+  riskManagement: RiskManagementData;
   completedSteps: Record<string, boolean>;
 
   // Actions — Policies
@@ -191,6 +292,13 @@ interface InsuranceState {
 
   // Actions — Existing Coverage
   updateCoverage: <K extends keyof ExistingCoverage>(key: K, value: ExistingCoverage[K]) => void;
+
+  // Actions — Risk Management
+  updatePillar1: (updates: Partial<Pillar1Data>) => void;
+  updatePillar2: (updates: Partial<Pillar2Data>) => void;
+  updatePillar3: (updates: Partial<Pillar3Data>) => void;
+  updatePillar4: (updates: Partial<Pillar4Data>) => void;
+  markPillarCompleted: (pillar: string) => void;
 
   // Completion tracking
   markStepCompleted: (step: string) => void;
@@ -210,6 +318,7 @@ export const useInsuranceStore = create<InsuranceState>()(
       policies: [],
       coverageNeeds: { ...DEFAULT_COVERAGE_NEEDS },
       existingCoverage: { ...DEFAULT_EXISTING_COVERAGE },
+      riskManagement: { ...DEFAULT_RISK_MANAGEMENT },
       completedSteps: {},
 
       // ----- Policies -----
@@ -258,6 +367,31 @@ export const useInsuranceStore = create<InsuranceState>()(
           existingCoverage: { ...s.existingCoverage, [key]: value },
         })),
 
+      // ----- Risk Management -----
+      updatePillar1: (updates) =>
+        set((s) => ({
+          riskManagement: { ...s.riskManagement, pillar1: { ...s.riskManagement.pillar1, ...updates } },
+        })),
+      updatePillar2: (updates) =>
+        set((s) => ({
+          riskManagement: { ...s.riskManagement, pillar2: { ...s.riskManagement.pillar2, ...updates } },
+        })),
+      updatePillar3: (updates) =>
+        set((s) => ({
+          riskManagement: { ...s.riskManagement, pillar3: { ...s.riskManagement.pillar3, ...updates } },
+        })),
+      updatePillar4: (updates) =>
+        set((s) => ({
+          riskManagement: { ...s.riskManagement, pillar4: { ...s.riskManagement.pillar4, ...updates } },
+        })),
+      markPillarCompleted: (pillar) =>
+        set((s) => ({
+          riskManagement: {
+            ...s.riskManagement,
+            completedPillars: { ...s.riskManagement.completedPillars, [pillar]: true },
+          },
+        })),
+
       // ----- Completion tracking -----
       markStepCompleted: (step) =>
         set((s) => ({
@@ -274,16 +408,16 @@ export const useInsuranceStore = create<InsuranceState>()(
           policies: [],
           coverageNeeds: { ...DEFAULT_COVERAGE_NEEDS },
           existingCoverage: { ...DEFAULT_EXISTING_COVERAGE },
+          riskManagement: { ...DEFAULT_RISK_MANAGEMENT },
           completedSteps: {},
         }),
     }),
     {
       name: "ffc-insurance",
-      version: 2,
+      version: 3,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
         if (version < 2) {
-          // Migrate old policies to new format
           const oldPolicies = (state.policies || []) as Record<string, unknown>[];
           const newPolicies = oldPolicies.map((p) => ({
             ...p,
@@ -293,7 +427,10 @@ export const useInsuranceStore = create<InsuranceState>()(
             coverageEndAge: p.coverageEndAge || 0,
             coverageYears: p.coverageYears || 0,
           }));
-          return { ...state, policies: newPolicies };
+          state.policies = newPolicies;
+        }
+        if (version < 3) {
+          state.riskManagement = { ...DEFAULT_RISK_MANAGEMENT };
         }
         return state;
       },
