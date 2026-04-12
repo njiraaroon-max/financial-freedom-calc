@@ -127,12 +127,12 @@ function GanttChart({
   const maxYear = Math.max(...allEnds, CURRENT_YEAR + 5) + 1;
   const totalYears = maxYear - minYear;
 
-  // Layout — every year gets its own column (min 30px wide)
-  const labelW = 170;
-  const yearColW = 30;
+  // Layout — every year gets its own column
+  const labelW = 120;
+  const yearColW = 32;
   const chartW = totalYears * yearColW;
   const rowH = 48;
-  const axisH = 75;
+  const axisH = 50;
   const padT = 30;
   const svgW = labelW + chartW + 10;
   const barsEndY = padT + sorted.length * rowH;
@@ -206,8 +206,8 @@ function GanttChart({
           return (
             <g key={p.id}>
               {/* Label */}
-              <text x={labelW - 10} y={y0 + barH / 2} textAnchor="end" dominantBaseline="middle" fontSize="12" className="fill-gray-800" fontWeight="700">
-                {p.planName.length > 16 ? p.planName.slice(0, 14) + "…" : p.planName}
+              <text x={labelW - 8} y={y0 + barH / 2} textAnchor="end" dominantBaseline="middle" fontSize="11" className="fill-gray-800" fontWeight="700">
+                {p.planName.length > 12 ? p.planName.slice(0, 10) + "…" : p.planName}
               </text>
 
               {/* Unified bar with clip path */}
@@ -238,36 +238,35 @@ function GanttChart({
           );
         })}
 
-        {/* X-axis — every year: พ.ศ. row + อายุ row */}
+        {/* X-axis — tick every year, label every 5 years of age */}
         {allYears.map((y) => {
           const age = y - birthYear;
           const isMajor = age % 10 === 0 && age >= 0;
+          const showLabel = age % 5 === 0 && age >= 0;
 
           return (
             <g key={`axis-${y}`}>
               {/* Tick mark */}
-              <line x1={xPos(y)} y1={barsEndY + 3} x2={xPos(y)} y2={barsEndY + 8} stroke={isMajor ? "#6b7280" : "#d1d5db"} strokeWidth={isMajor ? 1 : 0.5} />
+              <line x1={xPos(y)} y1={barsEndY + 3} x2={xPos(y)} y2={barsEndY + (showLabel ? 10 : 6)} stroke={isMajor ? "#6b7280" : "#d1d5db"} strokeWidth={isMajor ? 1.5 : 0.5} />
 
-              {/* พ.ศ. — rotated 90° */}
-              <g transform={`translate(${xPos(y)}, ${barsEndY + 12}) rotate(90)`}>
-                <text x={0} y={4} fontSize="8" className={isMajor ? "fill-gray-700" : "fill-gray-400"} fontWeight={isMajor ? "700" : "400"}>
-                  {y + BE_OFFSET}
-                </text>
-              </g>
-
-              {/* อายุ — below year, also rotated */}
-              <g transform={`translate(${xPos(y)}, ${barsEndY + 44}) rotate(90)`}>
-                <text x={0} y={4} fontSize="8" className={isMajor ? "fill-blue-600" : "fill-blue-300"} fontWeight={isMajor ? "700" : "400"}>
-                  {age}
-                </text>
-              </g>
+              {/* Labels — horizontal, only every 5 years of age */}
+              {showLabel && (
+                <>
+                  <text x={xPos(y)} y={barsEndY + 22} textAnchor="middle" fontSize={isMajor ? "10" : "9"} className={isMajor ? "fill-gray-700" : "fill-gray-400"} fontWeight={isMajor ? "700" : "500"}>
+                    {age}
+                  </text>
+                  <text x={xPos(y)} y={barsEndY + 34} textAnchor="middle" fontSize="7.5" className={isMajor ? "fill-gray-400" : "fill-gray-300"} fontWeight="400">
+                    {y + BE_OFFSET}
+                  </text>
+                </>
+              )}
             </g>
           );
         })}
 
         {/* Axis row labels */}
-        <text x={labelW - 10} y={barsEndY + 22} textAnchor="end" className="fill-gray-500" fontSize="9" fontWeight="600">พ.ศ.</text>
-        <text x={labelW - 10} y={barsEndY + 54} textAnchor="end" className="fill-blue-500" fontSize="9" fontWeight="600">อายุ</text>
+        <text x={labelW - 8} y={barsEndY + 22} textAnchor="end" className="fill-blue-500" fontSize="9" fontWeight="600">อายุ</text>
+        <text x={labelW - 8} y={barsEndY + 34} textAnchor="end" className="fill-gray-400" fontSize="7.5" fontWeight="500">พ.ศ.</text>
 
         {/* Current year line — LAST element = always on top */}
         <line x1={currentX} y1={padT - 10} x2={currentX} y2={barsEndY + 3} stroke="#ef4444" strokeWidth="2.5" strokeDasharray="6,4" pointerEvents="none" />
@@ -310,8 +309,8 @@ function StepLineChart({ policies, birthYear, currentAge }: { policies: Insuranc
   const maxVal = Math.max(...data.map((d) => d.total), 1);
   const yearRange = maxYear - minYear;
 
-  const padL = 70, padR = 20, padT = 25, padB = 80;
-  const yearColW = 30;
+  const padL = 70, padR = 20, padT = 25, padB = 50;
+  const yearColW = 32;
   const chartW = yearRange * yearColW;
   const W = padL + chartW + padR;
   const H = 280;
@@ -344,36 +343,36 @@ function StepLineChart({ policies, birthYear, currentAge }: { policies: Insuranc
           </g>
         ))}
 
-        {/* X grid + axis: every year */}
+        {/* X grid + axis: tick every year, label every 5 years of age */}
         {data.map((d) => {
           const age = d.year - birthYear;
           const isMajor = age % 10 === 0 && age >= 0;
+          const showLabel = age % 5 === 0 && age >= 0;
 
           return (
             <g key={`xax-${d.year}`}>
               {/* Grid line */}
               <line x1={xPos(d.year)} y1={padT} x2={xPos(d.year)} y2={padT + chartH} stroke={isMajor ? "#e5e7eb" : "#f5f5f5"} strokeWidth={isMajor ? 1 : 0.5} />
               {/* Tick */}
-              <line x1={xPos(d.year)} y1={padT + chartH + 3} x2={xPos(d.year)} y2={padT + chartH + 8} stroke={isMajor ? "#6b7280" : "#d1d5db"} strokeWidth={isMajor ? 1 : 0.5} />
-              {/* พ.ศ. rotated */}
-              <g transform={`translate(${xPos(d.year)}, ${padT + chartH + 12}) rotate(90)`}>
-                <text x={0} y={4} fontSize="8" className={isMajor ? "fill-gray-700" : "fill-gray-400"} fontWeight={isMajor ? "700" : "400"}>
-                  {d.year + BE_OFFSET}
-                </text>
-              </g>
-              {/* อายุ rotated */}
-              <g transform={`translate(${xPos(d.year)}, ${padT + chartH + 44}) rotate(90)`}>
-                <text x={0} y={4} fontSize="8" className={isMajor ? "fill-blue-600" : "fill-blue-300"} fontWeight={isMajor ? "700" : "400"}>
-                  {age}
-                </text>
-              </g>
+              <line x1={xPos(d.year)} y1={padT + chartH + 3} x2={xPos(d.year)} y2={padT + chartH + (showLabel ? 10 : 6)} stroke={isMajor ? "#6b7280" : "#d1d5db"} strokeWidth={isMajor ? 1.5 : 0.5} />
+              {/* Labels — horizontal, every 5 years */}
+              {showLabel && (
+                <>
+                  <text x={xPos(d.year)} y={padT + chartH + 22} textAnchor="middle" fontSize={isMajor ? "10" : "9"} className={isMajor ? "fill-gray-700" : "fill-gray-400"} fontWeight={isMajor ? "700" : "500"}>
+                    {age}
+                  </text>
+                  <text x={xPos(d.year)} y={padT + chartH + 34} textAnchor="middle" fontSize="7.5" className={isMajor ? "fill-gray-400" : "fill-gray-300"} fontWeight="400">
+                    {d.year + BE_OFFSET}
+                  </text>
+                </>
+              )}
             </g>
           );
         })}
 
         {/* Axis row labels */}
-        <text x={padL - 8} y={padT + chartH + 22} textAnchor="end" className="fill-gray-500" fontSize="9" fontWeight="600">พ.ศ.</text>
-        <text x={padL - 8} y={padT + chartH + 54} textAnchor="end" className="fill-blue-500" fontSize="9" fontWeight="600">อายุ</text>
+        <text x={padL - 8} y={padT + chartH + 22} textAnchor="end" className="fill-blue-500" fontSize="9" fontWeight="600">อายุ</text>
+        <text x={padL - 8} y={padT + chartH + 34} textAnchor="end" className="fill-gray-400" fontSize="7.5" fontWeight="500">พ.ศ.</text>
 
         {/* Step line + area */}
         <path d={pathD} fill="none" stroke={NAVY} strokeWidth="2.5" />
