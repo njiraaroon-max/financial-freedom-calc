@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import {
-  Shield, HeartPulse, Home, Landmark, Wallet,
+  Shield, HeartPulse, Home, Landmark, Wallet, Plus,
   ClipboardList, ChevronRight, AlertCircle, CheckCircle2, TrendingUp,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
@@ -392,7 +392,11 @@ export default function InsuranceHubPage() {
                     <span className="opacity-30">|</span>
                     <span>เบี้ย {fmtShort(totalPremium)}/ปี</span>
                   </div>
-                  <ChevronRight size={16} className="text-white opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all absolute right-4" />
+                  {/* + เพิ่มกรมธรรม์ pill button */}
+                  <div className="absolute right-2 md:right-3 flex items-center gap-1 bg-white/15 hover:bg-white/25 active:scale-95 rounded-full px-2.5 py-1 transition-all cursor-pointer">
+                    <Plus size={13} className="text-white" />
+                    <span className="text-[9px] md:text-[10px] text-white font-medium">เพิ่ม</span>
+                  </div>
                 </div>
               </div>
 
