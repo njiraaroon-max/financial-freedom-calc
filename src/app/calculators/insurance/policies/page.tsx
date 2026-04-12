@@ -27,6 +27,7 @@ import { useProfileStore } from "@/store/profile-store";
 import { useRetirementStore } from "@/store/retirement-store";
 import PageHeader from "@/components/PageHeader";
 import ThaiDatePicker from "@/components/ThaiDatePicker";
+import AgeScrollPicker from "@/components/AgeScrollPicker";
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 const NAVY = "#1e3a5f";
@@ -1022,7 +1023,7 @@ function PolicyCard({ policy, birthYear, onEdit, onDelete }: {
             <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-[10px] font-medium hover:bg-blue-100">
               <Pencil size={12} /> แก้ไข
             </button>
-            <button onClick={(e) => { e.stopPropagation(); if (confirm(`ลบ "${policy.planName}" ?`)) onDelete(); }}
+            <button onClick={(e) => { e.stopPropagation(); onDelete(); }}
               className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-50 text-red-500 text-[10px] font-medium hover:bg-red-100">
               <Trash2 size={12} /> ลบ
             </button>
@@ -1056,6 +1057,7 @@ export default function PortfolioDashboard() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(defaultForm());
   const [formError, setFormError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<InsurancePolicy | null>(null);
 
   const openAdd = () => { setForm(defaultForm()); setEditingId(null); setFormError(""); setShowModal(true); };
 
@@ -1192,7 +1194,7 @@ export default function PortfolioDashboard() {
             </div>
             <div className="space-y-2">
               {policies.map((p) => (
-                <PolicyCard key={p.id} policy={p} birthYear={birthYear} onEdit={() => openEdit(p)} onDelete={() => store.removePolicy(p.id)} />
+                <PolicyCard key={p.id} policy={p} birthYear={birthYear} onEdit={() => openEdit(p)} onDelete={() => setDeleteTarget(p)} />
               ))}
             </div>
           </div>
@@ -1292,18 +1294,15 @@ export default function PortfolioDashboard() {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-gray-500 shrink-0">ชำระถึงอายุ</span>
-                      <select value={form.paymentEndAge || ""}
-                        onChange={(e) => setForm({ ...form, paymentEndAge: e.target.value })}
-                        className="flex-1 text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold appearance-none">
-                        <option value="">เลือกอายุ</option>
-                        {Array.from({ length: 100 - currentAge + 1 }, (_, i) => currentAge + i).map((age) => (
-                          <option key={age} value={String(age)}>{age} ปี</option>
-                        ))}
-                      </select>
+                      <AgeScrollPicker
+                        value={form.paymentEndAge}
+                        onChange={(v) => setForm({ ...form, paymentEndAge: v })}
+                        minAge={currentAge}
+                        maxAge={99}
+                        label="ชำระเบี้ยถึงอายุ"
+                        placeholder="เลือกอายุ"
+                      />
                     </div>
-                    {parseInt(form.paymentEndAge) > 0 && parseInt(form.paymentEndAge) < currentAge && (
-                      <div className="text-[10px] text-red-500 mt-1">อายุต้องไม่น้อยกว่าอายุปัจจุบัน ({currentAge} ปี)</div>
-                    )}
                   </div>
                 )}
                 {form.paymentMode === "date" && (
@@ -1340,18 +1339,15 @@ export default function PortfolioDashboard() {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-gray-500 shrink-0">ถึงอายุ</span>
-                      <select value={form.coverageEndAge || ""}
-                        onChange={(e) => setForm({ ...form, coverageEndAge: e.target.value })}
-                        className="flex-1 text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold appearance-none">
-                        <option value="">เลือกอายุ</option>
-                        {Array.from({ length: 100 - currentAge + 1 }, (_, i) => currentAge + i).map((age) => (
-                          <option key={age} value={String(age)}>{age} ปี</option>
-                        ))}
-                      </select>
+                      <AgeScrollPicker
+                        value={form.coverageEndAge}
+                        onChange={(v) => setForm({ ...form, coverageEndAge: v })}
+                        minAge={currentAge}
+                        maxAge={99}
+                        label="คุ้มครองถึงอายุ"
+                        placeholder="เลือกอายุ"
+                      />
                     </div>
-                    {parseInt(form.coverageEndAge) > 0 && parseInt(form.coverageEndAge) < currentAge && (
-                      <div className="text-[10px] text-red-500 mt-1">อายุต้องไม่น้อยกว่าอายุปัจจุบัน ({currentAge} ปี)</div>
-                    )}
                   </div>
                 )}
                 {form.coverageMode === "date" && (
@@ -1560,6 +1556,37 @@ export default function PortfolioDashboard() {
                   {editingId ? "บันทึก" : "เพิ่มกรมธรรม์"}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete Confirmation Modal ── */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40" onClick={() => setDeleteTarget(null)}>
+          <div className="bg-white w-[90%] max-w-xs rounded-2xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            {/* Icon */}
+            <div className="flex flex-col items-center pt-6 pb-2 px-5">
+              <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-3">
+                <Trash2 size={24} className="text-red-500" />
+              </div>
+              <h3 className="text-sm font-bold text-gray-800 text-center">ยืนยันการลบ</h3>
+              <p className="text-xs text-gray-500 text-center mt-1.5 leading-relaxed">
+                คุณต้องการลบกรมธรรม์<br />
+                <span className="font-bold text-gray-700">&ldquo;{deleteTarget.planName}&rdquo;</span><br />
+                ใช่หรือไม่?
+              </p>
+            </div>
+            {/* Buttons */}
+            <div className="flex gap-2 px-5 py-4">
+              <button onClick={() => setDeleteTarget(null)}
+                className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-500 text-sm font-medium hover:bg-gray-200 transition">
+                ยกเลิก
+              </button>
+              <button onClick={() => { store.removePolicy(deleteTarget.id); setDeleteTarget(null); }}
+                className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition active:scale-95">
+                ลบ
+              </button>
             </div>
           </div>
         </div>
