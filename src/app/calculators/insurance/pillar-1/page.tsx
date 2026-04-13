@@ -702,19 +702,14 @@ export default function Pillar1Page() {
 
           {/* Liquid assets — can link from Balance Sheet */}
           <div className="space-y-2">
-            <LinkToggle
-              label="ดึงสินทรัพย์สภาพคล่องจาก Balance Sheet"
-              checked={p1.useBalanceSheetLiquid}
-              onChange={(v) => update({ useBalanceSheetLiquid: v })}
-              linkedValue={liquidAssetsFromBS}
-              linkedLabel="สินทรัพย์สภาพคล่องรวมจาก Balance Sheet"
-            />
             {p1.useBalanceSheetLiquid ? (
-              <MoneyInput
-                label="สินทรัพย์เพิ่มเติม (ที่ไม่ได้อยู่ใน Balance Sheet)"
-                value={p1.additionalSavings}
-                onChange={(v) => update({ additionalSavings: v })}
-              />
+              <>
+                <MoneyInput
+                  label="สินทรัพย์เพิ่มเติม (ที่ไม่ได้อยู่ใน Balance Sheet)"
+                  value={p1.additionalSavings}
+                  onChange={(v) => update({ additionalSavings: v })}
+                />
+              </>
             ) : (
               <MoneyInput
                 label="เงินออม/สินทรัพย์สภาพคล่องที่เตรียมไว้"
@@ -723,6 +718,15 @@ export default function Pillar1Page() {
                 hint="เงินฝาก, กองทุน, สินทรัพย์ที่แปลงเป็นเงินสดได้เร็ว"
               />
             )}
+            <label className="flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={p1.useBalanceSheetLiquid}
+                onChange={(e) => update({ useBalanceSheetLiquid: e.target.checked })}
+                className="w-3 h-3 rounded border-gray-300 text-blue-500 focus:ring-0"
+              />
+              <span className="text-[9px] text-gray-400">ดึงสินทรัพย์สภาพคล่องจาก Balance Sheet ({fmt(liquidAssetsFromBS)} บาท)</span>
+            </label>
           </div>
 
           {/* Total Have summary */}
