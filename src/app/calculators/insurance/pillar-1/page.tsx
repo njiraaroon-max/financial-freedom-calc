@@ -171,7 +171,11 @@ export default function Pillar1Page() {
     const familySimple = deps.family ? simpleAnnuity(p1.familyExpenseMonthlyNew, p1.familyAdjustmentYearsNew) : 0;
     const familyTVM    = deps.family ? pvAnnuity(p1.familyExpenseMonthlyNew, p1.familyAdjustmentYearsNew, inf, ret) : 0;
 
-    const eduFund = deps.children ? (p1.useEducationPlan ? totalEducationFromPlan : p1.educationFund) : 0;
+    // Education: sum from education levels or Goals plan
+    const eduFromLevels = (p1.educationLevels || [])
+      .filter((lv: { enabled: boolean }) => lv.enabled)
+      .reduce((s: number, lv: { years: number; costPerYear: number }) => s + lv.years * lv.costPerYear, 0);
+    const eduFund = deps.children ? (p1.useEducationPlan ? totalEducationFromPlan : eduFromLevels) : 0;
 
     // Custom income items (each has monthlyAmount + years)
     const incItems = (p1.incomeItems || []) as { name: string; monthlyAmount: number; years: number }[];
@@ -467,11 +471,64 @@ export default function Pillar1Page() {
 
               {/* ── Children / Education section ── */}
               {(p1.dependents || {}).children && (
-                <div className="bg-blue-50/50 rounded-xl p-3 space-y-2 border border-blue-100">
+                <div className="bg-blue-50/50 rounded-xl p-3 space-y-3 border border-blue-100">
                   <div className="text-[11px] font-bold text-blue-700">ทุนการศึกษาบุตร</div>
+
                   {!p1.useEducationPlan && (
-                    <MoneyInput label="" value={p1.educationFund} onChange={(v) => update({ educationFund: v })} hint="รวมค่าเรียนจนจบ ของทุกคน (เงินก้อน)" />
+                    <div className="space-y-1.5">
+                      {(p1.educationLevels || []).map((lv: { key: string; label: string; years: number; costPerYear: number; enabled: boolean }, idx: number) => (
+                        <div key={lv.key} className="flex items-center gap-2">
+                          <label className="flex items-center gap-1.5 cursor-pointer min-w-[90px]">
+                            <input
+                              type="checkbox"
+                              checked={lv.enabled}
+                              onChange={(e) => {
+                                const levels = [...(p1.educationLevels || [])];
+                                levels[idx] = { ...levels[idx], enabled: e.target.checked };
+                                update({ educationLevels: levels });
+                              }}
+                              className="w-3.5 h-3.5 rounded border-gray-300 text-blue-500 focus:ring-0"
+                            />
+                            <span className={`text-[11px] font-semibold ${lv.enabled ? "text-blue-700" : "text-gray-400"}`}>{lv.label}</span>
+                          </label>
+                          <span className="text-[9px] text-gray-400 w-10 text-center">{lv.years} ปี</span>
+                          {lv.enabled ? (
+                            <div className="flex items-center gap-1 flex-1">
+                              <div className="relative flex items-center flex-1">
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  className="w-full text-sm text-right font-bold bg-white border border-gray-200 rounded-lg px-2 py-1.5 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                  value={lv.costPerYear === 0 ? "" : lv.costPerYear.toLocaleString()}
+                                  onChange={(e) => {
+                                    const levels = [...(p1.educationLevels || [])];
+                                    levels[idx] = { ...levels[idx], costPerYear: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 };
+                                    update({ educationLevels: levels });
+                                  }}
+                                  placeholder="0"
+                                />
+                                <span className="absolute right-2 text-[9px] text-gray-400">บาท/ปี</span>
+                              </div>
+                              <span className="text-[9px] text-blue-500 font-bold whitespace-nowrap">= {fmt(lv.years * lv.costPerYear)}</span>
+                            </div>
+                          ) : (
+                            <div className="flex-1" />
+                          )}
+                        </div>
+                      ))}
+                      {/* Education total */}
+                      {(() => {
+                        const eduTotal = (p1.educationLevels || []).filter((lv: { enabled: boolean }) => lv.enabled).reduce((s: number, lv: { years: number; costPerYear: number }) => s + lv.years * lv.costPerYear, 0);
+                        return eduTotal > 0 ? (
+                          <div className="flex items-center justify-between bg-blue-100/60 rounded-lg px-3 py-1.5 mt-1">
+                            <span className="text-[10px] font-bold text-blue-700">รวมทุนการศึกษา</span>
+                            <span className="text-xs font-extrabold text-blue-600">{fmt(eduTotal)} บาท</span>
+                          </div>
+                        ) : null;
+                      })()}
+                    </div>
                   )}
+
                   {p1.useEducationPlan && (
                     <div className="text-[10px] text-blue-600 bg-blue-100/60 rounded-lg px-3 py-2 font-bold">
                       รวมจากแผนการศึกษาบุตร: {fmt(totalEducationFromPlan)} บาท
@@ -482,6 +539,7 @@ export default function Pillar1Page() {
                       )}
                     </div>
                   )}
+
                   <label className="flex items-center gap-1.5 cursor-pointer">
                     <input
                       type="checkbox"

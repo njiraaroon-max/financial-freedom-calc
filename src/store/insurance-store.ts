@@ -281,8 +281,9 @@ export interface Pillar1Data {
   parentSupportYears: number;       // อีกกี่ปี
   familyExpenseMonthlyNew: number;  // ค่าปรับตัวครอบครัว/เดือน
   familyAdjustmentYearsNew: number; // จำนวนปีปรับตัว
-  educationFund: number;            // ทุนการศึกษาบุตร
+  educationFund: number;            // ทุนการศึกษาบุตร (legacy lump sum)
   useEducationPlan: boolean;        // ดึงจากแผนการศึกษาบุตร
+  educationLevels: { key: string; label: string; years: number; costPerYear: number; enabled: boolean }[];
   incomeItems: { name: string; monthlyAmount: number; years: number }[];  // รายการค่าใช้จ่ายเพิ่มเติม (ต่อเดือน x ปี)
   // ── TVM parameters ──
   inflationRate: number;            // อัตราเงินเฟ้อ (%)
@@ -389,6 +390,14 @@ export const DEFAULT_PILLAR1: Pillar1Data = {
   familyAdjustmentYearsNew: 5,
   educationFund: 0,
   useEducationPlan: false,
+  educationLevels: [
+    { key: "kindergarten", label: "อนุบาล", years: 3, costPerYear: 0, enabled: false },
+    { key: "primary", label: "ประถม", years: 6, costPerYear: 0, enabled: false },
+    { key: "junior_high", label: "มัธยมต้น", years: 3, costPerYear: 0, enabled: false },
+    { key: "senior_high", label: "มัธยมปลาย", years: 3, costPerYear: 0, enabled: false },
+    { key: "bachelor", label: "ป.ตรี", years: 4, costPerYear: 0, enabled: false },
+    { key: "master", label: "ป.โท", years: 2, costPerYear: 0, enabled: false },
+  ],
   incomeItems: [],
   // TVM
   inflationRate: 3,
@@ -624,7 +633,7 @@ export const useInsuranceStore = create<InsuranceState>()(
     }),
     {
       name: "ffc-insurance",
-      version: 12,
+      version: 13,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
         if (version < 2) {
@@ -739,6 +748,16 @@ export const useInsuranceStore = create<InsuranceState>()(
                 monthlyAmount: it.monthlyAmount ?? it.amount ?? 0,
                 years: it.years ?? 1,
               }));
+            }
+          }
+        }
+        if (version < 13) {
+          // Add educationLevels array to Pillar1
+          const rm = state.riskManagement as RiskManagementData | undefined;
+          if (rm && rm.pillar1) {
+            const p1 = rm.pillar1 as unknown as Record<string, unknown>;
+            if (p1.educationLevels === undefined) {
+              p1.educationLevels = DEFAULT_PILLAR1.educationLevels;
             }
           }
         }
