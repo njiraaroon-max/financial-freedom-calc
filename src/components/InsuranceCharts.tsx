@@ -64,7 +64,7 @@ export function GanttChart({
 
   const labelW = 120;
   const padL = 15;
-  const yearColW = 32;
+  const yearColW = 18;
   const chartW = totalYears * yearColW;
   const rowH = 48;
   const axisH = 75;
@@ -157,12 +157,12 @@ export function GanttChart({
                   </g>
                   <rect x={xPos(startY)} y={y0} width={totalBarW} height={barH} rx={barR} fill="none" stroke={NAVY} strokeWidth="1.5" />
 
-                  {premiumW > 55 && (
+                  {premiumW > 45 && (
                     <text x={xPos(startY) + premiumW / 2} y={y0 + barH / 2 + 1} textAnchor="middle" dominantBaseline="middle" fontSize="9" fill="white" fontWeight="bold">
                       {startY + BE_OFFSET}-{payEnd + BE_OFFSET}
                     </text>
                   )}
-                  {covEnd > payEnd && (xPos(covEnd) - xPos(payEnd)) > 55 && (
+                  {covEnd > payEnd && (xPos(covEnd) - xPos(payEnd)) > 45 && (
                     <text x={(xPos(payEnd) + xPos(covEnd)) / 2} y={y0 + barH / 2 + 1} textAnchor="middle" dominantBaseline="middle" fontSize="9" fill={NAVY} fontWeight="700">
                       {payEnd + BE_OFFSET}-{covEnd + BE_OFFSET}
                     </text>
