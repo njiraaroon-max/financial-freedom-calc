@@ -475,26 +475,26 @@ export default function Pillar1Page() {
                   <div className="text-[11px] font-bold text-blue-700">ทุนการศึกษาบุตร</div>
 
                   {!p1.useEducationPlan && (
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       {(p1.educationLevels || []).map((lv: { key: string; label: string; years: number; costPerYear: number; enabled: boolean }, idx: number) => (
-                        <div key={lv.key} className="flex items-center gap-2">
-                          <label className="flex items-center gap-1.5 cursor-pointer w-[80px] shrink-0">
-                            <input
-                              type="checkbox"
-                              checked={lv.enabled}
-                              onChange={(e) => {
-                                const levels = [...(p1.educationLevels || [])];
-                                levels[idx] = { ...levels[idx], enabled: e.target.checked };
-                                update({ educationLevels: levels });
-                              }}
-                              className="w-3.5 h-3.5 rounded border-gray-300 text-blue-500 focus:ring-0"
-                            />
-                            <span className={`text-[11px] font-semibold ${lv.enabled ? "text-blue-700" : "text-gray-400"}`}>{lv.label}</span>
-                          </label>
-                          <span className="text-[9px] text-gray-400 w-[32px] shrink-0 text-center">{lv.years} ปี</span>
-                          {lv.enabled ? (
-                            <>
-                              <div className="relative flex items-center w-[140px] shrink-0">
+                        <div key={lv.key}>
+                          <div className="flex items-center gap-2">
+                            <label className="flex items-center gap-1.5 cursor-pointer shrink-0">
+                              <input
+                                type="checkbox"
+                                checked={lv.enabled}
+                                onChange={(e) => {
+                                  const levels = [...(p1.educationLevels || [])];
+                                  levels[idx] = { ...levels[idx], enabled: e.target.checked };
+                                  update({ educationLevels: levels });
+                                }}
+                                className="w-3.5 h-3.5 rounded border-gray-300 text-blue-500 focus:ring-0"
+                              />
+                              <span className={`text-[11px] font-semibold ${lv.enabled ? "text-blue-700" : "text-gray-400"}`}>{lv.label}</span>
+                            </label>
+                            <span className="text-[9px] text-gray-400 shrink-0">{lv.years} ปี</span>
+                            {lv.enabled && (
+                              <div className="relative flex items-center flex-1 min-w-0">
                                 <input
                                   type="text"
                                   inputMode="numeric"
@@ -509,10 +509,12 @@ export default function Pillar1Page() {
                                 />
                                 <span className="absolute right-2 text-[9px] text-gray-400">บาท/ปี</span>
                               </div>
-                              <span className="text-[9px] text-blue-500 font-bold w-[80px] shrink-0 text-right">= {fmt(lv.years * lv.costPerYear)}</span>
-                            </>
-                          ) : (
-                            <div className="w-[220px] shrink-0" />
+                            )}
+                          </div>
+                          {lv.enabled && lv.costPerYear > 0 && (
+                            <div className="text-[9px] text-gray-400 text-right mt-0.5 pr-1">
+                              = {fmt(lv.years * lv.costPerYear)} บาท
+                            </div>
                           )}
                         </div>
                       ))}
@@ -520,9 +522,9 @@ export default function Pillar1Page() {
                       {(() => {
                         const eduTotal = (p1.educationLevels || []).filter((lv: { enabled: boolean }) => lv.enabled).reduce((s: number, lv: { years: number; costPerYear: number }) => s + lv.years * lv.costPerYear, 0);
                         return eduTotal > 0 ? (
-                          <div className="flex items-center justify-between bg-blue-100/60 rounded-lg px-3 py-1.5 mt-1">
-                            <span className="text-[10px] font-bold text-blue-700">รวมทุนการศึกษา</span>
-                            <span className="text-xs font-extrabold text-blue-600">{fmt(eduTotal)} บาท</span>
+                          <div className="flex items-center justify-between bg-gray-100 rounded-lg px-3 py-1.5 mt-1">
+                            <span className="text-[10px] font-bold text-gray-600">รวมทุนการศึกษา</span>
+                            <span className="text-xs font-extrabold text-gray-700">{fmt(eduTotal)} บาท</span>
                           </div>
                         ) : null;
                       })()}
