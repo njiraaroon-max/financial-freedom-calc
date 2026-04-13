@@ -268,16 +268,27 @@ export const DEFAULT_EXISTING_COVERAGE: ExistingCoverage = {
 
 export interface Pillar1Data {
   funeralCost: number;              // ค่าพิธีฌาปนกิจ
-  familyExpenseMonthly: number;     // ค่าใช้จ่ายครอบครัว/เดือน
-  familyAdjustmentYears: number;    // จำนวนปีที่ต้องดูแล
   additionalDebts: number;          // หนี้เพิ่มเติม (ที่ไม่อยู่ใน balance sheet)
   debtItems: { name: string; amount: number }[];  // รายการหนี้สินที่กรอกเอง
-  educationFund: number;            // ทุนการศึกษาบุตร
+  useBalanceSheetDebts: boolean;    // ดึงหนี้จาก balance sheet
+  // ── B: Dependents & Income Needs ──
+  dependents: {
+    parents: boolean;               // ดูแลพ่อ/แม่
+    spouse: boolean;                // ดูแลคู่สมรส
+    children: boolean;              // ดูแลบุตร
+  };
   parentSupportMonthly: number;     // เงินดูแลพ่อแม่/เดือน
   parentSupportYears: number;       // อีกกี่ปี
+  spouseExpenseMonthly: number;     // ค่าปรับตัวคู่สมรส/เดือน
+  spouseAdjustmentYears: number;    // จำนวนปีปรับตัว
+  educationFund: number;            // ทุนการศึกษาบุตร
+  useEducationPlan: boolean;        // ดึงจากแผนการศึกษาบุตร
+  incomeItems: { name: string; amount: number }[];  // รายการค่าใช้จ่ายเพิ่มเติม
+  // ── Legacy (kept for compat) ──
+  familyExpenseMonthly: number;     // ค่าใช้จ่ายครอบครัว/เดือน
+  familyAdjustmentYears: number;    // จำนวนปีที่ต้องดูแล
   otherNeeds: number;               // ความต้องการอื่นๆ
   existingSavings: number;          // เงินออม/สินทรัพย์สภาพคล่องที่เตรียมไว้
-  useBalanceSheetDebts: boolean;    // ดึงหนี้จาก balance sheet
   useCashflowExpense: boolean;      // ดึงค่าใช้จ่ายจาก cashflow
   employerDeathBenefit: number;     // สวัสดิการกรณีเสียชีวิตจากนายจ้าง
   useBalanceSheetLiquid: boolean;   // ดึงสินทรัพย์สภาพคล่องจาก balance sheet
@@ -364,16 +375,23 @@ export interface RiskManagementData {
 
 export const DEFAULT_PILLAR1: Pillar1Data = {
   funeralCost: 300000,
-  familyExpenseMonthly: 0,
-  familyAdjustmentYears: 5,
   additionalDebts: 0,
   debtItems: [],
-  educationFund: 0,
+  useBalanceSheetDebts: false,
+  // Dependents
+  dependents: { parents: false, spouse: false, children: false },
   parentSupportMonthly: 0,
   parentSupportYears: 10,
+  spouseExpenseMonthly: 0,
+  spouseAdjustmentYears: 5,
+  educationFund: 0,
+  useEducationPlan: false,
+  incomeItems: [],
+  // Legacy
+  familyExpenseMonthly: 0,
+  familyAdjustmentYears: 5,
   otherNeeds: 0,
   existingSavings: 0,
-  useBalanceSheetDebts: false,
   useCashflowExpense: false,
   employerDeathBenefit: 0,
   useBalanceSheetLiquid: false,
@@ -600,7 +618,7 @@ export const useInsuranceStore = create<InsuranceState>()(
     }),
     {
       name: "ffc-insurance",
-      version: 10,
+      version: 11,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
         if (version < 2) {
@@ -677,6 +695,18 @@ export const useInsuranceStore = create<InsuranceState>()(
           if (rm && rm.pillar1) {
             const p1 = rm.pillar1 as unknown as Record<string, unknown>;
             if (p1.debtItems === undefined) p1.debtItems = [];
+          }
+        }
+        if (version < 11) {
+          // Add dependents, spouse, incomeItems, useEducationPlan to Pillar1
+          const rm = state.riskManagement as RiskManagementData | undefined;
+          if (rm && rm.pillar1) {
+            const p1 = rm.pillar1 as unknown as Record<string, unknown>;
+            if (p1.dependents === undefined) p1.dependents = { parents: false, spouse: false, children: false };
+            if (p1.spouseExpenseMonthly === undefined) p1.spouseExpenseMonthly = 0;
+            if (p1.spouseAdjustmentYears === undefined) p1.spouseAdjustmentYears = 5;
+            if (p1.useEducationPlan === undefined) p1.useEducationPlan = false;
+            if (p1.incomeItems === undefined) p1.incomeItems = [];
           }
         }
         return state;

@@ -8,6 +8,7 @@ import { useProfileStore } from "@/store/profile-store";
 import { GanttChart, StepLineChart } from "@/components/InsuranceCharts";
 import { useBalanceSheetStore } from "@/store/balance-sheet-store";
 import { useCashFlowStore } from "@/store/cashflow-store";
+import { useGoalsStore } from "@/store/goals-store";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(n: number): string {
@@ -105,6 +106,7 @@ export default function Pillar1Page() {
   const profile = useProfileStore();
   const balanceSheet = useBalanceSheetStore();
   const cashflow = useCashFlowStore();
+  const goalsStore = useGoalsStore();
 
   const p1 = store.riskManagement.pillar1;
   const update = store.updatePillar1;
@@ -131,30 +133,33 @@ export default function Pillar1Page() {
   const lifePolicies = store.policies.filter((p) => ["whole_life", "endowment", "term"].includes(p.policyType));
   const totalLifeCoverage = lifePolicies.reduce((s, p) => s + p.sumInsured, 0);
 
+  // ─── Education plan link ─────────────────────────────────────────────────
+  const educationGoals = goalsStore.goals.filter((g) => g.category === "education");
+  const totalEducationFromPlan = educationGoals.reduce((s, g) => s + (g.amount || 0), 0);
+
   // ─── Calculation ────────────────────────────────────────────────────────
   const analysis = useMemo(() => {
     // Debts
     const debtItemsTotal = (p1.debtItems || []).reduce((s: number, d: { amount: number }) => s + d.amount, 0);
     const debts = debtItemsTotal + (p1.useBalanceSheetDebts ? totalDebtsFromBS : 0);
 
-    // Family expenses
-    const monthlyExp = p1.useCashflowExpense ? monthlyExpenseFromCF : p1.familyExpenseMonthly;
-    const familyNeeds = monthlyExp * 12 * p1.familyAdjustmentYears;
-
-    // Parent support
-    const parentNeeds = p1.parentSupportMonthly * 12 * p1.parentSupportYears;
+    // Dependents-based income needs
+    const deps = p1.dependents || { parents: false, spouse: false, children: false };
+    const parentNeeds = deps.parents ? p1.parentSupportMonthly * 12 * p1.parentSupportYears : 0;
+    const spouseNeeds = deps.spouse ? p1.spouseExpenseMonthly * 12 * p1.spouseAdjustmentYears : 0;
+    const eduFund = deps.children ? (p1.useEducationPlan ? totalEducationFromPlan : p1.educationFund) : 0;
+    const customIncomeTotal = (p1.incomeItems || []).reduce((s: number, d: { amount: number }) => s + d.amount, 0);
 
     // Total needs (Needs Analysis Approach)
     const immediateNeeds = [
       { label: "ค่าพิธีฌาปนกิจ", value: p1.funeralCost },
       { label: "ค่าปิดยอดหนี้สินคงค้าง", value: debts },
     ];
-    const incomeNeeds = [
-      { label: `ค่าใช้จ่ายครอบครัว (${p1.familyAdjustmentYears} ปี)`, value: familyNeeds },
-      { label: "ทุนการศึกษาบุตร", value: p1.educationFund },
-      { label: `เงินดูแลพ่อ/แม่ (${p1.parentSupportYears} ปี)`, value: parentNeeds },
-      { label: "ความต้องการอื่นๆ", value: p1.otherNeeds },
-    ];
+    const incomeNeeds: { label: string; value: number }[] = [];
+    if (deps.parents) incomeNeeds.push({ label: `เงินดูแลพ่อ/แม่ (${p1.parentSupportYears} ปี)`, value: parentNeeds });
+    if (deps.spouse) incomeNeeds.push({ label: `ค่าปรับตัวคู่สมรส (${p1.spouseAdjustmentYears} ปี)`, value: spouseNeeds });
+    if (deps.children) incomeNeeds.push({ label: "ทุนการศึกษาบุตร", value: eduFund });
+    if (customIncomeTotal > 0) incomeNeeds.push({ label: "ค่าใช้จ่ายเพิ่มเติม", value: customIncomeTotal });
     const breakdown = [...immediateNeeds, ...incomeNeeds];
     const totalNeed = breakdown.reduce((s, b) => s + b.value, 0);
     const totalImmediate = immediateNeeds.reduce((s, b) => s + b.value, 0);
@@ -173,8 +178,8 @@ export default function Pillar1Page() {
     const gapPct = totalNeed > 0 ? (gap / totalNeed) * 100 : 0;
     const coveragePct = totalNeed > 0 ? Math.min((totalHave / totalNeed) * 100, 100) : 0;
 
-    return { debts, familyNeeds, parentNeeds, immediateNeeds, incomeNeeds, breakdown, totalNeed, totalImmediate, totalIncome, haveBreakdown, totalHave, gap, gapPct, coveragePct };
-  }, [p1, totalDebtsFromBS, monthlyExpenseFromCF, totalLifeCoverage, liquidAssetsFromBS]);
+    return { debts, parentNeeds, spouseNeeds, immediateNeeds, incomeNeeds, breakdown, totalNeed, totalImmediate, totalIncome, haveBreakdown, totalHave, gap, gapPct, coveragePct };
+  }, [p1, totalDebtsFromBS, totalLifeCoverage, liquidAssetsFromBS, totalEducationFromPlan]);
 
   // ─── Info modal ─────────────────────────────────────────────────────────
   const [showInfo, setShowInfo] = useState(false);
@@ -350,35 +355,146 @@ export default function Pillar1Page() {
             <div className="bg-red-50 px-3 py-2 border-b border-red-100">
               <span className="text-[10px] font-bold text-red-700">B. ค่าใช้จ่ายต่อเนื่อง (Income Needs)</span>
             </div>
-            <div className="p-3 space-y-3">
-              {/* Family expenses — can link from Cashflow */}
-              <div className="space-y-2">
-                <LinkToggle
-                  label="ดึงค่าใช้จ่ายจาก Cash Flow"
-                  checked={p1.useCashflowExpense}
-                  onChange={(v) => update({ useCashflowExpense: v })}
-                  linkedValue={monthlyExpenseFromCF}
-                  linkedLabel="ค่าใช้จ่ายเฉลี่ย/เดือน"
-                />
-                {!p1.useCashflowExpense && (
-                  <MoneyInput label="ค่าใช้จ่ายครอบครัว / เดือน" value={p1.familyExpenseMonthly} onChange={(v) => update({ familyExpenseMonthly: v })} />
-                )}
-                <NumberInput label="จำนวนปีที่ต้องดูแลครอบครัว" value={p1.familyAdjustmentYears} onChange={(v) => update({ familyAdjustmentYears: v })} />
-                {p1.useCashflowExpense && (
-                  <div className="text-[10px] text-blue-600 bg-blue-50 rounded-lg px-3 py-2">
-                    ค่าใช้จ่ายครอบครัว {p1.familyAdjustmentYears} ปี = {fmt(monthlyExpenseFromCF)} x 12 x {p1.familyAdjustmentYears} = <span className="font-bold">{fmt(monthlyExpenseFromCF * 12 * p1.familyAdjustmentYears)} บาท</span>
+            <div className="p-3 space-y-4">
+              {/* ── Dependents selection ── */}
+              <div>
+                <div className="text-xs font-bold text-gray-700 mb-2">บุคคลในความดูแล</div>
+                <div className="flex flex-wrap gap-2">
+                  {([
+                    { key: "parents" as const, label: "พ่อ / แม่", icon: "👴" },
+                    { key: "spouse" as const, label: "คู่สมรส", icon: "💑" },
+                    { key: "children" as const, label: "บุตร", icon: "👶" },
+                  ]).map((dep) => {
+                    const deps = p1.dependents || { parents: false, spouse: false, children: false };
+                    const active = deps[dep.key];
+                    return (
+                      <button
+                        key={dep.key}
+                        onClick={() => update({ dependents: { ...deps, [dep.key]: !active } })}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                          active
+                            ? "bg-red-50 border-red-300 text-red-700 shadow-sm"
+                            : "bg-gray-50 border-gray-200 text-gray-400 hover:border-gray-300"
+                        }`}
+                      >
+                        <span>{dep.icon}</span>
+                        <span>{dep.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* ── Parents section ── */}
+              {(p1.dependents || {}).parents && (
+                <div className="bg-orange-50/50 rounded-xl p-3 space-y-2 border border-orange-100">
+                  <div className="text-[11px] font-bold text-orange-700">👴 เงินดูแลพ่อ / แม่</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <MoneyInput label="รายเดือน" value={p1.parentSupportMonthly} onChange={(v) => update({ parentSupportMonthly: v })} />
+                    <NumberInput label="อีกกี่ปี" value={p1.parentSupportYears} onChange={(v) => update({ parentSupportYears: v })} />
                   </div>
-                )}
+                  <div className="text-[9px] text-orange-500 pl-1">
+                    รวม {fmt(p1.parentSupportMonthly * 12 * p1.parentSupportYears)} บาท ({p1.parentSupportYears} ปี)
+                  </div>
+                </div>
+              )}
+
+              {/* ── Spouse section ── */}
+              {(p1.dependents || {}).spouse && (
+                <div className="bg-pink-50/50 rounded-xl p-3 space-y-2 border border-pink-100">
+                  <div className="text-[11px] font-bold text-pink-700">💑 ค่าปรับตัวคู่สมรส</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <MoneyInput label="รายเดือน" value={p1.spouseExpenseMonthly} onChange={(v) => update({ spouseExpenseMonthly: v })} />
+                    <NumberInput label="อีกกี่ปี" value={p1.spouseAdjustmentYears} onChange={(v) => update({ spouseAdjustmentYears: v })} />
+                  </div>
+                  <div className="text-[9px] text-pink-500 pl-1">
+                    รวม {fmt(p1.spouseExpenseMonthly * 12 * p1.spouseAdjustmentYears)} บาท ({p1.spouseAdjustmentYears} ปี)
+                  </div>
+                </div>
+              )}
+
+              {/* ── Children / Education section ── */}
+              {(p1.dependents || {}).children && (
+                <div className="bg-blue-50/50 rounded-xl p-3 space-y-2 border border-blue-100">
+                  <div className="text-[11px] font-bold text-blue-700">👶 ทุนการศึกษาบุตร</div>
+                  {!p1.useEducationPlan && (
+                    <MoneyInput label="" value={p1.educationFund} onChange={(v) => update({ educationFund: v })} hint="รวมค่าเรียนจนจบ ของทุกคน" />
+                  )}
+                  {p1.useEducationPlan && (
+                    <div className="text-[10px] text-blue-600 bg-blue-100/60 rounded-lg px-3 py-2 font-bold">
+                      รวมจากแผนการศึกษาบุตร: {fmt(totalEducationFromPlan)} บาท
+                      {educationGoals.length > 0 && (
+                        <div className="font-normal text-blue-500 mt-1">
+                          {educationGoals.map((g) => g.name).join(", ")}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={p1.useEducationPlan}
+                      onChange={(e) => update({ useEducationPlan: e.target.checked })}
+                      className="w-3 h-3 rounded border-gray-300 text-blue-500 focus:ring-0"
+                    />
+                    <span className="text-[9px] text-gray-400">ดึงจากแผนการศึกษาบุตร ({fmt(totalEducationFromPlan)} บาท)</span>
+                  </label>
+                </div>
+              )}
+
+              {/* ── Custom income items ── */}
+              <div className="space-y-2">
+                <div className="text-xs font-bold text-gray-700">ค่าใช้จ่ายเพิ่มเติม</div>
+                {(p1.incomeItems || []).map((item: { name: string; amount: number }, idx: number) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      className="flex-1 min-w-0 text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      placeholder="ชื่อรายการ"
+                      value={item.name}
+                      onChange={(e) => {
+                        const items = [...(p1.incomeItems || [])];
+                        items[idx] = { ...items[idx], name: e.target.value };
+                        update({ incomeItems: items });
+                      }}
+                    />
+                    <div className="relative flex items-center">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        className="w-36 text-sm text-right font-bold bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 pr-9 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        value={item.amount === 0 ? "" : item.amount.toLocaleString()}
+                        onChange={(e) => {
+                          const items = [...(p1.incomeItems || [])];
+                          items[idx] = { ...items[idx], amount: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 };
+                          update({ incomeItems: items });
+                        }}
+                        placeholder="0"
+                      />
+                      <span className="absolute right-2.5 text-[10px] text-gray-400">บาท</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const items = [...(p1.incomeItems || [])];
+                        items.splice(idx, 1);
+                        update({ incomeItems: items });
+                      }}
+                      className="text-gray-300 hover:text-red-400 transition-colors shrink-0"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  onClick={() => {
+                    const items = [...(p1.incomeItems || []), { name: "", amount: 0 }];
+                    update({ incomeItems: items });
+                  }}
+                  className="text-[11px] text-blue-600 font-bold hover:underline flex items-center gap-1"
+                >
+                  + เพิ่มรายการ
+                </button>
               </div>
-
-              <MoneyInput label="ทุนการศึกษาบุตร" value={p1.educationFund} onChange={(v) => update({ educationFund: v })} hint="รวมค่าเรียนจนจบ ของทุกคน" />
-
-              <div className="grid grid-cols-2 gap-3">
-                <MoneyInput label="เงินดูแลพ่อ/แม่ ต่อเดือน" value={p1.parentSupportMonthly} onChange={(v) => update({ parentSupportMonthly: v })} />
-                <NumberInput label="อีกกี่ปี" value={p1.parentSupportYears} onChange={(v) => update({ parentSupportYears: v })} />
-              </div>
-
-              <MoneyInput label="ความต้องการอื่นๆ" value={p1.otherNeeds} onChange={(v) => update({ otherNeeds: v })} />
             </div>
             <div className="bg-red-50 px-3 py-2 border-t border-red-100 flex items-center justify-between">
               <span className="text-[10px] font-bold text-red-700">รวมค่าใช้จ่ายต่อเนื่อง</span>
