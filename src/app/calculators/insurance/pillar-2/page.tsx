@@ -815,16 +815,16 @@ export default function Pillar2Page() {
               return (
                 <div key={cat.key} className="grid grid-cols-12 gap-1 px-3 py-2.5 border-t border-gray-50 items-center">
                   <div className="col-span-3 text-[10px] text-gray-700 font-medium leading-tight">{cat.labelShort}</div>
-                  <div className="col-span-2 text-[10px] text-right font-bold text-gray-600">{fmtShort(analysis.need[cat.key])}</div>
-                  <div className="col-span-2 text-[10px] text-right text-gray-500">{fmtShort(analysis.employer[cat.key])}</div>
-                  <div className="col-span-2 text-[10px] text-right text-gray-500">{fmtShort(analysis.personal[cat.key])}</div>
+                  <div className="col-span-2 text-[10px] text-right font-bold text-gray-600">{fmt(analysis.need[cat.key])}</div>
+                  <div className="col-span-2 text-[10px] text-right text-gray-500">{fmt(analysis.employer[cat.key])}</div>
+                  <div className="col-span-2 text-[10px] text-right text-gray-500">{fmt(analysis.personal[cat.key])}</div>
                   <div className="col-span-1 text-center">
                     <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${isOk ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
                       {isOk ? "พอ" : "ขาด"}
                     </span>
                   </div>
                   <div className={`col-span-2 text-[10px] text-right font-bold ${isOk ? "text-emerald-600" : "text-red-600"}`}>
-                    {isOk ? `+${fmtShort(Math.abs(g))}` : `-${fmtShort(g)}`}
+                    {isOk ? `+${fmt(Math.abs(g))}` : `-${fmt(g)}`}
                   </div>
                 </div>
               );
@@ -880,7 +880,7 @@ export default function Pillar2Page() {
                 <div className="text-sm font-bold text-red-700 mt-2">ยังไม่ผ่าน {6 - analysis.adequateCount} หมวด</div>
                 <div className="text-[10px] text-gray-500 mt-3 space-y-1">
                   {categories.filter((c) => analysis.gap[c.key] > 0).map((c) => (
-                    <div key={c.key}>ควรเพิ่ม {c.labelShort}: <span className="font-bold text-gray-700">{fmtShort(analysis.gap[c.key])}</span> {c.suffix}</div>
+                    <div key={c.key}>ควรเพิ่ม {c.labelShort}: <span className="font-bold text-gray-700">{fmt(analysis.gap[c.key])}</span> {c.suffix}</div>
                   ))}
                 </div>
                 <a href="/calculators/insurance/policies?add=true"
