@@ -398,7 +398,7 @@ export default function Pillar1Page() {
               {/* ── TVM Parameters ── */}
               <div className="bg-gray-50 rounded-xl p-3 space-y-2 border border-gray-100">
                 <div className="text-[11px] font-bold text-gray-600">สมมติฐาน Time Value of Money</div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <NumberInput label="อัตราเงินเฟ้อ" value={p1.inflationRate ?? 3} onChange={(v) => update({ inflationRate: v })} suffix="%" />
                   <NumberInput label="ผลตอบแทนการลงทุน" value={p1.investmentReturn ?? 5} onChange={(v) => update({ investmentReturn: v })} suffix="%" />
                 </div>
@@ -439,7 +439,7 @@ export default function Pillar1Page() {
               {(p1.dependents || {}).parents && (
                 <div className="bg-orange-50/50 rounded-xl p-3 space-y-2 border border-orange-100">
                   <div className="text-[11px] font-bold text-orange-700">เงินดูแลพ่อ / แม่</div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <MoneyInput label="รายเดือน" value={p1.parentSupportMonthly} onChange={(v) => update({ parentSupportMonthly: v })} />
                     <NumberInput label="อีกกี่ปี" value={p1.parentSupportYears} onChange={(v) => update({ parentSupportYears: v })} />
                   </div>
@@ -456,7 +456,7 @@ export default function Pillar1Page() {
               {(p1.dependents || {}).family && (
                 <div className="bg-pink-50/50 rounded-xl p-3 space-y-2 border border-pink-100">
                   <div className="text-[11px] font-bold text-pink-700">ค่าปรับตัวครอบครัว</div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <MoneyInput label="รายเดือน" value={p1.familyExpenseMonthlyNew} onChange={(v) => update({ familyExpenseMonthlyNew: v })} />
                     <NumberInput label="อีกกี่ปี" value={p1.familyAdjustmentYearsNew} onChange={(v) => update({ familyAdjustmentYearsNew: v })} />
                   </div>
@@ -478,7 +478,7 @@ export default function Pillar1Page() {
                     <div className="space-y-1.5">
                       {(p1.educationLevels || []).map((lv: { key: string; label: string; years: number; costPerYear: number; enabled: boolean }, idx: number) => (
                         <div key={lv.key} className="flex items-center gap-2">
-                          <label className="flex items-center gap-1.5 cursor-pointer min-w-[90px]">
+                          <label className="flex items-center gap-1.5 cursor-pointer w-[80px] shrink-0">
                             <input
                               type="checkbox"
                               checked={lv.enabled}
@@ -491,10 +491,10 @@ export default function Pillar1Page() {
                             />
                             <span className={`text-[11px] font-semibold ${lv.enabled ? "text-blue-700" : "text-gray-400"}`}>{lv.label}</span>
                           </label>
-                          <span className="text-[9px] text-gray-400 w-10 text-center">{lv.years} ปี</span>
+                          <span className="text-[9px] text-gray-400 w-[32px] shrink-0 text-center">{lv.years} ปี</span>
                           {lv.enabled ? (
-                            <div className="flex items-center gap-1 flex-1">
-                              <div className="relative flex items-center flex-1">
+                            <>
+                              <div className="relative flex items-center w-[140px] shrink-0">
                                 <input
                                   type="text"
                                   inputMode="numeric"
@@ -509,10 +509,10 @@ export default function Pillar1Page() {
                                 />
                                 <span className="absolute right-2 text-[9px] text-gray-400">บาท/ปี</span>
                               </div>
-                              <span className="text-[9px] text-blue-500 font-bold whitespace-nowrap">= {fmt(lv.years * lv.costPerYear)}</span>
-                            </div>
+                              <span className="text-[9px] text-blue-500 font-bold w-[80px] shrink-0 text-right">= {fmt(lv.years * lv.costPerYear)}</span>
+                            </>
                           ) : (
-                            <div className="flex-1" />
+                            <div className="w-[220px] shrink-0" />
                           )}
                         </div>
                       ))}
