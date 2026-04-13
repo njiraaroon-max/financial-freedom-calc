@@ -246,15 +246,15 @@ export default function Pillar1Page() {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Shield size={20} />
-              <span className="text-sm font-bold">ใครบอกว่าคนตายไม่ได้เอาอะไรไป...</span>
+              <span className="text-sm font-bold">ถ้าวันนี้เราไม่อยู่...ใครเดือดร้อน?</span>
             </div>
             <button onClick={() => setShowInfo(true)} className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition shrink-0">
               <Info size={16} />
             </button>
           </div>
           <p className="text-[11px] opacity-80 leading-relaxed">
-            แล้วรายได้ที่ครอบครัวเคยได้รับ ใครจะดูแลต่อ? มาคำนวณความสามารถของเราให้เป็นมูลค่า
-            เพื่อให้ครอบครัวใช้ชีวิตต่อได้แบบไร้รอยต่อ ในวันที่เราไม่อยู่
+            คำนวณทุนประกันชีวิตที่เหมาะสมด้วย Needs Analysis Approach
+            เพื่อให้มั่นใจว่าคนที่รักจะดำรงชีวิตต่อไปได้
           </p>
         </div>
 
@@ -868,6 +868,15 @@ export default function Pillar1Page() {
             </div>
 
             <div className="px-5 py-4 space-y-5 text-gray-700">
+              <div className="bg-gradient-to-br from-[#1e3a5f]/5 to-[#3b6fa0]/10 rounded-xl p-4 border border-blue-100">
+                <p className="text-xs font-bold text-gray-800 leading-relaxed">
+                  &ldquo;ใครบอกว่าคนตายไม่ได้เอาอะไรไป... แล้วรายได้ที่ครอบครัวเคยได้รับ ใครจะดูแลต่อ?&rdquo;
+                </p>
+                <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                  มาคำนวณความสามารถของเราให้เป็นมูลค่า เพื่อให้ครอบครัวใช้ชีวิตต่อได้แบบไร้รอยต่อ ในวันที่เราไม่อยู่
+                </p>
+              </div>
+
               <p className="text-xs leading-relaxed">
                 ตามหลักการของ <strong>CFP Module 3</strong> (การวางแผนการประกันภัย) การคำนวณมูลค่าความสามารถของบุคคล
                 หรือการวิเคราะห์จำนวนเงินเอาประกันภัยที่เหมาะสม มีวิธีหลักๆ <strong>3 วิธี</strong> ดังนี้:
