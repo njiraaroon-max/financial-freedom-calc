@@ -5,6 +5,7 @@ import { Shield, Link2, AlertTriangle, CheckCircle2 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { useInsuranceStore } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
+import { GanttChart, StepLineChart } from "@/components/InsuranceCharts";
 import { useBalanceSheetStore } from "@/store/balance-sheet-store";
 import { useCashFlowStore } from "@/store/cashflow-store";
 
@@ -109,6 +110,7 @@ export default function Pillar1Page() {
   const update = store.updatePillar1;
 
   const currentAge = profile.getAge?.() || 35;
+  const birthYear = CURRENT_YEAR - currentAge;
   const retireAge = profile.retireAge || 60;
 
   // ─── Linked data from other stores ──────────────────────────────────────
@@ -189,6 +191,14 @@ export default function Pillar1Page() {
             เพื่อให้มั่นใจว่าคนที่รักจะดำรงชีวิตต่อไปได้
           </p>
         </div>
+
+        {/* ─── Charts: Gantt + Step Line ────────────────────────────── */}
+        {store.policies.length > 0 && (
+          <div className="mx-1 space-y-3">
+            <GanttChart policies={store.policies} birthYear={birthYear} currentAge={currentAge} />
+            <StepLineChart policies={store.policies} birthYear={birthYear} currentAge={currentAge} />
+          </div>
+        )}
 
         {/* ─── SECTION 1: ข้อมูลความต้องการ ──────────────────────────── */}
         <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
