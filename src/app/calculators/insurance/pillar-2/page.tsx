@@ -210,7 +210,7 @@ export default function Pillar2Page() {
   // ─── Gap categories definition ────────────────────────────────────────
   type CatKey = "roomRate" | "ipd" | "criticalTreatment" | "ciLumpSum" | "opd" | "accident";
   const categories: { key: CatKey; label: string; labelShort: string; suffix: string }[] = [
-    { key: "roomRate", label: "ค่าห้อง/วัน", labelShort: "ค่าห้อง**", suffix: "บาท/วัน" },
+    { key: "roomRate", label: "ค่าห้อง/วัน", labelShort: "ค่าห้อง", suffix: "บาท/วัน" },
     { key: "ipd", label: "ค่ารักษา — ทั่วไป (IPD)", labelShort: "ค่ารักษา — ทั่วไป", suffix: "บาท/ปี" },
     { key: "criticalTreatment", label: "ค่ารักษา — ร้ายแรง", labelShort: "ค่ารักษา — ร้ายแรง", suffix: "บาท" },
     { key: "ciLumpSum", label: "เงินก้อนเพื่อโรคร้ายแรง (CI)", labelShort: "เงินก้อน CI", suffix: "บาท" },
