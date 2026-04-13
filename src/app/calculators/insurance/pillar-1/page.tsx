@@ -144,21 +144,32 @@ export default function Pillar1Page() {
     // Education: per-child remaining levels → TVM, or Goals plan
     const allLevels = p1.educationLevels || [];
     const levelKeys = allLevels.map((lv: { key: string }) => lv.key);
-    const children = (p1.educationChildren || []) as { id: string; name: string; currentLevelKey: string }[];
+    const children = (p1.educationChildren || []) as { id: string; name: string; currentLevelKey: string; currentYearInLevel: number }[];
 
-    // Per-child education calculation
+    // Per-child education calculation (accounts for year within current level)
     const perChildEdu = children.map((child) => {
       const currentIdx = levelKeys.indexOf(child.currentLevelKey);
-      // Remaining = from current level onwards (inclusive)
-      const remaining = currentIdx >= 0
-        ? allLevels.slice(currentIdx).filter((lv: { enabled: boolean }) => lv.enabled)
-        : allLevels.filter((lv: { enabled: boolean }) => lv.enabled);
-      const totalYears = remaining.reduce((s: number, lv: { years: number }) => s + lv.years, 0);
-      const simpleTotal = remaining.reduce((s: number, lv: { years: number; costPerYear: number }) => s + lv.years * lv.costPerYear, 0);
-      // TVM: treat as annuity with weighted-average annual cost
+      const yearInLevel = child.currentYearInLevel || 1;
+      if (currentIdx < 0) return { id: child.id, name: child.name, currentLevelKey: child.currentLevelKey, remaining: [], totalYears: 0, simpleTotal: 0, tvmTotal: 0 };
+
+      // Build remaining levels with adjusted years for current level
+      const remainingLevels: { key: string; label: string; years: number; costPerYear: number; enabled: boolean; adjustedYears: number }[] = [];
+      for (let i = currentIdx; i < allLevels.length; i++) {
+        const lv = allLevels[i] as { key: string; label: string; years: number; costPerYear: number; enabled: boolean };
+        if (!lv.enabled) continue;
+        // Current level: remaining years = total - (yearInLevel - 1)  (กำลังเรียนปีที่ X → เหลือรวมปีนี้)
+        const adjustedYears = i === currentIdx ? Math.max(lv.years - (yearInLevel - 1), 0) : lv.years;
+        if (adjustedYears > 0) {
+          remainingLevels.push({ ...lv, adjustedYears });
+        }
+      }
+
+      const totalYears = remainingLevels.reduce((s, lv) => s + lv.adjustedYears, 0);
+      const simpleTotal = remainingLevels.reduce((s, lv) => s + lv.adjustedYears * lv.costPerYear, 0);
+      // TVM: weighted-average annual cost → PV of Annuity
       const avgAnnual = totalYears > 0 ? simpleTotal / totalYears : 0;
       const tvmTotal = totalYears > 0 ? pvAnnuity(avgAnnual / 12, totalYears, inf, ret) : 0;
-      return { id: child.id, name: child.name, currentLevelKey: child.currentLevelKey, remaining, totalYears, simpleTotal, tvmTotal };
+      return { id: child.id, name: child.name, currentLevelKey: child.currentLevelKey, remaining: remainingLevels, totalYears, simpleTotal, tvmTotal };
     });
     const eduFromChildren = perChildEdu.reduce((s, c) => s + c.tvmTotal, 0);
     const eduFromChildrenSimple = perChildEdu.reduce((s, c) => s + c.simpleTotal, 0);
@@ -491,7 +502,7 @@ export default function Pillar1Page() {
                       <button
                         onClick={() => {
                           const kids = [...(p1.educationChildren || [])];
-                          kids.push({ id: `child-${Date.now()}`, name: `บุตรคนที่ ${kids.length + 1}`, currentLevelKey: "kindergarten" });
+                          kids.push({ id: `child-${Date.now()}`, name: `บุตรคนที่ ${kids.length + 1}`, currentLevelKey: "kindergarten", currentYearInLevel: 1 });
                           update({ educationChildren: kids });
                         }}
                         className="text-[10px] text-blue-600 font-bold hover:underline"
@@ -545,14 +556,17 @@ export default function Pillar1Page() {
                         ))}
                       </div>
 
-                      {/* Per-child: name + current level dropdown */}
+                      {/* Per-child: name + current level + year-in-level */}
                       {(p1.educationChildren || []).length > 0 && (
                         <div className="space-y-2">
-                          <div className="text-[10px] text-gray-500 font-semibold">บุตรแต่ละคน — ระดับชั้นปัจจุบัน</div>
-                          {(p1.educationChildren || []).map((child: { id: string; name: string; currentLevelKey: string }, cidx: number) => {
+                          <div className="text-[10px] text-gray-500 font-semibold">บุตรแต่ละคน — กำลังเรียนระดับ/ปีที่เท่าไร</div>
+                          {(p1.educationChildren || []).map((child: { id: string; name: string; currentLevelKey: string; currentYearInLevel: number }, cidx: number) => {
                             const childCalc = analysis.perChildEdu.find((c) => c.id === child.id);
+                            const currentLevel = (p1.educationLevels || []).find((lv: { key: string }) => lv.key === child.currentLevelKey) as { key: string; label: string; years: number } | undefined;
+                            const maxYears = currentLevel?.years || 1;
                             return (
                               <div key={child.id} className="bg-white rounded-lg border border-blue-100 p-2.5 space-y-2">
+                                {/* Row 1: Name + delete */}
                                 <div className="flex items-center gap-2">
                                   <input
                                     type="text"
@@ -565,19 +579,6 @@ export default function Pillar1Page() {
                                       update({ educationChildren: kids });
                                     }}
                                   />
-                                  <select
-                                    value={child.currentLevelKey}
-                                    onChange={(e) => {
-                                      const kids = [...(p1.educationChildren || [])];
-                                      kids[cidx] = { ...kids[cidx], currentLevelKey: e.target.value };
-                                      update({ educationChildren: kids });
-                                    }}
-                                    className="text-xs bg-blue-50 border border-blue-200 rounded-lg px-2 py-1.5 text-blue-700 font-bold focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                  >
-                                    {(p1.educationLevels || []).map((lv: { key: string; label: string }) => (
-                                      <option key={lv.key} value={lv.key}>{lv.label}</option>
-                                    ))}
-                                  </select>
                                   <button
                                     onClick={() => {
                                       const kids = [...(p1.educationChildren || [])];
@@ -589,9 +590,42 @@ export default function Pillar1Page() {
                                     <X size={16} />
                                   </button>
                                 </div>
-                                {childCalc && childCalc.simpleTotal > 0 && (
-                                  <div className="text-[9px] text-blue-500 pl-1 space-y-0.5">
-                                    <div>เหลือ {childCalc.totalYears} ปี | แบบตรง: {fmt(childCalc.simpleTotal)} บาท</div>
+                                {/* Row 2: Level + Year-in-level */}
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] text-gray-500 shrink-0">กำลังเรียน</span>
+                                  <select
+                                    value={child.currentLevelKey}
+                                    onChange={(e) => {
+                                      const kids = [...(p1.educationChildren || [])];
+                                      kids[cidx] = { ...kids[cidx], currentLevelKey: e.target.value, currentYearInLevel: 1 };
+                                      update({ educationChildren: kids });
+                                    }}
+                                    className="text-xs bg-blue-50 border border-blue-200 rounded-lg px-2 py-1.5 text-blue-700 font-bold focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                  >
+                                    {(p1.educationLevels || []).map((lv: { key: string; label: string }) => (
+                                      <option key={lv.key} value={lv.key}>{lv.label}</option>
+                                    ))}
+                                  </select>
+                                  <span className="text-[10px] text-gray-500 shrink-0">ปีที่</span>
+                                  <select
+                                    value={child.currentYearInLevel || 1}
+                                    onChange={(e) => {
+                                      const kids = [...(p1.educationChildren || [])];
+                                      kids[cidx] = { ...kids[cidx], currentYearInLevel: Number(e.target.value) };
+                                      update({ educationChildren: kids });
+                                    }}
+                                    className="text-xs bg-blue-50 border border-blue-200 rounded-lg px-2 py-1.5 text-blue-700 font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 w-16"
+                                  >
+                                    {Array.from({ length: maxYears }, (_, i) => i + 1).map((y) => (
+                                      <option key={y} value={y}>{y}</option>
+                                    ))}
+                                  </select>
+                                  <span className="text-[10px] text-gray-400 shrink-0">/ {maxYears}</span>
+                                </div>
+                                {/* Subtotal */}
+                                {childCalc && childCalc.totalYears > 0 && (
+                                  <div className="text-[9px] text-blue-500 pl-1 space-y-0.5 bg-blue-50/50 rounded-md px-2 py-1.5">
+                                    <div>เหลืออีก <span className="font-bold">{childCalc.totalYears} ปี</span> | แบบตรง: {fmt(childCalc.simpleTotal)} บาท</div>
                                     <div className="font-bold">TVM: {fmt(childCalc.tvmTotal)} บาท</div>
                                   </div>
                                 )}
