@@ -167,6 +167,7 @@ export default function Pillar1Page() {
 
   // ─── Info modal ─────────────────────────────────────────────────────────
   const [showInfo, setShowInfo] = useState(false);
+  const [showNeedsDetail, setShowNeedsDetail] = useState(false);
 
   // ─── Save & mark completed ──────────────────────────────────────────────
   const handleSave = () => {
@@ -463,6 +464,10 @@ export default function Pillar1Page() {
                 <div className="bg-blue-100 rounded-lg px-3 py-2 text-[10px] space-y-1">
                   <div className="text-green-700">✓ จุดเด่น: แม่นยำที่สุด ตรงกับเป้าหมายการเงินจริง</div>
                 </div>
+                <button onClick={() => { setShowInfo(false); setShowNeedsDetail(true); }}
+                  className="flex items-center gap-1 text-[11px] text-blue-600 font-bold hover:underline mt-1">
+                  <Info size={13} /> ดูวิธีคำนวณแบบละเอียด →
+                </button>
               </div>
 
               {/* Method 3 */}
@@ -526,6 +531,185 @@ export default function Pillar1Page() {
             {/* Close button */}
             <div className="sticky bottom-0 bg-white border-t border-gray-100 px-5 py-3 md:rounded-b-2xl">
               <button onClick={() => setShowInfo(false)} className="w-full py-2.5 rounded-xl bg-[#1e3a5f] text-white text-sm font-bold hover:bg-[#2d5a8e] transition">
+                เข้าใจแล้ว
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Needs Analysis Detail Modal ── */}
+      {showNeedsDetail && (
+        <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center bg-black/40" onClick={() => setShowNeedsDetail(false)}>
+          <div className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className="sticky top-0 bg-[#1e3a5f] text-white px-5 py-4 flex items-center justify-between z-10 md:rounded-t-2xl rounded-t-2xl">
+              <div className="flex items-center gap-2">
+                <Info size={18} />
+                <h3 className="text-sm font-bold">Needs Analysis Approach</h3>
+              </div>
+              <button onClick={() => setShowNeedsDetail(false)} className="text-white/70 hover:text-white"><X size={20} /></button>
+            </div>
+
+            <div className="px-5 py-4 space-y-5 text-gray-700">
+              <p className="text-xs leading-relaxed">
+                <strong>Needs Analysis</strong> คือหัวใจสำคัญของ CFP Module 3 และเป็นวิธีที่ใช้จริง
+                ในการวางแผนการเงินแบบองค์รวม (Comprehensive Financial Planning)
+                เพราะเปลี่ยนจากการ &ldquo;คาดเดา&rdquo; มาเป็นการ <strong>&ldquo;คำนวณตามเป้าหมาย&rdquo;</strong>
+              </p>
+
+              {/* ─── Group 1: Immediate Cash Needs ─── */}
+              <div className="border border-red-200 rounded-xl overflow-hidden">
+                <div className="bg-red-50 px-4 py-2.5 border-b border-red-200">
+                  <h4 className="text-xs font-bold text-red-800">1. ความต้องการเงินก้อนทันที (Immediate Cash Needs)</h4>
+                  <p className="text-[10px] text-red-600 mt-0.5">เงินที่ต้องใช้ทันทีเมื่อเกิดเหตุ เพื่อไม่ให้สถานะการเงินของครอบครัวสะดุด</p>
+                </div>
+                <div className="p-4 space-y-3 text-[11px]">
+                  <div className="flex gap-3">
+                    <span className="w-5 h-5 rounded-full bg-red-100 text-red-600 text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">F</span>
+                    <div>
+                      <div className="font-bold text-gray-800">Final Expenses — ค่าใช้จ่ายสุดท้าย</div>
+                      <div className="text-gray-500 mt-0.5">ค่ารักษาพยาบาลก่อนเสียชีวิต (ที่เบิกไม่ได้) และค่าปลงศพ</div>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="w-5 h-5 rounded-full bg-red-100 text-red-600 text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">D</span>
+                    <div>
+                      <div className="font-bold text-gray-800">Debt Clearance — ชำระหนี้สินทั้งหมด</div>
+                      <div className="text-gray-500 mt-0.5">หนี้สินที่ไม่มี MRTA คุ้มครอง เช่น หนี้บัตรเครดิต, สินเชื่อส่วนบุคคล, หนี้บ้าน/รถที่ค้าง</div>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="w-5 h-5 rounded-full bg-red-100 text-red-600 text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">E</span>
+                    <div>
+                      <div className="font-bold text-gray-800">Emergency Fund — กองทุนฉุกเฉิน</div>
+                      <div className="text-gray-500 mt-0.5">สำรองไว้ 3-6 เท่าของค่าใช้จ่ายครอบครัว เพื่อให้มีเวลาปรับตัว</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ─── Group 2: Income Needs ─── */}
+              <div className="border border-blue-200 rounded-xl overflow-hidden">
+                <div className="bg-blue-50 px-4 py-2.5 border-b border-blue-200">
+                  <h4 className="text-xs font-bold text-blue-800">2. ความต้องการรายได้ต่อเนื่อง (Income Needs)</h4>
+                  <p className="text-[10px] text-blue-600 mt-0.5">ส่วนที่ซับซ้อนที่สุด ต้องใช้หลัก Time Value of Money (TVM)</p>
+                </div>
+                <div className="p-4 space-y-3 text-[11px]">
+                  <div className="flex gap-3">
+                    <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
+                    <div>
+                      <div className="font-bold text-gray-800">Dependency Period — ช่วงดูแลบุตร</div>
+                      <div className="text-gray-500 mt-0.5">ค่ากินอยู่และค่าเทอมลูกจนกว่าจะเรียนจบ (เช่น จนถึงอายุ 22 ปี)</div>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
+                    <div>
+                      <div className="font-bold text-gray-800">Blackout Period — ช่วงปรับตัวและดูแลคู่สมรส</div>
+                      <div className="text-gray-500 mt-0.5 space-y-0.5">
+                        <div><strong>ช่วงแรก:</strong> ชดเชยรายได้ที่ขาดหาย เพื่อรักษามาตรฐานการครองชีพเดิม</div>
+                        <div><strong>ช่วงหลัง:</strong> คำนวณยาวไปจนถึงอายุขัยคาดเฉลี่ยของผู้อยู่เบื้องหลัง</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ─── Calculation Steps ─── */}
+              <div>
+                <h4 className="text-xs font-bold text-gray-800 mb-3">ขั้นตอนการคำนวณ (Insurance Gap Analysis)</h4>
+
+                <div className="space-y-3">
+                  {/* Step 1 */}
+                  <div className="bg-gray-50 rounded-xl p-3 border border-gray-200">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="w-6 h-6 rounded-lg bg-[#1e3a5f] text-white text-[10px] font-bold flex items-center justify-center">1</span>
+                      <span className="text-[11px] font-bold text-gray-800">คำนวณความต้องการทั้งหมด (Total Needs)</span>
+                    </div>
+                    <p className="text-[10px] text-gray-600 leading-relaxed mb-2">
+                      หา PV ของค่าใช้จ่ายในอนาคต โดยคำนึงถึง อัตราเงินเฟ้อ (Inflation) และ อัตราผลตอบแทนจากการลงทุน (Investment Return)
+                    </p>
+                    <div className="bg-white rounded-lg border border-gray-200 p-2.5 text-[10px] space-y-1">
+                      <div className="font-bold text-gray-700">ใช้ Real Rate of Return:</div>
+                      <div className="text-center font-mono text-xs text-blue-700 py-1">
+                        i<sub>real</sub> = ((1 + i) / (1 + f) - 1) × 100
+                      </div>
+                      <div className="text-gray-500 text-center">(i = ผลตอบแทน, f = เงินเฟ้อ)</div>
+                    </div>
+                  </div>
+
+                  {/* Step 2 */}
+                  <div className="bg-gray-50 rounded-xl p-3 border border-gray-200">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="w-6 h-6 rounded-lg bg-[#1e3a5f] text-white text-[10px] font-bold flex items-center justify-center">2</span>
+                      <span className="text-[11px] font-bold text-gray-800">รวบรวมสินทรัพย์ที่มีอยู่ (Existing Assets)</span>
+                    </div>
+                    <div className="text-[10px] text-gray-600 space-y-0.5 pl-1">
+                      <div>• เงินสดในธนาคาร, กองทุนรวม, หุ้น</div>
+                      <div>• สวัสดิการจากที่ทำงาน (เช่น เงินชดเชยกรณีเสียชีวิต)</div>
+                      <div>• ทุนประกันชีวิตที่มีอยู่แล้วในปัจจุบัน</div>
+                    </div>
+                  </div>
+
+                  {/* Step 3 */}
+                  <div className="bg-gray-50 rounded-xl p-3 border border-gray-200">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="w-6 h-6 rounded-lg bg-[#1e3a5f] text-white text-[10px] font-bold flex items-center justify-center">3</span>
+                      <span className="text-[11px] font-bold text-gray-800">หาจุดที่ยังขาด (The Gap)</span>
+                    </div>
+                    <div className="text-center font-mono text-xs text-red-600 bg-red-50 rounded-lg py-2 border border-red-200">
+                      Insurance Gap = Total Needs − Existing Assets
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ─── Case Study ─── */}
+              <div className="border border-amber-200 rounded-xl overflow-hidden">
+                <div className="bg-amber-50 px-4 py-2.5 border-b border-amber-200">
+                  <h4 className="text-xs font-bold text-amber-800">📐 ตัวอย่าง Case Study</h4>
+                </div>
+                <div className="p-4 text-[11px] space-y-2">
+                  <p className="text-gray-600">
+                    สมมติลูกค้าต้องการเงินให้ลูกใช้ปีละ <strong>200,000 บาท</strong> (ปรับเพิ่มตามเงินเฟ้อ 3%)
+                    ไปอีก 15 ปี โดยคาดว่าเงินก้อนนี้จะนำไปลงทุนได้ผลตอบแทน 5%
+                  </p>
+
+                  <div className="bg-white rounded-lg border border-gray-200 p-3 space-y-1.5 text-[10px]">
+                    <div className="font-bold text-gray-700">หา Real Rate:</div>
+                    <div className="font-mono text-blue-700 text-center">(1.05 / 1.03) − 1 = 1.9417%</div>
+                  </div>
+
+                  <div className="bg-white rounded-lg border border-gray-200 p-3 space-y-1 text-[10px]">
+                    <div className="font-bold text-gray-700">กดเครื่องคิดเลข Financial (Mode BGN):</div>
+                    <div className="grid grid-cols-2 gap-1 font-mono text-gray-700 mt-1">
+                      <div>N = 15</div>
+                      <div>I/Y = 1.9417</div>
+                      <div>PMT = −200,000</div>
+                      <div>FV = 0</div>
+                    </div>
+                    <div className="text-center mt-2 font-bold text-lg text-blue-700">
+                      CPT PV = 2,642,845 บาท
+                    </div>
+                  </div>
+
+                  <p className="text-gray-500 text-[10px] leading-relaxed">
+                    นี่คือ &ldquo;ทุนประกัน&rdquo; เฉพาะหมวดการศึกษาบุตร เมื่อรวมกับหมวดอื่นๆ (หนี้สิน + เงินก้อนสุดท้าย)
+                    ก็จะได้ทุนประกันรวมที่ควรมี
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-5 py-3 flex gap-2 md:rounded-b-2xl">
+              <button onClick={() => { setShowNeedsDetail(false); setShowInfo(true); }}
+                className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-500 text-sm font-medium hover:bg-gray-200 transition">
+                ← กลับ
+              </button>
+              <button onClick={() => setShowNeedsDetail(false)}
+                className="flex-1 py-2.5 rounded-xl bg-[#1e3a5f] text-white text-sm font-bold hover:bg-[#2d5a8e] transition">
                 เข้าใจแล้ว
               </button>
             </div>
