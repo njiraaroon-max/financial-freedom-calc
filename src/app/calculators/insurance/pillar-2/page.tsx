@@ -907,115 +907,87 @@ export default function Pillar2Page() {
           </button>
           {openSteps[3] && <div className="p-4 md:p-6 pt-4 space-y-4">
 
-          {/* Gap summary table — grouped */}
+          {/* Gap summary table */}
           {(() => {
-            const catGroups: { title: string; icon: string; keys: CatKey[] }[] = [
-              { title: "ผู้ป่วยใน (IPD)", icon: "🏥", keys: ["roomRate", "ipd"] },
-              { title: "โรคร้ายแรง / CI", icon: "🩺", keys: ["criticalTreatment", "ciLumpSum"] },
-              { title: "ผู้ป่วยนอก & อุบัติเหตุ", icon: "🚶", keys: ["opd", "accident"] },
+            const catGroups: { title: string; color: string; keys: CatKey[] }[] = [
+              { title: "เจ็บป่วย", color: "bg-blue-700", keys: ["roomRate", "ipd", "criticalTreatment", "ciLumpSum"] },
+              { title: "ทั่วไป", color: "bg-teal-600", keys: ["opd", "accident"] },
             ];
             const catMap = Object.fromEntries(categories.map((c) => [c.key, c]));
             return (
-              <div className="space-y-3">
-                {catGroups.map((grp) => {
-                  const grpAdequate = grp.keys.filter((k) => analysis.gap[k] <= 0).length;
-                  const allOk = grpAdequate === grp.keys.length;
-                  return (
-                    <div key={grp.title} className="border border-gray-100 rounded-xl overflow-hidden">
-                      {/* Group header */}
-                      <div className={`flex items-center justify-between px-3 py-2 ${allOk ? "bg-emerald-50" : "bg-red-50"}`}>
-                        <span className="text-[11px] font-bold text-gray-700 flex items-center gap-1.5">
-                          <span>{grp.icon}</span> {grp.title}
-                        </span>
-                        <span className={`text-[9px] font-bold ${allOk ? "text-emerald-600" : "text-red-600"}`}>
-                          {allOk ? "✓ เพียงพอ" : `ขาด ${grp.keys.length - grpAdequate} รายการ`}
-                        </span>
-                      </div>
-                      {/* Column header */}
-                      <div className="grid grid-cols-12 gap-1 px-3 py-1.5 bg-gray-50 text-[7px] font-bold text-gray-400 uppercase tracking-wider">
-                        <div className="col-span-3">รายการ</div>
-                        <div className="col-span-2 text-right">ต้องการ</div>
-                        <div className="col-span-2 text-right">สวัสดิการ</div>
-                        <div className="col-span-2 text-right">ประกันตัว</div>
-                        <div className="col-span-1 text-center">สถานะ</div>
-                        <div className="col-span-2 text-right">ส่วนต่าง</div>
-                      </div>
-                      {/* Rows */}
-                      {grp.keys.map((key) => {
+              <div className="rounded-xl overflow-hidden border border-gray-200">
+                <table className="w-full text-[10px]">
+                  <thead>
+                    <tr className="bg-gray-700 text-white text-[9px]">
+                      <th className="py-2 px-2 text-left font-semibold w-[60px]"></th>
+                      <th className="py-2 px-2 text-left font-semibold">ประเภท</th>
+                      <th className="py-2 px-2 text-right font-semibold">ต้องการ</th>
+                      <th className="py-2 px-2 text-right font-semibold">สวัสดิการ<br/>ที่ทำงาน</th>
+                      <th className="py-2 px-2 text-right font-semibold">ประกัน<br/>ที่ทำไว้เอง</th>
+                      <th className="py-2 px-2 text-center font-semibold">สถานะ</th>
+                      <th className="py-2 px-2 text-right font-semibold">ส่วนต่าง</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {catGroups.map((grp) => (
+                      grp.keys.map((key, idx) => {
                         const cat = catMap[key];
                         const g = analysis.gap[key];
                         const isOk = g <= 0;
-                        const need = analysis.need[key];
-                        const have = analysis.have[key];
-                        const pct = need > 0 ? Math.min((have / need) * 100, 100) : 0;
                         return (
-                          <div key={key} className="border-t border-gray-50">
-                            <div className="grid grid-cols-12 gap-1 px-3 py-2 items-center">
-                              <div className="col-span-3 text-[10px] text-gray-700 font-medium leading-tight">{cat.labelShort}</div>
-                              <div className="col-span-2 text-[10px] text-right font-bold text-gray-600">{fmt(analysis.need[key])}</div>
-                              <div className="col-span-2 text-[10px] text-right text-gray-500">{fmt(analysis.employer[key])}</div>
-                              <div className="col-span-2 text-[10px] text-right text-gray-500">{fmt(analysis.personal[key])}</div>
-                              <div className="col-span-1 text-center">
-                                <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${isOk ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
-                                  {isOk ? "พอ" : "ขาด"}
+                          <tr key={key} className="border-t border-gray-100">
+                            {idx === 0 && (
+                              <td rowSpan={grp.keys.length} className={`${grp.color} text-white text-[11px] font-bold text-center align-middle px-1`}>
+                                <span className="writing-mode-vertical" style={{ writingMode: "vertical-rl", textOrientation: "mixed", letterSpacing: "0.1em" }}>
+                                  {grp.title}
                                 </span>
-                              </div>
-                              <div className={`col-span-2 text-[10px] text-right font-bold ${isOk ? "text-emerald-600" : "text-red-600"}`}>
-                                {isOk ? `+${fmt(Math.abs(g))}` : `-${fmt(g)}`}
-                              </div>
-                            </div>
-                            {/* Mini progress bar */}
-                            <div className="px-3 pb-2">
-                              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                <div
-                                  className={`h-full rounded-full transition-all ${isOk ? "bg-emerald-400" : pct > 50 ? "bg-amber-400" : "bg-red-400"}`}
-                                  style={{ width: `${pct}%` }}
-                                />
-                              </div>
-                            </div>
-                          </div>
+                              </td>
+                            )}
+                            <td className="py-2.5 px-2 text-gray-700 font-medium">{cat.labelShort}</td>
+                            <td className="py-2.5 px-2 text-right font-bold text-gray-700">{fmt(analysis.need[key])}</td>
+                            <td className="py-2.5 px-2 text-right text-gray-500">{fmt(analysis.employer[key])}</td>
+                            <td className="py-2.5 px-2 text-right text-gray-500">{fmt(analysis.personal[key])}</td>
+                            <td className="py-2.5 px-2 text-center">
+                              <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isOk ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
+                                {isOk ? "พอ" : "ขาด"}
+                              </span>
+                            </td>
+                            <td className={`py-2.5 px-2 text-right font-bold text-[11px] ${isOk ? "text-emerald-600" : "text-red-600"}`}>
+                              {isOk ? `+${fmt(Math.abs(g))}` : `-${fmt(g)}`}
+                            </td>
+                          </tr>
                         );
-                      })}
-                    </div>
-                  );
-                })}
-
-                {/* Summary row */}
-                <div className={`rounded-xl px-4 py-3 flex items-center justify-between ${analysis.adequateCount >= 5 ? "bg-emerald-50 border border-emerald-200" : "bg-red-50 border border-red-200"}`}>
-                  <span className="text-xs font-bold text-gray-700">ผลประเมินรวม</span>
-                  <span className={`text-xs font-bold ${analysis.adequateCount >= 5 ? "text-emerald-600" : "text-red-600"}`}>
-                    ผ่าน {analysis.adequateCount}/6 หมวด
-                  </span>
-                </div>
+                      })
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className={`${analysis.adequateCount >= 5 ? "bg-emerald-50" : "bg-red-50"} border-t-2 ${analysis.adequateCount >= 5 ? "border-emerald-300" : "border-red-300"}`}>
+                      <td colSpan={5} className="py-2.5 px-3 text-xs font-bold text-gray-700">ผลประเมิน</td>
+                      <td colSpan={2} className={`py-2.5 px-2 text-right text-xs font-bold ${analysis.adequateCount >= 5 ? "text-emerald-600" : "text-red-600"}`}>
+                        ผ่าน {analysis.adequateCount}/6 หมวด
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
               </div>
             );
           })()}
 
-          {/* Overall result */}
-          <div className={`rounded-2xl p-5 text-center ${analysis.adequateCount >= 5 ? "bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200" : "bg-gradient-to-br from-red-50 to-red-100 border border-red-200"}`}>
-            {analysis.adequateCount >= 5 ? (
-              <>
-                <CheckCircle2 size={36} className="text-emerald-500 mx-auto mb-2" />
-                <div className="text-base font-bold text-emerald-700">ความคุ้มครองสุขภาพเพียงพอ!</div>
-                <div className="text-xs text-emerald-600 mt-1">ผ่านเกณฑ์ {analysis.adequateCount}/6 หมวด</div>
-              </>
-            ) : (
-              <>
-                <AlertTriangle size={36} className="text-red-500 mx-auto mb-2" />
-                <div className="text-xs font-bold text-red-600 uppercase tracking-wide">Health Coverage Gap</div>
-                <div className="text-sm font-bold text-red-700 mt-2">ยังไม่ผ่าน {6 - analysis.adequateCount} หมวด</div>
-                <div className="text-[10px] text-gray-500 mt-3 space-y-1">
-                  {categories.filter((c) => analysis.gap[c.key] > 0).map((c) => (
-                    <div key={c.key}>ควรเพิ่ม {c.labelShort}: <span className="font-bold text-gray-700">{fmt(analysis.gap[c.key])}</span> {c.suffix}</div>
-                  ))}
+          {/* Action if gap exists */}
+          {analysis.adequateCount < 6 && (
+            <div className="flex items-center justify-between bg-red-50 rounded-xl px-4 py-3 border border-red-100">
+              <div>
+                <div className="text-xs font-bold text-red-700">ยังไม่ผ่าน {6 - analysis.adequateCount} หมวด</div>
+                <div className="text-[10px] text-gray-500 mt-0.5">
+                  {categories.filter((c) => analysis.gap[c.key] > 0).map((c) => c.labelShort).join(", ")}
                 </div>
-                <a href="/calculators/insurance/policies?add=true"
-                  className="inline-block mt-4 px-5 py-2.5 rounded-xl bg-teal-500 text-white text-xs font-bold hover:bg-teal-600 active:scale-[0.98] transition shadow-md">
-                  + เพิ่มกรมธรรม์สุขภาพ
-                </a>
-              </>
-            )}
-          </div>
+              </div>
+              <a href="/calculators/insurance/policies?add=true"
+                className="px-4 py-2 rounded-lg bg-teal-500 text-white text-[10px] font-bold hover:bg-teal-600 active:scale-[0.98] transition shadow-sm whitespace-nowrap">
+                + เพิ่มกรมธรรม์
+              </a>
+            </div>
+          )}
 
           </div>}
         </div>
