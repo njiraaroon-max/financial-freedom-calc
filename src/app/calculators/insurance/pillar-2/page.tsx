@@ -105,15 +105,46 @@ const TIER_ORDER: HospitalTier[] = ["government", "private_basic", "private_mid"
 // ─── Info content per category per tier ──────────────────────────────────────
 const HEALTH_INFO: Record<string, { title: string; description: string; stats: Record<HospitalTier, string[]>; tip: string }> = {
   roomRate: {
-    title: "ค่าห้อง/วัน",
-    description: "ค่าห้องพักผู้ป่วยใน ราคาต่อวัน — เป็นตัวกำหนดระดับแผนประกันสุขภาพ",
+    title: "ค่าห้องและค่าบริการพยาบาล",
+    description: "ตาม New Health Standard ใบเสร็จ รพ. แบ่งค่าใช้จ่ายเป็นหมวด — \"ค่าห้อง\" ในแผนประกันจะครอบคลุมส่วนที่เป็น \"เหมาจ่าย\" รายวัน ดังนี้:",
     stats: {
-      government: ["ห้องรวม: 300-500 บ./วัน", "ห้องพิเศษ: 500-1,500 บ./วัน", "ค่าห้อง ICU: 3,000-5,000 บ./วัน"],
-      private_basic: ["ห้องเดี่ยว: 2,000-4,000 บ./วัน", "ค่าห้อง ICU: 5,000-10,000 บ./วัน"],
-      private_mid: ["ห้องเดี่ยวมาตรฐาน: 4,000-8,000 บ./วัน", "ค่าห้อง ICU: 10,000-20,000 บ./วัน"],
-      private_premium: ["ห้อง VIP: 8,000-25,000 บ./วัน", "Suite: 15,000-50,000 บ./วัน", "ICU: 20,000-60,000 บ./วัน"],
+      government: [
+        "── ตัวอย่าง Bill รพ.รัฐ (ห้องพิเศษ) ──",
+        "1. ค่าห้อง: 500-1,500 บ./วัน",
+        "2. ค่าอาหาร: 200-500 บ./วัน",
+        "3. ค่าบริการพยาบาล: 300-800 บ./วัน",
+        "4. ค่าบริการ รพ.: 200-500 บ./วัน",
+        "── รวมเหมาจ่ายรายวัน ≈ 1,200-3,300 บ. ──",
+        "ค่าพยาบาลอยู่ในส่วนเหมาจ่ายนี้แล้ว",
+      ],
+      private_basic: [
+        "── ตัวอย่าง Bill เอกชนทั่วไป ──",
+        "1. ค่าห้อง: 2,000-3,500 บ./วัน",
+        "2. ค่าอาหาร: 500-800 บ./วัน",
+        "3. ค่าบริการพยาบาล: 500-1,500 บ./วัน",
+        "4. ค่าบริการ รพ.: 500-1,000 บ./วัน",
+        "── รวมเหมาจ่ายรายวัน ≈ 3,500-6,800 บ. ──",
+      ],
+      private_mid: [
+        "── ตัวอย่าง Bill เอกชนระดับกลาง ──",
+        "1. ค่าห้องเดี่ยวมาตรฐาน: 4,000-6,000 บ./วัน",
+        "2. ค่าอาหาร: 800-1,500 บ./วัน",
+        "3. ค่าบริการพยาบาล: 1,000-2,500 บ./วัน",
+        "4. ค่าบริการ รพ.: 800-2,000 บ./วัน",
+        "── รวมเหมาจ่ายรายวัน ≈ 6,600-12,000 บ. ──",
+        "ค่าห้อง ICU: 15,000-25,000 บ./วัน",
+      ],
+      private_premium: [
+        "── ตัวอย่าง Bill เอกชนพรีเมียม ──",
+        "1. ค่าห้อง VIP/Suite: 8,000-25,000 บ./วัน",
+        "2. ค่าอาหาร: 1,500-3,000 บ./วัน",
+        "3. ค่าบริการพยาบาล: 2,500-5,000 บ./วัน",
+        "4. ค่าบริการ รพ.: 2,000-5,000 บ./วัน",
+        "── รวมเหมาจ่ายรายวัน ≈ 14,000-38,000 บ. ──",
+        "ค่าห้อง ICU: 25,000-60,000 บ./วัน",
+      ],
     },
-    tip: "ค่าห้องเป็นจุดตัดสิทธิ — ถ้าค่าห้องจริงเกินแผน อาจถูกปรับลดค่ารักษาทุกหมวดตามสัดส่วน",
+    tip: "ค่าห้องเป็นจุดตัดสิทธิ — ถ้าค่าห้องจริงเกินแผน อาจถูกปรับลดค่ารักษาทุกหมวดตามสัดส่วน (Co-payment) ดังนั้นตัวเลขนี้ควรครอบคลุมทั้งค่าห้อง ค่าอาหาร ค่าบริการพยาบาล และค่าบริการ รพ. รวมกัน",
   },
   ipd: {
     title: "ค่ารักษา — ทั่วไป (IPD)",
@@ -210,7 +241,7 @@ export default function Pillar2Page() {
   // ─── Gap categories definition ────────────────────────────────────────
   type CatKey = "roomRate" | "ipd" | "criticalTreatment" | "ciLumpSum" | "opd" | "accident";
   const categories: { key: CatKey; label: string; labelShort: string; suffix: string }[] = [
-    { key: "roomRate", label: "ค่าห้อง/วัน", labelShort: "ค่าห้อง", suffix: "บาท/วัน" },
+    { key: "roomRate", label: "ค่าห้องและค่าบริการพยาบาล", labelShort: "ค่าห้อง", suffix: "บาท/วัน" },
     { key: "ipd", label: "ค่ารักษา — ทั่วไป (IPD)", labelShort: "ค่ารักษา — ทั่วไป", suffix: "บาท/ปี" },
     { key: "criticalTreatment", label: "ค่ารักษา — ร้ายแรง", labelShort: "ค่ารักษา — ร้ายแรง", suffix: "บาท" },
     { key: "ciLumpSum", label: "เงินก้อนเพื่อโรคร้ายแรง (CI)", labelShort: "เงินก้อน CI", suffix: "บาท" },
@@ -472,12 +503,14 @@ export default function Pillar2Page() {
               <div className="flex items-start gap-2">
                 <div className="flex-1">
                   <MoneyInput
-                    label="ค่าห้อง/วัน"
+                    label="ค่าห้องและค่าบริการพยาบาล (ต่อวัน)"
                     value={p2.desiredRoomRate}
                     onChange={(v) => update({ desiredRoomRate: v })}
-                    hint={`Benchmark: ${fmt(benchmark.roomRate[0])}-${fmt(benchmark.roomRate[1])} บ./วัน`}
-                    suffix="บ./วัน"
+                    hint={`Benchmark: ${fmt(benchmark.roomRate[0])}-${fmt(benchmark.roomRate[1])} บาท/วัน`}
                   />
+                  <div className="text-[9px] text-teal-600 mt-1 pl-1 leading-relaxed">
+                    รวม: ค่าห้อง + ค่าอาหาร + ค่าบริการพยาบาล + ค่าบริการ รพ. (เหมาจ่าย) — กดปุ่ม (i) ดูรายละเอียด
+                  </div>
                 </div>
                 <button onClick={() => setShowInfoKey("roomRate")} className="mt-6 w-7 h-7 rounded-full bg-teal-50 border border-teal-200 flex items-center justify-center hover:bg-teal-100 transition shrink-0">
                   <Info size={13} className="text-teal-600" />
@@ -541,7 +574,7 @@ export default function Pillar2Page() {
                     value={p2.desiredOPDPerVisit}
                     onChange={(v) => update({ desiredOPDPerVisit: v })}
                     hint={`Benchmark: ${fmt(benchmark.opdPerVisit[0])}-${fmt(benchmark.opdPerVisit[1])} บ./ครั้ง`}
-                    suffix="บ./ครั้ง"
+                    suffix="บาท/ครั้ง"
                   />
                   <MoneyInput
                     label="อุบัติเหตุ (PA)"
@@ -555,13 +588,14 @@ export default function Pillar2Page() {
           </div>
 
           {/* ── Medical Inflation Projection (inline in Step 1) ── */}
-          <div className="border border-orange-100 rounded-xl overflow-hidden">
-            <div className="bg-orange-50 px-3 py-2 border-b border-orange-100 flex items-center justify-between">
+          <details className="border border-orange-100 rounded-xl overflow-hidden group" open>
+            <summary className="bg-orange-50 px-3 py-2 border-b border-orange-100 flex items-center justify-between cursor-pointer hover:bg-orange-100/70 transition">
               <div className="flex items-center gap-2">
                 <TrendingUp size={14} className="text-orange-600" />
                 <span className="text-[10px] font-bold text-orange-700">คาดการณ์ค่ารักษาตาม Medical Inflation</span>
+                <ChevronDown size={14} className="text-orange-400 group-open:rotate-180 transition-transform" />
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                 {[3, 5, 7, 10].map((rate) => (
                   <button
                     key={rate}
@@ -576,7 +610,7 @@ export default function Pillar2Page() {
                   </button>
                 ))}
               </div>
-            </div>
+            </summary>
             <div className="p-3 space-y-2">
               {/* Toggle view */}
               <div className="flex items-center justify-between">
@@ -614,8 +648,8 @@ export default function Pillar2Page() {
                           {row.age} {isCurrent ? "(ปัจจุบัน)" : isRetire ? "(เกษียณ)" : ""}
                         </div>
                         <div className={`text-[10px] text-right font-bold ${isRetire ? "text-orange-700" : "text-gray-700"}`}>{fmt(row.roomRate)}</div>
-                        <div className={`text-[10px] text-right font-bold ${isRetire ? "text-orange-700" : "text-gray-700"}`}>{fmtShort(row.ipd)}</div>
-                        <div className={`text-[10px] text-right font-bold ${isRetire ? "text-orange-700" : "text-gray-700"}`}>{fmtShort(row.criticalTreatment)}</div>
+                        <div className={`text-[10px] text-right font-bold ${isRetire ? "text-orange-700" : "text-gray-700"}`}>{fmt(row.ipd)}</div>
+                        <div className={`text-[10px] text-right font-bold ${isRetire ? "text-orange-700" : "text-gray-700"}`}>{fmt(row.criticalTreatment)}</div>
                       </div>
                     );
                   })}
@@ -624,13 +658,13 @@ export default function Pillar2Page() {
               {/* Inflation warning */}
               <div className="bg-orange-50 rounded-lg p-2.5 text-[9px] text-orange-700 leading-relaxed">
                 <span className="font-bold">ผลกระทบ Medical Inflation ({p2.medicalInflationRate ?? 7}%/ปี):</span>{" "}
-                ค่ารักษา IPD จะเพิ่มจาก {fmtShort(p2.desiredIPDPerYear)} เป็น{" "}
-                <span className="font-bold">{fmtShort(inflationTable.find((r) => r.age === retireAge)?.ipd || 0)}</span> ณ วันเกษียณ
-                และ <span className="font-bold">{fmtShort(inflationTable.find((r) => r.age === 80)?.ipd || 0)}</span> ณ อายุ 80
+                ค่ารักษา IPD จะเพิ่มจาก {fmt(p2.desiredIPDPerYear)} เป็น{" "}
+                <span className="font-bold">{fmt(inflationTable.find((r) => r.age === retireAge)?.ipd || 0)}</span> ณ วันเกษียณ
+                และ <span className="font-bold">{fmt(inflationTable.find((r) => r.age === 80)?.ipd || 0)}</span> ณ อายุ 80
                 — ควรเลือกแผนที่วงเงินปรับตัวตาม inflation
               </div>
             </div>
-          </div>
+          </details>
 
           </div>}
         </div>
@@ -692,7 +726,7 @@ export default function Pillar2Page() {
             </div>
             <div className="p-3 space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <MoneyInput label="ค่าห้อง/วัน" value={p2.groupRoomRate} onChange={(v) => update({ groupRoomRate: v })} suffix="บ./วัน" />
+                <MoneyInput label="ค่าห้อง/วัน" value={p2.groupRoomRate} onChange={(v) => update({ groupRoomRate: v })} suffix="บาท/วัน" />
                 <MoneyInput label="IPD/ปี" value={p2.groupIPDPerYear} onChange={(v) => update({ groupIPDPerYear: v })} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -700,7 +734,7 @@ export default function Pillar2Page() {
                 <MoneyInput label="CI เงินก้อน" value={p2.groupCI} onChange={(v) => update({ groupCI: v })} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <MoneyInput label="OPD/ครั้ง" value={p2.groupOPDPerVisit} onChange={(v) => update({ groupOPDPerVisit: v })} suffix="บ./ครั้ง" />
+                <MoneyInput label="OPD/ครั้ง" value={p2.groupOPDPerVisit} onChange={(v) => update({ groupOPDPerVisit: v })} suffix="บาท/ครั้ง" />
                 <MoneyInput label="PA อุบัติเหตุ" value={p2.groupAccident} onChange={(v) => update({ groupAccident: v })} />
               </div>
             </div>
@@ -760,7 +794,7 @@ export default function Pillar2Page() {
               ) : (
                 <div className="space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <MoneyInput label="ค่าห้อง/วัน" value={p2.personalRoomRate ?? 0} onChange={(v) => update({ personalRoomRate: v })} suffix="บ./วัน" />
+                    <MoneyInput label="ค่าห้อง/วัน" value={p2.personalRoomRate ?? 0} onChange={(v) => update({ personalRoomRate: v })} suffix="บาท/วัน" />
                     <MoneyInput label="IPD/ปี" value={p2.personalIPD ?? 0} onChange={(v) => update({ personalIPD: v })} />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -768,7 +802,7 @@ export default function Pillar2Page() {
                     <MoneyInput label="CI เงินก้อน" value={p2.personalCI ?? 0} onChange={(v) => update({ personalCI: v })} />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <MoneyInput label="OPD/ครั้ง" value={p2.personalOPD ?? 0} onChange={(v) => update({ personalOPD: v })} suffix="บ./ครั้ง" />
+                    <MoneyInput label="OPD/ครั้ง" value={p2.personalOPD ?? 0} onChange={(v) => update({ personalOPD: v })} suffix="บาท/ครั้ง" />
                     <MoneyInput label="PA อุบัติเหตุ" value={p2.personalAccident ?? 0} onChange={(v) => update({ personalAccident: v })} />
                   </div>
                 </div>
