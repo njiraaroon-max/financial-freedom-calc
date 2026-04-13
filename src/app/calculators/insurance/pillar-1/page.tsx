@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Shield, Link2, AlertTriangle, CheckCircle2, Info, X } from "lucide-react";
+import { Shield, Link2, AlertTriangle, CheckCircle2, Info, X, ChevronDown } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { useInsuranceStore } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
@@ -223,6 +223,8 @@ export default function Pillar1Page() {
   // ─── Info modal ─────────────────────────────────────────────────────────
   const [showInfo, setShowInfo] = useState(false);
   const [showNeedsDetail, setShowNeedsDetail] = useState(false);
+  const [openSteps, setOpenSteps] = useState<Record<number, boolean>>({ 1: true, 2: true, 3: true });
+  const toggleStep = (n: number) => setOpenSteps((prev) => ({ ...prev, [n]: !prev[n] }));
 
   // ─── Save & mark completed ──────────────────────────────────────────────
   const handleSave = () => {
@@ -294,11 +296,18 @@ export default function Pillar1Page() {
         </div>
 
         {/* ═══ STEP 1: คำนวณความต้องการทั้งหมด (Total Needs) ═══ */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
-          <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-[10px] font-bold flex items-center justify-center">1</span>
-            Step 1: คำนวณความต้องการทั้งหมด (Total Needs)
-          </h3>
+        <div className="bg-white rounded-2xl shadow-sm mx-1">
+          <button onClick={() => toggleStep(1)} className="w-full p-4 md:p-6 pb-0 flex items-center justify-between">
+            <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-[10px] font-bold flex items-center justify-center">1</span>
+              Step 1: คำนวณความต้องการทั้งหมด
+            </h3>
+            <div className="flex items-center gap-2">
+              {!openSteps[1] && <span className="text-xs font-bold text-red-500">{fmt(analysis.totalNeed)} บาท</span>}
+              <ChevronDown size={18} className={`text-gray-400 transition-transform ${openSteps[1] ? "rotate-180" : ""}`} />
+            </div>
+          </button>
+          {openSteps[1] && <div className="p-4 md:p-6 pt-4 space-y-4">
 
           {/* ── A: Immediate Cash Needs ── */}
           <div className="border border-red-100 rounded-xl overflow-hidden">
@@ -652,14 +661,22 @@ export default function Pillar1Page() {
             <span className="text-xs font-bold">รวมความต้องการทั้งหมด (Total Needs)</span>
             <span className="text-lg font-extrabold">{fmt(analysis.totalNeed)} บาท</span>
           </div>
+        </div>}
         </div>
 
         {/* ═══ STEP 2: รวบรวมสินทรัพย์ที่มีอยู่ (Existing Assets) ═══ */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
-          <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-[10px] font-bold flex items-center justify-center">2</span>
-            Step 2: รวบรวมสินทรัพย์ที่มีอยู่ (Existing Assets)
-          </h3>
+        <div className="bg-white rounded-2xl shadow-sm mx-1">
+          <button onClick={() => toggleStep(2)} className="w-full p-4 md:p-6 pb-0 flex items-center justify-between">
+            <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-[10px] font-bold flex items-center justify-center">2</span>
+              Step 2: รวบรวมสินทรัพย์ที่มีอยู่
+            </h3>
+            <div className="flex items-center gap-2">
+              {!openSteps[2] && <span className="text-xs font-bold text-blue-500">{fmt(analysis.totalHave)} บาท</span>}
+              <ChevronDown size={18} className={`text-gray-400 transition-transform ${openSteps[2] ? "rotate-180" : ""}`} />
+            </div>
+          </button>
+          {openSteps[2] && <div className="p-4 md:p-6 pt-4 space-y-4">
 
           {/* Life policies summary */}
           <div className="bg-blue-50 rounded-xl p-3">
@@ -713,14 +730,26 @@ export default function Pillar1Page() {
             <span className="text-xs font-bold">รวมสินทรัพย์ที่มีอยู่ (Existing Assets)</span>
             <span className="text-lg font-extrabold">{fmt(analysis.totalHave)} บาท</span>
           </div>
+        </div>}
         </div>
 
         {/* ═══ STEP 3: หาจุดที่ยังขาด (The Gap) ═══ */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
-          <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-[10px] font-bold flex items-center justify-center">3</span>
-            Step 3: หาจุดที่ยังขาด (The Gap)
-          </h3>
+        <div className="bg-white rounded-2xl shadow-sm mx-1">
+          <button onClick={() => toggleStep(3)} className="w-full p-4 md:p-6 pb-0 flex items-center justify-between">
+            <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+              <span className={`w-6 h-6 rounded-full text-white text-[10px] font-bold flex items-center justify-center ${
+                analysis.totalNeed > 0 && analysis.totalHave > 0
+                  ? (analysis.gap <= 0 ? "bg-emerald-500" : "bg-red-500")
+                  : "bg-[#1e3a5f]"
+              }`}>3</span>
+              Step 3: หาจุดที่ยังขาด (The Gap)
+            </h3>
+            <div className="flex items-center gap-2">
+              {!openSteps[3] && <span className={`text-xs font-bold ${analysis.gap <= 0 ? "text-emerald-500" : "text-red-500"}`}>{analysis.gap <= 0 ? "เพียงพอ" : `ขาด ${fmt(analysis.gap)} บาท`}</span>}
+              <ChevronDown size={18} className={`text-gray-400 transition-transform ${openSteps[3] ? "rotate-180" : ""}`} />
+            </div>
+          </button>
+          {openSteps[3] && <div className="p-4 md:p-6 pt-4 space-y-4">
 
           {/* Combined breakdown table */}
           <div className="border border-gray-100 rounded-xl overflow-hidden">
@@ -818,6 +847,7 @@ export default function Pillar1Page() {
               )}
             </div>
           </div>
+        </div>}
         </div>
 
         {/* Save button */}
