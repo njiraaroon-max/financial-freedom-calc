@@ -204,11 +204,7 @@ function PolicySummaryTable({ policies, birthYear }: { policies: InsurancePolicy
                 <tr key={p.id} className={`border-b border-gray-100 ${i % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}>
                   <td className="py-2 px-2 text-center text-gray-500 font-medium">{i + 1}</td>
                   <td className="py-2 px-2 text-gray-700 font-medium">{p.company || "-"}</td>
-                  <td className="py-2 px-2 text-center">
-                    <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold ${cat === "life" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>
-                      {categoryLabel(p)}
-                    </span>
-                  </td>
+                  <td className="py-2 px-2 text-center text-gray-600">{categoryLabel(p)}</td>
                   <td className="py-2 px-2 text-gray-800 font-bold">{p.planName}</td>
                   <td className="py-2 px-2 text-center text-gray-600">{typeLabel(p.policyType)}</td>
                   <td className="py-2 px-2 text-center text-gray-600">{formatDate(p.startDate)}</td>
