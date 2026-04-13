@@ -274,16 +274,19 @@ export interface Pillar1Data {
   // ── B: Dependents & Income Needs ──
   dependents: {
     parents: boolean;               // ดูแลพ่อ/แม่
-    spouse: boolean;                // ดูแลคู่สมรส
+    family: boolean;                // ดูแลครอบครัว
     children: boolean;              // ดูแลบุตร
   };
   parentSupportMonthly: number;     // เงินดูแลพ่อแม่/เดือน
   parentSupportYears: number;       // อีกกี่ปี
-  spouseExpenseMonthly: number;     // ค่าปรับตัวคู่สมรส/เดือน
-  spouseAdjustmentYears: number;    // จำนวนปีปรับตัว
+  familyExpenseMonthlyNew: number;  // ค่าปรับตัวครอบครัว/เดือน
+  familyAdjustmentYearsNew: number; // จำนวนปีปรับตัว
   educationFund: number;            // ทุนการศึกษาบุตร
   useEducationPlan: boolean;        // ดึงจากแผนการศึกษาบุตร
-  incomeItems: { name: string; amount: number }[];  // รายการค่าใช้จ่ายเพิ่มเติม
+  incomeItems: { name: string; monthlyAmount: number; years: number }[];  // รายการค่าใช้จ่ายเพิ่มเติม (ต่อเดือน x ปี)
+  // ── TVM parameters ──
+  inflationRate: number;            // อัตราเงินเฟ้อ (%)
+  investmentReturn: number;         // ผลตอบแทนจากการลงทุน (%)
   // ── Legacy (kept for compat) ──
   familyExpenseMonthly: number;     // ค่าใช้จ่ายครอบครัว/เดือน
   familyAdjustmentYears: number;    // จำนวนปีที่ต้องดูแล
@@ -379,14 +382,17 @@ export const DEFAULT_PILLAR1: Pillar1Data = {
   debtItems: [],
   useBalanceSheetDebts: false,
   // Dependents
-  dependents: { parents: false, spouse: false, children: false },
+  dependents: { parents: false, family: false, children: false },
   parentSupportMonthly: 0,
   parentSupportYears: 10,
-  spouseExpenseMonthly: 0,
-  spouseAdjustmentYears: 5,
+  familyExpenseMonthlyNew: 0,
+  familyAdjustmentYearsNew: 5,
   educationFund: 0,
   useEducationPlan: false,
   incomeItems: [],
+  // TVM
+  inflationRate: 3,
+  investmentReturn: 5,
   // Legacy
   familyExpenseMonthly: 0,
   familyAdjustmentYears: 5,
@@ -618,7 +624,7 @@ export const useInsuranceStore = create<InsuranceState>()(
     }),
     {
       name: "ffc-insurance",
-      version: 11,
+      version: 12,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
         if (version < 2) {
@@ -698,7 +704,6 @@ export const useInsuranceStore = create<InsuranceState>()(
           }
         }
         if (version < 11) {
-          // Add dependents, spouse, incomeItems, useEducationPlan to Pillar1
           const rm = state.riskManagement as RiskManagementData | undefined;
           if (rm && rm.pillar1) {
             const p1 = rm.pillar1 as unknown as Record<string, unknown>;
@@ -707,6 +712,34 @@ export const useInsuranceStore = create<InsuranceState>()(
             if (p1.spouseAdjustmentYears === undefined) p1.spouseAdjustmentYears = 5;
             if (p1.useEducationPlan === undefined) p1.useEducationPlan = false;
             if (p1.incomeItems === undefined) p1.incomeItems = [];
+          }
+        }
+        if (version < 12) {
+          // Rename spouse→family, add TVM params, incomeItems with years
+          const rm = state.riskManagement as RiskManagementData | undefined;
+          if (rm && rm.pillar1) {
+            const p1 = rm.pillar1 as unknown as Record<string, unknown>;
+            // Migrate dependents.spouse → dependents.family
+            const deps = p1.dependents as Record<string, boolean> | undefined;
+            if (deps && deps.family === undefined) {
+              deps.family = deps.spouse || false;
+              delete deps.spouse;
+            }
+            // Migrate spouseExpense → familyExpense
+            if (p1.familyExpenseMonthlyNew === undefined) p1.familyExpenseMonthlyNew = (p1.spouseExpenseMonthly as number) || 0;
+            if (p1.familyAdjustmentYearsNew === undefined) p1.familyAdjustmentYearsNew = (p1.spouseAdjustmentYears as number) || 5;
+            // TVM params
+            if (p1.inflationRate === undefined) p1.inflationRate = 3;
+            if (p1.investmentReturn === undefined) p1.investmentReturn = 5;
+            // Migrate incomeItems to include years
+            const items = p1.incomeItems as { name: string; amount?: number; monthlyAmount?: number; years?: number }[] | undefined;
+            if (items) {
+              p1.incomeItems = items.map((it) => ({
+                name: it.name,
+                monthlyAmount: it.monthlyAmount ?? it.amount ?? 0,
+                years: it.years ?? 1,
+              }));
+            }
           }
         }
         return state;

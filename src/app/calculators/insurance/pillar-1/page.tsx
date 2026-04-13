@@ -30,6 +30,22 @@ function parseNum(s: string): number {
 const BE_OFFSET = 543;
 const CURRENT_YEAR = new Date().getFullYear();
 
+// TVM: Present Value of Annuity adjusted for inflation
+// annualPmt = monthly * 12, n = years
+// realRate = (1 + investReturn) / (1 + inflation) - 1
+// PV = annualPmt * [(1 - (1+r)^(-n)) / r]  (if r ≈ 0 → PV = annualPmt * n)
+function pvAnnuity(monthlyPmt: number, years: number, inflationPct: number, returnPct: number): number {
+  if (years <= 0 || monthlyPmt <= 0) return 0;
+  const annual = monthlyPmt * 12;
+  const r = (1 + returnPct / 100) / (1 + inflationPct / 100) - 1;
+  if (Math.abs(r) < 0.0001) return annual * years; // near-zero real rate
+  return annual * (1 - Math.pow(1 + r, -years)) / r;
+}
+// Simple (no TVM): monthly * 12 * years
+function simpleAnnuity(monthlyPmt: number, years: number): number {
+  return monthlyPmt * 12 * years;
+}
+
 // ─── Money Input Component ────────────────────────────────────────────────────
 function MoneyInput({ label, value, onChange, hint, suffix = "บาท" }: {
   label: string; value: number; onChange: (v: number) => void; hint?: string; suffix?: string;
@@ -139,31 +155,50 @@ export default function Pillar1Page() {
 
   // ─── Calculation ────────────────────────────────────────────────────────
   const analysis = useMemo(() => {
+    const inf = p1.inflationRate ?? 3;
+    const ret = p1.investmentReturn ?? 5;
+
     // Debts
     const debtItemsTotal = (p1.debtItems || []).reduce((s: number, d: { amount: number }) => s + d.amount, 0);
     const debts = debtItemsTotal + (p1.useBalanceSheetDebts ? totalDebtsFromBS : 0);
 
-    // Dependents-based income needs
-    const deps = p1.dependents || { parents: false, spouse: false, children: false };
-    const parentNeeds = deps.parents ? p1.parentSupportMonthly * 12 * p1.parentSupportYears : 0;
-    const spouseNeeds = deps.spouse ? p1.spouseExpenseMonthly * 12 * p1.spouseAdjustmentYears : 0;
-    const eduFund = deps.children ? (p1.useEducationPlan ? totalEducationFromPlan : p1.educationFund) : 0;
-    const customIncomeTotal = (p1.incomeItems || []).reduce((s: number, d: { amount: number }) => s + d.amount, 0);
+    // Dependents-based income needs (both simple & TVM)
+    const deps = p1.dependents || { parents: false, family: false, children: false };
 
-    // Total needs (Needs Analysis Approach)
+    const parentSimple = deps.parents ? simpleAnnuity(p1.parentSupportMonthly, p1.parentSupportYears) : 0;
+    const parentTVM    = deps.parents ? pvAnnuity(p1.parentSupportMonthly, p1.parentSupportYears, inf, ret) : 0;
+
+    const familySimple = deps.family ? simpleAnnuity(p1.familyExpenseMonthlyNew, p1.familyAdjustmentYearsNew) : 0;
+    const familyTVM    = deps.family ? pvAnnuity(p1.familyExpenseMonthlyNew, p1.familyAdjustmentYearsNew, inf, ret) : 0;
+
+    const eduFund = deps.children ? (p1.useEducationPlan ? totalEducationFromPlan : p1.educationFund) : 0;
+
+    // Custom income items (each has monthlyAmount + years)
+    const incItems = (p1.incomeItems || []) as { name: string; monthlyAmount: number; years: number }[];
+    const customSimple = incItems.reduce((s, it) => s + simpleAnnuity(it.monthlyAmount, it.years), 0);
+    const customTVM    = incItems.reduce((s, it) => s + pvAnnuity(it.monthlyAmount, it.years, inf, ret), 0);
+
+    const totalIncomeSimple = parentSimple + familySimple + eduFund + customSimple;
+    const totalIncomeTVM    = parentTVM + familyTVM + eduFund + customTVM;
+
+    // Total needs (Needs Analysis Approach) — use TVM values
     const immediateNeeds = [
       { label: "ค่าพิธีฌาปนกิจ", value: p1.funeralCost },
       { label: "ค่าปิดยอดหนี้สินคงค้าง", value: debts },
     ];
-    const incomeNeeds: { label: string; value: number }[] = [];
-    if (deps.parents) incomeNeeds.push({ label: `เงินดูแลพ่อ/แม่ (${p1.parentSupportYears} ปี)`, value: parentNeeds });
-    if (deps.spouse) incomeNeeds.push({ label: `ค่าปรับตัวคู่สมรส (${p1.spouseAdjustmentYears} ปี)`, value: spouseNeeds });
-    if (deps.children) incomeNeeds.push({ label: "ทุนการศึกษาบุตร", value: eduFund });
-    if (customIncomeTotal > 0) incomeNeeds.push({ label: "ค่าใช้จ่ายเพิ่มเติม", value: customIncomeTotal });
-    const breakdown = [...immediateNeeds, ...incomeNeeds];
-    const totalNeed = breakdown.reduce((s, b) => s + b.value, 0);
+    const incomeNeeds: { label: string; value: number; simple: number }[] = [];
+    if (deps.parents) incomeNeeds.push({ label: `เงินดูแลพ่อ/แม่ (${p1.parentSupportYears} ปี)`, value: parentTVM, simple: parentSimple });
+    if (deps.family) incomeNeeds.push({ label: `ค่าปรับตัวครอบครัว (${p1.familyAdjustmentYearsNew} ปี)`, value: familyTVM, simple: familySimple });
+    if (deps.children) incomeNeeds.push({ label: "ทุนการศึกษาบุตร", value: eduFund, simple: eduFund });
+    incItems.forEach((it) => {
+      if (it.monthlyAmount > 0) {
+        incomeNeeds.push({ label: `${it.name || "รายการเพิ่มเติม"} (${it.years} ปี)`, value: pvAnnuity(it.monthlyAmount, it.years, inf, ret), simple: simpleAnnuity(it.monthlyAmount, it.years) });
+      }
+    });
+    const breakdown = [...immediateNeeds.map((i) => ({ ...i, simple: i.value })), ...incomeNeeds];
     const totalImmediate = immediateNeeds.reduce((s, b) => s + b.value, 0);
-    const totalIncome = incomeNeeds.reduce((s, b) => s + b.value, 0);
+    const totalIncome = totalIncomeTVM;
+    const totalNeed = totalImmediate + totalIncome;
 
     // What we have
     const savings = p1.useBalanceSheetLiquid ? liquidAssetsFromBS + p1.additionalSavings : p1.existingSavings;
@@ -178,7 +213,7 @@ export default function Pillar1Page() {
     const gapPct = totalNeed > 0 ? (gap / totalNeed) * 100 : 0;
     const coveragePct = totalNeed > 0 ? Math.min((totalHave / totalNeed) * 100, 100) : 0;
 
-    return { debts, parentNeeds, spouseNeeds, immediateNeeds, incomeNeeds, breakdown, totalNeed, totalImmediate, totalIncome, haveBreakdown, totalHave, gap, gapPct, coveragePct };
+    return { debts, immediateNeeds, incomeNeeds, breakdown, totalNeed, totalImmediate, totalIncome, totalIncomeSimple, totalIncomeTVM, haveBreakdown, totalHave, gap, gapPct, coveragePct };
   }, [p1, totalDebtsFromBS, totalLifeCoverage, liquidAssetsFromBS, totalEducationFromPlan]);
 
   // ─── Info modal ─────────────────────────────────────────────────────────
@@ -356,29 +391,40 @@ export default function Pillar1Page() {
               <span className="text-[10px] font-bold text-red-700">B. ค่าใช้จ่ายต่อเนื่อง (Income Needs)</span>
             </div>
             <div className="p-3 space-y-4">
+              {/* ── TVM Parameters ── */}
+              <div className="bg-gray-50 rounded-xl p-3 space-y-2 border border-gray-100">
+                <div className="text-[11px] font-bold text-gray-600">สมมติฐาน Time Value of Money</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <NumberInput label="อัตราเงินเฟ้อ" value={p1.inflationRate ?? 3} onChange={(v) => update({ inflationRate: v })} suffix="%" />
+                  <NumberInput label="ผลตอบแทนการลงทุน" value={p1.investmentReturn ?? 5} onChange={(v) => update({ investmentReturn: v })} suffix="%" />
+                </div>
+                <div className="text-[9px] text-gray-400 pl-1">
+                  Real Rate ≈ {(((1 + (p1.investmentReturn ?? 5) / 100) / (1 + (p1.inflationRate ?? 3) / 100) - 1) * 100).toFixed(2)}% ต่อปี
+                </div>
+              </div>
+
               {/* ── Dependents selection ── */}
               <div>
                 <div className="text-xs font-bold text-gray-700 mb-2">บุคคลในความดูแล</div>
                 <div className="flex flex-wrap gap-2">
                   {([
-                    { key: "parents" as const, label: "พ่อ / แม่", icon: "👴" },
-                    { key: "spouse" as const, label: "คู่สมรส", icon: "💑" },
-                    { key: "children" as const, label: "บุตร", icon: "👶" },
+                    { key: "parents" as const, label: "พ่อ / แม่" },
+                    { key: "family" as const, label: "ครอบครัว" },
+                    { key: "children" as const, label: "บุตร" },
                   ]).map((dep) => {
-                    const deps = p1.dependents || { parents: false, spouse: false, children: false };
+                    const deps = p1.dependents || { parents: false, family: false, children: false };
                     const active = deps[dep.key];
                     return (
                       <button
                         key={dep.key}
                         onClick={() => update({ dependents: { ...deps, [dep.key]: !active } })}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
                           active
                             ? "bg-red-50 border-red-300 text-red-700 shadow-sm"
                             : "bg-gray-50 border-gray-200 text-gray-400 hover:border-gray-300"
                         }`}
                       >
-                        <span>{dep.icon}</span>
-                        <span>{dep.label}</span>
+                        {dep.label}
                       </button>
                     );
                   })}
@@ -388,37 +434,43 @@ export default function Pillar1Page() {
               {/* ── Parents section ── */}
               {(p1.dependents || {}).parents && (
                 <div className="bg-orange-50/50 rounded-xl p-3 space-y-2 border border-orange-100">
-                  <div className="text-[11px] font-bold text-orange-700">👴 เงินดูแลพ่อ / แม่</div>
+                  <div className="text-[11px] font-bold text-orange-700">เงินดูแลพ่อ / แม่</div>
                   <div className="grid grid-cols-2 gap-3">
                     <MoneyInput label="รายเดือน" value={p1.parentSupportMonthly} onChange={(v) => update({ parentSupportMonthly: v })} />
                     <NumberInput label="อีกกี่ปี" value={p1.parentSupportYears} onChange={(v) => update({ parentSupportYears: v })} />
                   </div>
-                  <div className="text-[9px] text-orange-500 pl-1">
-                    รวม {fmt(p1.parentSupportMonthly * 12 * p1.parentSupportYears)} บาท ({p1.parentSupportYears} ปี)
-                  </div>
+                  {p1.parentSupportMonthly > 0 && (
+                    <div className="text-[9px] text-orange-500 pl-1 space-y-0.5">
+                      <div>แบบตรง: {fmt(simpleAnnuity(p1.parentSupportMonthly, p1.parentSupportYears))} บาท</div>
+                      <div className="font-bold">TVM: {fmt(pvAnnuity(p1.parentSupportMonthly, p1.parentSupportYears, p1.inflationRate ?? 3, p1.investmentReturn ?? 5))} บาท</div>
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* ── Spouse section ── */}
-              {(p1.dependents || {}).spouse && (
+              {/* ── Family section ── */}
+              {(p1.dependents || {}).family && (
                 <div className="bg-pink-50/50 rounded-xl p-3 space-y-2 border border-pink-100">
-                  <div className="text-[11px] font-bold text-pink-700">💑 ค่าปรับตัวคู่สมรส</div>
+                  <div className="text-[11px] font-bold text-pink-700">ค่าปรับตัวครอบครัว</div>
                   <div className="grid grid-cols-2 gap-3">
-                    <MoneyInput label="รายเดือน" value={p1.spouseExpenseMonthly} onChange={(v) => update({ spouseExpenseMonthly: v })} />
-                    <NumberInput label="อีกกี่ปี" value={p1.spouseAdjustmentYears} onChange={(v) => update({ spouseAdjustmentYears: v })} />
+                    <MoneyInput label="รายเดือน" value={p1.familyExpenseMonthlyNew} onChange={(v) => update({ familyExpenseMonthlyNew: v })} />
+                    <NumberInput label="อีกกี่ปี" value={p1.familyAdjustmentYearsNew} onChange={(v) => update({ familyAdjustmentYearsNew: v })} />
                   </div>
-                  <div className="text-[9px] text-pink-500 pl-1">
-                    รวม {fmt(p1.spouseExpenseMonthly * 12 * p1.spouseAdjustmentYears)} บาท ({p1.spouseAdjustmentYears} ปี)
-                  </div>
+                  {p1.familyExpenseMonthlyNew > 0 && (
+                    <div className="text-[9px] text-pink-500 pl-1 space-y-0.5">
+                      <div>แบบตรง: {fmt(simpleAnnuity(p1.familyExpenseMonthlyNew, p1.familyAdjustmentYearsNew))} บาท</div>
+                      <div className="font-bold">TVM: {fmt(pvAnnuity(p1.familyExpenseMonthlyNew, p1.familyAdjustmentYearsNew, p1.inflationRate ?? 3, p1.investmentReturn ?? 5))} บาท</div>
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* ── Children / Education section ── */}
               {(p1.dependents || {}).children && (
                 <div className="bg-blue-50/50 rounded-xl p-3 space-y-2 border border-blue-100">
-                  <div className="text-[11px] font-bold text-blue-700">👶 ทุนการศึกษาบุตร</div>
+                  <div className="text-[11px] font-bold text-blue-700">ทุนการศึกษาบุตร</div>
                   {!p1.useEducationPlan && (
-                    <MoneyInput label="" value={p1.educationFund} onChange={(v) => update({ educationFund: v })} hint="รวมค่าเรียนจนจบ ของทุกคน" />
+                    <MoneyInput label="" value={p1.educationFund} onChange={(v) => update({ educationFund: v })} hint="รวมค่าเรียนจนจบ ของทุกคน (เงินก้อน)" />
                   )}
                   {p1.useEducationPlan && (
                     <div className="text-[10px] text-blue-600 bg-blue-100/60 rounded-lg px-3 py-2 font-bold">
@@ -442,52 +494,76 @@ export default function Pillar1Page() {
                 </div>
               )}
 
-              {/* ── Custom income items ── */}
+              {/* ── Custom income items (with years) ── */}
               <div className="space-y-2">
                 <div className="text-xs font-bold text-gray-700">ค่าใช้จ่ายเพิ่มเติม</div>
-                {(p1.incomeItems || []).map((item: { name: string; amount: number }, idx: number) => (
-                  <div key={idx} className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      className="flex-1 min-w-0 text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      placeholder="ชื่อรายการ"
-                      value={item.name}
-                      onChange={(e) => {
-                        const items = [...(p1.incomeItems || [])];
-                        items[idx] = { ...items[idx], name: e.target.value };
-                        update({ incomeItems: items });
-                      }}
-                    />
-                    <div className="relative flex items-center">
+                {(p1.incomeItems || []).map((item: { name: string; monthlyAmount: number; years: number }, idx: number) => (
+                  <div key={idx} className="space-y-1">
+                    <div className="flex items-center gap-2">
                       <input
                         type="text"
-                        inputMode="numeric"
-                        className="w-36 text-sm text-right font-bold bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 pr-9 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        value={item.amount === 0 ? "" : item.amount.toLocaleString()}
+                        className="flex-1 min-w-0 text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        placeholder="ชื่อรายการ"
+                        value={item.name}
                         onChange={(e) => {
                           const items = [...(p1.incomeItems || [])];
-                          items[idx] = { ...items[idx], amount: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 };
+                          items[idx] = { ...items[idx], name: e.target.value };
                           update({ incomeItems: items });
                         }}
-                        placeholder="0"
                       />
-                      <span className="absolute right-2.5 text-[10px] text-gray-400">บาท</span>
+                      <div className="relative flex items-center">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          className="w-28 text-sm text-right font-bold bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 pr-9 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                          value={item.monthlyAmount === 0 ? "" : item.monthlyAmount.toLocaleString()}
+                          onChange={(e) => {
+                            const items = [...(p1.incomeItems || [])];
+                            items[idx] = { ...items[idx], monthlyAmount: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 };
+                            update({ incomeItems: items });
+                          }}
+                          placeholder="0"
+                        />
+                        <span className="absolute right-2 text-[9px] text-gray-400">/ด.</span>
+                      </div>
+                      <div className="relative flex items-center">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          className="w-16 text-sm text-right font-bold bg-gray-50 border border-gray-200 rounded-xl px-2 py-2 pr-7 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                          value={item.years === 0 ? "" : item.years}
+                          onChange={(e) => {
+                            const items = [...(p1.incomeItems || [])];
+                            items[idx] = { ...items[idx], years: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 };
+                            update({ incomeItems: items });
+                          }}
+                          placeholder="0"
+                        />
+                        <span className="absolute right-2 text-[9px] text-gray-400">ปี</span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const items = [...(p1.incomeItems || [])];
+                          items.splice(idx, 1);
+                          update({ incomeItems: items });
+                        }}
+                        className="text-gray-300 hover:text-red-400 transition-colors shrink-0"
+                      >
+                        <X size={16} />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => {
-                        const items = [...(p1.incomeItems || [])];
-                        items.splice(idx, 1);
-                        update({ incomeItems: items });
-                      }}
-                      className="text-gray-300 hover:text-red-400 transition-colors shrink-0"
-                    >
-                      <X size={16} />
-                    </button>
+                    {item.monthlyAmount > 0 && item.years > 0 && (
+                      <div className="text-[9px] text-gray-400 pl-1">
+                        TVM: {fmt(pvAnnuity(item.monthlyAmount, item.years, p1.inflationRate ?? 3, p1.investmentReturn ?? 5))} บาท
+                        <span className="text-gray-300 mx-1">|</span>
+                        ตรง: {fmt(simpleAnnuity(item.monthlyAmount, item.years))} บาท
+                      </div>
+                    )}
                   </div>
                 ))}
                 <button
                   onClick={() => {
-                    const items = [...(p1.incomeItems || []), { name: "", amount: 0 }];
+                    const items = [...(p1.incomeItems || []), { name: "", monthlyAmount: 0, years: 1 }];
                     update({ incomeItems: items });
                   }}
                   className="text-[11px] text-blue-600 font-bold hover:underline flex items-center gap-1"
@@ -496,9 +572,18 @@ export default function Pillar1Page() {
                 </button>
               </div>
             </div>
-            <div className="bg-red-50 px-3 py-2 border-t border-red-100 flex items-center justify-between">
-              <span className="text-[10px] font-bold text-red-700">รวมค่าใช้จ่ายต่อเนื่อง</span>
-              <span className="text-xs font-extrabold text-red-600">{fmt(analysis.totalIncome)} บาท</span>
+            {/* Footer: show both simple and TVM totals */}
+            <div className="bg-red-50 px-3 py-2 border-t border-red-100">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-red-700">รวมค่าใช้จ่ายต่อเนื่อง (TVM)</span>
+                <span className="text-xs font-extrabold text-red-600">{fmt(analysis.totalIncome)} บาท</span>
+              </div>
+              {analysis.totalIncomeSimple !== analysis.totalIncomeTVM && (
+                <div className="flex items-center justify-between mt-0.5">
+                  <span className="text-[9px] text-red-400">แบบไม่คิด TVM (คูณตรง)</span>
+                  <span className="text-[10px] text-red-400">{fmt(analysis.totalIncomeSimple)} บาท</span>
+                </div>
+              )}
             </div>
           </div>
 
