@@ -362,7 +362,8 @@ export default function Pillar2Page() {
   }, [p2.premiumBrackets, p2.postRetireReturn, currentAge, retireAge]);
 
   // ─── UI States ────────────────────────────────────────────────────────
-  const [openSteps, setOpenSteps] = useState<Record<number, boolean>>({ 1: true, 2: true, 3: true });
+  const [openSteps, setOpenSteps] = useState<Record<number, boolean>>({ 1: false, 2: false, 3: false });
+  const [openPremium, setOpenPremium] = useState(false);
   const toggleStep = (n: number) => setOpenSteps((prev) => ({ ...prev, [n]: !prev[n] }));
   const [showInfoKey, setShowInfoKey] = useState<string | null>(null);
   const [inflationMode, setInflationMode] = useState<"summary" | "full">("summary");
@@ -1007,11 +1008,18 @@ export default function Pillar2Page() {
         </div>
 
         {/* ═══ PREMIUM PROJECTION & NPV ═══ */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
-          <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-            <TrendingUp size={16} className="text-teal-600" />
-            เบี้ยประกันสุขภาพ — เตรียมเงินสำหรับวัยเกษียณ
-          </h3>
+        <div className="bg-white rounded-2xl shadow-sm mx-1">
+          <button onClick={() => setOpenPremium(!openPremium)} className="w-full p-4 md:p-6 flex items-center justify-between">
+            <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+              <TrendingUp size={16} className="text-teal-600" />
+              เบี้ยประกันสุขภาพ — เตรียมเงินสำหรับวัยเกษียณ
+            </h3>
+            <div className="flex items-center gap-2">
+              {!openPremium && <span className="text-xs font-bold text-teal-600">ดูรายละเอียด</span>}
+              <ChevronDown size={18} className={`text-gray-400 transition-transform ${openPremium ? "rotate-180" : ""}`} />
+            </div>
+          </button>
+          {openPremium && <div className="px-4 md:px-6 pb-4 md:pb-6 space-y-4">
           <p className="text-[10px] text-gray-500 leading-relaxed">
             เบี้ยประกันสุขภาพปรับตามอายุ ยิ่งอายุมากยิ่งแพง — ใส่ประมาณการเบี้ยตามช่วงอายุเพื่อคำนวณเงินที่ต้องเตรียมหลังเกษียณ
           </p>
@@ -1221,6 +1229,7 @@ export default function Pillar2Page() {
               </details>
             </div>
           )}
+          </div>}
         </div>
 
         {/* Save button */}
