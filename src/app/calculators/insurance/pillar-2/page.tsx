@@ -907,71 +907,64 @@ export default function Pillar2Page() {
           </button>
           {openSteps[3] && <div className="p-4 md:p-6 pt-4 space-y-4">
 
+          {/* Color banner header */}
+          <div className="grid grid-cols-3 gap-1 rounded-xl overflow-hidden">
+            <div className="bg-red-700 text-white text-[11px] font-bold text-center py-2.5">มูลค่าความคุ้มครองที่ควรมี</div>
+            <div className="bg-green-700 text-white text-[11px] font-bold text-center py-2.5">มูลค่าความคุ้มครองที่มีอยู่แล้ว</div>
+            <div className="bg-blue-800 text-white text-[11px] font-bold text-center py-2.5">ส่วนต่าง</div>
+          </div>
+
           {/* Gap summary table */}
-          {(() => {
-            const catGroups: { title: string; color: string; keys: CatKey[] }[] = [
-              { title: "เจ็บป่วย", color: "bg-blue-700", keys: ["roomRate", "ipd", "criticalTreatment", "ciLumpSum"] },
-              { title: "ทั่วไป", color: "bg-teal-600", keys: ["opd", "accident"] },
-            ];
-            const catMap = Object.fromEntries(categories.map((c) => [c.key, c]));
-            return (
-              <div className="rounded-xl overflow-hidden border border-gray-200">
-                <table className="w-full text-[10px]">
-                  <thead>
-                    <tr className="bg-gray-700 text-white text-[9px]">
-                      <th className="py-2 px-2 text-left font-semibold w-[60px]"></th>
-                      <th className="py-2 px-2 text-left font-semibold">ประเภท</th>
-                      <th className="py-2 px-2 text-right font-semibold">ต้องการ</th>
-                      <th className="py-2 px-2 text-right font-semibold">สวัสดิการ<br/>ที่ทำงาน</th>
-                      <th className="py-2 px-2 text-right font-semibold">ประกัน<br/>ที่ทำไว้เอง</th>
-                      <th className="py-2 px-2 text-center font-semibold">สถานะ</th>
-                      <th className="py-2 px-2 text-right font-semibold">ส่วนต่าง</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {catGroups.map((grp) => (
-                      grp.keys.map((key, idx) => {
-                        const cat = catMap[key];
-                        const g = analysis.gap[key];
-                        const isOk = g <= 0;
-                        return (
-                          <tr key={key} className="border-t border-gray-100">
-                            {idx === 0 && (
-                              <td rowSpan={grp.keys.length} className={`${grp.color} text-white text-[11px] font-bold text-center align-middle px-1`}>
-                                <span className="writing-mode-vertical" style={{ writingMode: "vertical-rl", textOrientation: "mixed", letterSpacing: "0.1em" }}>
-                                  {grp.title}
-                                </span>
-                              </td>
-                            )}
-                            <td className="py-2.5 px-2 text-gray-700 font-medium">{cat.labelShort}</td>
-                            <td className="py-2.5 px-2 text-right font-bold text-gray-700">{fmt(analysis.need[key])}</td>
-                            <td className="py-2.5 px-2 text-right text-gray-500">{fmt(analysis.employer[key])}</td>
-                            <td className="py-2.5 px-2 text-right text-gray-500">{fmt(analysis.personal[key])}</td>
-                            <td className="py-2.5 px-2 text-center">
-                              <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isOk ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
-                                {isOk ? "พอ" : "ขาด"}
-                              </span>
-                            </td>
-                            <td className={`py-2.5 px-2 text-right font-bold text-[11px] ${isOk ? "text-emerald-600" : "text-red-600"}`}>
-                              {isOk ? `+${fmt(Math.abs(g))}` : `-${fmt(g)}`}
-                            </td>
-                          </tr>
-                        );
-                      })
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr className={`${analysis.adequateCount >= 5 ? "bg-emerald-50" : "bg-red-50"} border-t-2 ${analysis.adequateCount >= 5 ? "border-emerald-300" : "border-red-300"}`}>
-                      <td colSpan={5} className="py-2.5 px-3 text-xs font-bold text-gray-700">ผลประเมิน</td>
-                      <td colSpan={2} className={`py-2.5 px-2 text-right text-xs font-bold ${analysis.adequateCount >= 5 ? "text-emerald-600" : "text-red-600"}`}>
-                        ผ่าน {analysis.adequateCount}/6 หมวด
+          <div className="rounded-xl overflow-hidden border border-gray-200 -mt-1">
+            <table className="w-full text-[10px]">
+              <thead>
+                <tr className="text-[8px] font-bold uppercase tracking-wider">
+                  <th className="py-1.5 px-2 bg-gray-100 text-gray-500 text-left w-[50px]"></th>
+                  <th className="py-1.5 px-2 bg-gray-100 text-gray-500 text-left">ประเภท</th>
+                  <th className="py-1.5 px-2 bg-red-50 text-red-400 text-right">ต้องการ</th>
+                  <th className="py-1.5 px-2 bg-green-50 text-green-500 text-right">สวัสดิการ</th>
+                  <th className="py-1.5 px-2 bg-green-50 text-green-500 text-right">ประกันตัวเอง</th>
+                  <th className="py-1.5 px-2 bg-blue-50 text-blue-400 text-center">สถานะ</th>
+                  <th className="py-1.5 px-2 bg-blue-50 text-blue-400 text-right">ส่วนต่าง</th>
+                </tr>
+              </thead>
+              <tbody>
+                {categories.map((cat, idx) => {
+                  const g = analysis.gap[cat.key];
+                  const isOk = g <= 0;
+                  return (
+                    <tr key={cat.key} className="border-t border-gray-100">
+                      {idx === 0 && (
+                        <td rowSpan={6} className="bg-blue-700 text-white text-[11px] font-bold text-center align-middle w-[50px]">
+                          เจ็บป่วย
+                        </td>
+                      )}
+                      <td className="py-2.5 px-2 text-gray-700 font-medium bg-white">{cat.labelShort}</td>
+                      <td className="py-2.5 px-2 text-right font-bold text-gray-700 bg-red-50/50">{fmt(analysis.need[cat.key])}</td>
+                      <td className="py-2.5 px-2 text-right text-gray-600 bg-green-50/50">{fmt(analysis.employer[cat.key])}</td>
+                      <td className="py-2.5 px-2 text-right text-gray-600 bg-green-50/50">{fmt(analysis.personal[cat.key])}</td>
+                      <td className="py-2.5 px-2 text-center bg-blue-50/30">
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isOk ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
+                          {isOk ? "พอ" : "ขาด"}
+                        </span>
+                      </td>
+                      <td className={`py-2.5 px-2 text-right font-bold text-[11px] bg-blue-50/30 ${isOk ? "text-emerald-600" : "text-red-600"}`}>
+                        {isOk ? `+${fmt(Math.abs(g))}` : `-${fmt(g)}`}
                       </td>
                     </tr>
-                  </tfoot>
-                </table>
-              </div>
-            );
-          })()}
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr className={`border-t-2 ${analysis.adequateCount >= 5 ? "bg-emerald-50 border-emerald-300" : "bg-red-50 border-red-300"}`}>
+                  <td colSpan={5} className="py-2.5 px-3 text-xs font-bold text-gray-700">ผลประเมิน</td>
+                  <td colSpan={2} className={`py-2.5 px-2 text-right text-xs font-bold ${analysis.adequateCount >= 5 ? "text-emerald-600" : "text-red-600"}`}>
+                    ผ่าน {analysis.adequateCount}/6 หมวด
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
 
           {/* Action if gap exists */}
           {analysis.adequateCount < 6 && (
