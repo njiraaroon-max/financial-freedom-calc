@@ -234,7 +234,7 @@ export default function Pillar1Page() {
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
       <PageHeader
-        title="ปกป้องรายได้ & ชีวิต"
+        title="สร้างหลักประกันให้คนที่รัก"
         subtitle="Pillar 1 — Income Protection"
         characterImg="/circle-icons/risk-management.png"
         backHref="/calculators/insurance"
@@ -246,15 +246,15 @@ export default function Pillar1Page() {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Shield size={20} />
-              <span className="text-sm font-bold">ถ้าวันนี้เราไม่อยู่...ใครเดือดร้อน?</span>
+              <span className="text-sm font-bold">ใครบอกว่าคนตายไม่ได้เอาอะไรไป...</span>
             </div>
             <button onClick={() => setShowInfo(true)} className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition shrink-0">
               <Info size={16} />
             </button>
           </div>
           <p className="text-[11px] opacity-80 leading-relaxed">
-            คำนวณทุนประกันชีวิตที่เหมาะสมด้วย Needs Analysis Approach
-            เพื่อให้มั่นใจว่าคนที่รักจะดำรงชีวิตต่อไปได้
+            แล้วรายได้ที่ครอบครัวเคยได้รับ ใครจะดูแลต่อ? มาคำนวณความสามารถของเราให้เป็นมูลค่า
+            เพื่อให้ครอบครัวใช้ชีวิตต่อได้แบบไร้รอยต่อ ในวันที่เราไม่อยู่
           </p>
         </div>
 
