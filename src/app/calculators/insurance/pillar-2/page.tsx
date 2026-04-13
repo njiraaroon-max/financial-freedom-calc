@@ -707,55 +707,52 @@ export default function Pillar2Page() {
             </div>
           </div>
 
-          {/* Gold Card info */}
+          {/* Gold Card (i) info */}
           {p2.governmentScheme === "gold_card" && (
-            <details className="bg-blue-50 rounded-xl border border-blue-200 overflow-hidden">
-              <summary className="px-3 py-2.5 cursor-pointer flex items-center justify-between hover:bg-blue-100/50 transition">
-                <span className="text-[11px] font-bold text-blue-700">💳 สิทธิบัตรทอง (30 บาท) — ครอบคลุมอะไรบ้าง?</span>
-                <ChevronDown size={14} className="text-blue-400" />
+            <details className="group">
+              <summary className="inline-flex items-center gap-1 cursor-pointer text-[10px] text-gray-400 hover:text-blue-500 transition list-none [&::-webkit-details-marker]:hidden">
+                <span className="w-4 h-4 rounded-full border border-gray-300 group-open:border-blue-400 group-open:bg-blue-50 flex items-center justify-center text-[9px] font-bold text-gray-400 group-open:text-blue-500">i</span>
+                <span className="group-open:text-blue-500">สิทธิบัตรทอง 30 บาท ครอบคลุมอะไรบ้าง?</span>
               </summary>
-              <div className="px-3 pb-3 text-[10px] text-blue-800 leading-relaxed space-y-1.5">
-                <div className="font-bold text-blue-700 mt-1">สิทธิประโยชน์หลัก:</div>
-                <div>• ผู้ป่วยนอก (OPD): รักษาได้ไม่จำกัดครั้ง ที่หน่วยบริการปฐมภูมิ</div>
-                <div>• ผู้ป่วยใน (IPD): นอน รพ. ได้ตามความจำเป็น (ห้องรวม)</div>
-                <div>• ค่ายาและเวชภัณฑ์ตามบัญชียาหลักแห่งชาติ</div>
-                <div>• ผ่าตัดรวมถึงผ่าตัดใหญ่ ตามข้อบ่งชี้ทางการแพทย์</div>
+              <div className="mt-1.5 ml-5 p-2.5 bg-gray-50 rounded-lg text-[10px] text-gray-600 leading-relaxed space-y-1">
+                <div className="font-bold text-gray-700">สิทธิประโยชน์หลัก:</div>
+                <div>• OPD: รักษาได้ไม่จำกัดครั้ง ที่หน่วยบริการปฐมภูมิ</div>
+                <div>• IPD: นอน รพ. ได้ตามความจำเป็น (ห้องรวม)</div>
+                <div>• ค่ายาตามบัญชียาหลักแห่งชาติ</div>
+                <div>• ผ่าตัดใหญ่ ตามข้อบ่งชี้ทางการแพทย์</div>
                 <div>• โรคร้ายแรง: เคมีบำบัด, ฉายแสง, ฟอกไต (ตามเกณฑ์)</div>
                 <div>• ทันตกรรม: ถอนฟัน, อุดฟัน, ขูดหินปูน, ฟันเทียม</div>
-                <div>• คลอดบุตร: ไม่เกิน 2 ครั้ง (คลอดธรรมชาติ/ผ่าตัด)</div>
-                <div className="font-bold text-red-600 mt-1.5">ข้อจำกัดสำคัญ:</div>
+                <div>• คลอดบุตร: ไม่เกิน 2 ครั้ง</div>
+                <div className="font-bold text-red-500 mt-1">ข้อจำกัด:</div>
                 <div>• ต้องรักษาที่หน่วยบริการที่ลงทะเบียนเท่านั้น</div>
-                <div>• ส่งต่อเป็นลำดับขั้น (ปฐมภูมิ → ทุติยภูมิ → ตติยภูมิ)</div>
-                <div>• ไม่ครอบคลุม รพ.เอกชน (ยกเว้นกรณีฉุกเฉิน 72 ชม.)</div>
-                <div>• ห้องพักเป็นห้องรวมเท่านั้น, อาจต้องรอคิวนาน</div>
+                <div>• ไม่ครอบคลุม รพ.เอกชน (ยกเว้นฉุกเฉิน 72 ชม.)</div>
+                <div>• ห้องรวมเท่านั้น, อาจต้องรอคิว</div>
                 <div>• ยานอกบัญชียาหลักต้องจ่ายเอง</div>
               </div>
             </details>
           )}
 
-          {/* Government Officer info */}
+          {/* Government Officer (i) info */}
           {p2.governmentScheme === "government_officer" && (
-            <details className="bg-purple-50 rounded-xl border border-purple-200 overflow-hidden">
-              <summary className="px-3 py-2.5 cursor-pointer flex items-center justify-between hover:bg-purple-100/50 transition">
-                <span className="text-[11px] font-bold text-purple-700">🏛️ สิทธิข้าราชการ — ครอบคลุมอะไรบ้าง?</span>
-                <ChevronDown size={14} className="text-purple-400" />
+            <details className="group">
+              <summary className="inline-flex items-center gap-1 cursor-pointer text-[10px] text-gray-400 hover:text-purple-500 transition list-none [&::-webkit-details-marker]:hidden">
+                <span className="w-4 h-4 rounded-full border border-gray-300 group-open:border-purple-400 group-open:bg-purple-50 flex items-center justify-center text-[9px] font-bold text-gray-400 group-open:text-purple-500">i</span>
+                <span className="group-open:text-purple-500">สิทธิข้าราชการ ครอบคลุมอะไรบ้าง?</span>
               </summary>
-              <div className="px-3 pb-3 text-[10px] text-purple-800 leading-relaxed space-y-1.5">
-                <div className="font-bold text-purple-700 mt-1">สิทธิประโยชน์หลัก (เบิกจ่ายตรง):</div>
-                <div>• ค่าห้อง: ห้องพิเศษ ไม่เกิน 1,500 บาท/วัน (ห้อง ICU ไม่เกิน 4,500 บาท/วัน)</div>
-                <div>• ค่าอาหาร: ไม่เกิน 200 บาท/วัน (ห้องพิเศษ 400 บาท/วัน)</div>
-                <div>• ค่ารักษาพยาบาล: เบิกได้ตามจริง ตามอัตราที่กรมบัญชีกลางกำหนด</div>
-                <div>• ค่ายาและเวชภัณฑ์: เบิกได้ตามบัญชียา (ยานอกบัญชีเบิกได้บางรายการ)</div>
-                <div>• ผ่าตัด: เบิกได้ตามอัตรากำหนด</div>
+              <div className="mt-1.5 ml-5 p-2.5 bg-gray-50 rounded-lg text-[10px] text-gray-600 leading-relaxed space-y-1">
+                <div className="font-bold text-gray-700">สิทธิประโยชน์หลัก (เบิกจ่ายตรง):</div>
+                <div>• ค่าห้อง: ห้องพิเศษ ไม่เกิน 1,500 บ./วัน (ICU 4,500 บ./วัน)</div>
+                <div>• ค่าอาหาร: ไม่เกิน 200 บ./วัน (ห้องพิเศษ 400 บ./วัน)</div>
+                <div>• ค่ารักษา: เบิกได้ตามจริง ตามอัตรากรมบัญชีกลาง</div>
+                <div>• ค่ายา: เบิกได้ตามบัญชียา (ยานอกบัญชีเบิกได้บางรายการ)</div>
                 <div>• เบิกให้ครอบครัวได้: บิดา-มารดา, คู่สมรส, บุตร (ไม่เกิน 3 คน)</div>
-                <div className="font-bold text-purple-700 mt-1.5">ผู้ป่วยนอก (OPD):</div>
-                <div>• ค่ายาผู้ป่วยนอก: เบิกได้ตามจริง (ตามบัญชียา)</div>
-                <div>• ค่าตรวจ/วินิจฉัย: เบิกได้ตามอัตรากรมบัญชีกลาง</div>
-                <div className="font-bold text-red-600 mt-1.5">ข้อจำกัดสำคัญ:</div>
-                <div>• อัตราค่าห้องต่ำกว่าค่าจริงของ รพ.เอกชน → ต้องจ่ายส่วนต่างเอง</div>
+                <div className="font-bold text-gray-700 mt-1">OPD:</div>
+                <div>• ค่ายา/ค่าตรวจผู้ป่วยนอก: เบิกได้ตามจริง (ตามบัญชียา)</div>
+                <div className="font-bold text-red-500 mt-1">ข้อจำกัด:</div>
+                <div>• อัตราค่าห้องต่ำกว่า รพ.เอกชน → ต้องจ่ายส่วนต่างเอง</div>
                 <div>• ค่ารักษา รพ.เอกชน มักเกินเกณฑ์กรมบัญชีกลาง</div>
-                <div>• ยาใหม่/ยา Targeted Therapy บางตัวเบิกไม่ได้</div>
-                <div>• หลังเกษียณ: ยังคงใช้สิทธิได้ แต่สิทธิครอบครัวอาจเปลี่ยน</div>
+                <div>• ยาใหม่/Targeted Therapy บางตัวเบิกไม่ได้</div>
+                <div>• หลังเกษียณ: ยังใช้สิทธิได้ แต่สิทธิครอบครัวอาจเปลี่ยน</div>
               </div>
             </details>
           )}
@@ -771,33 +768,28 @@ export default function Pillar2Page() {
             <span className="text-xs text-gray-700 font-medium">มีประกันสังคม (มาตรา 33/39)</span>
           </label>
 
-          {/* Social Security info */}
+          {/* Social Security (i) info */}
           {p2.hasSocialSecurity && (
-            <details className="bg-teal-50 rounded-xl border border-teal-200 overflow-hidden">
-              <summary className="px-3 py-2.5 cursor-pointer flex items-center justify-between hover:bg-teal-100/50 transition">
-                <span className="text-[11px] font-bold text-teal-700">สิทธิประกันสังคม ม.33/39 — ครอบคลุมอะไรบ้าง?</span>
-                <ChevronDown size={14} className="text-teal-400" />
+            <details className="group">
+              <summary className="inline-flex items-center gap-1 cursor-pointer text-[10px] text-gray-400 hover:text-teal-500 transition list-none [&::-webkit-details-marker]:hidden">
+                <span className="w-4 h-4 rounded-full border border-gray-300 group-open:border-teal-400 group-open:bg-teal-50 flex items-center justify-center text-[9px] font-bold text-gray-400 group-open:text-teal-500">i</span>
+                <span className="group-open:text-teal-500">ประกันสังคม ม.33/39 ครอบคลุมอะไรบ้าง?</span>
               </summary>
-              <div className="px-3 pb-3 text-[10px] text-teal-800 leading-relaxed space-y-1.5">
-                <div className="font-bold text-teal-700 mt-1">กรณีเจ็บป่วย/ประสบอันตราย:</div>
-                <div>• ผู้ป่วยนอก (OPD): รักษาฟรีที่ รพ.ตามสิทธิ ไม่จำกัดครั้ง</div>
-                <div>• ผู้ป่วยใน (IPD): นอน รพ.ตามสิทธิ ไม่เสียค่าใช้จ่าย</div>
-                <div>• ค่าห้อง: สิทธิ รพ.ตามบัตร (ห้องรวม), ถ้าเข้า รพ.อื่น เบิก 700 บ./วัน ไม่เกิน 7 วัน</div>
-                <div>• ค่ารักษา รพ.อื่น (กรณีฉุกเฉิน): เบิกได้ไม่เกิน 72 ชม. ตามเกณฑ์ UCEP</div>
-                <div className="font-bold text-teal-700 mt-1.5">กรณีทันตกรรม:</div>
-                <div>• เบิกได้ไม่เกิน 900 บาท/ปี (ถอนฟัน, อุดฟัน, ขูดหินปูน, ฟันเทียม)</div>
-                <div className="font-bold text-teal-700 mt-1.5">กรณีคลอดบุตร:</div>
-                <div>• เหมาจ่าย 15,000 บาท (คลอดธรรมชาติ/ผ่าตัด)</div>
-                <div>• เงินสงเคราะห์บุตร 800 บาท/เดือน/คน (ไม่เกิน 3 คน, ถึงอายุ 6 ปี)</div>
-                <div className="font-bold text-teal-700 mt-1.5">กรณีทุพพลภาพ:</div>
-                <div>• เงินทดแทน 70% ของค่าจ้าง (สูงสุด 15,000 บ.) ตลอดชีวิต</div>
-                <div className="font-bold text-teal-700 mt-1.5">กรณีเสียชีวิต:</div>
-                <div>• ค่าทำศพ 50,000 บาท</div>
-                <div>• เงินสงเคราะห์กรณีตาย: 2 เท่าของค่าจ้างเฉลี่ย (ส่งเกิน 10 ปี = 6 เท่า)</div>
-                <div className="font-bold text-red-600 mt-1.5">ข้อจำกัดสำคัญ:</div>
+              <div className="mt-1.5 ml-5 p-2.5 bg-gray-50 rounded-lg text-[10px] text-gray-600 leading-relaxed space-y-1">
+                <div className="font-bold text-gray-700">กรณีเจ็บป่วย:</div>
+                <div>• OPD: รักษาฟรีที่ รพ.ตามสิทธิ ไม่จำกัดครั้ง</div>
+                <div>• IPD: นอน รพ.ตามสิทธิ ไม่เสียค่าใช้จ่าย</div>
+                <div>• ค่าห้อง: รพ.ตามบัตร (ห้องรวม), รพ.อื่น เบิก 700 บ./วัน ไม่เกิน 7 วัน</div>
+                <div>• ฉุกเฉิน: เบิกได้ไม่เกิน 72 ชม. ตามเกณฑ์ UCEP</div>
+                <div className="font-bold text-gray-700 mt-1">สิทธิอื่นๆ:</div>
+                <div>• ทันตกรรม: ไม่เกิน 900 บ./ปี</div>
+                <div>• คลอดบุตร: เหมาจ่าย 15,000 บ. + สงเคราะห์บุตร 800 บ./เดือน/คน</div>
+                <div>• ทุพพลภาพ: เงินทดแทน 70% ของค่าจ้าง ตลอดชีวิต</div>
+                <div>• เสียชีวิต: ค่าทำศพ 50,000 บ. + เงินสงเคราะห์ 2-6 เท่าของค่าจ้าง</div>
+                <div className="font-bold text-red-500 mt-1">ข้อจำกัด:</div>
                 <div>• ต้องรักษาที่ รพ.ตามสิทธิ (ยกเว้นฉุกเฉิน)</div>
-                <div>• ม.39 (ผู้ประกันตนโดยสมัครใจ): สิทธิเท่า ม.33 แต่ฐานเงินสมทบ 4,800 บ.</div>
-                <div>• หลังเกษียณ: ถ้าไม่ส่งเงินสมทบต่อ → สิทธิหมด (ต้องใช้สิทธิบัตรทองแทน)</div>
+                <div>• ม.39: สิทธิเท่า ม.33 แต่ฐานเงินสมทบ 4,800 บ.</div>
+                <div>• หลังเกษียณ: ไม่ส่งสมทบต่อ → สิทธิหมด (ใช้บัตรทองแทน)</div>
               </div>
             </details>
           )}
@@ -915,73 +907,89 @@ export default function Pillar2Page() {
           </button>
           {openSteps[3] && <div className="p-4 md:p-6 pt-4 space-y-4">
 
-          {/* Gap summary table */}
-          <div className="border border-gray-100 rounded-xl overflow-hidden">
-            {/* Header */}
-            <div className="grid grid-cols-12 gap-1 px-3 py-2 bg-gray-50 text-[8px] font-bold text-gray-500 uppercase">
-              <div className="col-span-3">ประเภท</div>
-              <div className="col-span-2 text-right">ต้องการ</div>
-              <div className="col-span-2 text-right">สวัสดิการ</div>
-              <div className="col-span-2 text-right">ประกันส่วนตัว</div>
-              <div className="col-span-1 text-center">สถานะ</div>
-              <div className="col-span-2 text-right">ส่วนต่าง</div>
-            </div>
+          {/* Gap summary table — grouped */}
+          {(() => {
+            const catGroups: { title: string; icon: string; keys: CatKey[] }[] = [
+              { title: "ผู้ป่วยใน (IPD)", icon: "🏥", keys: ["roomRate", "ipd"] },
+              { title: "โรคร้ายแรง / CI", icon: "🩺", keys: ["criticalTreatment", "ciLumpSum"] },
+              { title: "ผู้ป่วยนอก & อุบัติเหตุ", icon: "🚶", keys: ["opd", "accident"] },
+            ];
+            const catMap = Object.fromEntries(categories.map((c) => [c.key, c]));
+            return (
+              <div className="space-y-3">
+                {catGroups.map((grp) => {
+                  const grpAdequate = grp.keys.filter((k) => analysis.gap[k] <= 0).length;
+                  const allOk = grpAdequate === grp.keys.length;
+                  return (
+                    <div key={grp.title} className="border border-gray-100 rounded-xl overflow-hidden">
+                      {/* Group header */}
+                      <div className={`flex items-center justify-between px-3 py-2 ${allOk ? "bg-emerald-50" : "bg-red-50"}`}>
+                        <span className="text-[11px] font-bold text-gray-700 flex items-center gap-1.5">
+                          <span>{grp.icon}</span> {grp.title}
+                        </span>
+                        <span className={`text-[9px] font-bold ${allOk ? "text-emerald-600" : "text-red-600"}`}>
+                          {allOk ? "✓ เพียงพอ" : `ขาด ${grp.keys.length - grpAdequate} รายการ`}
+                        </span>
+                      </div>
+                      {/* Column header */}
+                      <div className="grid grid-cols-12 gap-1 px-3 py-1.5 bg-gray-50 text-[7px] font-bold text-gray-400 uppercase tracking-wider">
+                        <div className="col-span-3">รายการ</div>
+                        <div className="col-span-2 text-right">ต้องการ</div>
+                        <div className="col-span-2 text-right">สวัสดิการ</div>
+                        <div className="col-span-2 text-right">ประกันตัว</div>
+                        <div className="col-span-1 text-center">สถานะ</div>
+                        <div className="col-span-2 text-right">ส่วนต่าง</div>
+                      </div>
+                      {/* Rows */}
+                      {grp.keys.map((key) => {
+                        const cat = catMap[key];
+                        const g = analysis.gap[key];
+                        const isOk = g <= 0;
+                        const need = analysis.need[key];
+                        const have = analysis.have[key];
+                        const pct = need > 0 ? Math.min((have / need) * 100, 100) : 0;
+                        return (
+                          <div key={key} className="border-t border-gray-50">
+                            <div className="grid grid-cols-12 gap-1 px-3 py-2 items-center">
+                              <div className="col-span-3 text-[10px] text-gray-700 font-medium leading-tight">{cat.labelShort}</div>
+                              <div className="col-span-2 text-[10px] text-right font-bold text-gray-600">{fmt(analysis.need[key])}</div>
+                              <div className="col-span-2 text-[10px] text-right text-gray-500">{fmt(analysis.employer[key])}</div>
+                              <div className="col-span-2 text-[10px] text-right text-gray-500">{fmt(analysis.personal[key])}</div>
+                              <div className="col-span-1 text-center">
+                                <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${isOk ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
+                                  {isOk ? "พอ" : "ขาด"}
+                                </span>
+                              </div>
+                              <div className={`col-span-2 text-[10px] text-right font-bold ${isOk ? "text-emerald-600" : "text-red-600"}`}>
+                                {isOk ? `+${fmt(Math.abs(g))}` : `-${fmt(g)}`}
+                              </div>
+                            </div>
+                            {/* Mini progress bar */}
+                            <div className="px-3 pb-2">
+                              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full transition-all ${isOk ? "bg-emerald-400" : pct > 50 ? "bg-amber-400" : "bg-red-400"}`}
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
 
-            {categories.map((cat) => {
-              const g = analysis.gap[cat.key];
-              const isOk = g <= 0;
-              return (
-                <div key={cat.key} className="grid grid-cols-12 gap-1 px-3 py-2.5 border-t border-gray-50 items-center">
-                  <div className="col-span-3 text-[10px] text-gray-700 font-medium leading-tight">{cat.labelShort}</div>
-                  <div className="col-span-2 text-[10px] text-right font-bold text-gray-600">{fmt(analysis.need[cat.key])}</div>
-                  <div className="col-span-2 text-[10px] text-right text-gray-500">{fmt(analysis.employer[cat.key])}</div>
-                  <div className="col-span-2 text-[10px] text-right text-gray-500">{fmt(analysis.personal[cat.key])}</div>
-                  <div className="col-span-1 text-center">
-                    <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${isOk ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
-                      {isOk ? "พอ" : "ขาด"}
-                    </span>
-                  </div>
-                  <div className={`col-span-2 text-[10px] text-right font-bold ${isOk ? "text-emerald-600" : "text-red-600"}`}>
-                    {isOk ? `+${fmt(Math.abs(g))}` : `-${fmt(g)}`}
-                  </div>
+                {/* Summary row */}
+                <div className={`rounded-xl px-4 py-3 flex items-center justify-between ${analysis.adequateCount >= 5 ? "bg-emerald-50 border border-emerald-200" : "bg-red-50 border border-red-200"}`}>
+                  <span className="text-xs font-bold text-gray-700">ผลประเมินรวม</span>
+                  <span className={`text-xs font-bold ${analysis.adequateCount >= 5 ? "text-emerald-600" : "text-red-600"}`}>
+                    ผ่าน {analysis.adequateCount}/6 หมวด
+                  </span>
                 </div>
-              );
-            })}
-
-            {/* Summary row */}
-            <div className={`px-3 py-3 border-t-2 ${analysis.adequateCount >= 5 ? "bg-emerald-50 border-emerald-200" : "bg-red-50 border-red-200"}`}>
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-gray-700">ผลประเมิน</span>
-                <span className={`text-xs font-bold ${analysis.adequateCount >= 5 ? "text-emerald-600" : "text-red-600"}`}>
-                  ผ่าน {analysis.adequateCount}/6 หมวด
-                </span>
               </div>
-            </div>
-          </div>
-
-          {/* Visual bars */}
-          <div className="space-y-2.5">
-            {categories.map((cat) => {
-              const need = analysis.need[cat.key];
-              const have = analysis.have[cat.key];
-              const pct = need > 0 ? Math.min((have / need) * 100, 100) : 0;
-              const isOk = analysis.gap[cat.key] <= 0;
-              return (
-                <div key={cat.key}>
-                  <div className="flex items-center justify-between text-[9px] mb-0.5">
-                    <span className="text-gray-600 font-medium">{cat.labelShort}</span>
-                    <span className={`font-bold ${isOk ? "text-emerald-600" : "text-red-600"}`}>{pct.toFixed(0)}%</span>
-                  </div>
-                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all ${isOk ? "bg-emerald-400" : pct > 50 ? "bg-amber-400" : "bg-red-400"}`}
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+            );
+          })()}
 
           {/* Overall result */}
           <div className={`rounded-2xl p-5 text-center ${analysis.adequateCount >= 5 ? "bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200" : "bg-gradient-to-br from-red-50 to-red-100 border border-red-200"}`}>
