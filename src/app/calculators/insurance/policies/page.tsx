@@ -151,6 +151,93 @@ const defaultForm = (): FormState => ({
 // GanttChart and StepLineChart moved to @/components/InsuranceCharts
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// POLICY SUMMARY TABLE — ตารางสรุปกรมธรรม์
+// ═══════════════════════════════════════════════════════════════════════════════
+function PolicySummaryTable({ policies, birthYear }: { policies: InsurancePolicy[]; birthYear: number }) {
+  if (policies.length === 0) return null;
+
+  const typeLabel = (t: PolicyType) => POLICY_TYPE_OPTIONS.find((o) => o.value === t)?.label || t;
+
+  const totalSumInsured = policies.reduce((s, p) => s + p.sumInsured, 0);
+  const totalCashValue = policies.reduce((s, p) => s + (p.cashValue || 0), 0);
+  const totalPremium = policies.reduce((s, p) => s + p.premium, 0);
+
+  const formatDate = (d?: string) => {
+    if (!d) return "-";
+    const dt = new Date(d);
+    const y = dt.getFullYear() + BE_OFFSET;
+    const m = dt.getMonth() + 1;
+    const day = dt.getDate();
+    return `${day}/${m}/${y}`;
+  };
+
+  const getCovEndDisplay = (p: InsurancePolicy) => {
+    if (p.coverageMode === "date" && p.endDate) return formatDate(p.endDate);
+    if (p.coverageMode === "age" && p.coverageEndAge > 0) return `อายุ ${p.coverageEndAge} ปี`;
+    if (p.coverageMode === "years" && p.coverageYears > 0) return `${p.coverageYears} ปี`;
+    if (p.endDate) return formatDate(p.endDate);
+    if (p.coverageEndAge > 0) return `อายุ ${p.coverageEndAge} ปี`;
+    return "-";
+  };
+
+  const getPayEndDisplay = (p: InsurancePolicy) => {
+    if (p.paymentMode === "date" && p.lastPayDate) return formatDate(p.lastPayDate);
+    if (p.paymentMode === "age" && p.paymentEndAge > 0) return `อายุ ${p.paymentEndAge} ปี`;
+    if (p.paymentMode === "years" && p.paymentYears > 0) return `${p.paymentYears} ปี`;
+    if (p.lastPayDate) return formatDate(p.lastPayDate);
+    return "-";
+  };
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+      <h3 className="text-base font-bold text-gray-800 mb-3">ตารางสรุปกรมธรรม์</h3>
+      <div className="overflow-x-auto -mx-2">
+        <table className="w-full text-[10px] min-w-[700px]">
+          <thead>
+            <tr className="border-b-2 border-blue-200">
+              <th className="py-2 px-2 text-center text-blue-700 font-bold w-8">#</th>
+              <th className="py-2 px-2 text-left text-blue-700 font-bold">บริษัท</th>
+              <th className="py-2 px-2 text-left text-blue-700 font-bold">ชื่อแบบประกัน</th>
+              <th className="py-2 px-2 text-center text-blue-700 font-bold">กลุ่ม</th>
+              <th className="py-2 px-2 text-center text-blue-700 font-bold">วันเริ่มคุ้มครอง</th>
+              <th className="py-2 px-2 text-center text-blue-700 font-bold">ครบกำหนด</th>
+              <th className="py-2 px-2 text-center text-blue-700 font-bold">ชำระเบี้ยถึง</th>
+              <th className="py-2 px-2 text-right text-blue-700 font-bold">ทุนประกัน</th>
+              <th className="py-2 px-2 text-right text-blue-700 font-bold">มูลค่าเวนคืน</th>
+              <th className="py-2 px-2 text-right text-blue-700 font-bold">เบี้ย/ปี</th>
+            </tr>
+          </thead>
+          <tbody>
+            {policies.map((p, i) => (
+              <tr key={p.id} className={`border-b border-gray-100 ${i % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}>
+                <td className="py-2 px-2 text-center text-gray-500 font-medium">{i + 1}</td>
+                <td className="py-2 px-2 text-gray-700 font-medium">{p.company || "-"}</td>
+                <td className="py-2 px-2 text-gray-800 font-bold">{p.planName}</td>
+                <td className="py-2 px-2 text-center text-gray-600">{typeLabel(p.policyType)}</td>
+                <td className="py-2 px-2 text-center text-gray-600">{formatDate(p.startDate)}</td>
+                <td className="py-2 px-2 text-center text-gray-600">{getCovEndDisplay(p)}</td>
+                <td className="py-2 px-2 text-center text-gray-600">{getPayEndDisplay(p)}</td>
+                <td className="py-2 px-2 text-right text-gray-800 font-bold">{p.sumInsured > 0 ? fmt(p.sumInsured) : "-"}</td>
+                <td className="py-2 px-2 text-right text-gray-800 font-bold">{(p.cashValue || 0) > 0 ? fmt(p.cashValue) : "-"}</td>
+                <td className="py-2 px-2 text-right text-blue-700 font-bold">{p.premium > 0 ? fmt(p.premium) : "-"}</td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr className="border-t-2 border-blue-200 bg-blue-50/50">
+              <td colSpan={7} className="py-2.5 px-2 text-right text-xs font-bold text-gray-700">รวม</td>
+              <td className="py-2.5 px-2 text-right text-xs font-extrabold text-gray-800">{fmt(totalSumInsured)}</td>
+              <td className="py-2.5 px-2 text-right text-xs font-extrabold text-gray-800">{fmt(totalCashValue)}</td>
+              <td className="py-2.5 px-2 text-right text-xs font-extrabold text-blue-700">{fmt(totalPremium)}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // TAX DEDUCTION SECTION
 // ═══════════════════════════════════════════════════════════════════════════════
 function TaxDeduction({ policies }: { policies: InsurancePolicy[] }) {
@@ -861,6 +948,7 @@ export default function PortfolioDashboard() {
               ))}
             </div>
           </div>
+          <PolicySummaryTable policies={policies} birthYear={birthYear} />
           <TaxDeduction policies={policies} />
           <PremiumByAgeBracket policies={policies} birthYear={birthYear} currentAge={currentAge} retireAge={retireAge} lifeExpectancy={lifeExpectancy} />
           <HealthPremiumProjection policies={policies} birthYear={birthYear} currentAge={currentAge} />
