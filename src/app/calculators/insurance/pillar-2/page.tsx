@@ -907,24 +907,34 @@ export default function Pillar2Page() {
           </button>
           {openSteps[3] && <div className="p-4 md:p-6 pt-4 space-y-4">
 
-          {/* Color banner header */}
-          <div className="grid grid-cols-3 gap-1 rounded-xl overflow-hidden">
-            <div className="bg-red-700 text-white text-[11px] font-bold text-center py-2.5">มูลค่าความคุ้มครองที่ควรมี</div>
-            <div className="bg-green-700 text-white text-[11px] font-bold text-center py-2.5">มูลค่าความคุ้มครองที่มีอยู่แล้ว</div>
-            <div className="bg-blue-800 text-white text-[11px] font-bold text-center py-2.5">ส่วนต่าง</div>
-          </div>
-
-          {/* Gap summary table */}
-          <div className="rounded-xl overflow-hidden border border-gray-200 -mt-1">
-            <table className="w-full text-[10px]">
+          {/* Gap summary table with integrated banner */}
+          <div className="rounded-xl overflow-hidden border border-gray-200">
+            <table className="w-full text-[10px]" style={{ tableLayout: "fixed" }}>
+              <colgroup>
+                <col style={{ width: "50px" }} />
+                <col style={{ width: "22%" }} />
+                <col style={{ width: "15%" }} />
+                <col style={{ width: "15%" }} />
+                <col style={{ width: "15%" }} />
+                <col style={{ width: "10%" }} />
+                <col style={{ width: "15%" }} />
+              </colgroup>
+              {/* Color banner row */}
               <thead>
-                <tr className="text-[8px] font-bold uppercase tracking-wider">
-                  <th className="py-1.5 px-2 bg-gray-100 text-gray-500 text-left w-[50px]"></th>
-                  <th className="py-1.5 px-2 bg-gray-100 text-gray-500 text-left">ประเภท</th>
+                <tr>
+                  <th colSpan={2} className="bg-gray-200 py-2"></th>
+                  <th className="bg-red-700 text-white text-[10px] font-bold text-center py-2">มูลค่าความคุ้มครอง<br/>ที่ควรมี</th>
+                  <th colSpan={2} className="bg-green-700 text-white text-[10px] font-bold text-center py-2">มูลค่าความคุ้มครอง<br/>ที่มีอยู่แล้ว</th>
+                  <th colSpan={2} className="bg-blue-900 text-white text-[10px] font-bold text-center py-2">ส่วนต่าง</th>
+                </tr>
+                {/* Sub-header row */}
+                <tr className="text-[8px] font-bold uppercase tracking-wider border-t border-gray-200">
+                  <th className="py-1.5 px-1 bg-gray-100 text-gray-400"></th>
+                  <th className="py-1.5 px-2 bg-gray-50 text-gray-400 text-left">ประเภท</th>
                   <th className="py-1.5 px-2 bg-red-50 text-red-400 text-right">ต้องการ</th>
-                  <th className="py-1.5 px-2 bg-green-50 text-green-500 text-right">สวัสดิการ</th>
+                  <th className="py-1.5 px-2 bg-green-100 text-green-600 text-right">สวัสดิการ</th>
                   <th className="py-1.5 px-2 bg-green-50 text-green-500 text-right">ประกันตัวเอง</th>
-                  <th className="py-1.5 px-2 bg-blue-50 text-blue-400 text-center">สถานะ</th>
+                  <th className="py-1.5 px-2 bg-blue-100 text-blue-500 text-center">สถานะ</th>
                   <th className="py-1.5 px-2 bg-blue-50 text-blue-400 text-right">ส่วนต่าง</th>
                 </tr>
               </thead>
@@ -935,20 +945,20 @@ export default function Pillar2Page() {
                   return (
                     <tr key={cat.key} className="border-t border-gray-100">
                       {idx === 0 && (
-                        <td rowSpan={6} className="bg-blue-700 text-white text-[11px] font-bold text-center align-middle w-[50px]">
+                        <td rowSpan={6} className="bg-blue-900 text-white text-[11px] font-bold text-center align-middle">
                           เจ็บป่วย
                         </td>
                       )}
                       <td className="py-2.5 px-2 text-gray-700 font-medium bg-white">{cat.labelShort}</td>
-                      <td className="py-2.5 px-2 text-right font-bold text-gray-700 bg-red-50/50">{fmt(analysis.need[cat.key])}</td>
-                      <td className="py-2.5 px-2 text-right text-gray-600 bg-green-50/50">{fmt(analysis.employer[cat.key])}</td>
-                      <td className="py-2.5 px-2 text-right text-gray-600 bg-green-50/50">{fmt(analysis.personal[cat.key])}</td>
-                      <td className="py-2.5 px-2 text-center bg-blue-50/30">
+                      <td className="py-2.5 px-2 text-right font-bold text-gray-700 bg-red-50/60">{fmt(analysis.need[cat.key])}</td>
+                      <td className="py-2.5 px-2 text-right text-gray-600 bg-green-100/40">{fmt(analysis.employer[cat.key])}</td>
+                      <td className="py-2.5 px-2 text-right text-gray-600 bg-green-50/60">{fmt(analysis.personal[cat.key])}</td>
+                      <td className="py-2.5 px-2 text-center bg-blue-100/30">
                         <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isOk ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
                           {isOk ? "พอ" : "ขาด"}
                         </span>
                       </td>
-                      <td className={`py-2.5 px-2 text-right font-bold text-[11px] bg-blue-50/30 ${isOk ? "text-emerald-600" : "text-red-600"}`}>
+                      <td className={`py-2.5 px-2 text-right font-bold text-[11px] bg-blue-50/40 ${isOk ? "text-emerald-600" : "text-red-600"}`}>
                         {isOk ? `+${fmt(Math.abs(g))}` : `-${fmt(g)}`}
                       </td>
                     </tr>
