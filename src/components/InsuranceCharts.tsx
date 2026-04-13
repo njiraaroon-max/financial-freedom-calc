@@ -64,7 +64,7 @@ export function GanttChart({
 
   const labelW = 120;
   const padL = 15;
-  const yearColW = 18;
+  const yearColW = 12;
   const chartW = totalYears * yearColW;
   const rowH = 48;
   const axisH = 75;
@@ -234,7 +234,7 @@ export function StepLineChart({ policies, birthYear, currentAge }: { policies: I
   const yearRange = maxYear - minYear;
 
   const padL = 70, padR = 20, padT = 25, padB = 75;
-  const yearColW = 32;
+  const yearColW = 12;
   const chartW = yearRange * yearColW;
   const W = padL + chartW + padR;
   const H = 280;
