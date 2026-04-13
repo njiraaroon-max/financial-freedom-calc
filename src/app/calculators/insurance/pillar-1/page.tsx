@@ -231,8 +231,12 @@ export default function Pillar1Page() {
   const toggleStep = (n: number) => setOpenSteps((prev) => ({ ...prev, [n]: !prev[n] }));
 
   // ─── Save & mark completed ──────────────────────────────────────────────
+  const [saveFlash, setSaveFlash] = useState(false);
+  const isAlreadySaved = store.completedSteps?.pillar1 || false;
   const handleSave = () => {
     store.markPillarCompleted("pillar1");
+    setSaveFlash(true);
+    setTimeout(() => setSaveFlash(false), 2000);
   };
 
   return (
@@ -969,9 +973,27 @@ export default function Pillar1Page() {
         <div className="mx-1">
           <button
             onClick={handleSave}
-            className="w-full py-3 rounded-2xl bg-[#1e3a5f] text-white text-sm font-bold hover:bg-[#2d5a8e] active:scale-[0.98] transition shadow-lg"
+            className={`w-full py-3 rounded-2xl text-white text-sm font-bold active:scale-[0.98] transition-all shadow-lg flex items-center justify-center gap-2 ${
+              saveFlash
+                ? "bg-emerald-500"
+                : isAlreadySaved
+                  ? "bg-emerald-600 hover:bg-emerald-700"
+                  : "bg-[#1e3a5f] hover:bg-[#2d5a8e]"
+            }`}
           >
-            บันทึกการประเมิน Pillar 1
+            {saveFlash ? (
+              <>
+                <CheckCircle2 size={18} />
+                บันทึกเรียบร้อยแล้ว!
+              </>
+            ) : isAlreadySaved ? (
+              <>
+                <CheckCircle2 size={18} />
+                บันทึกแล้ว — กดอีกครั้งเพื่ออัปเดต
+              </>
+            ) : (
+              "บันทึกการประเมิน Pillar 1"
+            )}
           </button>
         </div>
       </div>
