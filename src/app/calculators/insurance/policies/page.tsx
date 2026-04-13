@@ -181,18 +181,18 @@ function PolicySummaryTable({ policies, birthYear }: { policies: InsurancePolicy
       <div className="overflow-x-auto -mx-2">
         <table className="w-full text-[10px] min-w-[800px]">
           <thead>
-            <tr className="border-b-2 border-blue-200">
-              <th className="py-2 px-2 text-center text-blue-700 font-bold w-8">ลำดับ</th>
-              <th className="py-2 px-2 text-left text-blue-700 font-bold">บริษัท</th>
-              <th className="py-2 px-2 text-center text-blue-700 font-bold">หมวด</th>
-              <th className="py-2 px-2 text-left text-blue-700 font-bold">ชื่อแบบประกัน</th>
-              <th className="py-2 px-2 text-center text-blue-700 font-bold">ประเภท</th>
-              <th className="py-2 px-2 text-center text-blue-700 font-bold">วันเริ่มคุ้มครอง</th>
-              <th className="py-2 px-2 text-center text-blue-700 font-bold">ครบกำหนด (พ.ศ.)</th>
-              <th className="py-2 px-2 text-center text-blue-700 font-bold">ชำระเบี้ยถึง (พ.ศ.)</th>
-              <th className="py-2 px-2 text-right text-blue-700 font-bold">ทุนประกัน</th>
-              <th className="py-2 px-2 text-right text-blue-700 font-bold">มูลค่าเวนคืน</th>
-              <th className="py-2 px-2 text-right text-blue-700 font-bold">เบี้ย/ปี</th>
+            <tr className="bg-[#1e3a5f]">
+              <th className="py-2 px-2 text-center text-white font-bold w-8">ลำดับ</th>
+              <th className="py-2 px-2 text-left text-white font-bold">บริษัท</th>
+              <th className="py-2 px-2 text-center text-white font-bold">หมวด</th>
+              <th className="py-2 px-2 text-left text-white font-bold">ชื่อแบบประกัน</th>
+              <th className="py-2 px-2 text-center text-white font-bold">ประเภท</th>
+              <th className="py-2 px-2 text-center text-white font-bold">วันเริ่มคุ้มครอง</th>
+              <th className="py-2 px-2 text-center text-white font-bold">ครบกำหนด (พ.ศ.)</th>
+              <th className="py-2 px-2 text-center text-white font-bold">ชำระเบี้ยถึง (พ.ศ.)</th>
+              <th className="py-2 px-2 text-right text-white font-bold">ทุนประกัน</th>
+              <th className="py-2 px-2 text-right text-white font-bold">มูลค่าเวนคืน</th>
+              <th className="py-2 px-2 text-right text-white font-bold">เบี้ย/ปี</th>
             </tr>
           </thead>
           <tbody>
