@@ -297,7 +297,7 @@ export default function Pillar1Page() {
         <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
           <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
             <span className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-[10px] font-bold flex items-center justify-center">1</span>
-            คำนวณความต้องการทั้งหมด (Total Needs)
+            Step 1: คำนวณความต้องการทั้งหมด (Total Needs)
           </h3>
 
           {/* ── A: Immediate Cash Needs ── */}
@@ -658,7 +658,7 @@ export default function Pillar1Page() {
         <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
           <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
             <span className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-[10px] font-bold flex items-center justify-center">2</span>
-            รวบรวมสินทรัพย์ที่มีอยู่ (Existing Assets)
+            Step 2: รวบรวมสินทรัพย์ที่มีอยู่ (Existing Assets)
           </h3>
 
           {/* Life policies summary */}
@@ -719,7 +719,7 @@ export default function Pillar1Page() {
         <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
           <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
             <span className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-[10px] font-bold flex items-center justify-center">3</span>
-            หาจุดที่ยังขาด (The Gap)
+            Step 3: หาจุดที่ยังขาด (The Gap)
           </h3>
 
           {/* Combined breakdown table */}
