@@ -755,85 +755,85 @@ export default function Pillar1Page() {
           </button>
           {openSteps[3] && <div className="p-4 md:p-6 pt-4 space-y-4">
 
-          {/* Combined breakdown table */}
-          <div className="border border-gray-100 rounded-xl overflow-hidden">
-            {/* Need section */}
-            <div className="bg-red-50/50 px-3 py-1.5 border-b border-gray-100">
-              <span className="text-[10px] font-bold text-red-600 uppercase">ความต้องการ (Needs)</span>
-            </div>
-            {analysis.breakdown.map((b) => (
-              <div key={b.label} className="flex items-center justify-between px-3 py-2 border-b border-gray-50">
-                <span className="text-xs text-gray-600">{b.label}</span>
-                <span className="text-xs font-bold text-gray-800">{fmt(b.value)}</span>
+          {/* ── Needs vs Assets side by side ── */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Needs card */}
+            <div className="border border-red-100 rounded-xl overflow-hidden">
+              <div className="bg-red-50 px-3 py-2">
+                <span className="text-[10px] font-bold text-red-600">ความต้องการทั้งหมด</span>
               </div>
-            ))}
-            <div className="flex items-center justify-between px-3 py-2.5 bg-red-50 border-b border-gray-100">
-              <span className="text-xs font-bold text-red-700">รวม Total Needs</span>
-              <span className="text-sm font-extrabold text-red-600">{fmt(analysis.totalNeed)}</span>
-            </div>
-
-            {/* Have section */}
-            <div className="bg-emerald-50/50 px-3 py-1.5 border-b border-gray-100">
-              <span className="text-[10px] font-bold text-emerald-600 uppercase">สินทรัพย์ที่มี (Assets)</span>
-            </div>
-            {analysis.haveBreakdown.map((b) => (
-              <div key={b.label} className="flex items-center justify-between px-3 py-2 border-b border-gray-50">
-                <span className="text-xs text-gray-600">{b.label}</span>
-                <span className="text-xs font-bold text-gray-800">{b.value > 0 ? `-${fmt(b.value)}` : "0"}</span>
-              </div>
-            ))}
-            <div className="flex items-center justify-between px-3 py-2.5 bg-emerald-50 border-b border-gray-100">
-              <span className="text-xs font-bold text-emerald-700">รวม Existing Assets</span>
-              <span className="text-sm font-extrabold text-emerald-600">-{fmt(analysis.totalHave)}</span>
-            </div>
-
-            {/* Gap row */}
-            <div className={`flex items-center justify-between px-3 py-3 ${analysis.gap > 0 ? "bg-red-100" : "bg-emerald-100"}`}>
-              <span className={`text-xs font-extrabold ${analysis.gap > 0 ? "text-red-700" : "text-emerald-700"}`}>
-                Insurance Gap
-              </span>
-              <span className={`text-base font-extrabold ${analysis.gap > 0 ? "text-red-600" : "text-emerald-600"}`}>
-                {analysis.gap > 0 ? fmt(analysis.gap) : `-${fmt(Math.abs(analysis.gap))}`} บาท
-              </span>
-            </div>
-          </div>
-
-          {/* Visual bar: overlay */}
-          <div>
-            <div className="text-[10px] font-bold text-gray-500 uppercase mb-2">Need vs Have</div>
-            <div className="h-7 bg-red-100 rounded-full overflow-hidden relative">
-              <div className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-red-700 z-10">
-                Need: {fmt(analysis.totalNeed)}
-              </div>
-              <div className="h-full rounded-full bg-emerald-400 transition-all relative" style={{ width: `${analysis.coveragePct}%` }}>
-                {analysis.coveragePct > 20 && (
-                  <div className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white">
-                    Have: {analysis.coveragePct.toFixed(0)}%
+              <div className="divide-y divide-gray-50">
+                {analysis.breakdown.map((b) => (
+                  <div key={b.label} className="flex items-center justify-between px-3 py-1.5">
+                    <span className="text-[11px] text-gray-600">{b.label}</span>
+                    <span className="text-[11px] font-bold text-gray-700">{fmt(b.value)}</span>
                   </div>
-                )}
+                ))}
+              </div>
+              <div className="bg-red-50 px-3 py-2 flex items-center justify-between">
+                <span className="text-[10px] font-bold text-red-700">Total Needs</span>
+                <span className="text-sm font-extrabold text-red-600">{fmt(analysis.totalNeed)}</span>
+              </div>
+            </div>
+
+            {/* Assets card */}
+            <div className="border border-emerald-100 rounded-xl overflow-hidden">
+              <div className="bg-emerald-50 px-3 py-2">
+                <span className="text-[10px] font-bold text-emerald-600">สินทรัพย์ที่มีอยู่</span>
+              </div>
+              <div className="divide-y divide-gray-50">
+                {analysis.haveBreakdown.map((b) => (
+                  <div key={b.label} className="flex items-center justify-between px-3 py-1.5">
+                    <span className="text-[11px] text-gray-600">{b.label}</span>
+                    <span className="text-[11px] font-bold text-gray-700">{fmt(b.value)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="bg-emerald-50 px-3 py-2 flex items-center justify-between">
+                <span className="text-[10px] font-bold text-emerald-700">Existing Assets</span>
+                <span className="text-sm font-extrabold text-emerald-600">{fmt(analysis.totalHave)}</span>
               </div>
             </div>
           </div>
 
-          {/* Gap Result */}
-          <div className={`rounded-xl p-4 text-center ${analysis.gap <= 0 ? "bg-emerald-50 border border-emerald-200" : "bg-red-50 border border-red-200"}`}>
+          {/* ── Visual comparison bar ── */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-[10px] text-gray-500">
+              <span>ความต้องการ</span>
+              <span>ครอบคลุม {analysis.coveragePct.toFixed(0)}%</span>
+            </div>
+            <div className="relative h-5 bg-gray-100 rounded-full overflow-hidden">
+              {/* Need bar (full width = 100%) */}
+              <div className="absolute inset-0 bg-red-100 rounded-full" />
+              {/* Have bar overlay */}
+              <div className="absolute left-0 top-0 h-full rounded-full bg-emerald-400 transition-all" style={{ width: `${analysis.coveragePct}%` }} />
+            </div>
+            <div className="flex items-center justify-between text-[9px]">
+              <span className="text-red-500 font-bold">Need: {fmtShort(analysis.totalNeed)}</span>
+              <span className="text-emerald-600 font-bold">Have: {fmtShort(analysis.totalHave)}</span>
+            </div>
+          </div>
+
+          {/* ── Gap Result ── */}
+          <div className={`rounded-2xl p-5 text-center ${analysis.gap <= 0 ? "bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200" : "bg-gradient-to-br from-red-50 to-red-100 border border-red-200"}`}>
             {analysis.gap <= 0 ? (
               <>
-                <CheckCircle2 size={32} className="text-emerald-500 mx-auto mb-2" />
-                <div className="text-sm font-bold text-emerald-700">ทุนประกันเพียงพอ!</div>
-                <div className="text-xs text-emerald-600 mt-1">มีทุนเกินกว่าที่ต้องการ {fmt(Math.abs(analysis.gap))} บาท</div>
+                <CheckCircle2 size={36} className="text-emerald-500 mx-auto mb-2" />
+                <div className="text-base font-bold text-emerald-700">ทุนประกันเพียงพอ!</div>
+                <div className="text-xs text-emerald-600 mt-1">มีทุนเกินกว่าที่ต้องการ <span className="font-bold">{fmt(Math.abs(analysis.gap))}</span> บาท</div>
               </>
             ) : (
               <>
-                <AlertTriangle size={32} className="text-red-500 mx-auto mb-2" />
-                <div className="text-sm font-bold text-red-700">ช่องว่างความคุ้มครอง (Insurance Gap)</div>
-                <div className="text-2xl font-extrabold text-red-600 mt-1">{fmt(analysis.gap)} บาท</div>
-                <div className="text-[10px] text-red-500 mt-2 space-y-0.5">
-                  <div>ควรเพิ่มทุนประกันชีวิตอีก {fmtShort(analysis.gap)} บาท</div>
-                  <div>เบี้ยประมาณ {fmt(Math.round(analysis.gap * 3 / 1000))} - {fmt(Math.round(analysis.gap * 5 / 1000))} บาท/ปี (Term 20 ปี)</div>
+                <AlertTriangle size={36} className="text-red-500 mx-auto mb-2" />
+                <div className="text-xs font-bold text-red-600 uppercase tracking-wide">Insurance Gap</div>
+                <div className="text-3xl font-extrabold text-red-600 mt-1">{fmt(analysis.gap)}</div>
+                <div className="text-[10px] text-red-400 mt-0.5">บาท</div>
+                <div className="text-[10px] text-gray-500 mt-3 space-y-0.5">
+                  <div>ควรเพิ่มทุนประกันชีวิตอีก <span className="font-bold text-gray-700">{fmtShort(analysis.gap)}</span> บาท</div>
+                  <div>เบี้ยประมาณ <span className="font-bold text-gray-700">{fmt(Math.round(analysis.gap * 3 / 1000))} - {fmt(Math.round(analysis.gap * 5 / 1000))}</span> บาท/ปี (Term 20 ปี)</div>
                 </div>
                 <a href="/calculators/insurance/policies?add=true"
-                  className="inline-block mt-3 px-4 py-2 rounded-xl bg-[#1e3a5f] text-white text-xs font-bold hover:bg-[#2d5a8e] transition">
+                  className="inline-block mt-4 px-5 py-2.5 rounded-xl bg-[#1e3a5f] text-white text-xs font-bold hover:bg-[#2d5a8e] active:scale-[0.98] transition shadow-md">
                   + เพิ่มกรมธรรม์ใหม่
                 </a>
               </>
@@ -841,10 +841,10 @@ export default function Pillar1Page() {
           </div>
 
           {/* CFP Tip */}
-          <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
-            <div className="text-[10px] font-bold text-amber-800 mb-1">💡 คำแนะนำจาก CFP</div>
-            <div className="text-[10px] text-amber-700 leading-relaxed space-y-1">
-              <p>• <strong>Needs Analysis Approach</strong> — คำนวณจากยอดเงินที่ครอบครัวต้องใช้จริงหากขาดรายได้หลัก</p>
+          <div className="bg-amber-50 rounded-xl p-3 border border-amber-100">
+            <div className="text-[10px] font-bold text-amber-700 mb-1">💡 คำแนะนำจาก CFP</div>
+            <div className="text-[10px] text-amber-600 leading-relaxed space-y-1">
+              <p>• <strong>Needs Analysis</strong> — คำนวณจากยอดเงินที่ครอบครัวต้องใช้จริงหากขาดรายได้หลัก</p>
               <p>• แนะนำทุนประกันชีวิตขั้นต่ำ = <strong>5-10 เท่า</strong> ของรายได้สุทธิต่อปี</p>
               {(profile.salary || 0) > 0 && (
                 <p>• รายได้ปัจจุบัน {fmt((profile.salary || 0) * 12)}/ปี → ทุนแนะนำ <strong>{fmt((profile.salary || 0) * 12 * 5)} - {fmt((profile.salary || 0) * 12 * 10)}</strong> บาท</p>
