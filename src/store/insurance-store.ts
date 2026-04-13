@@ -302,27 +302,45 @@ export interface Pillar1Data {
 
 export type HospitalTier = "government" | "private_basic" | "private_mid" | "private_premium";
 
+export interface PremiumBracket {
+  ageFrom: number;
+  ageTo: number;
+  annualPremium: number;
+}
+
 export interface Pillar2Data {
   // Hospital tier
   hospitalTier: HospitalTier;
-  // Desired coverage
-  desiredRoomRate: number;          // ค่าห้อง/วัน ที่ต้องการ
-  desiredIPDPerYear: number;        // วงเงิน IPD ต่อปี
-  desiredOPDPerVisit: number;       // วงเงิน OPD ต่อครั้ง
-  desiredCICoverage: number;        // ทุน CI ที่ต้องการ
-  desiredAccidentCoverage: number;  // ทุน PA ที่ต้องการ
-  // Medical inflation
-  medicalInflationRate: number;     // % ต่อปี (default 5)
-  projectionYears: number;          // คำนวณไปกี่ปี (default = retire age - current age)
-  // Welfare
+  // ── Step 1: Desired coverage (เจ็บป่วย 4 หมวด + เสริม) ──
+  desiredRoomRate: number;            // ค่าห้อง/วัน
+  desiredIPDPerYear: number;          // ค่ารักษา-ทั่วไป (IPD ต่อปี)
+  desiredCriticalTreatment: number;   // ค่ารักษา-ร้ายแรง (มะเร็ง/หัวใจ/สมอง)
+  desiredCICoverage: number;          // เงินก้อนเพื่อโรคร้ายแรง (CI lump sum)
+  desiredOPDPerVisit: number;         // วงเงิน OPD ต่อครั้ง
+  desiredAccidentCoverage: number;    // ทุน PA
+  // ── Medical inflation ──
+  medicalInflationRate: number;       // % ต่อปี (default 7)
+  projectionYears: number;            // backward compat
+  // ── Step 2: What you have — สวัสดิการนายจ้าง ──
   hasSocialSecurity: boolean;
   governmentScheme: "none" | "gold_card" | "government_officer";
-  // Group insurance from employer
   groupRoomRate: number;
   groupIPDPerYear: number;
+  groupCriticalTreatment: number;     // ค่ารักษาร้ายแรงจากนายจ้าง
   groupOPDPerVisit: number;
   groupCI: number;
   groupAccident: number;
+  // ── Step 2: What you have — ประกันส่วนตัว (manual override) ──
+  usePersonalFromPolicies: boolean;   // ดึงจากกรมธรรม์อัตโนมัติ
+  personalRoomRate: number;
+  personalIPD: number;
+  personalCriticalTreatment: number;
+  personalCI: number;
+  personalOPD: number;
+  personalAccident: number;
+  // ── Premium projection ──
+  premiumBrackets: PremiumBracket[];
+  postRetireReturn: number;           // ผลตอบแทนหลังเกษียณ (% สำหรับ NPV)
   // Notes
   healthNotes: string;
 }
@@ -419,18 +437,29 @@ export const DEFAULT_PILLAR2: Pillar2Data = {
   hospitalTier: "private_mid",
   desiredRoomRate: 5000,
   desiredIPDPerYear: 500000,
+  desiredCriticalTreatment: 500000,
   desiredOPDPerVisit: 2000,
   desiredCICoverage: 1000000,
   desiredAccidentCoverage: 1000000,
-  medicalInflationRate: 5,
+  medicalInflationRate: 7,
   projectionYears: 25,
   hasSocialSecurity: true,
   governmentScheme: "none",
   groupRoomRate: 0,
   groupIPDPerYear: 0,
+  groupCriticalTreatment: 0,
   groupOPDPerVisit: 0,
   groupCI: 0,
   groupAccident: 0,
+  usePersonalFromPolicies: true,
+  personalRoomRate: 0,
+  personalIPD: 0,
+  personalCriticalTreatment: 0,
+  personalCI: 0,
+  personalOPD: 0,
+  personalAccident: 0,
+  premiumBrackets: [],
+  postRetireReturn: 4,
   healthNotes: "",
 };
 
@@ -635,7 +664,7 @@ export const useInsuranceStore = create<InsuranceState>()(
     }),
     {
       name: "ffc-insurance",
-      version: 15,
+      version: 16,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
         if (version < 2) {
@@ -780,6 +809,25 @@ export const useInsuranceStore = create<InsuranceState>()(
             if (kids) {
               kids.forEach((k) => { if (k.currentYearInLevel === undefined) k.currentYearInLevel = 1; });
             }
+          }
+        }
+        if (version < 16) {
+          // Expand Pillar2 with new fields
+          const rm = state.riskManagement as RiskManagementData | undefined;
+          if (rm && rm.pillar2) {
+            const p2 = rm.pillar2 as unknown as Record<string, unknown>;
+            if (p2.desiredCriticalTreatment === undefined) p2.desiredCriticalTreatment = 500000;
+            if (p2.groupCriticalTreatment === undefined) p2.groupCriticalTreatment = 0;
+            if (p2.usePersonalFromPolicies === undefined) p2.usePersonalFromPolicies = true;
+            if (p2.personalRoomRate === undefined) p2.personalRoomRate = 0;
+            if (p2.personalIPD === undefined) p2.personalIPD = 0;
+            if (p2.personalCriticalTreatment === undefined) p2.personalCriticalTreatment = 0;
+            if (p2.personalCI === undefined) p2.personalCI = 0;
+            if (p2.personalOPD === undefined) p2.personalOPD = 0;
+            if (p2.personalAccident === undefined) p2.personalAccident = 0;
+            if (p2.premiumBrackets === undefined) p2.premiumBrackets = [];
+            if (p2.postRetireReturn === undefined) p2.postRetireReturn = 4;
+            if (p2.medicalInflationRate === 5) p2.medicalInflationRate = 7; // update default
           }
         }
         return state;
