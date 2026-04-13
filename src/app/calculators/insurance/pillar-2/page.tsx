@@ -421,18 +421,22 @@ export default function Pillar2Page() {
               { n: 3, label: "The Gap", sub: "ส่วนต่าง" },
             ].map((step, i) => (
               <React.Fragment key={step.n}>
-                <div className="flex flex-col items-center" style={{ width: 72 }}>
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${
-                    step.n === 3 && analysis.adequateCount > 0
-                      ? (analysis.adequateCount >= 5 ? "bg-emerald-500 text-white" : "bg-red-500 text-white")
-                      : "bg-teal-500 text-white"
+                <button onClick={() => toggleStep(step.n)} className="flex flex-col items-center cursor-pointer hover:opacity-80 active:scale-95 transition-all" style={{ width: 72 }}>
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shadow-sm ring-2 ring-offset-2 transition-all ${
+                    openSteps[step.n]
+                      ? (step.n === 3 && analysis.adequateCount > 0
+                          ? (analysis.adequateCount >= 5 ? "bg-emerald-500 text-white ring-emerald-400" : "bg-red-500 text-white ring-red-400")
+                          : "bg-teal-500 text-white ring-teal-400")
+                      : (step.n === 3 && analysis.adequateCount > 0
+                          ? (analysis.adequateCount >= 5 ? "bg-emerald-500 text-white ring-transparent" : "bg-red-500 text-white ring-transparent")
+                          : "bg-teal-500 text-white ring-transparent")
                   }`}>
                     {step.n}
                   </div>
                   <div className="text-[10px] font-bold text-gray-700 mt-1.5 text-center leading-tight">Step {step.n}</div>
                   <div className="text-[9px] font-bold text-gray-500 text-center">{step.label}</div>
                   <div className="text-[8px] text-gray-400 text-center">{step.sub}</div>
-                </div>
+                </button>
                 {i < 2 && <div className="flex-1 h-0.5 bg-gray-200 mt-[18px]" />}
               </React.Fragment>
             ))}
