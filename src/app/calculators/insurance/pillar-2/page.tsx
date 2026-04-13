@@ -574,7 +574,7 @@ export default function Pillar2Page() {
                     value={p2.desiredOPDPerVisit}
                     onChange={(v) => update({ desiredOPDPerVisit: v })}
                     hint={`Benchmark: ${fmt(benchmark.opdPerVisit[0])}-${fmt(benchmark.opdPerVisit[1])} บ./ครั้ง`}
-                    suffix="บาท/ครั้ง"
+                    suffix="บาท"
                   />
                   <MoneyInput
                     label="อุบัติเหตุ (PA)"
@@ -707,6 +707,59 @@ export default function Pillar2Page() {
             </div>
           </div>
 
+          {/* Gold Card info */}
+          {p2.governmentScheme === "gold_card" && (
+            <details className="bg-blue-50 rounded-xl border border-blue-200 overflow-hidden">
+              <summary className="px-3 py-2.5 cursor-pointer flex items-center justify-between hover:bg-blue-100/50 transition">
+                <span className="text-[11px] font-bold text-blue-700">💳 สิทธิบัตรทอง (30 บาท) — ครอบคลุมอะไรบ้าง?</span>
+                <ChevronDown size={14} className="text-blue-400" />
+              </summary>
+              <div className="px-3 pb-3 text-[10px] text-blue-800 leading-relaxed space-y-1.5">
+                <div className="font-bold text-blue-700 mt-1">สิทธิประโยชน์หลัก:</div>
+                <div>• ผู้ป่วยนอก (OPD): รักษาได้ไม่จำกัดครั้ง ที่หน่วยบริการปฐมภูมิ</div>
+                <div>• ผู้ป่วยใน (IPD): นอน รพ. ได้ตามความจำเป็น (ห้องรวม)</div>
+                <div>• ค่ายาและเวชภัณฑ์ตามบัญชียาหลักแห่งชาติ</div>
+                <div>• ผ่าตัดรวมถึงผ่าตัดใหญ่ ตามข้อบ่งชี้ทางการแพทย์</div>
+                <div>• โรคร้ายแรง: เคมีบำบัด, ฉายแสง, ฟอกไต (ตามเกณฑ์)</div>
+                <div>• ทันตกรรม: ถอนฟัน, อุดฟัน, ขูดหินปูน, ฟันเทียม</div>
+                <div>• คลอดบุตร: ไม่เกิน 2 ครั้ง (คลอดธรรมชาติ/ผ่าตัด)</div>
+                <div className="font-bold text-red-600 mt-1.5">ข้อจำกัดสำคัญ:</div>
+                <div>• ต้องรักษาที่หน่วยบริการที่ลงทะเบียนเท่านั้น</div>
+                <div>• ส่งต่อเป็นลำดับขั้น (ปฐมภูมิ → ทุติยภูมิ → ตติยภูมิ)</div>
+                <div>• ไม่ครอบคลุม รพ.เอกชน (ยกเว้นกรณีฉุกเฉิน 72 ชม.)</div>
+                <div>• ห้องพักเป็นห้องรวมเท่านั้น, อาจต้องรอคิวนาน</div>
+                <div>• ยานอกบัญชียาหลักต้องจ่ายเอง</div>
+              </div>
+            </details>
+          )}
+
+          {/* Government Officer info */}
+          {p2.governmentScheme === "government_officer" && (
+            <details className="bg-purple-50 rounded-xl border border-purple-200 overflow-hidden">
+              <summary className="px-3 py-2.5 cursor-pointer flex items-center justify-between hover:bg-purple-100/50 transition">
+                <span className="text-[11px] font-bold text-purple-700">🏛️ สิทธิข้าราชการ — ครอบคลุมอะไรบ้าง?</span>
+                <ChevronDown size={14} className="text-purple-400" />
+              </summary>
+              <div className="px-3 pb-3 text-[10px] text-purple-800 leading-relaxed space-y-1.5">
+                <div className="font-bold text-purple-700 mt-1">สิทธิประโยชน์หลัก (เบิกจ่ายตรง):</div>
+                <div>• ค่าห้อง: ห้องพิเศษ ไม่เกิน 1,500 บาท/วัน (ห้อง ICU ไม่เกิน 4,500 บาท/วัน)</div>
+                <div>• ค่าอาหาร: ไม่เกิน 200 บาท/วัน (ห้องพิเศษ 400 บาท/วัน)</div>
+                <div>• ค่ารักษาพยาบาล: เบิกได้ตามจริง ตามอัตราที่กรมบัญชีกลางกำหนด</div>
+                <div>• ค่ายาและเวชภัณฑ์: เบิกได้ตามบัญชียา (ยานอกบัญชีเบิกได้บางรายการ)</div>
+                <div>• ผ่าตัด: เบิกได้ตามอัตรากำหนด</div>
+                <div>• เบิกให้ครอบครัวได้: บิดา-มารดา, คู่สมรส, บุตร (ไม่เกิน 3 คน)</div>
+                <div className="font-bold text-purple-700 mt-1.5">ผู้ป่วยนอก (OPD):</div>
+                <div>• ค่ายาผู้ป่วยนอก: เบิกได้ตามจริง (ตามบัญชียา)</div>
+                <div>• ค่าตรวจ/วินิจฉัย: เบิกได้ตามอัตรากรมบัญชีกลาง</div>
+                <div className="font-bold text-red-600 mt-1.5">ข้อจำกัดสำคัญ:</div>
+                <div>• อัตราค่าห้องต่ำกว่าค่าจริงของ รพ.เอกชน → ต้องจ่ายส่วนต่างเอง</div>
+                <div>• ค่ารักษา รพ.เอกชน มักเกินเกณฑ์กรมบัญชีกลาง</div>
+                <div>• ยาใหม่/ยา Targeted Therapy บางตัวเบิกไม่ได้</div>
+                <div>• หลังเกษียณ: ยังคงใช้สิทธิได้ แต่สิทธิครอบครัวอาจเปลี่ยน</div>
+              </div>
+            </details>
+          )}
+
           {/* Social Security */}
           <label className="flex items-center gap-2 cursor-pointer">
             <input
@@ -718,6 +771,37 @@ export default function Pillar2Page() {
             <span className="text-xs text-gray-700 font-medium">มีประกันสังคม (มาตรา 33/39)</span>
           </label>
 
+          {/* Social Security info */}
+          {p2.hasSocialSecurity && (
+            <details className="bg-teal-50 rounded-xl border border-teal-200 overflow-hidden">
+              <summary className="px-3 py-2.5 cursor-pointer flex items-center justify-between hover:bg-teal-100/50 transition">
+                <span className="text-[11px] font-bold text-teal-700">สิทธิประกันสังคม ม.33/39 — ครอบคลุมอะไรบ้าง?</span>
+                <ChevronDown size={14} className="text-teal-400" />
+              </summary>
+              <div className="px-3 pb-3 text-[10px] text-teal-800 leading-relaxed space-y-1.5">
+                <div className="font-bold text-teal-700 mt-1">กรณีเจ็บป่วย/ประสบอันตราย:</div>
+                <div>• ผู้ป่วยนอก (OPD): รักษาฟรีที่ รพ.ตามสิทธิ ไม่จำกัดครั้ง</div>
+                <div>• ผู้ป่วยใน (IPD): นอน รพ.ตามสิทธิ ไม่เสียค่าใช้จ่าย</div>
+                <div>• ค่าห้อง: สิทธิ รพ.ตามบัตร (ห้องรวม), ถ้าเข้า รพ.อื่น เบิก 700 บ./วัน ไม่เกิน 7 วัน</div>
+                <div>• ค่ารักษา รพ.อื่น (กรณีฉุกเฉิน): เบิกได้ไม่เกิน 72 ชม. ตามเกณฑ์ UCEP</div>
+                <div className="font-bold text-teal-700 mt-1.5">กรณีทันตกรรม:</div>
+                <div>• เบิกได้ไม่เกิน 900 บาท/ปี (ถอนฟัน, อุดฟัน, ขูดหินปูน, ฟันเทียม)</div>
+                <div className="font-bold text-teal-700 mt-1.5">กรณีคลอดบุตร:</div>
+                <div>• เหมาจ่าย 15,000 บาท (คลอดธรรมชาติ/ผ่าตัด)</div>
+                <div>• เงินสงเคราะห์บุตร 800 บาท/เดือน/คน (ไม่เกิน 3 คน, ถึงอายุ 6 ปี)</div>
+                <div className="font-bold text-teal-700 mt-1.5">กรณีทุพพลภาพ:</div>
+                <div>• เงินทดแทน 70% ของค่าจ้าง (สูงสุด 15,000 บ.) ตลอดชีวิต</div>
+                <div className="font-bold text-teal-700 mt-1.5">กรณีเสียชีวิต:</div>
+                <div>• ค่าทำศพ 50,000 บาท</div>
+                <div>• เงินสงเคราะห์กรณีตาย: 2 เท่าของค่าจ้างเฉลี่ย (ส่งเกิน 10 ปี = 6 เท่า)</div>
+                <div className="font-bold text-red-600 mt-1.5">ข้อจำกัดสำคัญ:</div>
+                <div>• ต้องรักษาที่ รพ.ตามสิทธิ (ยกเว้นฉุกเฉิน)</div>
+                <div>• ม.39 (ผู้ประกันตนโดยสมัครใจ): สิทธิเท่า ม.33 แต่ฐานเงินสมทบ 4,800 บ.</div>
+                <div>• หลังเกษียณ: ถ้าไม่ส่งเงินสมทบต่อ → สิทธิหมด (ต้องใช้สิทธิบัตรทองแทน)</div>
+              </div>
+            </details>
+          )}
+
           {/* ── สวัสดิการนายจ้าง ── */}
           <div className="border border-teal-100 rounded-xl overflow-hidden">
             <div className="bg-teal-50 px-3 py-2 border-b border-teal-100 flex items-center gap-2">
@@ -726,7 +810,7 @@ export default function Pillar2Page() {
             </div>
             <div className="p-3 space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <MoneyInput label="ค่าห้อง/วัน" value={p2.groupRoomRate} onChange={(v) => update({ groupRoomRate: v })} suffix="บาท/วัน" />
+                <MoneyInput label="ค่าห้อง/วัน" value={p2.groupRoomRate} onChange={(v) => update({ groupRoomRate: v })} suffix="บาท" />
                 <MoneyInput label="IPD/ปี" value={p2.groupIPDPerYear} onChange={(v) => update({ groupIPDPerYear: v })} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -734,7 +818,7 @@ export default function Pillar2Page() {
                 <MoneyInput label="CI เงินก้อน" value={p2.groupCI} onChange={(v) => update({ groupCI: v })} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <MoneyInput label="OPD/ครั้ง" value={p2.groupOPDPerVisit} onChange={(v) => update({ groupOPDPerVisit: v })} suffix="บาท/ครั้ง" />
+                <MoneyInput label="OPD/ครั้ง" value={p2.groupOPDPerVisit} onChange={(v) => update({ groupOPDPerVisit: v })} suffix="บาท" />
                 <MoneyInput label="PA อุบัติเหตุ" value={p2.groupAccident} onChange={(v) => update({ groupAccident: v })} />
               </div>
             </div>
@@ -794,7 +878,7 @@ export default function Pillar2Page() {
               ) : (
                 <div className="space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <MoneyInput label="ค่าห้อง/วัน" value={p2.personalRoomRate ?? 0} onChange={(v) => update({ personalRoomRate: v })} suffix="บาท/วัน" />
+                    <MoneyInput label="ค่าห้อง/วัน" value={p2.personalRoomRate ?? 0} onChange={(v) => update({ personalRoomRate: v })} suffix="บาท" />
                     <MoneyInput label="IPD/ปี" value={p2.personalIPD ?? 0} onChange={(v) => update({ personalIPD: v })} />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -802,7 +886,7 @@ export default function Pillar2Page() {
                     <MoneyInput label="CI เงินก้อน" value={p2.personalCI ?? 0} onChange={(v) => update({ personalCI: v })} />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <MoneyInput label="OPD/ครั้ง" value={p2.personalOPD ?? 0} onChange={(v) => update({ personalOPD: v })} suffix="บาท/ครั้ง" />
+                    <MoneyInput label="OPD/ครั้ง" value={p2.personalOPD ?? 0} onChange={(v) => update({ personalOPD: v })} suffix="บาท" />
                     <MoneyInput label="PA อุบัติเหตุ" value={p2.personalAccident ?? 0} onChange={(v) => update({ personalAccident: v })} />
                   </div>
                 </div>
