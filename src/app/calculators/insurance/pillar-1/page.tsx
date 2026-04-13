@@ -124,8 +124,11 @@ export default function Pillar1Page() {
     }, 0);
   }, [cashflow.expenses]);
 
-  // ─── Life policies from store ───────────────────────────────────────────
-  const lifePolicies = store.policies.filter((p) => ["whole_life", "endowment"].includes(p.policyType));
+  // ─── Linked data: Balance Sheet liquid assets ──────────────────────────
+  const liquidAssetsFromBS = balanceSheet.getTotalByAssetType("liquid");
+
+  // ─── Life policies from store (include Term) ──────────────────────────
+  const lifePolicies = store.policies.filter((p) => ["whole_life", "endowment", "term"].includes(p.policyType));
   const totalLifeCoverage = lifePolicies.reduce((s, p) => s + p.sumInsured, 0);
 
   // ─── Calculation ────────────────────────────────────────────────────────
@@ -140,21 +143,28 @@ export default function Pillar1Page() {
     // Parent support
     const parentNeeds = p1.parentSupportMonthly * 12 * p1.parentSupportYears;
 
-    // Total needs (Capital Utilization Approach)
-    const breakdown = [
-      { label: "ค่าจัดงานศพ", value: p1.funeralCost },
+    // Total needs (Needs Analysis Approach)
+    const immediateNeeds = [
+      { label: "ค่าพิธีฌาปนกิจ", value: p1.funeralCost },
       { label: "ชำระหนี้สินทั้งหมด", value: debts },
+    ];
+    const incomeNeeds = [
       { label: `ค่าใช้จ่ายครอบครัว (${p1.familyAdjustmentYears} ปี)`, value: familyNeeds },
       { label: "ทุนการศึกษาบุตร", value: p1.educationFund },
       { label: `เงินดูแลพ่อ/แม่ (${p1.parentSupportYears} ปี)`, value: parentNeeds },
       { label: "ความต้องการอื่นๆ", value: p1.otherNeeds },
     ];
+    const breakdown = [...immediateNeeds, ...incomeNeeds];
     const totalNeed = breakdown.reduce((s, b) => s + b.value, 0);
+    const totalImmediate = immediateNeeds.reduce((s, b) => s + b.value, 0);
+    const totalIncome = incomeNeeds.reduce((s, b) => s + b.value, 0);
 
     // What we have
+    const savings = p1.useBalanceSheetLiquid ? liquidAssetsFromBS + p1.additionalSavings : p1.existingSavings;
     const haveBreakdown = [
-      { label: "ทุนประกันชีวิตรวม", value: totalLifeCoverage },
-      { label: "เงินออม/สินทรัพย์สภาพคล่อง", value: p1.existingSavings },
+      { label: "ทุนประกันชีวิตรวม (Death Benefit)", value: totalLifeCoverage },
+      { label: "สวัสดิการกรณีเสียชีวิตจากนายจ้าง", value: p1.employerDeathBenefit || 0 },
+      { label: "เงินออม/สินทรัพย์สภาพคล่อง", value: savings },
     ];
     const totalHave = haveBreakdown.reduce((s, b) => s + b.value, 0);
 
@@ -162,8 +172,8 @@ export default function Pillar1Page() {
     const gapPct = totalNeed > 0 ? (gap / totalNeed) * 100 : 0;
     const coveragePct = totalNeed > 0 ? Math.min((totalHave / totalNeed) * 100, 100) : 0;
 
-    return { debts, familyNeeds, parentNeeds, breakdown, totalNeed, haveBreakdown, totalHave, gap, gapPct, coveragePct };
-  }, [p1, totalDebtsFromBS, monthlyExpenseFromCF, totalLifeCoverage]);
+    return { debts, familyNeeds, parentNeeds, immediateNeeds, incomeNeeds, breakdown, totalNeed, totalImmediate, totalIncome, haveBreakdown, totalHave, gap, gapPct, coveragePct };
+  }, [p1, totalDebtsFromBS, monthlyExpenseFromCF, totalLifeCoverage, liquidAssetsFromBS]);
 
   // ─── Info modal ─────────────────────────────────────────────────────────
   const [showInfo, setShowInfo] = useState(false);
@@ -209,68 +219,121 @@ export default function Pillar1Page() {
           </div>
         )}
 
-        {/* ─── SECTION 1: ข้อมูลความต้องการ ──────────────────────────── */}
+        {/* ─── Step Progress Bar ─────────────────────────────────── */}
+        <div className="mx-1 bg-white rounded-2xl shadow-sm p-4">
+          <div className="flex items-center justify-between">
+            {[
+              { n: 1, label: "Total Needs", sub: "ความต้องการ" },
+              { n: 2, label: "Existing Assets", sub: "สิ่งที่มีอยู่" },
+              { n: 3, label: "The Gap", sub: "ส่วนที่ขาด" },
+            ].map((step, i) => (
+              <div key={step.n} className="flex items-center flex-1">
+                <div className="flex flex-col items-center flex-1">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                    step.n === 3 && analysis.totalNeed > 0 && analysis.totalHave > 0
+                      ? (analysis.gap <= 0 ? "bg-emerald-500 text-white" : "bg-red-500 text-white")
+                      : "bg-[#1e3a5f] text-white"
+                  }`}>
+                    {step.n}
+                  </div>
+                  <div className="text-[9px] font-bold text-gray-700 mt-1">{step.label}</div>
+                  <div className="text-[8px] text-gray-400">{step.sub}</div>
+                </div>
+                {i < 2 && <div className="w-full h-0.5 bg-gray-200 -mt-5 mx-1" />}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ═══ STEP 1: คำนวณความต้องการทั้งหมด (Total Needs) ═══ */}
         <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
           <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
             <span className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-[10px] font-bold flex items-center justify-center">1</span>
-            ความต้องการทุนประกัน (Need Analysis)
+            คำนวณความต้องการทั้งหมด (Total Needs)
           </h3>
 
-          <MoneyInput label="ค่าจัดงานศพ" value={p1.funeralCost} onChange={(v) => update({ funeralCost: v })} hint="แนะนำ 200,000-500,000 บาท" />
-
-          {/* Debts — can link from Balance Sheet */}
-          <div className="space-y-2">
-            <LinkToggle
-              label="ดึงหนี้สินจาก Balance Sheet"
-              checked={p1.useBalanceSheetDebts}
-              onChange={(v) => update({ useBalanceSheetDebts: v })}
-              linkedValue={totalDebtsFromBS}
-              linkedLabel="หนี้สินรวมจาก Balance Sheet"
-            />
-            <MoneyInput
-              label={p1.useBalanceSheetDebts ? "หนี้สินเพิ่มเติม (ที่ไม่ได้อยู่ใน Balance Sheet)" : "หนี้สินทั้งหมด"}
-              value={p1.additionalDebts}
-              onChange={(v) => update({ additionalDebts: v })}
-              hint={p1.useBalanceSheetDebts ? undefined : "สินเชื่อบ้าน, รถ, บัตรเครดิต ฯลฯ"}
-            />
-          </div>
-
-          {/* Family expenses — can link from Cashflow */}
-          <div className="space-y-2">
-            <LinkToggle
-              label="ดึงค่าใช้จ่ายจาก Cash Flow"
-              checked={p1.useCashflowExpense}
-              onChange={(v) => update({ useCashflowExpense: v })}
-              linkedValue={monthlyExpenseFromCF}
-              linkedLabel="ค่าใช้จ่ายเฉลี่ย/เดือน"
-            />
-            {!p1.useCashflowExpense && (
-              <MoneyInput label="ค่าใช้จ่ายครอบครัว / เดือน" value={p1.familyExpenseMonthly} onChange={(v) => update({ familyExpenseMonthly: v })} />
-            )}
-            <NumberInput label="จำนวนปีที่ต้องดูแลครอบครัว" value={p1.familyAdjustmentYears} onChange={(v) => update({ familyAdjustmentYears: v })} />
-            {p1.useCashflowExpense && (
-              <div className="text-[10px] text-blue-600 bg-blue-50 rounded-lg px-3 py-2">
-                ค่าใช้จ่ายครอบครัว {p1.familyAdjustmentYears} ปี = {fmt(monthlyExpenseFromCF)} x 12 x {p1.familyAdjustmentYears} = <span className="font-bold">{fmt(monthlyExpenseFromCF * 12 * p1.familyAdjustmentYears)} บาท</span>
+          {/* ── A: Immediate Cash Needs ── */}
+          <div className="border border-red-100 rounded-xl overflow-hidden">
+            <div className="bg-red-50 px-3 py-2 border-b border-red-100">
+              <span className="text-[10px] font-bold text-red-700">A. เงินก้อนทันที (Immediate Cash Needs)</span>
+            </div>
+            <div className="p-3 space-y-3">
+              <MoneyInput label="ค่าพิธีฌาปนกิจ" value={p1.funeralCost} onChange={(v) => update({ funeralCost: v })} hint="แนะนำ 200,000-500,000 บาท" />
+              <div className="space-y-2">
+                <LinkToggle
+                  label="ดึงหนี้สินจาก Balance Sheet"
+                  checked={p1.useBalanceSheetDebts}
+                  onChange={(v) => update({ useBalanceSheetDebts: v })}
+                  linkedValue={totalDebtsFromBS}
+                  linkedLabel="หนี้สินรวมจาก Balance Sheet"
+                />
+                <MoneyInput
+                  label={p1.useBalanceSheetDebts ? "หนี้สินเพิ่มเติม (ที่ไม่ได้อยู่ใน Balance Sheet)" : "หนี้สินทั้งหมด"}
+                  value={p1.additionalDebts}
+                  onChange={(v) => update({ additionalDebts: v })}
+                  hint={p1.useBalanceSheetDebts ? undefined : "สินเชื่อบ้าน, รถ, บัตรเครดิต ฯลฯ"}
+                />
               </div>
-            )}
+            </div>
+            <div className="bg-red-50 px-3 py-2 border-t border-red-100 flex items-center justify-between">
+              <span className="text-[10px] font-bold text-red-700">รวมเงินก้อนทันที</span>
+              <span className="text-xs font-extrabold text-red-600">{fmt(analysis.totalImmediate)} บาท</span>
+            </div>
           </div>
 
-          <MoneyInput label="ทุนการศึกษาบุตร" value={p1.educationFund} onChange={(v) => update({ educationFund: v })} hint="รวมค่าเรียนจนจบ ของทุกคน" />
+          {/* ── B: Income Needs ── */}
+          <div className="border border-blue-100 rounded-xl overflow-hidden">
+            <div className="bg-blue-50 px-3 py-2 border-b border-blue-100">
+              <span className="text-[10px] font-bold text-blue-700">B. ค่าใช้จ่ายต่อเนื่อง (Income Needs)</span>
+            </div>
+            <div className="p-3 space-y-3">
+              {/* Family expenses — can link from Cashflow */}
+              <div className="space-y-2">
+                <LinkToggle
+                  label="ดึงค่าใช้จ่ายจาก Cash Flow"
+                  checked={p1.useCashflowExpense}
+                  onChange={(v) => update({ useCashflowExpense: v })}
+                  linkedValue={monthlyExpenseFromCF}
+                  linkedLabel="ค่าใช้จ่ายเฉลี่ย/เดือน"
+                />
+                {!p1.useCashflowExpense && (
+                  <MoneyInput label="ค่าใช้จ่ายครอบครัว / เดือน" value={p1.familyExpenseMonthly} onChange={(v) => update({ familyExpenseMonthly: v })} />
+                )}
+                <NumberInput label="จำนวนปีที่ต้องดูแลครอบครัว" value={p1.familyAdjustmentYears} onChange={(v) => update({ familyAdjustmentYears: v })} />
+                {p1.useCashflowExpense && (
+                  <div className="text-[10px] text-blue-600 bg-blue-50 rounded-lg px-3 py-2">
+                    ค่าใช้จ่ายครอบครัว {p1.familyAdjustmentYears} ปี = {fmt(monthlyExpenseFromCF)} x 12 x {p1.familyAdjustmentYears} = <span className="font-bold">{fmt(monthlyExpenseFromCF * 12 * p1.familyAdjustmentYears)} บาท</span>
+                  </div>
+                )}
+              </div>
 
-          {/* Parent support */}
-          <div className="grid grid-cols-2 gap-3">
-            <MoneyInput label="เงินดูแลพ่อ/แม่ ต่อเดือน" value={p1.parentSupportMonthly} onChange={(v) => update({ parentSupportMonthly: v })} />
-            <NumberInput label="อีกกี่ปี" value={p1.parentSupportYears} onChange={(v) => update({ parentSupportYears: v })} />
+              <MoneyInput label="ทุนการศึกษาบุตร" value={p1.educationFund} onChange={(v) => update({ educationFund: v })} hint="รวมค่าเรียนจนจบ ของทุกคน" />
+
+              <div className="grid grid-cols-2 gap-3">
+                <MoneyInput label="เงินดูแลพ่อ/แม่ ต่อเดือน" value={p1.parentSupportMonthly} onChange={(v) => update({ parentSupportMonthly: v })} />
+                <NumberInput label="อีกกี่ปี" value={p1.parentSupportYears} onChange={(v) => update({ parentSupportYears: v })} />
+              </div>
+
+              <MoneyInput label="ความต้องการอื่นๆ" value={p1.otherNeeds} onChange={(v) => update({ otherNeeds: v })} />
+            </div>
+            <div className="bg-blue-50 px-3 py-2 border-t border-blue-100 flex items-center justify-between">
+              <span className="text-[10px] font-bold text-blue-700">รวมค่าใช้จ่ายต่อเนื่อง</span>
+              <span className="text-xs font-extrabold text-blue-600">{fmt(analysis.totalIncome)} บาท</span>
+            </div>
           </div>
 
-          <MoneyInput label="ความต้องการอื่นๆ" value={p1.otherNeeds} onChange={(v) => update({ otherNeeds: v })} />
+          {/* Total Needs summary */}
+          <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-xl p-3 text-white flex items-center justify-between">
+            <span className="text-xs font-bold">รวมความต้องการทั้งหมด (Total Needs)</span>
+            <span className="text-lg font-extrabold">{fmt(analysis.totalNeed)} บาท</span>
+          </div>
         </div>
 
-        {/* ─── SECTION 2: สิ่งที่มีอยู่ ──────────────────────────────── */}
+        {/* ═══ STEP 2: รวบรวมสินทรัพย์ที่มีอยู่ (Existing Assets) ═══ */}
         <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
           <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
             <span className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-[10px] font-bold flex items-center justify-center">2</span>
-            ความคุ้มครองที่มีอยู่ (What You Have)
+            รวบรวมสินทรัพย์ที่มีอยู่ (Existing Assets)
           </h3>
 
           {/* Life policies summary */}
@@ -293,71 +356,103 @@ export default function Pillar1Page() {
             )}
           </div>
 
-          <MoneyInput label="เงินออม/สินทรัพย์สภาพคล่องที่เตรียมไว้" value={p1.existingSavings} onChange={(v) => update({ existingSavings: v })} hint="เงินฝาก, กองทุน, สินทรัพย์ที่แปลงเป็นเงินสดได้เร็ว" />
+          <MoneyInput label="สวัสดิการกรณีเสียชีวิตจากนายจ้าง" value={p1.employerDeathBenefit || 0} onChange={(v) => update({ employerDeathBenefit: v })} hint="เงินชดเชยกรณีเสียชีวิต, สวัสดิการบริษัท" />
+
+          {/* Liquid assets — can link from Balance Sheet */}
+          <div className="space-y-2">
+            <LinkToggle
+              label="ดึงสินทรัพย์สภาพคล่องจาก Balance Sheet"
+              checked={p1.useBalanceSheetLiquid}
+              onChange={(v) => update({ useBalanceSheetLiquid: v })}
+              linkedValue={liquidAssetsFromBS}
+              linkedLabel="สินทรัพย์สภาพคล่องรวมจาก Balance Sheet"
+            />
+            {p1.useBalanceSheetLiquid ? (
+              <MoneyInput
+                label="สินทรัพย์เพิ่มเติม (ที่ไม่ได้อยู่ใน Balance Sheet)"
+                value={p1.additionalSavings}
+                onChange={(v) => update({ additionalSavings: v })}
+              />
+            ) : (
+              <MoneyInput
+                label="เงินออม/สินทรัพย์สภาพคล่องที่เตรียมไว้"
+                value={p1.existingSavings}
+                onChange={(v) => update({ existingSavings: v })}
+                hint="เงินฝาก, กองทุน, สินทรัพย์ที่แปลงเป็นเงินสดได้เร็ว"
+              />
+            )}
+          </div>
+
+          {/* Total Have summary */}
+          <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl p-3 text-white flex items-center justify-between">
+            <span className="text-xs font-bold">รวมสินทรัพย์ที่มีอยู่ (Existing Assets)</span>
+            <span className="text-lg font-extrabold">{fmt(analysis.totalHave)} บาท</span>
+          </div>
         </div>
 
-        {/* ─── SECTION 3: Gap Analysis ───────────────────────────────── */}
+        {/* ═══ STEP 3: หาจุดที่ยังขาด (The Gap) ═══ */}
         <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
           <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
             <span className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-[10px] font-bold flex items-center justify-center">3</span>
-            วิเคราะห์ช่องว่าง (Gap Analysis)
+            หาจุดที่ยังขาด (The Gap)
           </h3>
 
-          {/* Breakdown table: Need */}
-          <div>
-            <div className="text-[10px] font-bold text-gray-500 uppercase mb-2">ทุนประกันที่ต้องการ (Need)</div>
-            <div className="border border-gray-100 rounded-xl overflow-hidden">
-              {analysis.breakdown.map((b) => (
-                <div key={b.label} className="flex items-center justify-between px-3 py-2 border-b border-gray-50 last:border-b-0">
-                  <span className="text-xs text-gray-600">{b.label}</span>
-                  <span className="text-xs font-bold text-gray-800">{fmt(b.value)}</span>
-                </div>
-              ))}
-              <div className="flex items-center justify-between px-3 py-2.5 bg-red-50">
-                <span className="text-xs font-bold text-red-700">รวมทุนที่ต้องการ</span>
-                <span className="text-sm font-extrabold text-red-600">{fmt(analysis.totalNeed)}</span>
+          {/* Combined breakdown table */}
+          <div className="border border-gray-100 rounded-xl overflow-hidden">
+            {/* Need section */}
+            <div className="bg-red-50/50 px-3 py-1.5 border-b border-gray-100">
+              <span className="text-[10px] font-bold text-red-600 uppercase">ความต้องการ (Needs)</span>
+            </div>
+            {analysis.breakdown.map((b) => (
+              <div key={b.label} className="flex items-center justify-between px-3 py-2 border-b border-gray-50">
+                <span className="text-xs text-gray-600">{b.label}</span>
+                <span className="text-xs font-bold text-gray-800">{fmt(b.value)}</span>
               </div>
+            ))}
+            <div className="flex items-center justify-between px-3 py-2.5 bg-red-50 border-b border-gray-100">
+              <span className="text-xs font-bold text-red-700">รวม Total Needs</span>
+              <span className="text-sm font-extrabold text-red-600">{fmt(analysis.totalNeed)}</span>
+            </div>
+
+            {/* Have section */}
+            <div className="bg-emerald-50/50 px-3 py-1.5 border-b border-gray-100">
+              <span className="text-[10px] font-bold text-emerald-600 uppercase">สินทรัพย์ที่มี (Assets)</span>
+            </div>
+            {analysis.haveBreakdown.map((b) => (
+              <div key={b.label} className="flex items-center justify-between px-3 py-2 border-b border-gray-50">
+                <span className="text-xs text-gray-600">{b.label}</span>
+                <span className="text-xs font-bold text-gray-800">{b.value > 0 ? `-${fmt(b.value)}` : "0"}</span>
+              </div>
+            ))}
+            <div className="flex items-center justify-between px-3 py-2.5 bg-emerald-50 border-b border-gray-100">
+              <span className="text-xs font-bold text-emerald-700">รวม Existing Assets</span>
+              <span className="text-sm font-extrabold text-emerald-600">-{fmt(analysis.totalHave)}</span>
+            </div>
+
+            {/* Gap row */}
+            <div className={`flex items-center justify-between px-3 py-3 ${analysis.gap > 0 ? "bg-red-100" : "bg-emerald-100"}`}>
+              <span className={`text-xs font-extrabold ${analysis.gap > 0 ? "text-red-700" : "text-emerald-700"}`}>
+                Insurance Gap
+              </span>
+              <span className={`text-base font-extrabold ${analysis.gap > 0 ? "text-red-600" : "text-emerald-600"}`}>
+                {analysis.gap > 0 ? fmt(analysis.gap) : `-${fmt(Math.abs(analysis.gap))}`} บาท
+              </span>
             </div>
           </div>
 
-          {/* Breakdown table: Have */}
-          <div>
-            <div className="text-[10px] font-bold text-gray-500 uppercase mb-2">ทุนที่มีอยู่ (Have)</div>
-            <div className="border border-gray-100 rounded-xl overflow-hidden">
-              {analysis.haveBreakdown.map((b) => (
-                <div key={b.label} className="flex items-center justify-between px-3 py-2 border-b border-gray-50 last:border-b-0">
-                  <span className="text-xs text-gray-600">{b.label}</span>
-                  <span className="text-xs font-bold text-gray-800">{fmt(b.value)}</span>
-                </div>
-              ))}
-              <div className="flex items-center justify-between px-3 py-2.5 bg-emerald-50">
-                <span className="text-xs font-bold text-emerald-700">รวมทุนที่มี</span>
-                <span className="text-sm font-extrabold text-emerald-600">{fmt(analysis.totalHave)}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Visual: Need vs Have bar */}
+          {/* Visual bar: overlay */}
           <div>
             <div className="text-[10px] font-bold text-gray-500 uppercase mb-2">Need vs Have</div>
-            <div className="space-y-2">
-              <div>
-                <div className="flex items-center justify-between text-[10px] mb-1">
-                  <span className="text-red-600 font-semibold">Need: {fmt(analysis.totalNeed)}</span>
-                  <span className="text-gray-400">100%</span>
-                </div>
-                <div className="h-5 bg-red-100 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full bg-red-500" style={{ width: "100%" }} />
-                </div>
+            <div className="h-7 bg-red-100 rounded-full overflow-hidden relative">
+              <div className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-red-700 z-10">
+                Need: {fmt(analysis.totalNeed)}
               </div>
-              <div>
-                <div className="flex items-center justify-between text-[10px] mb-1">
-                  <span className="text-emerald-600 font-semibold">Have: {fmt(analysis.totalHave)}</span>
-                  <span className="text-gray-400">{analysis.coveragePct.toFixed(0)}%</span>
-                </div>
-                <div className="h-5 bg-emerald-100 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${analysis.coveragePct}%` }} />
-                </div>
+              <div className="h-full rounded-full bg-emerald-400 transition-all relative" style={{ width: `${analysis.coveragePct}%` }}>
+                {analysis.coveragePct > 20 && (
+                  <div className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white">
+                    Have: {analysis.coveragePct.toFixed(0)}%
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -373,11 +468,16 @@ export default function Pillar1Page() {
             ) : (
               <>
                 <AlertTriangle size={32} className="text-red-500 mx-auto mb-2" />
-                <div className="text-sm font-bold text-red-700">ช่องว่างความคุ้มครอง (Gap)</div>
+                <div className="text-sm font-bold text-red-700">ช่องว่างความคุ้มครอง (Insurance Gap)</div>
                 <div className="text-2xl font-extrabold text-red-600 mt-1">{fmt(analysis.gap)} บาท</div>
-                <div className="text-[10px] text-red-500 mt-1">
-                  ควรเพิ่มทุนประกันชีวิตอีก {fmtShort(analysis.gap)} บาท
+                <div className="text-[10px] text-red-500 mt-2 space-y-0.5">
+                  <div>ควรเพิ่มทุนประกันชีวิตอีก {fmtShort(analysis.gap)} บาท</div>
+                  <div>เบี้ยประมาณ {fmt(Math.round(analysis.gap * 3 / 1000))} - {fmt(Math.round(analysis.gap * 5 / 1000))} บาท/ปี (Term 20 ปี)</div>
                 </div>
+                <a href="/calculators/insurance/policies?add=true"
+                  className="inline-block mt-3 px-4 py-2 rounded-xl bg-[#1e3a5f] text-white text-xs font-bold hover:bg-[#2d5a8e] transition">
+                  + เพิ่มกรมธรรม์ใหม่
+                </a>
               </>
             )}
           </div>
@@ -455,7 +555,7 @@ export default function Pillar1Page() {
                 <div className="text-[11px] leading-relaxed space-y-1">
                   <div className="font-bold text-gray-800">แบ่งความต้องการเป็น 2 ส่วน:</div>
                   <div className="pl-3">
-                    <div><strong>เงินก้อนทันที:</strong> ค่าปลงศพ, หนี้สินค้างชำระ, กองทุนฉุกเฉิน</div>
+                    <div><strong>เงินก้อนทันที:</strong> ค่าพิธีฌาปนกิจ, หนี้สินค้างชำระ, กองทุนฉุกเฉิน</div>
                     <div><strong>รายได้ต่อเนื่อง:</strong> ค่าใช้จ่ายครอบครัว, ทุนการศึกษาบุตร, เงินดูแลพ่อแม่</div>
                   </div>
                   <div className="font-bold text-gray-800 mt-1">การคำนวณ:</div>
@@ -569,7 +669,7 @@ export default function Pillar1Page() {
                     <span className="w-5 h-5 rounded-full bg-red-100 text-red-600 text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">F</span>
                     <div>
                       <div className="font-bold text-gray-800">Final Expenses — ค่าใช้จ่ายสุดท้าย</div>
-                      <div className="text-gray-500 mt-0.5">ค่ารักษาพยาบาลก่อนเสียชีวิต (ที่เบิกไม่ได้) และค่าปลงศพ</div>
+                      <div className="text-gray-500 mt-0.5">ค่ารักษาพยาบาลก่อนเสียชีวิต (ที่เบิกไม่ได้) และค่าพิธีฌาปนกิจ</div>
                     </div>
                   </div>
                   <div className="flex gap-3">

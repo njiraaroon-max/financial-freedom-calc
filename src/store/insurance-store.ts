@@ -267,7 +267,7 @@ export const DEFAULT_EXISTING_COVERAGE: ExistingCoverage = {
 // ---------------------------------------------------------------------------
 
 export interface Pillar1Data {
-  funeralCost: number;              // ค่าจัดงานศพ
+  funeralCost: number;              // ค่าพิธีฌาปนกิจ
   familyExpenseMonthly: number;     // ค่าใช้จ่ายครอบครัว/เดือน
   familyAdjustmentYears: number;    // จำนวนปีที่ต้องดูแล
   additionalDebts: number;          // หนี้เพิ่มเติม (ที่ไม่อยู่ใน balance sheet)
@@ -278,6 +278,9 @@ export interface Pillar1Data {
   existingSavings: number;          // เงินออม/สินทรัพย์สภาพคล่องที่เตรียมไว้
   useBalanceSheetDebts: boolean;    // ดึงหนี้จาก balance sheet
   useCashflowExpense: boolean;      // ดึงค่าใช้จ่ายจาก cashflow
+  employerDeathBenefit: number;     // สวัสดิการกรณีเสียชีวิตจากนายจ้าง
+  useBalanceSheetLiquid: boolean;   // ดึงสินทรัพย์สภาพคล่องจาก balance sheet
+  additionalSavings: number;        // สินทรัพย์เพิ่มเติม (ที่ไม่อยู่ใน balance sheet)
 }
 
 export type HospitalTier = "government" | "private_basic" | "private_mid" | "private_premium";
@@ -370,6 +373,9 @@ export const DEFAULT_PILLAR1: Pillar1Data = {
   existingSavings: 0,
   useBalanceSheetDebts: false,
   useCashflowExpense: false,
+  employerDeathBenefit: 0,
+  useBalanceSheetLiquid: false,
+  additionalSavings: 0,
 };
 
 export const DEFAULT_PILLAR2: Pillar2Data = {
@@ -592,7 +598,7 @@ export const useInsuranceStore = create<InsuranceState>()(
     }),
     {
       name: "ffc-insurance",
-      version: 8,
+      version: 9,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
         if (version < 2) {
@@ -652,6 +658,16 @@ export const useInsuranceStore = create<InsuranceState>()(
             paymentEndAge: p.paymentEndAge || 0,
             coverageMode: p.coverageMode || "age",
           }));
+        }
+        if (version < 9) {
+          // Add new Pillar1 fields: employerDeathBenefit, useBalanceSheetLiquid, additionalSavings
+          const rm = state.riskManagement as RiskManagementData | undefined;
+          if (rm && rm.pillar1) {
+            const p1 = rm.pillar1 as unknown as Record<string, unknown>;
+            if (p1.employerDeathBenefit === undefined) p1.employerDeathBenefit = 0;
+            if (p1.useBalanceSheetLiquid === undefined) p1.useBalanceSheetLiquid = false;
+            if (p1.additionalSavings === undefined) p1.additionalSavings = 0;
+          }
         }
         return state;
       },

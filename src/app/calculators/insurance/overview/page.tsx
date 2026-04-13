@@ -262,7 +262,7 @@ export default function OverviewPage() {
 
                 {/* 2. เสียชีวิต */}
                 <SectionHeader title="เสียชีวิต" color="bg-red-500" />
-                <GapRow label="ค่าจัดการงานศพ" needed={needs.funeralCost} employerCoverage={0} selfCoverage={0} />
+                <GapRow label="ค่าพิธีฌาปนกิจ" needed={needs.funeralCost} employerCoverage={0} selfCoverage={0} />
                 <GapRow label="ภาระหนี้สิน" needed={needs.debtRepayment} employerCoverage={0} selfCoverage={0} />
                 <GapRow label="ค่าปรับตัวครอบครัว" needed={needs.familyAdjustment} employerCoverage={0} selfCoverage={0} />
                 <GapRow label="ทุนการศึกษาบุตร" needed={needs.childEducation} employerCoverage={0} selfCoverage={0} />
