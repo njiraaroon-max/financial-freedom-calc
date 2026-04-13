@@ -284,6 +284,7 @@ export interface Pillar1Data {
   educationFund: number;            // ทุนการศึกษาบุตร (legacy lump sum)
   useEducationPlan: boolean;        // ดึงจากแผนการศึกษาบุตร
   educationLevels: { key: string; label: string; years: number; costPerYear: number; enabled: boolean }[];
+  educationChildren: { id: string; name: string; currentLevelKey: string }[];  // บุตรแต่ละคน + ระดับชั้นปัจจุบัน
   incomeItems: { name: string; monthlyAmount: number; years: number }[];  // รายการค่าใช้จ่ายเพิ่มเติม (ต่อเดือน x ปี)
   // ── TVM parameters ──
   inflationRate: number;            // อัตราเงินเฟ้อ (%)
@@ -398,6 +399,7 @@ export const DEFAULT_PILLAR1: Pillar1Data = {
     { key: "bachelor", label: "ป.ตรี", years: 4, costPerYear: 0, enabled: false },
     { key: "master", label: "ป.โท", years: 2, costPerYear: 0, enabled: false },
   ],
+  educationChildren: [],
   incomeItems: [],
   // TVM
   inflationRate: 3,
@@ -633,7 +635,7 @@ export const useInsuranceStore = create<InsuranceState>()(
     }),
     {
       name: "ffc-insurance",
-      version: 13,
+      version: 14,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
         if (version < 2) {
@@ -759,6 +761,14 @@ export const useInsuranceStore = create<InsuranceState>()(
             if (p1.educationLevels === undefined) {
               p1.educationLevels = DEFAULT_PILLAR1.educationLevels;
             }
+          }
+        }
+        if (version < 14) {
+          // Add educationChildren array
+          const rm = state.riskManagement as RiskManagementData | undefined;
+          if (rm && rm.pillar1) {
+            const p1 = rm.pillar1 as unknown as Record<string, unknown>;
+            if (p1.educationChildren === undefined) p1.educationChildren = [];
           }
         }
         return state;
