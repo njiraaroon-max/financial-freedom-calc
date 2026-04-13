@@ -756,13 +756,13 @@ export default function Pillar1Page() {
           {openSteps[3] && <div className="p-4 md:p-6 pt-4 space-y-4">
 
           {/* ── Needs vs Assets side by side ── */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-stretch">
             {/* Needs card */}
-            <div className="border border-red-100 rounded-xl overflow-hidden">
+            <div className="border border-red-100 rounded-xl overflow-hidden flex flex-col">
               <div className="bg-red-50 px-3 py-2">
                 <span className="text-[10px] font-bold text-red-600">ความต้องการทั้งหมด</span>
               </div>
-              <div className="divide-y divide-gray-50">
+              <div className="divide-y divide-gray-50 flex-1">
                 {analysis.breakdown.map((b) => (
                   <div key={b.label} className="flex items-center justify-between px-3 py-1.5">
                     <span className="text-[11px] text-gray-600">{b.label}</span>
@@ -770,18 +770,18 @@ export default function Pillar1Page() {
                   </div>
                 ))}
               </div>
-              <div className="bg-red-50 px-3 py-2 flex items-center justify-between">
+              <div className="bg-red-50 px-3 py-2 flex items-center justify-between mt-auto">
                 <span className="text-[10px] font-bold text-red-700">Total Needs</span>
                 <span className="text-sm font-extrabold text-red-600">{fmt(analysis.totalNeed)}</span>
               </div>
             </div>
 
             {/* Assets card */}
-            <div className="border border-emerald-100 rounded-xl overflow-hidden">
+            <div className="border border-emerald-100 rounded-xl overflow-hidden flex flex-col">
               <div className="bg-emerald-50 px-3 py-2">
                 <span className="text-[10px] font-bold text-emerald-600">สินทรัพย์ที่มีอยู่</span>
               </div>
-              <div className="divide-y divide-gray-50">
+              <div className="divide-y divide-gray-50 flex-1">
                 {analysis.haveBreakdown.map((b) => (
                   <div key={b.label} className="flex items-center justify-between px-3 py-1.5">
                     <span className="text-[11px] text-gray-600">{b.label}</span>
@@ -789,7 +789,7 @@ export default function Pillar1Page() {
                   </div>
                 ))}
               </div>
-              <div className="bg-emerald-50 px-3 py-2 flex items-center justify-between">
+              <div className="bg-emerald-50 px-3 py-2 flex items-center justify-between mt-auto">
                 <span className="text-[10px] font-bold text-emerald-700">Existing Assets</span>
                 <span className="text-sm font-extrabold text-emerald-600">{fmt(analysis.totalHave)}</span>
               </div>
@@ -840,17 +840,6 @@ export default function Pillar1Page() {
             )}
           </div>
 
-          {/* CFP Tip */}
-          <div className="bg-amber-50 rounded-xl p-3 border border-amber-100">
-            <div className="text-[10px] font-bold text-amber-700 mb-1">💡 คำแนะนำจาก CFP</div>
-            <div className="text-[10px] text-amber-600 leading-relaxed space-y-1">
-              <p>• <strong>Needs Analysis</strong> — คำนวณจากยอดเงินที่ครอบครัวต้องใช้จริงหากขาดรายได้หลัก</p>
-              <p>• แนะนำทุนประกันชีวิตขั้นต่ำ = <strong>5-10 เท่า</strong> ของรายได้สุทธิต่อปี</p>
-              {(profile.salary || 0) > 0 && (
-                <p>• รายได้ปัจจุบัน {fmt((profile.salary || 0) * 12)}/ปี → ทุนแนะนำ <strong>{fmt((profile.salary || 0) * 12 * 5)} - {fmt((profile.salary || 0) * 12 * 10)}</strong> บาท</p>
-              )}
-            </div>
-          </div>
         </div>}
         </div>
 
