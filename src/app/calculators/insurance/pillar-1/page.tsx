@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { Shield, Link2, AlertTriangle, CheckCircle2, Info, X } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { useInsuranceStore } from "@/store/insurance-store";
@@ -134,7 +134,8 @@ export default function Pillar1Page() {
   // ─── Calculation ────────────────────────────────────────────────────────
   const analysis = useMemo(() => {
     // Debts
-    const debts = p1.useBalanceSheetDebts ? totalDebtsFromBS + p1.additionalDebts : p1.additionalDebts;
+    const debtItemsTotal = (p1.debtItems || []).reduce((s: number, d: { amount: number }) => s + d.amount, 0);
+    const debts = debtItemsTotal + (p1.useBalanceSheetDebts ? totalDebtsFromBS : 0);
 
     // Family expenses
     const monthlyExp = p1.useCashflowExpense ? monthlyExpenseFromCF : p1.familyExpenseMonthly;
@@ -221,26 +222,29 @@ export default function Pillar1Page() {
 
         {/* ─── Step Progress Bar ─────────────────────────────────── */}
         <div className="mx-1 bg-white rounded-2xl shadow-sm p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-start">
             {[
               { n: 1, label: "Total Needs", sub: "ความต้องการ" },
               { n: 2, label: "Existing Assets", sub: "สิ่งที่มีอยู่" },
               { n: 3, label: "The Gap", sub: "ส่วนที่ขาด" },
             ].map((step, i) => (
-              <div key={step.n} className="flex items-center flex-1">
-                <div className="flex flex-col items-center flex-1">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+              <React.Fragment key={step.n}>
+                {/* Step circle + label */}
+                <div className="flex flex-col items-center" style={{ width: 72 }}>
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${
                     step.n === 3 && analysis.totalNeed > 0 && analysis.totalHave > 0
                       ? (analysis.gap <= 0 ? "bg-emerald-500 text-white" : "bg-red-500 text-white")
                       : "bg-[#1e3a5f] text-white"
                   }`}>
                     {step.n}
                   </div>
-                  <div className="text-[9px] font-bold text-gray-700 mt-1">{step.label}</div>
-                  <div className="text-[8px] text-gray-400">{step.sub}</div>
+                  <div className="text-[10px] font-bold text-gray-700 mt-1.5 text-center leading-tight">Step {step.n}</div>
+                  <div className="text-[9px] font-bold text-gray-500 text-center">{step.label}</div>
+                  <div className="text-[8px] text-gray-400 text-center">{step.sub}</div>
                 </div>
-                {i < 2 && <div className="w-full h-0.5 bg-gray-200 -mt-5 mx-1" />}
-              </div>
+                {/* Connecting line */}
+                {i < 2 && <div className="flex-1 h-0.5 bg-gray-200 mt-[18px]" />}
+              </React.Fragment>
             ))}
           </div>
         </div>
@@ -259,20 +263,77 @@ export default function Pillar1Page() {
             </div>
             <div className="p-3 space-y-3">
               <MoneyInput label="ค่าพิธีฌาปนกิจ" value={p1.funeralCost} onChange={(v) => update({ funeralCost: v })} hint="แนะนำ 200,000-500,000 บาท" />
+
+              {/* ── Debt Clearance ── */}
               <div className="space-y-2">
-                <LinkToggle
-                  label="ดึงหนี้สินจาก Balance Sheet"
-                  checked={p1.useBalanceSheetDebts}
-                  onChange={(v) => update({ useBalanceSheetDebts: v })}
-                  linkedValue={totalDebtsFromBS}
-                  linkedLabel="หนี้สินรวมจาก Balance Sheet"
-                />
-                <MoneyInput
-                  label={p1.useBalanceSheetDebts ? "หนี้สินเพิ่มเติม (ที่ไม่ได้อยู่ใน Balance Sheet)" : "หนี้สินทั้งหมด"}
-                  value={p1.additionalDebts}
-                  onChange={(v) => update({ additionalDebts: v })}
-                  hint={p1.useBalanceSheetDebts ? undefined : "สินเชื่อบ้าน, รถ, บัตรเครดิต ฯลฯ"}
-                />
+                <div>
+                  <div className="text-[11px] font-bold text-gray-700">Debt Clearance: หนี้สินทั้งหมด</div>
+                  <div className="text-[9px] text-gray-400 mt-0.5">หนี้สินทั้งหมดที่ไม่ได้มีประกันคุ้มครองวงเงินสินเชื่อ (MRTA) เช่น หนี้บัตรเครดิต, หนี้สินเชื่อส่วนบุคคล หรือหนี้บ้าน/รถที่ยังค้างอยู่</div>
+                </div>
+
+                {/* Debt items list */}
+                {(p1.debtItems || []).map((item: { name: string; amount: number }, idx: number) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      className="flex-1 min-w-0 text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-300"
+                      placeholder="ชื่อหนี้สิน"
+                      value={item.name}
+                      onChange={(e) => {
+                        const items = [...(p1.debtItems || [])];
+                        items[idx] = { ...items[idx], name: e.target.value };
+                        update({ debtItems: items });
+                      }}
+                    />
+                    <div className="relative flex items-center">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        className="w-28 text-xs text-right border border-gray-200 rounded-lg px-2 py-1.5 pr-8 focus:outline-none focus:ring-1 focus:ring-blue-300"
+                        value={item.amount === 0 ? "" : item.amount.toLocaleString()}
+                        onChange={(e) => {
+                          const items = [...(p1.debtItems || [])];
+                          items[idx] = { ...items[idx], amount: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 };
+                          update({ debtItems: items });
+                        }}
+                        placeholder="0"
+                      />
+                      <span className="absolute right-2 text-[9px] text-gray-400">บาท</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const items = [...(p1.debtItems || [])];
+                        items.splice(idx, 1);
+                        update({ debtItems: items });
+                      }}
+                      className="text-gray-300 hover:text-red-400 transition-colors shrink-0"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+
+                {/* Add debt button */}
+                <button
+                  onClick={() => {
+                    const items = [...(p1.debtItems || []), { name: "", amount: 0 }];
+                    update({ debtItems: items });
+                  }}
+                  className="text-[10px] text-blue-600 font-bold hover:underline flex items-center gap-1"
+                >
+                  + เพิ่มรายการหนี้สิน
+                </button>
+
+                {/* Link from Balance Sheet — subtle */}
+                <label className="flex items-center gap-1.5 cursor-pointer mt-1">
+                  <input
+                    type="checkbox"
+                    checked={p1.useBalanceSheetDebts}
+                    onChange={(e) => update({ useBalanceSheetDebts: e.target.checked })}
+                    className="w-3 h-3 rounded border-gray-300 text-blue-500 focus:ring-0"
+                  />
+                  <span className="text-[9px] text-gray-400">ดึงหนี้สินจาก Balance Sheet ด้วย ({fmt(totalDebtsFromBS)} บาท)</span>
+                </label>
               </div>
             </div>
             <div className="bg-red-50 px-3 py-2 border-t border-red-100 flex items-center justify-between">
@@ -282,9 +343,9 @@ export default function Pillar1Page() {
           </div>
 
           {/* ── B: Income Needs ── */}
-          <div className="border border-blue-100 rounded-xl overflow-hidden">
-            <div className="bg-blue-50 px-3 py-2 border-b border-blue-100">
-              <span className="text-[10px] font-bold text-blue-700">B. ค่าใช้จ่ายต่อเนื่อง (Income Needs)</span>
+          <div className="border border-red-100 rounded-xl overflow-hidden">
+            <div className="bg-red-50 px-3 py-2 border-b border-red-100">
+              <span className="text-[10px] font-bold text-red-700">B. ค่าใช้จ่ายต่อเนื่อง (Income Needs)</span>
             </div>
             <div className="p-3 space-y-3">
               {/* Family expenses — can link from Cashflow */}
@@ -316,9 +377,9 @@ export default function Pillar1Page() {
 
               <MoneyInput label="ความต้องการอื่นๆ" value={p1.otherNeeds} onChange={(v) => update({ otherNeeds: v })} />
             </div>
-            <div className="bg-blue-50 px-3 py-2 border-t border-blue-100 flex items-center justify-between">
-              <span className="text-[10px] font-bold text-blue-700">รวมค่าใช้จ่ายต่อเนื่อง</span>
-              <span className="text-xs font-extrabold text-blue-600">{fmt(analysis.totalIncome)} บาท</span>
+            <div className="bg-red-50 px-3 py-2 border-t border-red-100 flex items-center justify-between">
+              <span className="text-[10px] font-bold text-red-700">รวมค่าใช้จ่ายต่อเนื่อง</span>
+              <span className="text-xs font-extrabold text-red-600">{fmt(analysis.totalIncome)} บาท</span>
             </div>
           </div>
 

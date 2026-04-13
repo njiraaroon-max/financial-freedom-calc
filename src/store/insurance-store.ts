@@ -271,6 +271,7 @@ export interface Pillar1Data {
   familyExpenseMonthly: number;     // ค่าใช้จ่ายครอบครัว/เดือน
   familyAdjustmentYears: number;    // จำนวนปีที่ต้องดูแล
   additionalDebts: number;          // หนี้เพิ่มเติม (ที่ไม่อยู่ใน balance sheet)
+  debtItems: { name: string; amount: number }[];  // รายการหนี้สินที่กรอกเอง
   educationFund: number;            // ทุนการศึกษาบุตร
   parentSupportMonthly: number;     // เงินดูแลพ่อแม่/เดือน
   parentSupportYears: number;       // อีกกี่ปี
@@ -366,6 +367,7 @@ export const DEFAULT_PILLAR1: Pillar1Data = {
   familyExpenseMonthly: 0,
   familyAdjustmentYears: 5,
   additionalDebts: 0,
+  debtItems: [],
   educationFund: 0,
   parentSupportMonthly: 0,
   parentSupportYears: 10,
@@ -598,7 +600,7 @@ export const useInsuranceStore = create<InsuranceState>()(
     }),
     {
       name: "ffc-insurance",
-      version: 9,
+      version: 10,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
         if (version < 2) {
@@ -667,6 +669,14 @@ export const useInsuranceStore = create<InsuranceState>()(
             if (p1.employerDeathBenefit === undefined) p1.employerDeathBenefit = 0;
             if (p1.useBalanceSheetLiquid === undefined) p1.useBalanceSheetLiquid = false;
             if (p1.additionalSavings === undefined) p1.additionalSavings = 0;
+          }
+        }
+        if (version < 10) {
+          // Add debtItems array to Pillar1
+          const rm = state.riskManagement as RiskManagementData | undefined;
+          if (rm && rm.pillar1) {
+            const p1 = rm.pillar1 as unknown as Record<string, unknown>;
+            if (p1.debtItems === undefined) p1.debtItems = [];
           }
         }
         return state;
