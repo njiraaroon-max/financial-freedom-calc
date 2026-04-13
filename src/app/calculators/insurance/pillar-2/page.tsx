@@ -907,22 +907,9 @@ export default function Pillar2Page() {
           </button>
           {openSteps[3] && <div className="p-4 md:p-6 pt-4 space-y-4">
 
-          {/* Floating color banner pills */}
-          <div className="flex gap-2 mb-[-12px] relative z-10">
-            <div className="bg-red-700 text-white text-[11px] font-bold text-center py-2 rounded-lg shadow-md border border-red-800" style={{ width: "33%", marginLeft: "2px" }}>
-              มูลค่าความคุ้มครองที่ควรมี
-            </div>
-            <div className="bg-green-700 text-white text-[11px] font-bold text-center py-2 rounded-lg shadow-md border border-green-800" style={{ width: "30%" }}>
-              มูลค่าความคุ้มครองที่มีอยู่แล้ว
-            </div>
-            <div className="bg-blue-900 text-white text-[11px] font-bold text-center py-2 rounded-lg shadow-md border border-blue-950" style={{ width: "27%", marginRight: "2px" }}>
-              ส่วนต่าง
-            </div>
-          </div>
-
           {/* Gap summary table */}
-          <div className="rounded-xl overflow-hidden border border-gray-200">
-            <table className="w-full text-[10px]" style={{ tableLayout: "fixed" }}>
+          <div className="overflow-visible">
+            <table className="w-full text-[10px] border-collapse" style={{ tableLayout: "fixed" }}>
               <colgroup>
                 <col style={{ width: "44px" }} />
                 <col />
@@ -932,32 +919,52 @@ export default function Pillar2Page() {
                 <col style={{ width: "11%" }} />
                 <col style={{ width: "15%" }} />
               </colgroup>
+              {/* Floating banner pills row */}
               <thead>
-                <tr className="text-[8px] font-bold uppercase tracking-wider">
-                  <th colSpan={2} className="pt-5 pb-1.5 px-2 bg-red-50 text-red-400 text-left">ประเภท</th>
-                  <th className="pt-5 pb-1.5 px-2 bg-red-50 text-red-400 text-right">ต้องการ</th>
-                  <th className="pt-5 pb-1.5 px-2 bg-green-100/60 text-green-600 text-right">สวัสดิการ</th>
-                  <th className="pt-5 pb-1.5 px-2 bg-green-50 text-green-500 text-right">ประกันตัวเอง</th>
-                  <th className="pt-5 pb-1.5 px-2 bg-blue-100/50 text-blue-500 text-center">สถานะ</th>
-                  <th className="pt-5 pb-1.5 px-2 bg-blue-50 text-blue-400 text-right">ส่วนต่าง</th>
+                <tr>
+                  <td className="pb-2"></td>
+                  <td colSpan={2} className="pb-2 px-0.5">
+                    <div className="bg-red-700 text-white text-[11px] font-bold text-center py-2.5 rounded-lg shadow-lg">
+                      มูลค่าความคุ้มครองที่ควรมี
+                    </div>
+                  </td>
+                  <td colSpan={2} className="pb-2 px-0.5">
+                    <div className="bg-green-700 text-white text-[11px] font-bold text-center py-2.5 rounded-lg shadow-lg">
+                      มูลค่าความคุ้มครองที่มีอยู่แล้ว
+                    </div>
+                  </td>
+                  <td colSpan={2} className="pb-2 px-0.5">
+                    <div className="bg-blue-900 text-white text-[11px] font-bold text-center py-2.5 rounded-lg shadow-lg">
+                      ส่วนต่าง
+                    </div>
+                  </td>
+                </tr>
+                {/* Sub-header row */}
+                <tr className="text-[8px] font-bold uppercase tracking-wider border border-gray-200">
+                  <th colSpan={2} className="py-1.5 px-2 bg-red-50 text-red-400 text-left border-r border-gray-200">ประเภท</th>
+                  <th className="py-1.5 px-2 bg-red-50 text-red-400 text-right border-r border-gray-200">ต้องการ</th>
+                  <th className="py-1.5 px-2 bg-green-100/60 text-green-600 text-right border-r border-gray-100">สวัสดิการ</th>
+                  <th className="py-1.5 px-2 bg-green-50 text-green-500 text-right border-r border-gray-200">ประกันตัวเอง</th>
+                  <th className="py-1.5 px-2 bg-blue-100/50 text-blue-500 text-center border-r border-gray-100">สถานะ</th>
+                  <th className="py-1.5 px-2 bg-blue-50 text-blue-400 text-right">ส่วนต่าง</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="border border-gray-200">
                 {categories.map((cat, idx) => {
                   const g = analysis.gap[cat.key];
                   const isOk = g <= 0;
                   return (
                     <tr key={cat.key} className="border-t border-gray-100">
                       {idx === 0 && (
-                        <td rowSpan={6} className="bg-blue-950 text-white text-[11px] font-bold text-center align-middle">
+                        <td rowSpan={6} className="bg-blue-950 text-white text-[11px] font-bold text-center align-middle border-r border-gray-200">
                           เจ็บป่วย
                         </td>
                       )}
-                      <td className="py-2.5 px-2 text-gray-700 font-medium bg-red-50/30">{cat.labelShort}</td>
-                      <td className="py-2.5 px-2 text-right font-bold text-gray-700 bg-red-50/30">{fmt(analysis.need[cat.key])}</td>
-                      <td className="py-2.5 px-2 text-right text-gray-600 bg-green-100/25">{fmt(analysis.employer[cat.key])}</td>
-                      <td className="py-2.5 px-2 text-right text-gray-600 bg-green-50/40">{fmt(analysis.personal[cat.key])}</td>
-                      <td className="py-2.5 px-2 text-center bg-blue-100/20">
+                      <td className="py-2.5 px-2 text-gray-700 font-medium bg-red-50/30 border-r border-gray-100">{cat.labelShort}</td>
+                      <td className="py-2.5 px-2 text-right font-bold text-gray-700 bg-red-50/30 border-r border-gray-200">{fmt(analysis.need[cat.key])}</td>
+                      <td className="py-2.5 px-2 text-right text-gray-600 bg-green-100/25 border-r border-gray-100">{fmt(analysis.employer[cat.key])}</td>
+                      <td className="py-2.5 px-2 text-right text-gray-600 bg-green-50/40 border-r border-gray-200">{fmt(analysis.personal[cat.key])}</td>
+                      <td className="py-2.5 px-2 text-center bg-blue-100/20 border-r border-gray-100">
                         <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isOk ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
                           {isOk ? "พอ" : "ขาด"}
                         </span>
@@ -970,7 +977,7 @@ export default function Pillar2Page() {
                 })}
               </tbody>
               <tfoot>
-                <tr className={`border-t-2 ${analysis.adequateCount >= 5 ? "bg-emerald-50 border-emerald-300" : "bg-red-50 border-red-300"}`}>
+                <tr className={`border-t-2 border-x border-b border-gray-200 ${analysis.adequateCount >= 5 ? "bg-emerald-50 border-t-emerald-300" : "bg-red-50 border-t-red-300"}`}>
                   <td colSpan={5} className="py-2.5 px-3 text-xs font-bold text-gray-700">ผลประเมิน</td>
                   <td colSpan={2} className={`py-2.5 px-2 text-right text-xs font-bold ${analysis.adequateCount >= 5 ? "text-emerald-600" : "text-red-600"}`}>
                     ผ่าน {analysis.adequateCount}/6 หมวด
