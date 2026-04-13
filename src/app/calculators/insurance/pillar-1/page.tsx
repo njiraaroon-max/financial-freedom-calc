@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Shield, Link2, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Shield, Link2, AlertTriangle, CheckCircle2, Info, X } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { useInsuranceStore } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
@@ -165,6 +165,9 @@ export default function Pillar1Page() {
     return { debts, familyNeeds, parentNeeds, breakdown, totalNeed, haveBreakdown, totalHave, gap, gapPct, coveragePct };
   }, [p1, totalDebtsFromBS, monthlyExpenseFromCF, totalLifeCoverage]);
 
+  // ─── Info modal ─────────────────────────────────────────────────────────
+  const [showInfo, setShowInfo] = useState(false);
+
   // ─── Save & mark completed ──────────────────────────────────────────────
   const handleSave = () => {
     store.markPillarCompleted("pillar1");
@@ -182,12 +185,17 @@ export default function Pillar1Page() {
       <div className="px-2 md:px-4 pt-3 pb-8 space-y-3">
         {/* Intro Card */}
         <div className="bg-gradient-to-br from-[#1e3a5f] to-[#3b6fa0] rounded-2xl p-4 text-white mx-1">
-          <div className="flex items-center gap-2 mb-2">
-            <Shield size={20} />
-            <span className="text-sm font-bold">ถ้าวันนี้เราไม่อยู่...ใครเดือดร้อน?</span>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Shield size={20} />
+              <span className="text-sm font-bold">ถ้าวันนี้เราไม่อยู่...ใครเดือดร้อน?</span>
+            </div>
+            <button onClick={() => setShowInfo(true)} className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition shrink-0">
+              <Info size={16} />
+            </button>
           </div>
           <p className="text-[11px] opacity-80 leading-relaxed">
-            คำนวณทุนประกันชีวิตที่เหมาะสมด้วย Capital Utilization Approach
+            คำนวณทุนประกันชีวิตที่เหมาะสมด้วย Needs Analysis Approach
             เพื่อให้มั่นใจว่าคนที่รักจะดำรงชีวิตต่อไปได้
           </p>
         </div>
@@ -377,7 +385,7 @@ export default function Pillar1Page() {
           <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
             <div className="text-[10px] font-bold text-amber-800 mb-1">💡 คำแนะนำจาก CFP</div>
             <div className="text-[10px] text-amber-700 leading-relaxed space-y-1">
-              <p>• <strong>Capital Utilization Approach</strong> — คำนวณจากยอดเงินที่ครอบครัวต้องใช้จริงหากขาดรายได้หลัก</p>
+              <p>• <strong>Needs Analysis Approach</strong> — คำนวณจากยอดเงินที่ครอบครัวต้องใช้จริงหากขาดรายได้หลัก</p>
               <p>• แนะนำทุนประกันชีวิตขั้นต่ำ = <strong>5-10 เท่า</strong> ของรายได้สุทธิต่อปี</p>
               {(profile.salary || 0) > 0 && (
                 <p>• รายได้ปัจจุบัน {fmt((profile.salary || 0) * 12)}/ปี → ทุนแนะนำ <strong>{fmt((profile.salary || 0) * 12 * 5)} - {fmt((profile.salary || 0) * 12 * 10)}</strong> บาท</p>
@@ -396,6 +404,134 @@ export default function Pillar1Page() {
           </button>
         </div>
       </div>
+
+      {/* ── Info Modal: หลักการคำนวณทุนประกัน ── */}
+      {showInfo && (
+        <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center bg-black/40" onClick={() => setShowInfo(false)}>
+          <div className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-xl max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className="sticky top-0 bg-[#1e3a5f] text-white px-5 py-4 flex items-center justify-between z-10 md:rounded-t-2xl rounded-t-2xl">
+              <div className="flex items-center gap-2">
+                <Info size={18} />
+                <h3 className="text-sm font-bold">หลักการคำนวณทุนประกันชีวิต</h3>
+              </div>
+              <button onClick={() => setShowInfo(false)} className="text-white/70 hover:text-white"><X size={20} /></button>
+            </div>
+
+            <div className="px-5 py-4 space-y-5 text-gray-700">
+              <p className="text-xs leading-relaxed">
+                ตามหลักการของ <strong>CFP Module 3</strong> (การวางแผนการประกันภัย) การคำนวณมูลค่าความสามารถของบุคคล
+                หรือการวิเคราะห์จำนวนเงินเอาประกันภัยที่เหมาะสม มีวิธีหลักๆ <strong>3 วิธี</strong> ดังนี้:
+              </p>
+
+              {/* Method 1 */}
+              <div className="border border-gray-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <h4 className="text-xs font-bold text-gray-800">วิธีมูลค่าทางเศรษฐกิจ (Human Life Value)</h4>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  มองคนเป็น &ldquo;สินทรัพย์&rdquo; ที่สร้างรายได้ คำนวณว่าตั้งแต่วันนี้จนถึงเกษียณจะหาเงินได้รวมเป็น
+                  มูลค่าปัจจุบัน (Present Value) เท่าไหร่
+                </p>
+                <div className="bg-blue-50 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                  <div><strong>สูตร:</strong> (รายได้หลังหักค่าใช้จ่ายส่วนตัว/ปี) x (ปัจจัยมูลค่าปัจจุบันของเงินงวด)</div>
+                  <div className="text-green-700">✓ จุดเด่น: สะท้อน &ldquo;ศักยภาพ&rdquo; ในการหาเงินที่แท้จริง</div>
+                  <div className="text-red-600">✗ ข้อเสีย: ไม่ได้มองว่าครอบครัวจำเป็นต้องใช้เท่าไหร่</div>
+                </div>
+              </div>
+
+              {/* Method 2 */}
+              <div className="border-2 border-blue-400 rounded-xl p-4 space-y-2 bg-blue-50/30">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
+                  <h4 className="text-xs font-bold text-blue-800">วิธีวิเคราะห์ความต้องการ (Needs Analysis) ⭐</h4>
+                </div>
+                <div className="text-[10px] text-blue-600 font-bold bg-blue-100 rounded-lg px-2 py-1 inline-block">ใช้ในหน้านี้</div>
+                <p className="text-[11px] leading-relaxed">
+                  วิธีที่ได้รับความนิยมมากที่สุด ยึดตามภาระหน้าที่และความจำเป็นจริงของคนข้างหลัง
+                </p>
+                <div className="text-[11px] leading-relaxed space-y-1">
+                  <div className="font-bold text-gray-800">แบ่งความต้องการเป็น 2 ส่วน:</div>
+                  <div className="pl-3">
+                    <div><strong>เงินก้อนทันที:</strong> ค่าปลงศพ, หนี้สินค้างชำระ, กองทุนฉุกเฉิน</div>
+                    <div><strong>รายได้ต่อเนื่อง:</strong> ค่าใช้จ่ายครอบครัว, ทุนการศึกษาบุตร, เงินดูแลพ่อแม่</div>
+                  </div>
+                  <div className="font-bold text-gray-800 mt-1">การคำนวณ:</div>
+                  <div className="pl-3">(ความต้องการทั้งหมด) - (สินทรัพย์ที่มี) = ทุนประกันที่ต้องซื้อเพิ่ม</div>
+                </div>
+                <div className="bg-blue-100 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                  <div className="text-green-700">✓ จุดเด่น: แม่นยำที่สุด ตรงกับเป้าหมายการเงินจริง</div>
+                </div>
+              </div>
+
+              {/* Method 3 */}
+              <div className="border border-gray-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0">3</span>
+                  <h4 className="text-xs font-bold text-gray-800">วิธีประมาณการอย่างง่าย (Capital Retention)</h4>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  เน้นรักษา &ldquo;เงินต้น&rdquo; ไว้ เพื่อให้ดอกผลจากเงินก้อนนั้นเพียงพอต่อการดำรงชีพ
+                  โดยไม่ต้องถอนเงินต้นออกมาใช้
+                </p>
+                <div className="bg-gray-50 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                  <div><strong>สูตร:</strong> ทุนประกัน = รายได้ที่ครอบครัวต้องการ/ปี ÷ อัตราผลตอบแทนหลังหักภาษี</div>
+                  <div className="text-green-700">✓ จุดเด่น: มั่นคงที่สุด เงินต้นเป็นมรดกให้ลูกหลานต่อได้</div>
+                  <div className="text-red-600">✗ ข้อเสีย: ต้องใช้ทุนประกันสูงมาก เบี้ยแพงตาม</div>
+                </div>
+              </div>
+
+              {/* Comparison table */}
+              <div>
+                <h4 className="text-xs font-bold text-gray-800 mb-2">ตารางเปรียบเทียบ</h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[10px]">
+                    <thead>
+                      <tr className="bg-[#1e3a5f] text-white">
+                        <th className="py-2 px-2 text-left font-bold">วิธีการ</th>
+                        <th className="py-2 px-2 text-left font-bold">เหมาะสำหรับ</th>
+                        <th className="py-2 px-2 text-left font-bold">ข้อดี</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-gray-100">
+                        <td className="py-2 px-2 font-bold">Human Life Value</td>
+                        <td className="py-2 px-2">คนรุ่นใหม่ที่รายได้กำลังเติบโต</td>
+                        <td className="py-2 px-2">เห็นภาพ &ldquo;ค่าตัว&rdquo; ที่ชัดเจน</td>
+                      </tr>
+                      <tr className="border-b border-gray-100 bg-blue-50">
+                        <td className="py-2 px-2 font-bold text-blue-700">Needs Analysis ⭐</td>
+                        <td className="py-2 px-2">ครอบครัวที่มีภาระซับซ้อน</td>
+                        <td className="py-2 px-2">แม่นยำที่สุด ตรงเป้าหมายจริง</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2 px-2 font-bold">Capital Retention</td>
+                        <td className="py-2 px-2">ผู้มีความมั่งคั่งสูง (HNW)</td>
+                        <td className="py-2 px-2">รักษาความมั่งคั่งชั่วนิรันดร์</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
+                <div className="text-[10px] text-amber-700 leading-relaxed">
+                  💡 ในการทำเคสจริงตามมาตรฐาน CFP มักจะใช้ <strong>Needs Analysis</strong> เป็นหลัก
+                  เพราะสามารถระบุได้ชัดเจนว่าเงินแต่ละบาทที่ลูกค้าจ่ายไปนั้น ไปคุ้มครอง &ldquo;เป้าหมาย&rdquo; ไหนกันแน่
+                </div>
+              </div>
+            </div>
+
+            {/* Close button */}
+            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-5 py-3 md:rounded-b-2xl">
+              <button onClick={() => setShowInfo(false)} className="w-full py-2.5 rounded-xl bg-[#1e3a5f] text-white text-sm font-bold hover:bg-[#2d5a8e] transition">
+                เข้าใจแล้ว
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
