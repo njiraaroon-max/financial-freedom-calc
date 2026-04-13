@@ -854,9 +854,6 @@ export default function PortfolioDashboard() {
           <div>
             <div className="flex items-center justify-between mb-2 px-1">
               <h3 className="text-sm font-bold text-gray-800">รายการกรมธรรม์ ({totalPolicies})</h3>
-              <button onClick={openAdd} className="flex items-center gap-1 text-xs text-[var(--color-primary)] font-medium px-2 py-1 rounded-lg hover:bg-indigo-50">
-                <Plus size={14} /> เพิ่ม
-              </button>
             </div>
             <div className="space-y-2">
               {policies.map((p) => (
