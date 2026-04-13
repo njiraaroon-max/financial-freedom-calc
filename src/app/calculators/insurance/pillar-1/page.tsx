@@ -43,7 +43,7 @@ function MoneyInput({ label, value, onChange, hint, suffix = "บาท" }: {
 
   return (
     <div>
-      <label className="text-[11px] text-gray-500 font-semibold block mb-1">{label}</label>
+      {label && <label className="text-xs text-gray-700 font-bold block mb-1">{label}</label>}
       <div className="flex items-center gap-2">
         <input
           type="text" inputMode="numeric" value={display}
@@ -147,7 +147,7 @@ export default function Pillar1Page() {
     // Total needs (Needs Analysis Approach)
     const immediateNeeds = [
       { label: "ค่าพิธีฌาปนกิจ", value: p1.funeralCost },
-      { label: "ชำระหนี้สินทั้งหมด", value: debts },
+      { label: "ค่าปิดยอดหนี้สินคงค้าง", value: debts },
     ];
     const incomeNeeds = [
       { label: `ค่าใช้จ่ายครอบครัว (${p1.familyAdjustmentYears} ปี)`, value: familyNeeds },
@@ -262,13 +262,16 @@ export default function Pillar1Page() {
               <span className="text-[10px] font-bold text-red-700">A. เงินก้อนทันที (Immediate Cash Needs)</span>
             </div>
             <div className="p-3 space-y-3">
-              <MoneyInput label="ค่าพิธีฌาปนกิจ" value={p1.funeralCost} onChange={(v) => update({ funeralCost: v })} hint="แนะนำ 200,000-500,000 บาท" />
+              <div>
+                <div className="text-xs font-bold text-gray-700 mb-1">ค่าพิธีฌาปนกิจ</div>
+                <MoneyInput label="" value={p1.funeralCost} onChange={(v) => update({ funeralCost: v })} hint="แนะนำ 200,000-500,000 บาท" />
+              </div>
 
               {/* ── Debt Clearance ── */}
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 <div>
-                  <div className="text-[11px] font-bold text-gray-700">Debt Clearance: หนี้สินทั้งหมด</div>
-                  <div className="text-[9px] text-gray-400 mt-0.5">หนี้สินทั้งหมดที่ไม่ได้มีประกันคุ้มครองวงเงินสินเชื่อ (MRTA) เช่น หนี้บัตรเครดิต, หนี้สินเชื่อส่วนบุคคล หรือหนี้บ้าน/รถที่ยังค้างอยู่</div>
+                  <div className="text-xs font-bold text-gray-700">Debt Clearance: ค่าปิดยอดหนี้สินคงค้าง</div>
+                  <div className="text-[10px] text-gray-400 mt-0.5 leading-relaxed">หนี้สินทั้งหมดที่ไม่ได้มีประกันคุ้มครองวงเงินสินเชื่อ (MRTA) เช่น หนี้บัตรเครดิต, หนี้สินเชื่อส่วนบุคคล หรือหนี้บ้าน/รถที่ยังค้างอยู่</div>
                 </div>
 
                 {/* Debt items list */}
@@ -276,7 +279,7 @@ export default function Pillar1Page() {
                   <div key={idx} className="flex items-center gap-2">
                     <input
                       type="text"
-                      className="flex-1 min-w-0 text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-300"
+                      className="flex-1 min-w-0 text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                       placeholder="ชื่อหนี้สิน"
                       value={item.name}
                       onChange={(e) => {
@@ -289,7 +292,7 @@ export default function Pillar1Page() {
                       <input
                         type="text"
                         inputMode="numeric"
-                        className="w-28 text-xs text-right border border-gray-200 rounded-lg px-2 py-1.5 pr-8 focus:outline-none focus:ring-1 focus:ring-blue-300"
+                        className="w-36 text-sm text-right font-bold bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 pr-9 focus:outline-none focus:ring-2 focus:ring-blue-400"
                         value={item.amount === 0 ? "" : item.amount.toLocaleString()}
                         onChange={(e) => {
                           const items = [...(p1.debtItems || [])];
@@ -298,7 +301,7 @@ export default function Pillar1Page() {
                         }}
                         placeholder="0"
                       />
-                      <span className="absolute right-2 text-[9px] text-gray-400">บาท</span>
+                      <span className="absolute right-2.5 text-[10px] text-gray-400">บาท</span>
                     </div>
                     <button
                       onClick={() => {
@@ -308,7 +311,7 @@ export default function Pillar1Page() {
                       }}
                       className="text-gray-300 hover:text-red-400 transition-colors shrink-0"
                     >
-                      <X size={14} />
+                      <X size={16} />
                     </button>
                   </div>
                 ))}
@@ -319,7 +322,7 @@ export default function Pillar1Page() {
                     const items = [...(p1.debtItems || []), { name: "", amount: 0 }];
                     update({ debtItems: items });
                   }}
-                  className="text-[10px] text-blue-600 font-bold hover:underline flex items-center gap-1"
+                  className="text-[11px] text-blue-600 font-bold hover:underline flex items-center gap-1"
                 >
                   + เพิ่มรายการหนี้สิน
                 </button>
@@ -736,7 +739,7 @@ export default function Pillar1Page() {
                   <div className="flex gap-3">
                     <span className="w-5 h-5 rounded-full bg-red-100 text-red-600 text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">D</span>
                     <div>
-                      <div className="font-bold text-gray-800">Debt Clearance — ชำระหนี้สินทั้งหมด</div>
+                      <div className="font-bold text-gray-800">Debt Clearance — ค่าปิดยอดหนี้สินคงค้าง</div>
                       <div className="text-gray-500 mt-0.5">หนี้สินที่ไม่มี MRTA คุ้มครอง เช่น หนี้บัตรเครดิต, สินเชื่อส่วนบุคคล, หนี้บ้าน/รถที่ค้าง</div>
                     </div>
                   </div>
