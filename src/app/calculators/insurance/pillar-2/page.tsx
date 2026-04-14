@@ -375,6 +375,15 @@ export default function Pillar2Page() {
   // ─── UI States ────────────────────────────────────────────────────────
   const [openSteps, setOpenSteps] = useState<Record<number, boolean>>({ 1: false, 2: false, 3: false });
   const [openPremium, setOpenPremium] = useState(false);
+  // Local buffers for custom numeric inputs (to allow intermediate states like "4." or ".5")
+  const [customRateStr, setCustomRateStr] = useState<string>(() => {
+    const r = p2.postRetireReturn ?? 4;
+    return [2, 3, 4, 5].includes(r) ? "" : String(r);
+  });
+  const [customRetireAgeStr, setCustomRetireAgeStr] = useState<string>(() => {
+    const a = p2.customRetireAge || 60;
+    return [55, 60, 65].includes(a) ? "" : String(a);
+  });
   const toggleStep = (n: number) => setOpenSteps((prev) => ({ ...prev, [n]: !prev[n] }));
   const [showInfoKey, setShowInfoKey] = useState<string | null>(null);
   const [inflationMode, setInflationMode] = useState<"summary" | "full">("summary");
@@ -1154,7 +1163,7 @@ export default function Pillar2Page() {
                       <button
                         key={a}
                         disabled={disabled}
-                        onClick={() => update({ customRetireAge: a })}
+                        onClick={() => { update({ customRetireAge: a }); setCustomRetireAgeStr(""); }}
                         className={`flex-1 text-xs py-1.5 rounded-lg border transition-all ${
                           disabled
                             ? "border-gray-200 text-gray-300 bg-gray-50 cursor-not-allowed"
@@ -1167,23 +1176,37 @@ export default function Pillar2Page() {
                       </button>
                     );
                   })}
-                  <div className={`flex items-center gap-1 w-24 rounded-lg border px-2 py-1.5 ${
-                    p2.useProfileRetireAge
-                      ? "border-gray-200 bg-gray-50"
-                      : "border-gray-200 focus-within:border-teal-400 focus-within:ring-1 focus-within:ring-teal-200"
-                  }`}>
-                    <input
-                      type="number"
-                      disabled={p2.useProfileRetireAge ?? true}
-                      value={![55, 60, 65].includes(p2.customRetireAge || 60) ? (p2.customRetireAge || "") : ""}
-                      onChange={(e) => update({ customRetireAge: Number(e.target.value) || 60 })}
-                      placeholder=""
-                      className={`w-full text-xs text-center outline-none bg-transparent ${
-                        p2.useProfileRetireAge ? "text-gray-300 cursor-not-allowed" : ""
-                      }`}
-                    />
-                    <span className={`text-[9px] shrink-0 ${p2.useProfileRetireAge ? "text-gray-300" : "text-gray-400"}`}>ปี</span>
-                  </div>
+                  {(() => {
+                    const disabled = p2.useProfileRetireAge ?? true;
+                    const ageIsCustom = !disabled && ![55, 60, 65].includes(p2.customRetireAge || 60);
+                    return (
+                      <label className={`flex items-center gap-1 w-24 rounded-lg border px-2 py-1.5 cursor-text ${
+                        disabled
+                          ? "border-gray-200 bg-gray-50 cursor-not-allowed"
+                          : ageIsCustom
+                            ? "border-teal-400 bg-teal-50 ring-1 ring-teal-200"
+                            : "border-gray-200 focus-within:border-teal-400 focus-within:ring-1 focus-within:ring-teal-200"
+                      }`}>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          disabled={disabled}
+                          value={customRetireAgeStr}
+                          onChange={(e) => {
+                            const s = e.target.value;
+                            setCustomRetireAgeStr(s);
+                            const n = parseInt(s, 10);
+                            if (!Number.isNaN(n) && n > 0) update({ customRetireAge: n });
+                          }}
+                          placeholder=""
+                          className={`w-full text-xs text-center outline-none bg-transparent ${
+                            disabled ? "text-gray-300 cursor-not-allowed" : ageIsCustom ? "text-teal-700 font-bold" : ""
+                          }`}
+                        />
+                        <span className={`text-[9px] shrink-0 ${disabled ? "text-gray-300" : ageIsCustom ? "text-teal-600" : "text-gray-400"}`}>ปี</span>
+                      </label>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -1194,7 +1217,7 @@ export default function Pillar2Page() {
                   {[2, 3, 4, 5].map((rate) => (
                     <button
                       key={rate}
-                      onClick={() => update({ postRetireReturn: rate })}
+                      onClick={() => { update({ postRetireReturn: rate }); setCustomRateStr(""); }}
                       className={`flex-1 text-xs py-1.5 rounded-lg border transition-all ${
                         (p2.postRetireReturn ?? 4) === rate
                           ? "border-teal-400 bg-teal-50 text-teal-700 font-bold"
@@ -1204,17 +1227,31 @@ export default function Pillar2Page() {
                       {rate}%
                     </button>
                   ))}
-                  <div className={`flex items-center gap-1 w-24 rounded-lg border px-2 py-1.5 border-gray-200 focus-within:border-teal-400 focus-within:ring-1 focus-within:ring-teal-200`}>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={![2, 3, 4, 5].includes(p2.postRetireReturn ?? 4) ? (p2.postRetireReturn ?? "") : ""}
-                      onChange={(e) => update({ postRetireReturn: Number(e.target.value) || 4 })}
-                      placeholder=""
-                      className="w-full text-xs text-center outline-none bg-transparent"
-                    />
-                    <span className="text-[9px] shrink-0 text-gray-400">%</span>
-                  </div>
+                  {(() => {
+                    const rateIsCustom = ![2, 3, 4, 5].includes(p2.postRetireReturn ?? 4);
+                    return (
+                      <label className={`flex items-center gap-1 w-24 rounded-lg border px-2 py-1.5 cursor-text ${
+                        rateIsCustom
+                          ? "border-teal-400 bg-teal-50 ring-1 ring-teal-200"
+                          : "border-gray-200 focus-within:border-teal-400 focus-within:ring-1 focus-within:ring-teal-200"
+                      }`}>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={customRateStr}
+                          onChange={(e) => {
+                            const s = e.target.value;
+                            setCustomRateStr(s);
+                            const n = parseFloat(s);
+                            if (!Number.isNaN(n) && n > 0) update({ postRetireReturn: n });
+                          }}
+                          placeholder=""
+                          className={`w-full text-xs text-center outline-none bg-transparent ${rateIsCustom ? "text-teal-700 font-bold" : ""}`}
+                        />
+                        <span className={`text-[9px] shrink-0 ${rateIsCustom ? "text-teal-600" : "text-gray-400"}`}>%</span>
+                      </label>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
