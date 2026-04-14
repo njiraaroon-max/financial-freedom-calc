@@ -109,7 +109,7 @@ export default function RetirementHubPage() {
             {[
               { n: 1, label: "Retirement Funds", sub: "ทุนเกษียณที่ต้องการ", done: step1Done },
               { n: 2, label: "Saving Funds", sub: "แหล่งเงินทุน", done: step2Done },
-              { n: 3, label: "Shortfall + Plan", sub: "ส่วนที่ขาด + แผนการออม", done: step3Done },
+              { n: 3, label: "Shortage or Gap + Saving Plan", sub: "ส่วนที่ขาด + แผนการออม", done: step3Done },
             ].map((step, i) => {
               const baseColor = step.done
                 ? "bg-emerald-500 text-white"
@@ -270,7 +270,7 @@ export default function RetirementHubPage() {
         </div>
       </div>
 
-      {/* Step 3: Shortfall + Plan */}
+      {/* Step 3: Shortage or Gap + Saving Plan */}
       <div className="px-4 md:px-8 pt-3 pb-8">
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
           <button onClick={() => toggleStep(3)} className="w-full p-3 flex items-center justify-between">
@@ -279,7 +279,7 @@ export default function RetirementHubPage() {
                 {step3Done ? <Check size={14} /> : "3"}
               </div>
               <div className="flex items-baseline gap-2 flex-wrap text-left">
-                <span className={`text-sm font-bold ${step3Done ? "text-emerald-600" : canCalculate ? "text-gray-700" : "text-gray-400"}`}>Step 3 · Shortfall + Plan</span>
+                <span className={`text-sm font-bold ${step3Done ? "text-emerald-600" : canCalculate ? "text-gray-700" : "text-gray-400"}`}>Step 3 · Shortage or Gap + Saving Plan</span>
                 <span className="text-[11px] text-gray-500">ส่วนที่ขาด และแผนการออม</span>
               </div>
             </div>
