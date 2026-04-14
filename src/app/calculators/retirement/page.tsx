@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { Settings, UtensilsCrossed, Sparkles, Landmark, ShieldCheck, Gavel, Award, Calculator, Building, TrendingUp, ChevronRight, MousePointerClick, Check, Lock } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Settings, UtensilsCrossed, Sparkles, Landmark, ShieldCheck, Gavel, Award, Calculator, Building, TrendingUp, ChevronRight, ChevronDown, Check, Lock } from "lucide-react";
 import Link from "next/link";
 import { useRetirementStore } from "@/store/retirement-store";
 import PageHeader from "@/components/PageHeader";
@@ -72,6 +72,10 @@ export default function RetirementHubPage() {
   const planDone = isCompleted("retirement_plan");
   const step3Done = planDone && isCompleted("investment_plan");
   const assumptionsDone = isCompleted("assumptions");
+
+  // Collapsible step sections (default collapsed for minimal big-picture view)
+  const [openSteps, setOpenSteps] = useState<Record<number, boolean>>({ 1: false, 2: false, 3: false });
+  const toggleStep = (n: number) => setOpenSteps((prev) => ({ ...prev, [n]: !prev[n] }));
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
@@ -298,21 +302,24 @@ export default function RetirementHubPage() {
             {[
               { n: 1, label: "Retirement Funds", sub: "ทุนเกษียณที่ต้องการ", done: step1Done },
               { n: 2, label: "Saving Funds", sub: "แหล่งเงินทุน", done: step2Done },
-              { n: 3, label: "The Gap + Plan", sub: "ส่วนที่ขาด + แผนลงทุน", done: step3Done },
+              { n: 3, label: "Shortfall + Plan", sub: "ส่วนที่ขาด + แผนการออม", done: step3Done },
             ].map((step, i) => {
               const baseColor = step.done
                 ? "bg-emerald-500 text-white"
                 : "bg-[#1e3a5f] text-white";
+              const ringColor = openSteps[step.n]
+                ? (step.done ? "ring-emerald-400" : "ring-[#1e3a5f]")
+                : "ring-transparent";
               return (
                 <React.Fragment key={step.n}>
-                  <div className="flex flex-col items-center" style={{ width: 72 }}>
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shadow-sm transition-all ${baseColor}`}>
+                  <button onClick={() => toggleStep(step.n)} className="flex flex-col items-center cursor-pointer hover:opacity-80 active:scale-95 transition-all" style={{ width: 72 }}>
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shadow-sm ring-2 ring-offset-2 transition-all ${baseColor} ${ringColor}`}>
                       {step.done ? <Check size={16} /> : step.n}
                     </div>
                     <div className="text-[10px] font-bold text-gray-700 mt-1.5 text-center leading-tight">Step {step.n}</div>
                     <div className="text-[9px] font-bold text-gray-500 text-center">{step.label}</div>
                     <div className="text-[8px] text-gray-400 text-center">{step.sub}</div>
-                  </div>
+                  </button>
                   {i < 2 && <div className={`flex-1 h-0.5 mt-[18px] ${step.done ? "bg-emerald-300" : "bg-gray-200"}`} />}
                 </React.Fragment>
               );
@@ -346,176 +353,198 @@ export default function RetirementHubPage() {
       </div>
 
       {/* Step 1: หาทุนเกษียณที่ต้องการ */}
-      <div className="px-4 md:px-8 pt-5">
-        <div className="flex items-center gap-2 mb-3">
-          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${step1Done ? "bg-emerald-500 text-white" : "bg-[#1e3a5f] text-white"}`}>
-            {step1Done ? <Check size={14} /> : "1"}
-          </div>
-          <span className={`text-sm font-bold ${step1Done ? "text-emerald-600" : "text-gray-700"}`}>หาทุนเกษียณที่ต้องการ</span>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          {step1Cards.map((card) => {
-            const Icon = card.icon;
-            const done = isCompleted(card.key);
-            return (
-              <Link
-                key={card.key}
-                href={card.href}
-                className={`p-3 rounded-xl border text-center hover:shadow-md active:scale-[0.97] transition-all ${
-                  done ? "bg-emerald-50 border-emerald-300" : "bg-white border-gray-200"
-                }`}
-              >
-                <div className={`w-10 h-10 ${done ? "bg-emerald-500" : card.color} rounded-lg flex items-center justify-center mx-auto mb-2 relative`}>
-                  <Icon size={18} className="text-white" />
-                  {done && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center">
-                      <Check size={10} className="text-emerald-500" />
-                    </div>
-                  )}
-                </div>
-                <div className={`text-[11px] font-bold ${done ? "text-emerald-700" : "text-gray-700"}`}>{card.name}</div>
-                <div className="text-[9px] text-gray-400 mt-0.5 leading-tight">{card.desc}</div>
-              </Link>
-            );
-          })}
+      <div className="px-4 md:px-8 pt-4">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
+          <button onClick={() => toggleStep(1)} className="w-full p-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${step1Done ? "bg-emerald-500 text-white" : "bg-[#1e3a5f] text-white"}`}>
+                {step1Done ? <Check size={14} /> : "1"}
+              </div>
+              <div className="flex items-baseline gap-2 flex-wrap text-left">
+                <span className={`text-sm font-bold ${step1Done ? "text-emerald-600" : "text-gray-700"}`}>Step 1 · Retirement Funds</span>
+                <span className="text-[11px] text-gray-500">หาทุนเกษียณที่ต้องการ</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              {!openSteps[1] && <span className="text-[10px] font-bold text-gray-400">ดูรายละเอียด</span>}
+              <ChevronDown size={16} className={`text-gray-400 transition-transform ${openSteps[1] ? "rotate-180" : ""}`} />
+            </div>
+          </button>
+          {openSteps[1] && (
+            <div className="px-3 pb-3">
+              <div className="grid grid-cols-2 gap-2">
+                {step1Cards.map((card) => {
+                  const Icon = card.icon;
+                  const done = isCompleted(card.key);
+                  return (
+                    <Link
+                      key={card.key}
+                      href={card.href}
+                      className={`p-3 rounded-xl border text-center hover:shadow-md active:scale-[0.97] transition-all ${
+                        done ? "bg-emerald-50 border-emerald-300" : "bg-white border-gray-200"
+                      }`}
+                    >
+                      <div className={`w-10 h-10 ${done ? "bg-emerald-500" : card.color} rounded-lg flex items-center justify-center mx-auto mb-2 relative`}>
+                        <Icon size={18} className="text-white" />
+                        {done && (
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center">
+                            <Check size={10} className="text-emerald-500" />
+                          </div>
+                        )}
+                      </div>
+                      <div className={`text-[11px] font-bold ${done ? "text-emerald-700" : "text-gray-700"}`}>{card.name}</div>
+                      <div className="text-[9px] text-gray-400 mt-0.5 leading-tight">{card.desc}</div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Step 2: คำนวณแหล่งเงินทุน */}
-      <div className="px-4 md:px-8 pt-5">
-        <div className="flex items-center gap-2 mb-3">
-          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${step2Done ? "bg-emerald-500 text-white" : "bg-[#1e3a5f] text-white"}`}>
-            {step2Done ? <Check size={14} /> : "2"}
-          </div>
-          <span className={`text-sm font-bold ${step2Done ? "text-emerald-600" : "text-gray-700"}`}>คำนวณแหล่งเงินทุนเกษียณ</span>
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          {step2Cards.map((card) => {
-            const Icon = card.icon;
-            const done = isCompleted(card.key);
-            const disabled = card.disabled;
-            return disabled ? (
-              <div key={card.key} className="p-3 bg-white/60 rounded-xl border border-gray-200 opacity-40 text-center">
-                <div className="w-10 h-10 bg-gray-300 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <Icon size={18} className="text-white" />
-                </div>
-                <div className="text-[11px] font-bold text-gray-400">{card.name}</div>
-                <div className="text-[9px] text-gray-400 mt-0.5">เร็วๆ นี้</div>
+      <div className="px-4 md:px-8 pt-3">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
+          <button onClick={() => toggleStep(2)} className="w-full p-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${step2Done ? "bg-emerald-500 text-white" : "bg-[#1e3a5f] text-white"}`}>
+                {step2Done ? <Check size={14} /> : "2"}
               </div>
-            ) : (
-              <Link
-                key={card.key}
-                href={card.href}
-                className={`p-3 rounded-xl border text-center hover:shadow-md active:scale-[0.97] transition-all ${
-                  done ? "bg-emerald-50 border-emerald-300" : "bg-white border-gray-200"
-                }`}
-              >
-                <div className={`w-10 h-10 ${done ? "bg-emerald-500" : card.color} rounded-lg flex items-center justify-center mx-auto mb-2 relative`}>
-                  <Icon size={18} className="text-white" />
-                  {done && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center">
-                      <Check size={10} className="text-emerald-500" />
+              <div className="flex items-baseline gap-2 flex-wrap text-left">
+                <span className={`text-sm font-bold ${step2Done ? "text-emerald-600" : "text-gray-700"}`}>Step 2 · Saving Funds</span>
+                <span className="text-[11px] text-gray-500">แหล่งเงินทุนเพื่อการเกษียณ</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              {!openSteps[2] && <span className="text-[10px] font-bold text-gray-400">ดูรายละเอียด</span>}
+              <ChevronDown size={16} className={`text-gray-400 transition-transform ${openSteps[2] ? "rotate-180" : ""}`} />
+            </div>
+          </button>
+          {openSteps[2] && (
+            <div className="px-3 pb-3">
+              <div className="grid grid-cols-3 gap-2">
+                {step2Cards.map((card) => {
+                  const Icon = card.icon;
+                  const done = isCompleted(card.key);
+                  const disabled = card.disabled;
+                  return disabled ? (
+                    <div key={card.key} className="p-3 bg-white/60 rounded-xl border border-gray-200 opacity-40 text-center">
+                      <div className="w-10 h-10 bg-gray-300 rounded-lg flex items-center justify-center mx-auto mb-2">
+                        <Icon size={18} className="text-white" />
+                      </div>
+                      <div className="text-[11px] font-bold text-gray-400">{card.name}</div>
+                      <div className="text-[9px] text-gray-400 mt-0.5">เร็วๆ นี้</div>
                     </div>
-                  )}
-                </div>
-                <div className={`text-[11px] font-bold ${done ? "text-emerald-700" : "text-gray-700"}`}>{card.name}</div>
-                <div className="text-[9px] text-gray-400 mt-0.5 leading-tight">{card.desc}</div>
-              </Link>
-            );
-          })}
+                  ) : (
+                    <Link
+                      key={card.key}
+                      href={card.href}
+                      className={`p-3 rounded-xl border text-center hover:shadow-md active:scale-[0.97] transition-all ${
+                        done ? "bg-emerald-50 border-emerald-300" : "bg-white border-gray-200"
+                      }`}
+                    >
+                      <div className={`w-10 h-10 ${done ? "bg-emerald-500" : card.color} rounded-lg flex items-center justify-center mx-auto mb-2 relative`}>
+                        <Icon size={18} className="text-white" />
+                        {done && (
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center">
+                            <Check size={10} className="text-emerald-500" />
+                          </div>
+                        )}
+                      </div>
+                      <div className={`text-[11px] font-bold ${done ? "text-emerald-700" : "text-gray-700"}`}>{card.name}</div>
+                      <div className="text-[9px] text-gray-400 mt-0.5 leading-tight">{card.desc}</div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* CTA: เริ่มคำนวณแผนเกษียณ */}
-      <div className="px-4 md:px-8 pt-5">
-        {canCalculate ? (
-          <Link
-            href="/calculators/retirement/plan"
-            className={`block w-full rounded-2xl p-5 hover:shadow-2xl hover:scale-[1.01] active:scale-[0.97] transition-all shadow-lg border-2 ${
-              planDone
-                ? "bg-gradient-to-r from-emerald-500 to-green-600 border-emerald-300 shadow-emerald-200 text-white"
-                : "bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 border-white/20 shadow-blue-300 text-white"
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-lg font-extrabold mb-1">
-                  {planDone ? "✅ คำนวณแผนเกษียณเสร็จแล้ว" : "🎯 เริ่มคำนวณแผนเกษียณ"}
-                </div>
-                <div className="text-xs opacity-90">สรุปทุนเกษียณ - แหล่งเงิน = ส่วนที่ขาด</div>
+      {/* Step 3: Shortfall + Plan */}
+      <div className="px-4 md:px-8 pt-3 pb-8">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
+          <button onClick={() => toggleStep(3)} className="w-full p-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${step3Done ? "bg-emerald-500 text-white" : canCalculate ? "bg-[#1e3a5f] text-white" : "bg-gray-300 text-gray-500"}`}>
+                {step3Done ? <Check size={14} /> : "3"}
               </div>
-              <div className="bg-white/20 rounded-2xl p-3 relative">
-                <Calculator size={28} />
-                <MousePointerClick size={16} className="absolute -bottom-1.5 -right-1.5 text-white/70 rotate-[15deg]" />
+              <div className="flex items-baseline gap-2 flex-wrap text-left">
+                <span className={`text-sm font-bold ${step3Done ? "text-emerald-600" : canCalculate ? "text-gray-700" : "text-gray-400"}`}>Step 3 · Shortfall + Plan</span>
+                <span className="text-[11px] text-gray-500">ส่วนที่ขาด และแผนการออม</span>
               </div>
             </div>
-          </Link>
-        ) : (
-          <div className="w-full rounded-2xl p-5 bg-gray-200 text-gray-500 border-2 border-gray-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-lg font-extrabold mb-1 flex items-center gap-2">
-                  <Lock size={18} />
-                  เริ่มคำนวณแผนเกษียณ
-                </div>
-                <div className="text-xs opacity-70">
-                  กรุณาคำนวณ Step 1 และ Step 2 ให้ครบก่อน
-                </div>
-              </div>
-              <div className="bg-gray-300 rounded-2xl p-3">
-                <Calculator size={28} className="text-gray-400" />
-              </div>
+            <div className="flex items-center gap-1 shrink-0">
+              {!openSteps[3] && <span className="text-[10px] font-bold text-gray-400">ดูรายละเอียด</span>}
+              <ChevronDown size={16} className={`text-gray-400 transition-transform ${openSteps[3] ? "rotate-180" : ""}`} />
             </div>
-          </div>
-        )}
-      </div>
-
-      {/* Step 3: แผนลงทุนเพื่อเกษียณ */}
-      <div className="px-4 md:px-8 pt-5 pb-8">
-        <div className="flex items-center gap-2 mb-3">
-          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${isCompleted("investment_plan") ? "bg-emerald-500 text-white" : planDone ? "bg-[#1e3a5f] text-white" : "bg-gray-300 text-gray-500"}`}>
-            {isCompleted("investment_plan") ? <Check size={14} /> : "3"}
-          </div>
-          <span className={`text-sm font-bold ${isCompleted("investment_plan") ? "text-emerald-600" : planDone ? "text-gray-700" : "text-gray-400"}`}>
-            แผนลงทุนเพื่อเกษียณ
-          </span>
-        </div>
-        {planDone ? (
-          <Link
-            href="/calculators/retirement/investment-plan"
-            className={`p-4 rounded-xl border text-center hover:shadow-md active:scale-[0.97] transition-all ${
-              isCompleted("investment_plan") ? "bg-emerald-50 border-emerald-300" : "bg-white border-gray-200"
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <div className={`w-12 h-12 ${isCompleted("investment_plan") ? "bg-emerald-500" : "bg-amber-500"} rounded-xl flex items-center justify-center relative`}>
-                <TrendingUp size={22} className="text-white" />
-                {isCompleted("investment_plan") && (
-                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center">
-                    <Check size={12} className="text-emerald-500" />
+          </button>
+          {openSteps[3] && (
+            <div className="px-3 pb-3">
+              <div className="grid grid-cols-2 gap-2">
+          {/* Card 3.1: คำนวณแผนเกษียณ (gap) */}
+          {canCalculate ? (
+            <Link
+              href="/calculators/retirement/plan"
+              className={`p-3 rounded-xl border text-center hover:shadow-md active:scale-[0.97] transition-all ${
+                planDone ? "bg-emerald-50 border-emerald-300" : "bg-white border-gray-200"
+              }`}
+            >
+              <div className={`w-10 h-10 ${planDone ? "bg-emerald-500" : "bg-cyan-500"} rounded-lg flex items-center justify-center mx-auto mb-2 relative`}>
+                <Calculator size={18} className="text-white" />
+                {planDone && (
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center">
+                    <Check size={10} className="text-emerald-500" />
                   </div>
                 )}
               </div>
-              <div className="flex-1 text-left">
-                <div className={`text-sm font-bold ${isCompleted("investment_plan") ? "text-emerald-700" : "text-gray-700"}`}>วางแผนการออม/ลงทุน</div>
-                <div className="text-[10px] text-gray-400">คำนวณเงินออมต่อเดือน & ผลตอบแทนที่ต้องการ</div>
+              <div className={`text-[11px] font-bold ${planDone ? "text-emerald-700" : "text-gray-700"}`}>คำนวณแผนเกษียณ</div>
+              <div className="text-[9px] text-gray-400 mt-0.5 leading-tight">ทุนเกษียณ − แหล่งเงิน = ส่วนที่ขาด</div>
+            </Link>
+          ) : (
+            <div className="p-3 bg-white/60 rounded-xl border border-gray-200 opacity-50 text-center">
+              <div className="w-10 h-10 bg-gray-300 rounded-lg flex items-center justify-center mx-auto mb-2">
+                <Lock size={16} className="text-white" />
               </div>
-              <ChevronRight size={18} className="text-gray-400" />
+              <div className="text-[11px] font-bold text-gray-400">คำนวณแผนเกษียณ</div>
+              <div className="text-[9px] text-gray-400 mt-0.5 leading-tight">ทำ Step 1 + 2 ก่อน</div>
             </div>
-          </Link>
-        ) : (
-          <div className="p-4 rounded-xl border border-gray-200 bg-gray-100 opacity-50">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gray-300 rounded-xl flex items-center justify-center">
-                <Lock size={18} className="text-gray-400" />
+          )}
+
+          {/* Card 3.2: วางแผนการออม/ลงทุน */}
+          {planDone ? (
+            <Link
+              href="/calculators/retirement/investment-plan"
+              className={`p-3 rounded-xl border text-center hover:shadow-md active:scale-[0.97] transition-all ${
+                isCompleted("investment_plan") ? "bg-emerald-50 border-emerald-300" : "bg-white border-gray-200"
+              }`}
+            >
+              <div className={`w-10 h-10 ${isCompleted("investment_plan") ? "bg-emerald-500" : "bg-amber-500"} rounded-lg flex items-center justify-center mx-auto mb-2 relative`}>
+                <TrendingUp size={18} className="text-white" />
+                {isCompleted("investment_plan") && (
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center">
+                    <Check size={10} className="text-emerald-500" />
+                  </div>
+                )}
               </div>
-              <div className="flex-1 text-left">
-                <div className="text-sm font-bold text-gray-400">วางแผนการออม/ลงทุน</div>
-                <div className="text-[10px] text-gray-400">คำนวณแผนเกษียณก่อนจึงจะ unlock</div>
+              <div className={`text-[11px] font-bold ${isCompleted("investment_plan") ? "text-emerald-700" : "text-gray-700"}`}>วางแผนการออม/ลงทุน</div>
+              <div className="text-[9px] text-gray-400 mt-0.5 leading-tight">เงินออมต่อเดือน & ผลตอบแทน</div>
+            </Link>
+          ) : (
+            <div className="p-3 bg-white/60 rounded-xl border border-gray-200 opacity-50 text-center">
+              <div className="w-10 h-10 bg-gray-300 rounded-lg flex items-center justify-center mx-auto mb-2">
+                <Lock size={16} className="text-white" />
+              </div>
+              <div className="text-[11px] font-bold text-gray-400">วางแผนการออม/ลงทุน</div>
+              <div className="text-[9px] text-gray-400 mt-0.5 leading-tight">คำนวณแผนเกษียณก่อน</div>
+            </div>
+          )}
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
