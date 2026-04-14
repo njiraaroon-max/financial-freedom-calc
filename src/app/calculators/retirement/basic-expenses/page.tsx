@@ -289,7 +289,7 @@ export default function BasicExpensesPage() {
 
               return (
                 <div>
-                  <div className="bg-[#1e3a5f] text-white text-xs font-bold px-4 py-2.5 flex items-center justify-between border-b-2 border-white">
+                  <div className="bg-[#1e3a5f] text-white text-xs font-bold px-4 py-2.5 flex items-center justify-between border-b border-gray-300">
                     <span>ตารางวิเคราะห์ทุนเกษียณ (Sensitivity Analysis)</span>
                     <button
                       onClick={() => setShowSensitivityInfo(true)}
@@ -309,8 +309,9 @@ export default function BasicExpensesPage() {
                         <tr className="bg-[#1e3a5f] text-white">
                           {residuals.map((r, idx) => {
                             const isCustom = hasCustomResidual && idx === residuals.length - 1;
+                            const isLast = idx === residuals.length - 1;
                             return (
-                              <th key={r} className={`text-center px-2 py-1.5 font-bold ${isCustom ? "bg-emerald-600/30" : ""}`}>
+                              <th key={r} className={`text-center px-2 py-1.5 font-bold ${!isLast ? "border-r border-white/25" : ""} ${isCustom ? "bg-emerald-600/30" : ""}`}>
                                 {isCustom && <div className="text-[8px] font-normal text-emerald-200">ตามแผนของคุณ</div>}
                                 {r === 0 ? "0" : fmt(r)}
                               </th>
@@ -319,11 +320,14 @@ export default function BasicExpensesPage() {
                         </tr>
                         <tr className="bg-gray-50 border-b border-gray-200">
                           <td className="px-3 py-1.5 text-gray-500 font-medium border-r border-gray-300">พอใช้อีก =&gt;</td>
-                          {residuals.map((r) => (
-                            <td key={r} className="text-center px-2 py-1.5 font-bold text-gray-700">
-                              {r === 0 ? "หมดพอดี" : expenseAtLifeEnd > 0 ? `${(r / expenseAtLifeEnd).toFixed(1)} ปี` : "-"}
-                            </td>
-                          ))}
+                          {residuals.map((r, idx) => {
+                            const isLast = idx === residuals.length - 1;
+                            return (
+                              <td key={r} className={`text-center px-2 py-1.5 font-bold text-gray-700 ${!isLast ? "border-r border-gray-200" : ""}`}>
+                                {r === 0 ? "หมดพอดี" : expenseAtLifeEnd > 0 ? `${(r / expenseAtLifeEnd).toFixed(1)} ปี` : "-"}
+                              </td>
+                            );
+                          })}
                         </tr>
                       </thead>
                       <tbody>
@@ -335,14 +339,15 @@ export default function BasicExpensesPage() {
                               <td className="px-3 py-2 font-bold text-[#1e3a5f] border-r border-gray-300">
                                 {(ret * 100).toFixed(1)}%
                               </td>
-                              {residuals.map((res) => {
+                              {residuals.map((res, idx) => {
                                 const fund = pvAnnuityDue(realRate, n, annualExpFV) + pvLumpSum(ret, n, res);
                                 const isSelected = rowActive && matchCol(res);
+                                const isLast = idx === residuals.length - 1;
                                 return (
                                   <td
                                     key={res}
                                     onClick={() => selectCell(ret, res)}
-                                    className={`text-center px-2 py-2 font-bold cursor-pointer transition ${
+                                    className={`text-center px-2 py-2 font-bold cursor-pointer transition ${!isLast ? "border-r border-gray-200" : ""} ${
                                       isSelected
                                         ? "bg-gray-100 text-gray-900"
                                         : "text-gray-700 hover:bg-blue-50 hover:text-[#1e3a5f]"
