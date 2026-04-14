@@ -225,6 +225,7 @@ export default function Pillar2Page() {
   const currentAge = profile.getAge?.() || 35;
   const profileRetireAge = profile.retireAge || 60;
   const retireAge = p2.useProfileRetireAge ? profileRetireAge : (p2.customRetireAge || 60);
+  const lifeExpectancy = retirementStore.assumptions?.lifeExpectancy || 85;
 
   // ─── Health policies from store ───────────────────────────────────────
   const healthPolicies = store.policies.filter((p) =>
@@ -326,15 +327,16 @@ export default function Pillar2Page() {
     let postRetireTotal = 0;
     let npvPostRetire = 0;
 
-    // Per-year calculation
+    // Per-year calculation (up to life expectancy)
     const yearDetails: { age: number; premium: number; isPostRetire: boolean; pv: number }[] = [];
+    const maxAge = Math.max(lifeExpectancy, retireAge);
 
-    for (let age = currentAge; age <= 90; age++) {
+    for (let age = currentAge; age <= maxAge; age++) {
       const bracket = brackets.find((b) => age >= b.ageFrom && age <= b.ageTo);
       const premium = bracket?.annualPremium || 0;
       const isPost = age >= retireAge;
       const yearsFromRetire = age - retireAge;
-      const pv = isPost && discountRate > 0 ? premium / Math.pow(1 + discountRate, yearsFromRetire) : 0;
+      const pv = isPost && discountRate > 0 ? premium / Math.pow(1 + discountRate, yearsFromRetire) : (isPost ? premium : 0);
 
       if (isPost) {
         postRetireTotal += premium;
@@ -345,22 +347,30 @@ export default function Pillar2Page() {
       yearDetails.push({ age, premium, isPostRetire: isPost, pv });
     }
 
-    // Post-retire by 10-year blocks
+    // Post-retire custom blocks: [retireAge..59], [60..70], [71..80], [81..90], [91..lifeExpectancy]
+    const rawRanges: [number, number][] = [
+      [retireAge, 59],
+      [60, 70],
+      [71, 80],
+      [81, 90],
+      [91, maxAge],
+    ];
     const blocks: { label: string; total: number; npv: number }[] = [];
-    for (let start = retireAge; start <= 90; start += 10) {
-      const end = Math.min(start + 9, 90);
+    for (const [rStart, rEnd] of rawRanges) {
+      const start = Math.max(rStart, retireAge);
+      const end = Math.min(rEnd, maxAge);
+      if (start > end) continue;
       const blockYears = yearDetails.filter((y) => y.age >= start && y.age <= end && y.isPostRetire);
-      if (blockYears.length > 0) {
-        blocks.push({
-          label: `${start}-${end} ปี`,
-          total: blockYears.reduce((s, y) => s + y.premium, 0),
-          npv: blockYears.reduce((s, y) => s + y.pv, 0),
-        });
-      }
+      if (blockYears.length === 0) continue;
+      blocks.push({
+        label: `${start}-${end} ปี`,
+        total: blockYears.reduce((s, y) => s + y.premium, 0),
+        npv: blockYears.reduce((s, y) => s + y.pv, 0),
+      });
     }
 
-    return { preRetireTotal, postRetireTotal, npvPostRetire: Math.round(npvPostRetire), blocks, yearDetails };
-  }, [p2.premiumBrackets, p2.postRetireReturn, currentAge, retireAge]);
+    return { preRetireTotal, postRetireTotal, npvPostRetire: Math.round(npvPostRetire), blocks, yearDetails, maxAge };
+  }, [p2.premiumBrackets, p2.postRetireReturn, currentAge, retireAge, lifeExpectancy]);
 
   // ─── UI States ────────────────────────────────────────────────────────
   const [openSteps, setOpenSteps] = useState<Record<number, boolean>>({ 1: false, 2: false, 3: false });
@@ -1157,25 +1167,30 @@ export default function Pillar2Page() {
                       </button>
                     );
                   })}
-                  <input
-                    type="number"
-                    disabled={p2.useProfileRetireAge ?? true}
-                    value={![55, 60, 65].includes(p2.customRetireAge || 60) ? (p2.customRetireAge || "") : ""}
-                    onChange={(e) => update({ customRetireAge: Number(e.target.value) || 60 })}
-                    placeholder="เอง"
-                    className={`w-14 text-xs text-center py-1.5 rounded-lg border outline-none ${
-                      p2.useProfileRetireAge
-                        ? "border-gray-200 text-gray-300 bg-gray-50 cursor-not-allowed"
-                        : "border-gray-200 focus:border-teal-400 focus:ring-1 focus:ring-teal-200"
-                    }`}
-                  />
+                  <div className={`flex items-center gap-1 w-24 rounded-lg border px-2 py-1.5 ${
+                    p2.useProfileRetireAge
+                      ? "border-gray-200 bg-gray-50"
+                      : "border-gray-200 focus-within:border-teal-400 focus-within:ring-1 focus-within:ring-teal-200"
+                  }`}>
+                    <input
+                      type="number"
+                      disabled={p2.useProfileRetireAge ?? true}
+                      value={![55, 60, 65].includes(p2.customRetireAge || 60) ? (p2.customRetireAge || "") : ""}
+                      onChange={(e) => update({ customRetireAge: Number(e.target.value) || 60 })}
+                      placeholder=""
+                      className={`w-full text-xs text-center outline-none bg-transparent ${
+                        p2.useProfileRetireAge ? "text-gray-300 cursor-not-allowed" : ""
+                      }`}
+                    />
+                    <span className={`text-[9px] shrink-0 ${p2.useProfileRetireAge ? "text-gray-300" : "text-gray-400"}`}>ปี</span>
+                  </div>
                 </div>
               </div>
 
               {/* Discount rate */}
               <div>
                 <label className="text-[10px] text-gray-500 font-semibold block mb-1">ผลตอบแทนหลังเกษียณ (%/ปี)</label>
-                <div className="flex gap-1.5">
+                <div className="flex gap-1.5 items-center">
                   {[2, 3, 4, 5].map((rate) => (
                     <button
                       key={rate}
@@ -1189,6 +1204,17 @@ export default function Pillar2Page() {
                       {rate}%
                     </button>
                   ))}
+                  <div className={`flex items-center gap-1 w-24 rounded-lg border px-2 py-1.5 border-gray-200 focus-within:border-teal-400 focus-within:ring-1 focus-within:ring-teal-200`}>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={![2, 3, 4, 5].includes(p2.postRetireReturn ?? 4) ? (p2.postRetireReturn ?? "") : ""}
+                      onChange={(e) => update({ postRetireReturn: Number(e.target.value) || 4 })}
+                      placeholder=""
+                      className="w-full text-xs text-center outline-none bg-transparent"
+                    />
+                    <span className="text-[9px] shrink-0 text-gray-400">%</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1205,7 +1231,7 @@ export default function Pillar2Page() {
                   <div className="text-[9px] text-teal-500">รวมเบี้ยทั้งหมด (nominal)</div>
                 </div>
                 <div className="bg-orange-50 rounded-xl p-3 border border-orange-100">
-                  <div className="text-[9px] text-orange-600 font-semibold">หลังเกษียณ (อายุ {retireAge}-90)</div>
+                  <div className="text-[9px] text-orange-600 font-semibold">หลังเกษียณ (อายุ {retireAge}-{premiumCalc.maxAge})</div>
                   <div className="text-lg font-extrabold text-orange-700 mt-1">{fmt(premiumCalc.postRetireTotal)}</div>
                   <div className="text-[9px] text-orange-500">รวมเบี้ยทั้งหมด (nominal)</div>
                 </div>
