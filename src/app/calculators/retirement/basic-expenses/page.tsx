@@ -302,16 +302,16 @@ export default function BasicExpensesPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs border-collapse">
                       <thead>
-                        <tr className="bg-gray-50 border-b border-gray-200">
-                          <th className="text-left px-3 py-2 text-gray-600 font-bold border-r border-gray-300" rowSpan={2}>ผลตอบแทนเฉลี่ย<br/>หลังเกษียณอายุ<br/>(% ต่อปี)</th>
-                          <th className="text-center px-2 py-1.5 text-gray-600 font-bold border-b-0" colSpan={residuals.length}>เงินสำรองเผื่อความอุ่นใจ ณ สิ้นอายุขัย</th>
+                        <tr className="bg-[#1e3a5f] text-white">
+                          <th className="text-left px-3 py-2 font-bold border-r border-white/25" rowSpan={2}>ผลตอบแทนเฉลี่ย<br/>หลังเกษียณอายุ<br/>(% ต่อปี)</th>
+                          <th className="text-center px-2 py-1.5 font-bold border-b border-white/25" colSpan={residuals.length}>เงินสำรองเผื่อความอุ่นใจ ณ สิ้นอายุขัย</th>
                         </tr>
-                        <tr className="bg-gray-50 border-b border-gray-200">
+                        <tr className="bg-[#1e3a5f] text-white">
                           {residuals.map((r, idx) => {
                             const isCustom = hasCustomResidual && idx === residuals.length - 1;
                             return (
-                              <th key={r} className={`text-center px-2 py-1.5 font-bold ${isCustom ? "text-emerald-700 bg-emerald-50" : "text-gray-700"}`}>
-                                {isCustom && <div className="text-[8px] font-normal text-emerald-600">ตามแผนของคุณ</div>}
+                              <th key={r} className={`text-center px-2 py-1.5 font-bold ${isCustom ? "bg-emerald-600/30" : ""}`}>
+                                {isCustom && <div className="text-[8px] font-normal text-emerald-200">ตามแผนของคุณ</div>}
                                 {r === 0 ? "0" : fmt(r)}
                               </th>
                             );
