@@ -431,7 +431,7 @@ export default function InsuranceHubPage() {
                         className="w-[85%] relative overflow-hidden rounded-sm transition-all group-hover:-translate-y-1 group-hover:shadow-xl group-active:scale-[0.97]"
                         style={{
                           background: `linear-gradient(180deg, ${g.shaft} 0%, ${g.shaftDark} 100%)`,
-                          minHeight: "210px",
+                          height: "240px",
                           boxShadow: "2px 3px 8px rgba(0,0,0,0.12), -1px 0 4px rgba(0,0,0,0.05)",
                         }}
                       >
