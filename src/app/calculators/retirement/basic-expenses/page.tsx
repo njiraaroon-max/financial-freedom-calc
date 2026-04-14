@@ -35,6 +35,7 @@ export default function BasicExpensesPage() {
   const [hasSaved, setHasSaved] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [showDiagramInfo, setShowDiagramInfo] = useState(false);
+  const [showSensitivityInfo, setShowSensitivityInfo] = useState(false);
 
   // Auto-sync age from profile
   useEffect(() => {
@@ -272,8 +273,15 @@ export default function BasicExpensesPage() {
 
               return (
                 <div>
-                  <div className="bg-[#1e3a5f] text-white text-xs font-bold px-4 py-2.5">
-                    ตารางวิเคราะห์ทุนเกษียณ (Sensitivity Analysis)
+                  <div className="bg-[#1e3a5f] text-white text-xs font-bold px-4 py-2.5 flex items-center justify-between">
+                    <span>ตารางวิเคราะห์ทุนเกษียณ (Sensitivity Analysis)</span>
+                    <button
+                      onClick={() => setShowSensitivityInfo(true)}
+                      className="w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition"
+                      aria-label="วิธีอ่านตาราง"
+                    >
+                      <Info size={13} />
+                    </button>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs border-collapse">
@@ -471,6 +479,136 @@ export default function BasicExpensesPage() {
             <div className="sticky bottom-0 bg-white border-t border-gray-100 px-5 py-3 md:rounded-b-2xl">
               <button
                 onClick={() => setShowDiagramInfo(false)}
+                className="w-full py-2.5 rounded-xl bg-[#1e3a5f] text-white text-sm font-bold hover:bg-[#2d5a8e] transition"
+              >
+                เข้าใจแล้ว
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Sensitivity Table Info Modal ──────────── */}
+      {showSensitivityInfo && (
+        <div
+          className="fixed inset-0 z-[70] flex items-end md:items-center justify-center bg-black/40"
+          onClick={() => setShowSensitivityInfo(false)}
+        >
+          <div
+            className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-xl max-h-[85vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-[#1e3a5f] text-white px-5 py-4 flex items-center justify-between z-10 md:rounded-t-2xl rounded-t-2xl">
+              <div className="flex items-center gap-2">
+                <Info size={18} />
+                <h3 className="text-sm font-bold">วิธีอ่านตาราง Sensitivity Analysis</h3>
+              </div>
+              <button onClick={() => setShowSensitivityInfo(false)} className="text-white/70 hover:text-white">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="px-5 py-4 space-y-5 text-gray-700">
+              <div className="bg-gradient-to-br from-[#1e3a5f]/5 to-[#3b6fa0]/10 rounded-xl p-4 border border-blue-100">
+                <p className="text-xs font-bold text-gray-800 leading-relaxed">
+                  &ldquo;ถ้าผลตอบแทนต่างกันนิดหน่อย ทุนเกษียณจะเปลี่ยนไปแค่ไหน?&rdquo;
+                </p>
+                <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                  ตารางนี้ช่วยให้เห็นภาพว่า <b>ผลตอบแทน</b> และ <b>เงินมรดก</b> มีผลต่อทุนเกษียณอย่างไร —
+                  เพื่อวางแผนแบบ conservative vs aggressive ได้
+                </p>
+              </div>
+
+              {/* Axis explanation */}
+              <div className="space-y-3">
+                <div className="border border-gray-200 rounded-xl p-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0">↕</span>
+                    <h4 className="text-xs font-bold text-gray-800">แกนตั้ง — ผลตอบแทนหลังเกษียณ</h4>
+                  </div>
+                  <p className="text-[11px] leading-relaxed">
+                    สมมติฐานผลตอบแทนจากการลงทุน <b>หลังเกษียณ</b> (พอร์ตเงินก้อนที่เก็บสะสมไว้)
+                  </p>
+                  <div className="bg-blue-50 rounded-lg px-3 py-2 text-[10px] space-y-0.5">
+                    <div><b>3.0%</b> = Conservative (เน้นตราสารหนี้, เงินฝาก)</div>
+                    <div><b>4.5%</b> = Balanced (ผสมหุ้น + ตราสารหนี้)</div>
+                  </div>
+                </div>
+
+                <div className="border border-gray-200 rounded-xl p-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0">↔</span>
+                    <h4 className="text-xs font-bold text-gray-800">แกนนอน — เงินคงเหลือ ณ สิ้นอายุขัย</h4>
+                  </div>
+                  <p className="text-[11px] leading-relaxed">
+                    เงินก้อนที่อยากทิ้งไว้เป็น &ldquo;มรดก&rdquo; ณ อายุขัย
+                  </p>
+                  <div className="bg-blue-50 rounded-lg px-3 py-2 text-[10px] space-y-0.5">
+                    <div><b>0</b> = ใช้เงินจนหมดพอดี ณ สิ้นอายุขัย</div>
+                    <div><b>5,000,000</b> = เก็บไว้เป็นมรดกให้ลูกหลาน</div>
+                    <div><b>10,000,000</b> = มรดกก้อนใหญ่</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* พอใช้อีก row */}
+              <div className="border-2 border-amber-400 rounded-xl p-4 space-y-2 bg-amber-50/30">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">⏳</span>
+                  <h4 className="text-xs font-bold text-amber-800">แถว &ldquo;พอใช้อีก =&gt;&rdquo;</h4>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  ถ้าไม่ใช้เงินคงเหลือเป็นมรดก แต่ใช้ต่อ — จะยืดอายุใช้เงินได้อีก <b>กี่ปี</b>
+                </p>
+                <div className="bg-amber-100 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                  <div><b>สูตร:</b> เงินคงเหลือ ÷ ค่าใช้จ่ายรายปี ณ สิ้นอายุขัย</div>
+                  <div className="text-gray-600">เช่น &ldquo;3.3&rdquo; = ถ้ามีเงินคงเหลือ 5M ใช้ต่อได้อีก ~3.3 ปี</div>
+                </div>
+              </div>
+
+              {/* วิธีใช้ตาราง */}
+              <div>
+                <h4 className="text-xs font-bold text-gray-800 mb-2">🎯 วิธีใช้ตาราง</h4>
+                <div className="bg-gray-50 rounded-xl p-3 text-[11px] space-y-2">
+                  <div className="flex items-start gap-2">
+                    <span className="text-[#1e3a5f] font-bold">1.</span>
+                    <span>เลือก <b>ผลตอบแทน</b> ที่สมจริงกับความเสี่ยงที่รับได้ (แถวตั้ง)</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-[#1e3a5f] font-bold">2.</span>
+                    <span>เลือก <b>เงินมรดก</b> ที่อยากทิ้งไว้ (แถวนอน)</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-[#1e3a5f] font-bold">3.</span>
+                    <span>จุดตัดคือ <b>ทุนเกษียณที่ต้องมี ณ วันเกษียณ</b></span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-[#1e3a5f] font-bold">4.</span>
+                    <span>เปรียบเทียบกับ <b>ทุนเกษียณ (A)</b> ที่คำนวณไว้ด้านบน</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Insight */}
+              <div className="bg-teal-50 rounded-xl p-3 border border-teal-200">
+                <div className="text-[10px] text-teal-700 leading-relaxed space-y-1">
+                  <div>💡 <b>ข้อสังเกต:</b></div>
+                  <div>• ผลตอบแทนสูงขึ้น → ทุนเกษียณ &ldquo;น้อยลง&rdquo; (เพราะเงินโตเองได้)</div>
+                  <div>• เงินมรดกสูงขึ้น → ทุนเกษียณ &ldquo;มากขึ้น&rdquo; (ต้องเก็บมากกว่าที่ใช้)</div>
+                </div>
+              </div>
+
+              <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
+                <div className="text-[10px] text-amber-700 leading-relaxed">
+                  ⚠️ ตัวเลขผลตอบแทนในตารางเป็นเพียง <b>สมมติฐาน</b> ตลาดจริงอาจผันผวน —
+                  แนะนำเลือกค่าที่ &ldquo;realistic&rdquo; ไม่ optimistic เกินไป
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-5 py-3 md:rounded-b-2xl">
+              <button
+                onClick={() => setShowSensitivityInfo(false)}
                 className="w-full py-2.5 rounded-xl bg-[#1e3a5f] text-white text-sm font-bold hover:bg-[#2d5a8e] transition"
               >
                 เข้าใจแล้ว
