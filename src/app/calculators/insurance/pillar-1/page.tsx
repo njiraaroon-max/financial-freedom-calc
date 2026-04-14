@@ -227,7 +227,7 @@ export default function Pillar1Page() {
   // ─── Info modal ─────────────────────────────────────────────────────────
   const [showInfo, setShowInfo] = useState(false);
   const [showNeedsDetail, setShowNeedsDetail] = useState(false);
-  const [openSteps, setOpenSteps] = useState<Record<number, boolean>>({ 1: true, 2: true, 3: true });
+  const [openSteps, setOpenSteps] = useState<Record<number, boolean>>({ 1: false, 2: false, 3: false });
   const toggleStep = (n: number) => setOpenSteps((prev) => ({ ...prev, [n]: !prev[n] }));
 
   // ─── Save & mark completed ──────────────────────────────────────────────
@@ -281,25 +281,32 @@ export default function Pillar1Page() {
               { n: 1, label: "Total Needs", sub: "ความต้องการ" },
               { n: 2, label: "Existing Assets", sub: "สิ่งที่มีอยู่" },
               { n: 3, label: "The Gap", sub: "ส่วนที่ขาด" },
-            ].map((step, i) => (
-              <React.Fragment key={step.n}>
-                {/* Step circle + label */}
-                <div className="flex flex-col items-center" style={{ width: 72 }}>
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${
-                    step.n === 3 && analysis.totalNeed > 0 && analysis.totalHave > 0
-                      ? (analysis.gap <= 0 ? "bg-emerald-500 text-white" : "bg-red-500 text-white")
-                      : "bg-[#1e3a5f] text-white"
-                  }`}>
-                    {step.n}
-                  </div>
-                  <div className="text-[10px] font-bold text-gray-700 mt-1.5 text-center leading-tight">Step {step.n}</div>
-                  <div className="text-[9px] font-bold text-gray-500 text-center">{step.label}</div>
-                  <div className="text-[8px] text-gray-400 text-center">{step.sub}</div>
-                </div>
-                {/* Connecting line */}
-                {i < 2 && <div className="flex-1 h-0.5 bg-gray-200 mt-[18px]" />}
-              </React.Fragment>
-            ))}
+            ].map((step, i) => {
+              const isResultStep = step.n === 3 && analysis.totalNeed > 0 && analysis.totalHave > 0;
+              const baseColor = isResultStep
+                ? (analysis.gap <= 0 ? "bg-emerald-500 text-white" : "bg-red-500 text-white")
+                : "bg-[#1e3a5f] text-white";
+              const ringColor = openSteps[step.n]
+                ? (isResultStep
+                    ? (analysis.gap <= 0 ? "ring-emerald-400" : "ring-red-400")
+                    : "ring-[#1e3a5f]")
+                : "ring-transparent";
+              return (
+                <React.Fragment key={step.n}>
+                  {/* Step circle + label (clickable) */}
+                  <button onClick={() => toggleStep(step.n)} className="flex flex-col items-center cursor-pointer hover:opacity-80 active:scale-95 transition-all" style={{ width: 72 }}>
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shadow-sm ring-2 ring-offset-2 transition-all ${baseColor} ${ringColor}`}>
+                      {step.n}
+                    </div>
+                    <div className="text-[10px] font-bold text-gray-700 mt-1.5 text-center leading-tight">Step {step.n}</div>
+                    <div className="text-[9px] font-bold text-gray-500 text-center">{step.label}</div>
+                    <div className="text-[8px] text-gray-400 text-center">{step.sub}</div>
+                  </button>
+                  {/* Connecting line */}
+                  {i < 2 && <div className="flex-1 h-0.5 bg-gray-200 mt-[18px]" />}
+                </React.Fragment>
+              );
+            })}
           </div>
         </div>
 
