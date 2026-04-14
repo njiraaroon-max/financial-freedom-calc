@@ -1061,14 +1061,6 @@ export default function Pillar2Page() {
             </div>
           </button>
           {openPremium && <div className="px-4 md:px-6 pb-4 md:pb-6 space-y-4">
-          {fromSpecialExpenses && (
-            <Link
-              href="/calculators/retirement/special-expenses"
-              className="inline-flex items-center gap-1 text-[11px] font-medium text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-full px-3 py-1.5 transition"
-            >
-              <ArrowLeft size={12} /> กลับไปค่าใช้จ่ายพิเศษ
-            </Link>
-          )}
           <p className="text-[10px] text-gray-500 leading-relaxed">
             เบี้ยประกันสุขภาพปรับตามอายุ ยิ่งอายุมากยิ่งแพง — ใส่ประมาณการเบี้ยตามช่วงอายุเพื่อคำนวณเงินที่ต้องเตรียมหลังเกษียณ
           </p>
@@ -1373,20 +1365,30 @@ export default function Pillar2Page() {
                 <div className="text-[10px] text-teal-600 font-semibold">มูลค่าปัจจุบัน (NPV) ของเบี้ยประกันสุขภาพหลังเกษียณ</div>
                 <div className="text-2xl font-extrabold text-teal-700">{fmt(premiumCalc.npvPostRetire)}</div>
                 <div className="text-[9px] text-gray-500">Discount Rate: {p2.postRetireReturn ?? 4}% | เบี้ยรวม nominal: {fmt(premiumCalc.postRetireTotal)}</div>
-                <button
-                  onClick={handleSendNPV}
-                  className={`mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-[0.98] shadow-sm ${
-                    npvSent
-                      ? "bg-emerald-500 text-white"
-                      : "bg-teal-500 text-white hover:bg-teal-600"
-                  }`}
-                >
-                  {npvSent ? (
-                    <><CheckCircle2 size={14} /> ส่งแล้ว!</>
-                  ) : (
-                    <><Send size={14} /> ส่งค่า NPV ไปยังแผนเกษียณ</>
+                <div className="mt-2 flex items-center justify-center gap-2 flex-wrap">
+                  <button
+                    onClick={handleSendNPV}
+                    className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-[0.98] shadow-sm ${
+                      npvSent
+                        ? "bg-emerald-500 text-white"
+                        : "bg-teal-500 text-white hover:bg-teal-600"
+                    }`}
+                  >
+                    {npvSent ? (
+                      <><CheckCircle2 size={14} /> ส่งแล้ว!</>
+                    ) : (
+                      <><Send size={14} /> ส่งค่า NPV ไปยังแผนเกษียณ</>
+                    )}
+                  </button>
+                  {fromSpecialExpenses && (
+                    <Link
+                      href="/calculators/retirement/special-expenses"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-white hover:bg-teal-50 text-teal-700 border border-teal-300 transition-all active:scale-[0.98] shadow-sm"
+                    >
+                      <ArrowLeft size={14} /> กลับไปค่าใช้จ่ายพิเศษ
+                    </Link>
                   )}
-                </button>
+                </div>
                 {npvSent && (
                   <div className="text-[9px] text-emerald-600 mt-1">
                     อัปเดตแล้ว: ค่าใช้จ่ายพิเศษ &quot;เบี้ยประกันสุขภาพหลังเกษียณ&quot; = {fmt(premiumCalc.npvPostRetire)} บาท
