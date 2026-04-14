@@ -254,10 +254,20 @@ export default function BasicExpensesPage() {
           <div className="mt-4 bg-white rounded-2xl border border-gray-200 overflow-hidden">
             {(() => {
               const annualExpFV = basicMonthlyFV * 12;
-              const residuals = [0, 5000000, 10000000];
-              const returns = [0.03, 0.045];
+              const baseResiduals = [0, 5000000, 10000000];
+              const returns = [0, 0.03, 0.045];
               const inflation = a.generalInflation;
               const n = yearsAfterRetire;
+
+              // Option C: ถ้า user ตั้งเงินคงเหลือไม่ตรงกับ 0/5M/10M → เพิ่ม column "ตามแผนของคุณ"
+              const userResidual = a.residualFund;
+              const hasCustomResidual = userResidual > 0 && !baseResiduals.includes(userResidual);
+              const residuals = hasCustomResidual ? [...baseResiduals, userResidual] : baseResiduals;
+
+              // Auto-highlight matches (ใช้ค่าจาก Assumptions)
+              const userReturn = a.postRetireReturn;
+              const matchRow = (ret: number) => Math.abs(ret - userReturn) < 0.0001;
+              const matchCol = (res: number) => res === userResidual || (hasCustomResidual && res === userResidual);
 
               // PV function (Excel PV equivalent)
               const pvAnnuityDue = (rate: number, nper: number, pmt: number) => {
@@ -270,6 +280,12 @@ export default function BasicExpensesPage() {
 
               // "พอใช้อีกกี่ปี" = residual / (FV of monthlyFV at end of life × 12)
               const expenseAtLifeEnd = basicMonthlyFV * Math.pow(1 + inflation, n) * 12;
+
+              // Click handler: อัพเดท Assumptions ทั้ง return + residual
+              const selectCell = (ret: number, res: number) => {
+                store.updateAssumption("postRetireReturn", ret);
+                store.updateAssumption("residualFund", res);
+              };
 
               return (
                 <div>
@@ -288,14 +304,18 @@ export default function BasicExpensesPage() {
                       <thead>
                         <tr className="bg-gray-50 border-b border-gray-200">
                           <th className="text-left px-3 py-2 text-gray-600 font-bold" rowSpan={2}>ผลตอบแทนเฉลี่ย<br/>หลังเกษียณอายุ<br/>(% ต่อปี)</th>
-                          <th className="text-center px-2 py-1.5 text-gray-600 font-bold border-b-0" colSpan={3}>เงินทุนคงเหลือที่ต้องการ ณ วันสิ้นอายุขัย</th>
+                          <th className="text-center px-2 py-1.5 text-gray-600 font-bold border-b-0" colSpan={residuals.length}>เงินสำรองเผื่อความอุ่นใจ ณ สิ้นอายุขัย</th>
                         </tr>
                         <tr className="bg-gray-50 border-b border-gray-200">
-                          {residuals.map((r) => (
-                            <th key={r} className="text-center px-2 py-1.5 font-bold text-gray-700">
-                              {r === 0 ? "0" : fmt(r)}
-                            </th>
-                          ))}
+                          {residuals.map((r, idx) => {
+                            const isCustom = hasCustomResidual && idx === residuals.length - 1;
+                            return (
+                              <th key={r} className={`text-center px-2 py-1.5 font-bold ${isCustom ? "text-emerald-700 bg-emerald-50" : "text-gray-700"}`}>
+                                {isCustom && <div className="text-[8px] font-normal text-emerald-600">ตามแผนของคุณ</div>}
+                                {r === 0 ? "0" : fmt(r)}
+                              </th>
+                            );
+                          })}
                         </tr>
                         <tr className="bg-yellow-50 border-b border-gray-200">
                           <td className="px-3 py-1.5 text-gray-500 font-medium">พอใช้อีก =&gt;</td>
@@ -309,13 +329,26 @@ export default function BasicExpensesPage() {
                       <tbody>
                         {returns.map((ret) => {
                           const realRate = (1 + ret) / (1 + inflation) - 1;
+                          const rowActive = matchRow(ret);
                           return (
-                            <tr key={ret} className="border-b border-gray-100 hover:bg-gray-50">
-                              <td className="px-3 py-2 font-bold text-[#1e3a5f]">{(ret * 100).toFixed(1)}%</td>
+                            <tr key={ret} className={`border-b border-gray-100 ${rowActive ? "bg-blue-50/40" : "hover:bg-gray-50"}`}>
+                              <td className={`px-3 py-2 font-bold ${rowActive ? "text-[#1e3a5f] bg-blue-100" : "text-[#1e3a5f]"}`}>
+                                {(ret * 100).toFixed(1)}%
+                              </td>
                               {residuals.map((res) => {
                                 const fund = pvAnnuityDue(realRate, n, annualExpFV) + pvLumpSum(ret, n, res);
+                                const isSelected = rowActive && matchCol(res);
                                 return (
-                                  <td key={res} className="text-center px-2 py-2 font-bold text-gray-700">
+                                  <td
+                                    key={res}
+                                    onClick={() => selectCell(ret, res)}
+                                    className={`text-center px-2 py-2 font-bold cursor-pointer transition ${
+                                      isSelected
+                                        ? "bg-[#1e3a5f] text-white ring-2 ring-[#1e3a5f] ring-inset"
+                                        : "text-gray-700 hover:bg-blue-50 hover:text-[#1e3a5f]"
+                                    }`}
+                                    title="คลิกเพื่อใช้ค่านี้ในแผน"
+                                  >
                                     {fmt(Math.round(fund))}
                                   </td>
                                 );
@@ -326,8 +359,9 @@ export default function BasicExpensesPage() {
                       </tbody>
                     </table>
                   </div>
-                  <div className="px-3 py-2 text-[9px] text-gray-400">
-                    * ค่าใช้จ่ายรายปี ณ วันเกษียณ = ฿{fmt(Math.round(annualExpFV))} | เงินเฟ้อ {(inflation * 100).toFixed(1)}% | หลังเกษียณ {n} ปี
+                  <div className="px-3 py-2 text-[9px] text-gray-400 flex items-center justify-between gap-2 flex-wrap">
+                    <span>* ค่าใช้จ่ายรายปี ณ วันเกษียณ = ฿{fmt(Math.round(annualExpFV))} | เงินเฟ้อ {(inflation * 100).toFixed(1)}% | หลังเกษียณ {n} ปี</span>
+                    <span className="text-[#1e3a5f] font-medium">💡 คลิกเซลล์เพื่อใช้ค่านั้นในแผน</span>
                   </div>
                 </div>
               );
@@ -514,8 +548,20 @@ export default function BasicExpensesPage() {
                   &ldquo;ถ้าผลตอบแทนต่างกันนิดหน่อย ทุนเกษียณจะเปลี่ยนไปแค่ไหน?&rdquo;
                 </p>
                 <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
-                  ตารางนี้ช่วยให้เห็นภาพว่า <b>ผลตอบแทน</b> และ <b>เงินมรดก</b> มีผลต่อทุนเกษียณอย่างไร —
+                  ตารางนี้ช่วยให้เห็นภาพว่า <b>ผลตอบแทน</b> และ <b>เงินสำรองเผื่อความอุ่นใจ</b> มีผลต่อทุนเกษียณอย่างไร —
                   เพื่อวางแผนแบบ conservative vs aggressive ได้
+                </p>
+              </div>
+
+              {/* Click to select — highlight feature */}
+              <div className="bg-[#1e3a5f]/5 rounded-xl p-4 border-2 border-[#1e3a5f]/30 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-[10px] font-bold flex items-center justify-center shrink-0">✓</span>
+                  <h4 className="text-xs font-bold text-[#1e3a5f]">คลิกเซลล์เพื่อเลือกใช้ค่านั้นในแผน</h4>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  เซลล์ที่ <b>highlight สีน้ำเงินเข้ม</b> = ค่าที่คุณเลือกอยู่ตอนนี้ (ตรงกับ &ldquo;สมมติฐาน&rdquo; ด้านบน)
+                  — คลิกเซลล์อื่นเพื่อเปลี่ยนทั้ง <b>ผลตอบแทนหลังเกษียณ</b> และ <b>เงินสำรอง</b> ในแผนทันที
                 </p>
               </div>
 
@@ -530,6 +576,7 @@ export default function BasicExpensesPage() {
                     สมมติฐานผลตอบแทนจากการลงทุน <b>หลังเกษียณ</b> (พอร์ตเงินก้อนที่เก็บสะสมไว้)
                   </p>
                   <div className="bg-blue-50 rounded-lg px-3 py-2 text-[10px] space-y-0.5">
+                    <div><b>0.0%</b> = ไม่ลงทุนเลย / เก็บใต้หมอน (worst case)</div>
                     <div><b>3.0%</b> = Conservative (เน้นตราสารหนี้, เงินฝาก)</div>
                     <div><b>4.5%</b> = Balanced (ผสมหุ้น + ตราสารหนี้)</div>
                   </div>
@@ -538,16 +585,29 @@ export default function BasicExpensesPage() {
                 <div className="border border-gray-200 rounded-xl p-4 space-y-2">
                   <div className="flex items-center gap-2">
                     <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0">↔</span>
-                    <h4 className="text-xs font-bold text-gray-800">แกนนอน — เงินคงเหลือ ณ สิ้นอายุขัย</h4>
+                    <h4 className="text-xs font-bold text-gray-800">แกนนอน — เงินสำรองเผื่อความอุ่นใจ ณ สิ้นอายุขัย</h4>
                   </div>
                   <p className="text-[11px] leading-relaxed">
-                    เงินก้อนที่อยากทิ้งไว้เป็น &ldquo;มรดก&rdquo; ณ อายุขัย
+                    เงินก้อน <b>ที่อยากเหลือไว้</b> ณ สิ้นอายุขัย —
+                    ไม่ใช่ &ldquo;มรดก&rdquo; แต่เป็น <b>safety buffer</b> เผื่อกรณีอายุยืนเกินคาด
+                    หรือค่ารักษาปลายชีวิตที่ประมาณยาก
                   </p>
                   <div className="bg-blue-50 rounded-lg px-3 py-2 text-[10px] space-y-0.5">
-                    <div><b>0</b> = ใช้เงินจนหมดพอดี ณ สิ้นอายุขัย</div>
-                    <div><b>5,000,000</b> = เก็บไว้เป็นมรดกให้ลูกหลาน</div>
-                    <div><b>10,000,000</b> = มรดกก้อนใหญ่</div>
+                    <div><b>0</b> = ใช้เงินจนหมดพอดี ณ สิ้นอายุขัย (ไม่มี buffer)</div>
+                    <div><b>5,000,000</b> = สำรองเล็กน้อย พอให้อุ่นใจ</div>
+                    <div><b>10,000,000</b> = สำรองใหญ่ อุ่นใจมาก</div>
                   </div>
+                </div>
+
+                <div className="border border-emerald-200 rounded-xl p-4 space-y-2 bg-emerald-50/30">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">✦</span>
+                    <h4 className="text-xs font-bold text-emerald-800">คอลัมน์ &ldquo;ตามแผนของคุณ&rdquo;</h4>
+                  </div>
+                  <p className="text-[11px] leading-relaxed">
+                    ถ้าคุณตั้ง <b>เงินคงเหลือ</b> ใน &ldquo;สมมติฐาน&rdquo; เป็นค่าอื่น (ไม่ใช่ 0 / 5M / 10M) —
+                    ระบบจะเพิ่ม column พิเศษสีเขียวเพื่อให้เห็นค่าตามแผนจริงของคุณ
+                  </p>
                 </div>
               </div>
 
@@ -558,11 +618,11 @@ export default function BasicExpensesPage() {
                   <h4 className="text-xs font-bold text-amber-800">แถว &ldquo;พอใช้อีก =&gt;&rdquo;</h4>
                 </div>
                 <p className="text-[11px] leading-relaxed">
-                  ถ้าไม่ใช้เงินคงเหลือเป็นมรดก แต่ใช้ต่อ — จะยืดอายุใช้เงินได้อีก <b>กี่ปี</b>
+                  ถ้าไม่ใช้เงินสำรองก้อนนี้เลย แต่ใช้เป็นค่าใช้จ่ายต่อ — จะยืดอายุใช้เงินได้อีก <b>กี่ปี</b>
                 </p>
                 <div className="bg-amber-100 rounded-lg px-3 py-2 text-[10px] space-y-1">
-                  <div><b>สูตร:</b> เงินคงเหลือ ÷ ค่าใช้จ่ายรายปี ณ สิ้นอายุขัย</div>
-                  <div className="text-gray-600">เช่น &ldquo;3.3&rdquo; = ถ้ามีเงินคงเหลือ 5M ใช้ต่อได้อีก ~3.3 ปี</div>
+                  <div><b>สูตร:</b> เงินสำรอง ÷ ค่าใช้จ่ายรายปี ณ สิ้นอายุขัย</div>
+                  <div className="text-gray-600">เช่น &ldquo;3.3&rdquo; = ถ้ามีสำรอง 5M ใช้ต่อได้อีก ~3.3 ปี</div>
                 </div>
               </div>
 
@@ -572,19 +632,19 @@ export default function BasicExpensesPage() {
                 <div className="bg-gray-50 rounded-xl p-3 text-[11px] space-y-2">
                   <div className="flex items-start gap-2">
                     <span className="text-[#1e3a5f] font-bold">1.</span>
-                    <span>เลือก <b>ผลตอบแทน</b> ที่สมจริงกับความเสี่ยงที่รับได้ (แถวตั้ง)</span>
+                    <span>สังเกตเซลล์ที่ <b>highlight สีน้ำเงินเข้ม</b> = ค่าปัจจุบันตามสมมติฐาน</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-[#1e3a5f] font-bold">2.</span>
-                    <span>เลือก <b>เงินมรดก</b> ที่อยากทิ้งไว้ (แถวนอน)</span>
+                    <span>ลองเปรียบเทียบ scenario อื่น — <b>ผลตอบแทน</b> (แถวตั้ง) × <b>เงินสำรอง</b> (แถวนอน)</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-[#1e3a5f] font-bold">3.</span>
-                    <span>จุดตัดคือ <b>ทุนเกษียณที่ต้องมี ณ วันเกษียณ</b></span>
+                    <span>พอใจ scenario ไหน → <b>คลิกเซลล์นั้น</b> ระบบจะอัพเดทแผนให้อัตโนมัติ</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-[#1e3a5f] font-bold">4.</span>
-                    <span>เปรียบเทียบกับ <b>ทุนเกษียณ (A)</b> ที่คำนวณไว้ด้านบน</span>
+                    <span>ทุนเกษียณ (A) ด้านบนจะคำนวณใหม่ตามค่าที่เลือก</span>
                   </div>
                 </div>
               </div>
@@ -594,7 +654,8 @@ export default function BasicExpensesPage() {
                 <div className="text-[10px] text-teal-700 leading-relaxed space-y-1">
                   <div>💡 <b>ข้อสังเกต:</b></div>
                   <div>• ผลตอบแทนสูงขึ้น → ทุนเกษียณ &ldquo;น้อยลง&rdquo; (เพราะเงินโตเองได้)</div>
-                  <div>• เงินมรดกสูงขึ้น → ทุนเกษียณ &ldquo;มากขึ้น&rdquo; (ต้องเก็บมากกว่าที่ใช้)</div>
+                  <div>• เงินสำรองสูงขึ้น → ทุนเกษียณ &ldquo;มากขึ้น&rdquo; (ต้องเก็บมากกว่าที่ใช้)</div>
+                  <div>• ที่ 0% (ไม่ลงทุน) + เงินเฟ้อ → Real Rate ติดลบ จึงต้องเก็บมากกว่าปกติมาก</div>
                 </div>
               </div>
 
