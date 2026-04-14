@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Save, Gavel } from "lucide-react";
+import { Save, Gavel, Info, X } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import PageHeader from "@/components/PageHeader";
 import { useVariableStore } from "@/store/variable-store";
@@ -28,6 +28,7 @@ export default function SeverancePage() {
 
   const { updateAssumption } = useRetirementStore();
   const profileAge = profile.getAge();
+  const [showInfo, setShowInfo] = useState(false);
 
   // Auto-fill from CF or Profile
   useEffect(() => {
@@ -92,6 +93,33 @@ export default function SeverancePage() {
       />
 
       <div className="px-4 md:px-8 pt-4 space-y-4">
+        {/* Intro blurb + (i) */}
+        <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-4 text-white mx-1 relative">
+          <button
+            onClick={() => setShowInfo(true)}
+            className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition"
+            aria-label="วิธีคำนวณ"
+          >
+            <Info size={16} />
+          </button>
+          <div className="pr-10">
+            <div className="text-[10px] font-bold text-white/70 mb-1">Step 2 · Severance Pay</div>
+            <h3 className="text-sm font-bold leading-snug mb-1.5">
+              คำนวณเงินชดเชยตามกฎหมายแรงงาน
+            </h3>
+            <p className="text-[11px] text-white/80 leading-relaxed">
+              เงินที่นายจ้างต้องจ่ายเมื่อเกษียณ ตาม พ.ร.บ.คุ้มครองแรงงาน มาตรา 118
+              คำนวณจากเงินเดือนสุดท้าย × จำนวนวันชดเชยตามอายุงาน
+            </p>
+            <button
+              onClick={() => setShowInfo(true)}
+              className="mt-2 inline-flex items-center gap-1 text-[10px] text-white/90 font-bold hover:text-white underline-offset-2 hover:underline"
+            >
+              <Info size={11} /> ดูวิธีคำนวณตามกฎหมาย
+            </button>
+          </div>
+        </div>
+
         <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
           <div className="text-xs font-bold text-gray-600 mb-2">ข้อมูลการทำงาน</div>
           {[
@@ -176,6 +204,89 @@ export default function SeverancePage() {
           <span className="text-xs text-emerald-600 font-medium">✅ บันทึกอัตโนมัติแล้ว</span>
         </div>
       </div>
+
+      {/* ─── Info Modal: Severance Pay ──────────── */}
+      {showInfo && (
+        <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center bg-black/40" onClick={() => setShowInfo(false)}>
+          <div className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-xl max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-amber-600 text-white px-5 py-4 flex items-center justify-between z-10 md:rounded-t-2xl rounded-t-2xl">
+              <div className="flex items-center gap-2">
+                <Info size={18} />
+                <h3 className="text-sm font-bold">หลักการคำนวณเงินชดเชย</h3>
+              </div>
+              <button onClick={() => setShowInfo(false)} className="text-white/70 hover:text-white"><X size={20} /></button>
+            </div>
+
+            <div className="px-5 py-4 space-y-5 text-gray-700">
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-100">
+                <p className="text-xs font-bold text-gray-800 leading-relaxed">
+                  &ldquo;ทำงานให้บริษัทมา 20 ปี... กฎหมายให้เงินชดเชยเท่าไหร่?&rdquo;
+                </p>
+                <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                  เงินชดเชยเป็นสิทธิของลูกจ้างตามกฎหมาย จ่ายเมื่อเกษียณหรือถูกเลิกจ้างโดยไม่ใช่ความผิด
+                </p>
+              </div>
+
+              <p className="text-xs leading-relaxed">
+                ตาม <strong>พ.ร.บ.คุ้มครองแรงงาน พ.ศ.2541 มาตรา 118</strong> เงินชดเชยคำนวณตาม <strong>3 ขั้นตอน</strong>:
+              </p>
+
+              <div className="border border-gray-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <h4 className="text-xs font-bold text-gray-800">คำนวณอายุงานรวม</h4>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  อายุงานตั้งแต่เริ่มทำงาน จนถึงวันเกษียณ = อายุงานปัจจุบัน + ปีจนถึงเกษียณ
+                </p>
+              </div>
+
+              <div className="border border-gray-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
+                  <h4 className="text-xs font-bold text-gray-800">หาจำนวนวันชดเชยตามอายุงาน</h4>
+                </div>
+                <div className="bg-amber-50 rounded-lg px-3 py-2 text-[10px] space-y-0.5">
+                  <div>• 120 วัน – 1 ปี = <b>30 วัน</b></div>
+                  <div>• 1 – 3 ปี = <b>90 วัน</b></div>
+                  <div>• 3 – 6 ปี = <b>180 วัน</b></div>
+                  <div>• 6 – 10 ปี = <b>240 วัน</b></div>
+                  <div>• 10 – 20 ปี = <b>300 วัน</b></div>
+                  <div>• ≥ 20 ปี = <b>400 วัน</b></div>
+                </div>
+              </div>
+
+              <div className="border-2 border-amber-500 rounded-xl p-4 space-y-2 bg-amber-50/30">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-amber-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">3</span>
+                  <h4 className="text-xs font-bold text-amber-800">คำนวณเงินชดเชย ⭐</h4>
+                </div>
+                <div className="text-[10px] text-amber-700 font-bold bg-amber-100 rounded-lg px-2 py-1 inline-block">ใช้ในหน้านี้</div>
+                <p className="text-[11px] leading-relaxed">
+                  ใช้เงินเดือนสุดท้าย ณ วันเกษียณ (ปรับด้วยอัตราขึ้นเงินเดือน) คูณด้วยจำนวนวันชดเชย
+                </p>
+                <div className="bg-amber-100 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                  <div><strong>สูตร:</strong> เงินชดเชย = (เงินเดือนสุดท้าย ÷ 30) × จำนวนวันชดเชย</div>
+                  <div className="text-green-700">✓ เป็นเงินก้อนที่ได้รับ ณ วันเกษียณ</div>
+                </div>
+              </div>
+
+              <div className="bg-teal-50 rounded-xl p-3 border border-teal-200">
+                <div className="text-[10px] text-teal-700 leading-relaxed">
+                  💡 เงินชดเชยที่เกษียณปกติ ได้รับยกเว้นภาษีบางส่วนตามสูตรของสรรพากร
+                  (300,000 บาท + 7,000 × อายุงาน)
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-5 py-3 md:rounded-b-2xl">
+              <button onClick={() => setShowInfo(false)} className="w-full py-2.5 rounded-xl bg-amber-600 text-white text-sm font-bold hover:bg-amber-700 transition">
+                เข้าใจแล้ว
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

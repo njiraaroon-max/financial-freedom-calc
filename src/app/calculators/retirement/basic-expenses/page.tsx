@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, Download, Plus, Trash2 } from "lucide-react";
+import { Save, Download, Plus, Trash2, Info, X } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import { useProfileStore } from "@/store/profile-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
+import RetirementDiagram from "@/components/retirement/RetirementDiagram";
 import { useCashFlowStore } from "@/store/cashflow-store";
 import { futureValue, calcRetirementFund } from "@/types/retirement";
 
@@ -32,6 +33,7 @@ export default function BasicExpensesPage() {
   const profile = useProfileStore();
   const a = store.assumptions;
   const [hasSaved, setHasSaved] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
 
   // Auto-sync age from profile
   useEffect(() => {
@@ -80,6 +82,33 @@ export default function BasicExpensesPage() {
       />
 
       <div className="px-4 md:px-8 pt-4 pb-8">
+        {/* Intro blurb + (i) */}
+        <div className="bg-gradient-to-br from-[#1e3a5f] to-[#3b6fa0] rounded-2xl p-4 text-white mx-1 mb-4 relative">
+          <button
+            onClick={() => setShowInfo(true)}
+            className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition"
+            aria-label="วิธีคำนวณ"
+          >
+            <Info size={16} />
+          </button>
+          <div className="pr-10">
+            <div className="text-[10px] font-bold text-white/70 mb-1">Step 1 · Basic Expenses</div>
+            <h3 className="text-sm font-bold leading-snug mb-1.5">
+              ประเมินค่าใช้จ่ายพื้นฐานหลังเกษียณ
+            </h3>
+            <p className="text-[11px] text-white/80 leading-relaxed">
+              จะใช้เงินเดือนละเท่าไหร่หลังเกษียณ? เรานำค่าใช้จ่ายวันนี้ × เงินเฟ้อ แล้วแปลงเป็น
+              <b> ทุนเกษียณ (A)</b> ที่ต้องเตรียม ตามหลัก CFP Module 4 (Needs-Based Approach)
+            </p>
+            <button
+              onClick={() => setShowInfo(true)}
+              className="mt-2 inline-flex items-center gap-1 text-[10px] text-white/90 font-bold hover:text-white underline-offset-2 hover:underline"
+            >
+              <Info size={11} /> ดูวิธีคำนวณตามหลัก CFP
+            </button>
+          </div>
+        </div>
+
         {/* Pull from CF */}
         <button
           onClick={handlePullFromCF}
@@ -136,68 +165,23 @@ export default function BasicExpensesPage() {
           </div>
         </div>
 
-        {/* Bar Chart: PV vs FV */}
+        {/* Timeline + Chart Diagram (shared) */}
         {totalBasicMonthly > 0 && (
-          <div className="mt-4 bg-white rounded-2xl border border-gray-200 p-4">
-            <div className="text-xs font-bold text-center text-[#1e3a5f] mb-4">
+          <div className="mt-4">
+            <div className="text-xs font-bold text-center text-[#1e3a5f] mb-2">
               ประเมินรายจ่ายพื้นฐานต่อเดือนหลังเกษียณอายุ
             </div>
-
-            {/* SVG Bar Chart with Y-axis */}
-            <div className="flex justify-center">
-              <svg width="280" height="200" viewBox="0 0 280 200">
-                {/* Y-axis labels */}
-                {(() => {
-                  const maxVal = Math.ceil(basicMonthlyFV / 5000) * 5000;
-                  const minVal = Math.floor(totalBasicMonthly * 0.8 / 5000) * 5000;
-                  const range = maxVal - minVal;
-                  const steps = 5;
-                  return Array.from({ length: steps + 1 }, (_, i) => {
-                    const val = minVal + (range / steps) * i;
-                    const y = 170 - (i / steps) * 150;
-                    return (
-                      <g key={i}>
-                        <text x="55" y={y + 3} textAnchor="end" className="text-[9px]" fill="#9ca3af">{fmt(Math.round(val))}</text>
-                        <line x1="60" y1={y} x2="260" y2={y} stroke="#e5e7eb" strokeWidth="0.5" />
-                      </g>
-                    );
-                  });
-                })()}
-
-                {/* Bars */}
-                {(() => {
-                  const maxVal = Math.ceil(basicMonthlyFV / 5000) * 5000;
-                  const minVal = Math.floor(totalBasicMonthly * 0.8 / 5000) * 5000;
-                  const range = maxVal - minVal;
-                  const h1 = ((totalBasicMonthly - minVal) / range) * 150;
-                  const h2 = ((basicMonthlyFV - minVal) / range) * 150;
-                  return (
-                    <>
-                      {/* Bar 1: PV */}
-                      <rect x="90" y={170 - h1} width="55" height={h1} fill="#c7d2fe" rx="4" />
-                      <text x="117" y={170 - h1 - 8} textAnchor="middle" className="text-[11px]" fontWeight="bold" fill="#374151">{fmt(totalBasicMonthly)}</text>
-                      <text x="117" y="190" textAnchor="middle" className="text-[10px]" fill="#6b7280">ปัจจุบัน</text>
-
-                      {/* Bar 2: FV */}
-                      <rect x="175" y={170 - h2} width="55" height={h2} fill="#1e3a5f" rx="4" />
-                      <text x="202" y={170 - h2 - 8} textAnchor="middle" className="text-[11px]" fontWeight="bold" fill="#1e3a5f">{fmt(Math.round(basicMonthlyFV))}</text>
-                      <text x="202" y="190" textAnchor="middle" className="text-[10px]" fill="#6b7280">อนาคต</text>
-                    </>
-                  );
-                })()}
-              </svg>
-            </div>
-
-            {/* Multiplier */}
-            {totalBasicMonthly > 0 && (
-              <div className="text-center text-sm font-bold text-red-500 mt-1">
-                x{(basicMonthlyFV / totalBasicMonthly).toFixed(2)} เท่า
-              </div>
-            )}
-
-            <div className="text-[9px] text-gray-400 text-center mt-2">
-              [ สมมติฐาน อัตราเงินเฟ้อ = {(a.generalInflation * 100).toFixed(1)}% ]
-            </div>
+            <RetirementDiagram
+              currentAge={a.currentAge}
+              retireAge={a.retireAge}
+              lifeExpectancy={a.lifeExpectancy}
+              totalBasicMonthly={totalBasicMonthly}
+              basicMonthlyFV={basicMonthlyFV}
+              basicRetireFund={basicRetireFund}
+              residualFund={a.residualFund}
+              generalInflation={a.generalInflation}
+              postRetireReturn={a.postRetireReturn}
+            />
           </div>
         )}
 
@@ -291,6 +275,138 @@ export default function BasicExpensesPage() {
           className="mt-4"
         />
       </div>
+
+      {/* ─── Info Modal: CFP Module 4 — Retirement Planning ──────────── */}
+      {showInfo && (
+        <div
+          className="fixed inset-0 z-[70] flex items-end md:items-center justify-center bg-black/40"
+          onClick={() => setShowInfo(false)}
+        >
+          <div
+            className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-xl max-h-[85vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="sticky top-0 bg-[#1e3a5f] text-white px-5 py-4 flex items-center justify-between z-10 md:rounded-t-2xl rounded-t-2xl">
+              <div className="flex items-center gap-2">
+                <Info size={18} />
+                <h3 className="text-sm font-bold">หลักการคำนวณทุนเกษียณ (Basic Expenses)</h3>
+              </div>
+              <button onClick={() => setShowInfo(false)} className="text-white/70 hover:text-white">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="px-5 py-4 space-y-5 text-gray-700">
+              {/* Hook */}
+              <div className="bg-gradient-to-br from-[#1e3a5f]/5 to-[#3b6fa0]/10 rounded-xl p-4 border border-blue-100">
+                <p className="text-xs font-bold text-gray-800 leading-relaxed">
+                  &ldquo;หลังเกษียณ เราจะใช้เงินเดือนละเท่าไหร่... แล้วต้องมีเงินก้อนเท่าไหร่ถึงจะพอใช้จนสิ้นอายุขัย?&rdquo;
+                </p>
+                <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                  มาคำนวณ <b>ทุนเกษียณ (A)</b> — เงินก้อนที่จำเป็น เพื่อจ่ายค่าใช้จ่ายพื้นฐานในช่วงเกษียณ
+                </p>
+              </div>
+
+              <p className="text-xs leading-relaxed">
+                ตามหลักการของ <strong>CFP Module 4</strong> (การวางแผนเพื่อวัยเกษียณ)
+                การประเมินเงินก้อนที่ต้องมี ณ วันเกษียณ ทำได้ตาม <strong>3 ขั้นตอน</strong> ดังนี้:
+              </p>
+
+              {/* Step 1 */}
+              <div className="border border-gray-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <h4 className="text-xs font-bold text-gray-800">ประเมินค่าใช้จ่าย/เดือน ณ ปัจจุบัน (PV)</h4>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  รวบรวมรายจ่ายจำเป็นทั้งหมดที่ยังจะมีต่อเนื่องหลังเกษียณ (อาหาร, สาธารณูปโภค,
+                  ค่าใช้จ่ายทั่วไป) — สามารถดึงจาก Cash Flow ที่ทำไว้แล้ว
+                </p>
+                <div className="bg-blue-50 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                  <div><strong>ตัวแปร:</strong> รายจ่ายจำเป็น/เดือน (PV)</div>
+                  <div className="text-green-700">✓ ใช้รายจ่ายจริงของตัวเอง ไม่ใช่ค่าเฉลี่ย</div>
+                </div>
+              </div>
+
+              {/* Step 2 */}
+              <div className="border-2 border-blue-400 rounded-xl p-4 space-y-2 bg-blue-50/30">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
+                  <h4 className="text-xs font-bold text-blue-800">ปรับเป็นมูลค่า ณ วันเกษียณ (FV) ⭐</h4>
+                </div>
+                <div className="text-[10px] text-blue-600 font-bold bg-blue-100 rounded-lg px-2 py-1 inline-block">ใช้ในหน้านี้</div>
+                <p className="text-[11px] leading-relaxed">
+                  เนื่องจากเงินเฟ้อ (Inflation) ทำให้ค่าครองชีพในอนาคตสูงกว่าวันนี้ —
+                  ต้องทบเงินเฟ้อตามจำนวนปีที่เหลือก่อนเกษียณ
+                </p>
+                <div className="bg-blue-100 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                  <div><strong>สูตร:</strong> FV = PV × (1 + inflation)<sup>n</sup></div>
+                  <div><code className="text-[9px]">n = ปีก่อนเกษียณ</code></div>
+                  <div className="text-green-700">✓ ค่าใช้จ่ายจริงที่ต้องจ่ายในอนาคต ไม่ใช่ราคาวันนี้</div>
+                </div>
+              </div>
+
+              {/* Step 3 */}
+              <div className="border border-gray-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0">3</span>
+                  <h4 className="text-xs font-bold text-gray-800">คำนวณทุนเกษียณ (Annuity Due + Residual)</h4>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  เงินก้อน ณ วันเกษียณที่สามารถจ่ายค่าใช้จ่ายรายปีได้ต่อเนื่องจนสิ้นอายุขัย
+                  โดยคำนึงถึงผลตอบแทนจากการลงทุนหลังเกษียณและเงินคงเหลือที่อยากทิ้งไว้เป็นมรดก
+                </p>
+                <div className="bg-gray-50 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                  <div><strong>สูตร:</strong> A = PVA(real_rate, n, FV×12) + PV(rate, n, residual)</div>
+                  <div><code className="text-[9px]">real_rate = (1+rate) ÷ (1+inflation) − 1</code></div>
+                  <div className="text-green-700">✓ สะท้อนทั้งเงินเฟ้อ, ผลตอบแทน และอายุยืน</div>
+                </div>
+              </div>
+
+              {/* Flow summary */}
+              <div>
+                <h4 className="text-xs font-bold text-gray-800 mb-2">สรุปขั้นตอน</h4>
+                <div className="bg-gray-50 rounded-xl p-3 text-[11px] space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#1e3a5f] font-bold">PV/เดือน</span>
+                    <span className="text-gray-400">→</span>
+                    <span>ดึงจาก Cash Flow หรือกรอกเอง</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#1e3a5f] font-bold">× เงินเฟ้อ</span>
+                    <span className="text-gray-400">→</span>
+                    <span>FV/เดือน ณ วันเกษียณ</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#1e3a5f] font-bold">× 12 × PVA</span>
+                    <span className="text-gray-400">→</span>
+                    <span className="font-bold text-cyan-700">ทุนเกษียณ (A)</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
+                <div className="text-[10px] text-amber-700 leading-relaxed">
+                  💡 ตามมาตรฐาน CFP การวางแผนเกษียณใช้ <strong>Needs-Based Approach</strong> —
+                  เริ่มจากค่าใช้จ่ายจริง แล้วย้อนกลับไปดูว่าต้องเก็บเงินเท่าไหร่
+                  จึงเห็นภาพชัดและปรับได้ตามไลฟ์สไตล์ของแต่ละคน
+                </div>
+              </div>
+            </div>
+
+            {/* Close button */}
+            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-5 py-3 md:rounded-b-2xl">
+              <button
+                onClick={() => setShowInfo(false)}
+                className="w-full py-2.5 rounded-xl bg-[#1e3a5f] text-white text-sm font-bold hover:bg-[#2d5a8e] transition"
+              >
+                เข้าใจแล้ว
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

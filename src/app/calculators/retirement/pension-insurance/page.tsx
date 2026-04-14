@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Save, Calculator, Download, Info } from "lucide-react";
+import { Save, Calculator, Download, Info, X } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import PageHeader from "@/components/PageHeader";
 import { useVariableStore } from "@/store/variable-store";
@@ -54,6 +54,7 @@ export default function PensionInsurancePage() {
   const [hasCalculated, setHasCalculated] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
   const [showTable, setShowTable] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
 
   // Auto-fill from Profile + Retirement assumptions
   useEffect(() => {
@@ -133,6 +134,32 @@ export default function PensionInsurancePage() {
       />
 
       <div className="px-4 md:px-8 pt-4 pb-8 space-y-4">
+        {/* Intro blurb + (i) */}
+        <div className="bg-gradient-to-br from-purple-600 to-fuchsia-600 rounded-2xl p-4 text-white mx-1 relative">
+          <button
+            onClick={() => setShowInfo(true)}
+            className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition"
+            aria-label="วิธีคำนวณ"
+          >
+            <Info size={16} />
+          </button>
+          <div className="pr-10">
+            <div className="text-[10px] font-bold text-white/70 mb-1">Step 2 · Pension Insurance</div>
+            <h3 className="text-sm font-bold leading-snug mb-1.5">
+              คำนวณมูลค่าประกันบำนาญเอกชน
+            </h3>
+            <p className="text-[11px] text-white/80 leading-relaxed">
+              เบี้ยประกันบำนาญจ่ายเป็น Annuity Due พร้อมคิด NPV ณ วันเกษียณ
+              ตามหลัก CFP Module 4 (Private Annuity Valuation)
+            </p>
+            <button
+              onClick={() => setShowInfo(true)}
+              className="mt-2 inline-flex items-center gap-1 text-[10px] text-white/90 font-bold hover:text-white underline-offset-2 hover:underline"
+            >
+              <Info size={11} /> ดูวิธีคำนวณตามหลัก CFP
+            </button>
+          </div>
+        </div>
 
         {/* สมมติฐาน — editable + pull button */}
         <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
@@ -367,6 +394,91 @@ export default function PensionInsurancePage() {
           </>
         )}
       </div>
+
+      {/* ─── Info Modal: Pension Insurance (Private Annuity) ──────────── */}
+      {showInfo && (
+        <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center bg-black/40" onClick={() => setShowInfo(false)}>
+          <div className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-xl max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-purple-600 text-white px-5 py-4 flex items-center justify-between z-10 md:rounded-t-2xl rounded-t-2xl">
+              <div className="flex items-center gap-2">
+                <Info size={18} />
+                <h3 className="text-sm font-bold">หลักการคำนวณประกันบำนาญ</h3>
+              </div>
+              <button onClick={() => setShowInfo(false)} className="text-white/70 hover:text-white"><X size={20} /></button>
+            </div>
+
+            <div className="px-5 py-4 space-y-5 text-gray-700">
+              <div className="bg-gradient-to-br from-purple-50 to-fuchsia-50 rounded-xl p-4 border border-purple-100">
+                <p className="text-xs font-bold text-gray-800 leading-relaxed">
+                  &ldquo;ซื้อประกันบำนาญไว้... จะคุ้มค่าเบี้ยแค่ไหน?&rdquo;
+                </p>
+                <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                  ประกันบำนาญ (Annuity) จ่ายเงินคงที่ตั้งแต่อายุเกษียณจนถึงสิ้นสัญญา —
+                  ช่วยลดความเสี่ยงอายุยืน (Longevity Risk)
+                </p>
+              </div>
+
+              <p className="text-xs leading-relaxed">
+                ตามหลัก <strong>CFP Module 4</strong> การประเมินมูลค่าประกันบำนาญ ณ วันเกษียณ ใช้หลัก NPV <strong>3 ขั้นตอน</strong>:
+              </p>
+
+              <div className="border border-gray-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <h4 className="text-xs font-bold text-gray-800">ระบุอัตราบำนาญ/ปี</h4>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  ดูจากกรมธรรม์ว่าจ่ายเท่าไหร่/ปี, เริ่มจ่ายตอนอายุกี่ปี, และจ่ายถึงอายุกี่ปี (มักจะ 85 หรือ 90)
+                </p>
+                <div className="bg-purple-50 rounded-lg px-3 py-2 text-[10px]">
+                  <div><strong>ตัวแปร:</strong> PMT (ต่อปี), อายุเริ่มรับ, อายุสิ้นสัญญา</div>
+                </div>
+              </div>
+
+              <div className="border border-gray-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
+                  <h4 className="text-xs font-bold text-gray-800">คิดลดกลับมาที่วันเกษียณ</h4>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  แต่ละปีที่ได้รับเงิน คิดลดเป็น Present Value ณ วันเกษียณ ด้วยอัตราผลตอบแทนหลังเกษียณ
+                </p>
+                <div className="bg-purple-50 rounded-lg px-3 py-2 text-[10px]">
+                  <div><strong>สูตร:</strong> PV<sub>year i</sub> = PMT ÷ (1 + rate)<sup>i</sup></div>
+                </div>
+              </div>
+
+              <div className="border-2 border-purple-500 rounded-xl p-4 space-y-2 bg-purple-50/30">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-purple-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">3</span>
+                  <h4 className="text-xs font-bold text-purple-800">รวม NPV ทั้งหมด ⭐</h4>
+                </div>
+                <div className="text-[10px] text-purple-700 font-bold bg-purple-100 rounded-lg px-2 py-1 inline-block">ใช้ในหน้านี้</div>
+                <p className="text-[11px] leading-relaxed">
+                  ผลรวม PV ของทุกปีตั้งแต่เกษียณจนสิ้นสัญญา = มูลค่าประกันบำนาญ ณ วันเกษียณ
+                </p>
+                <div className="bg-purple-100 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                  <div><strong>สูตร:</strong> NPV = Σ PMT ÷ (1 + rate)<sup>i</sup></div>
+                  <div className="text-green-700">✓ สะท้อนทั้งกระแสรายรับและความเสี่ยงอายุยืน</div>
+                </div>
+              </div>
+
+              <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
+                <div className="text-[10px] text-amber-700 leading-relaxed">
+                  💡 ประกันบำนาญได้สิทธิลดหย่อนสูงสุด 15% ของรายได้ (ไม่เกิน 200,000 บาท)
+                  เมื่อรวมกับ PVD/RMF/SSF แล้วต้องไม่เกิน 500,000 บาท
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-5 py-3 md:rounded-b-2xl">
+              <button onClick={() => setShowInfo(false)} className="w-full py-2.5 rounded-xl bg-purple-600 text-white text-sm font-bold hover:bg-purple-700 transition">
+                เข้าใจแล้ว
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

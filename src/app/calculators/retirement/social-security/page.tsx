@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Save, ShieldCheck } from "lucide-react";
+import { Save, ShieldCheck, Info, X } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import PageHeader from "@/components/PageHeader";
 import { useVariableStore } from "@/store/variable-store";
@@ -45,6 +45,7 @@ export default function SocialSecurityPage() {
   const [calculated, setCalculated] = useState(false);
   const [hasCalculated, setHasCalculated] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
   const [result, setResult] = useState({ monthlyPension: 0, annualPension: 0, npv: 0 });
   const [calcDetails, setCalcDetails] = useState({ additionalMonths: 0, totalMonths: 0, careRate: 0 });
 
@@ -74,6 +75,33 @@ export default function SocialSecurityPage() {
       />
 
       <div className="px-4 md:px-8 pt-4 space-y-4">
+        {/* Intro blurb + (i) */}
+        <div className="bg-gradient-to-br from-green-600 to-emerald-600 rounded-2xl p-4 text-white mx-1 relative">
+          <button
+            onClick={() => setShowInfo(true)}
+            className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition"
+            aria-label="วิธีคำนวณ"
+          >
+            <Info size={16} />
+          </button>
+          <div className="pr-10">
+            <div className="text-[10px] font-bold text-white/70 mb-1">Step 2 · Social Security</div>
+            <h3 className="text-sm font-bold leading-snug mb-1.5">
+              คำนวณบำนาญประกันสังคม (ม.33)
+            </h3>
+            <p className="text-[11px] text-white/80 leading-relaxed">
+              บำนาญชราภาพ = ค่าเฉลี่ยเงินเดือน 60 เดือนสุดท้าย × อัตรา% ตามจำนวนปีที่ส่ง
+              คำนวณตามหลัก CFP Module 4 (Government Pension)
+            </p>
+            <button
+              onClick={() => setShowInfo(true)}
+              className="mt-2 inline-flex items-center gap-1 text-[10px] text-white/90 font-bold hover:text-white underline-offset-2 hover:underline"
+            >
+              <Info size={11} /> ดูวิธีคำนวณตามหลัก CFP
+            </button>
+          </div>
+        </div>
+
         <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
           <div className="text-xs font-bold text-gray-600 mb-2">ข้อมูลประกันสังคม</div>
           {[
@@ -211,6 +239,92 @@ export default function SocialSecurityPage() {
           </>
         )}
       </div>
+
+      {/* ─── Info Modal: Social Security Pension ──────────── */}
+      {showInfo && (
+        <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center bg-black/40" onClick={() => setShowInfo(false)}>
+          <div className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-xl max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-green-600 text-white px-5 py-4 flex items-center justify-between z-10 md:rounded-t-2xl rounded-t-2xl">
+              <div className="flex items-center gap-2">
+                <Info size={18} />
+                <h3 className="text-sm font-bold">หลักการคำนวณบำนาญประกันสังคม</h3>
+              </div>
+              <button onClick={() => setShowInfo(false)} className="text-white/70 hover:text-white"><X size={20} /></button>
+            </div>
+
+            <div className="px-5 py-4 space-y-5 text-gray-700">
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border border-green-100">
+                <p className="text-xs font-bold text-gray-800 leading-relaxed">
+                  &ldquo;ส่งเงินเข้าประกันสังคมมาตลอด... หลังเกษียณจะได้รับเท่าไหร่?&rdquo;
+                </p>
+                <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                  บำนาญชราภาพ (ม.33) จ่ายเป็นรายเดือนตลอดชีวิต ตามกฎกระทรวงประกันสังคม
+                </p>
+              </div>
+
+              <p className="text-xs leading-relaxed">
+                ตามหลัก <strong>CFP Module 4</strong> + กฎกระทรวง (พ.ศ. 2550) บำนาญชราภาพคำนวณตาม <strong>3 ขั้นตอน</strong>:
+              </p>
+
+              <div className="border border-gray-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-green-100 text-green-700 text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <h4 className="text-xs font-bold text-gray-800">คำนวณจำนวนเดือนที่ส่ง</h4>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  นับเดือนที่ส่งเงินเข้ากองทุนชราภาพ — ต้องส่งครบ 180 เดือน (15 ปี) ขึ้นไป จึงจะได้รับ &ldquo;บำนาญ&rdquo;
+                  ถ้าน้อยกว่าจะได้ &ldquo;บำเหน็จ&rdquo; (เงินก้อน)
+                </p>
+                <div className="bg-green-50 rounded-lg px-3 py-2 text-[10px]">
+                  <div><strong>ต้องการ:</strong> ≥ 180 เดือน</div>
+                </div>
+              </div>
+
+              <div className="border border-gray-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-green-100 text-green-700 text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
+                  <h4 className="text-xs font-bold text-gray-800">หาค่าเฉลี่ยเงินเดือน (Base)</h4>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  นำเงินเดือน 60 เดือนสุดท้ายก่อนเกษียณมาเฉลี่ย (ไม่เกินเพดาน 17,500 บาท ตาม ม.33)
+                </p>
+                <div className="bg-green-50 rounded-lg px-3 py-2 text-[10px]">
+                  <div><strong>Base:</strong> min(เฉลี่ย 60 เดือน, 17,500)</div>
+                </div>
+              </div>
+
+              <div className="border-2 border-green-500 rounded-xl p-4 space-y-2 bg-green-50/30">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-green-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">3</span>
+                  <h4 className="text-xs font-bold text-green-800">คำนวณอัตราบำนาญ ⭐</h4>
+                </div>
+                <div className="text-[10px] text-green-700 font-bold bg-green-100 rounded-lg px-2 py-1 inline-block">ใช้ในหน้านี้</div>
+                <p className="text-[11px] leading-relaxed">
+                  อัตราเริ่มต้น 20% (ส่งครบ 180 เดือน) เพิ่ม 1.5% ทุกๆ 12 เดือนถัดไป
+                </p>
+                <div className="bg-green-100 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                  <div><strong>สูตร:</strong> บำนาญ/เดือน = Base × (20% + 1.5% × ปีส่งเพิ่ม)</div>
+                  <div><strong>NPV:</strong> คิดลดเป็นมูลค่า ณ วันเกษียณด้วยอัตราผลตอบแทนหลังเกษียณ</div>
+                  <div className="text-green-700">✓ จ่ายตลอดชีวิต (จนเสียชีวิต)</div>
+                </div>
+              </div>
+
+              <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
+                <div className="text-[10px] text-amber-700 leading-relaxed">
+                  💡 เพดานเงินเดือนประกันสังคม 15,000 บาท/เดือน (ม.33) กำลังจะปรับเป็น 17,500 ในอนาคต
+                  ทำให้เพดานบำนาญเพิ่มตาม
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-5 py-3 md:rounded-b-2xl">
+              <button onClick={() => setShowInfo(false)} className="w-full py-2.5 rounded-xl bg-green-600 text-white text-sm font-bold hover:bg-green-700 transition">
+                เข้าใจแล้ว
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Save, Landmark } from "lucide-react";
+import { Save, Landmark, Info, X } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import PageHeader from "@/components/PageHeader";
 import { useVariableStore } from "@/store/variable-store";
@@ -68,6 +68,7 @@ export default function PVDPage() {
   const [calculated, setCalculated] = useState(false);
   const [hasCalculated, setHasCalculated] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
   const [projection, setProjection] = useState<PVDYearResult[]>([]);
   const [atRetire, setAtRetire] = useState(0);
 
@@ -106,6 +107,33 @@ export default function PVDPage() {
       />
 
       <div className="px-4 md:px-8 pt-4 space-y-4">
+        {/* Intro blurb + (i) */}
+        <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-4 text-white mx-1 relative">
+          <button
+            onClick={() => setShowInfo(true)}
+            className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition"
+            aria-label="วิธีคำนวณ"
+          >
+            <Info size={16} />
+          </button>
+          <div className="pr-10">
+            <div className="text-[10px] font-bold text-white/70 mb-1">Step 2 · Provident Fund</div>
+            <h3 className="text-sm font-bold leading-snug mb-1.5">
+              คำนวณเงิน PVD ณ วันเกษียณ
+            </h3>
+            <p className="text-[11px] text-white/80 leading-relaxed">
+              เงินสะสม (พนักงาน) + เงินสมทบ (นายจ้าง) พร้อมผลตอบแทนทบต้น
+              คำนวณตามหลัก CFP Module 4 (Future Value Projection)
+            </p>
+            <button
+              onClick={() => setShowInfo(true)}
+              className="mt-2 inline-flex items-center gap-1 text-[10px] text-white/90 font-bold hover:text-white underline-offset-2 hover:underline"
+            >
+              <Info size={11} /> ดูวิธีคำนวณตามหลัก CFP
+            </button>
+          </div>
+        </div>
+
         {/* Input */}
         <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
           <div className="flex items-center justify-between mb-2">
@@ -233,6 +261,91 @@ export default function PVDPage() {
         {/* Spacer */}
         <div className="h-8" />
       </div>
+
+      {/* ─── Info Modal: PVD (Future Value Projection) ──────────── */}
+      {showInfo && (
+        <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center bg-black/40" onClick={() => setShowInfo(false)}>
+          <div className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-xl max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-blue-600 text-white px-5 py-4 flex items-center justify-between z-10 md:rounded-t-2xl rounded-t-2xl">
+              <div className="flex items-center gap-2">
+                <Info size={18} />
+                <h3 className="text-sm font-bold">หลักการคำนวณ PVD</h3>
+              </div>
+              <button onClick={() => setShowInfo(false)} className="text-white/70 hover:text-white"><X size={20} /></button>
+            </div>
+
+            <div className="px-5 py-4 space-y-5 text-gray-700">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
+                <p className="text-xs font-bold text-gray-800 leading-relaxed">
+                  &ldquo;สะสมทุกเดือน... 30 ปีข้างหน้าจะมีเท่าไหร่?&rdquo;
+                </p>
+                <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                  พลังของดอกเบี้ยทบต้น (Compound Interest) ทำให้เงินเดือนละไม่กี่พัน กลายเป็นเงินก้อนใหญ่
+                </p>
+              </div>
+
+              <p className="text-xs leading-relaxed">
+                ตามหลัก <strong>CFP Module 4</strong> การคำนวณเงินในกองทุนสำรองเลี้ยงชีพ ประกอบด้วย <strong>3 ส่วน</strong>:
+              </p>
+
+              <div className="border border-gray-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <h4 className="text-xs font-bold text-gray-800">เงินสะสม (Employee)</h4>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  เงินที่พนักงานจ่ายเข้ากองทุนทุกเดือน เป็น % ของเงินเดือน (2–15%)
+                </p>
+                <div className="bg-blue-50 rounded-lg px-3 py-2 text-[10px]">
+                  <div><strong>สูตร:</strong> เงินสะสมรายปี = เงินเดือน × 12 × อัตราสะสม%</div>
+                </div>
+              </div>
+
+              <div className="border border-gray-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
+                  <h4 className="text-xs font-bold text-gray-800">เงินสมทบ (Employer)</h4>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  เงินที่นายจ้างสมทบให้ เป็น % ของเงินเดือน (ปกติเท่าหรือใกล้เคียงอัตราสะสม)
+                </p>
+                <div className="bg-purple-50 rounded-lg px-3 py-2 text-[10px]">
+                  <div><strong>สูตร:</strong> เงินสมทบรายปี = เงินเดือน × 12 × อัตราสมทบ%</div>
+                </div>
+              </div>
+
+              <div className="border-2 border-blue-400 rounded-xl p-4 space-y-2 bg-blue-50/30">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">3</span>
+                  <h4 className="text-xs font-bold text-blue-800">Compound Growth (ทบต้น) ⭐</h4>
+                </div>
+                <div className="text-[10px] text-blue-600 font-bold bg-blue-100 rounded-lg px-2 py-1 inline-block">ใช้ในหน้านี้</div>
+                <p className="text-[11px] leading-relaxed">
+                  ยอดสะสมของแต่ละปี นำไปลงทุนรับผลตอบแทนต่อเนื่องจนถึงวันเกษียณ
+                  พร้อมคำนึงถึงการขึ้นเงินเดือนปีละ X%
+                </p>
+                <div className="bg-blue-100 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                  <div><strong>สูตร:</strong> Balance<sub>t+1</sub> = (Balance<sub>t</sub> + สะสม + สมทบ) × (1 + return)</div>
+                  <div className="text-green-700">✓ เห็นยอดทบต้นทุกปีแบบตาราง (Projection)</div>
+                </div>
+              </div>
+
+              <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
+                <div className="text-[10px] text-amber-700 leading-relaxed">
+                  💡 PVD ได้สิทธิลดหย่อนภาษีสูงสุด 15% ของเงินเดือน (แต่ไม่เกิน 500,000 บาท/ปี)
+                  เมื่อรวมกับ RMF/SSF/ประกันบำนาญ
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-5 py-3 md:rounded-b-2xl">
+              <button onClick={() => setShowInfo(false)} className="w-full py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition">
+                เข้าใจแล้ว
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

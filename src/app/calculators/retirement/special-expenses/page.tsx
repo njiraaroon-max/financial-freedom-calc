@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { Save, Plus, Trash2, Info, Download, CheckCircle2, ExternalLink } from "lucide-react";
+import { Save, Plus, Trash2, Info, Download, CheckCircle2, ExternalLink, X } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import { useProfileStore } from "@/store/profile-store";
 import { useInsuranceStore } from "@/store/insurance-store";
@@ -35,6 +35,7 @@ export default function SpecialExpensesPage() {
   const [hasSaved, setHasSaved] = useState(false);
   const [showInflation, setShowInflation] = useState<string | null>(null);
   const [pulledId, setPulledId] = useState<string | null>(null);
+  const [showInfo, setShowInfo] = useState(false);
 
   // ─── NPV from Pillar 2 (Risk Management) ──────────────────────────────
   const pillar2NPV = useMemo(() => {
@@ -104,6 +105,33 @@ export default function SpecialExpensesPage() {
       />
 
       <div className="px-4 md:px-8 pt-4 pb-8">
+        {/* Intro blurb + (i) */}
+        <div className="bg-gradient-to-br from-pink-600 to-rose-500 rounded-2xl p-4 text-white mx-1 mb-4 relative">
+          <button
+            onClick={() => setShowInfo(true)}
+            className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition"
+            aria-label="วิธีคำนวณ"
+          >
+            <Info size={16} />
+          </button>
+          <div className="pr-10">
+            <div className="text-[10px] font-bold text-white/70 mb-1">Step 1 · Special Expenses</div>
+            <h3 className="text-sm font-bold leading-snug mb-1.5">
+              ประเมินค่าใช้จ่ายพิเศษหลังเกษียณ
+            </h3>
+            <p className="text-[11px] text-white/80 leading-relaxed">
+              รถยนต์ ท่องเที่ยว เบี้ยประกันสุขภาพ ฯลฯ — เงินก้อนที่จ่ายครั้งเดียว
+              เรานำแต่ละรายการ × เงินเฟ้อของรายการนั้น ตามหลัก CFP Module 4 (Lump-Sum Needs)
+            </p>
+            <button
+              onClick={() => setShowInfo(true)}
+              className="mt-2 inline-flex items-center gap-1 text-[10px] text-white/90 font-bold hover:text-white underline-offset-2 hover:underline"
+            >
+              <Info size={11} /> ดูวิธีคำนวณตามหลัก CFP
+            </button>
+          </div>
+        </div>
+
         {/* Hint */}
         <div className="bg-amber-50 rounded-xl p-3 mb-4 flex items-start gap-2">
           <Info size={14} className="text-amber-500 mt-0.5 shrink-0" />
@@ -244,6 +272,105 @@ export default function SpecialExpensesPage() {
           className="mt-4"
         />
       </div>
+
+      {/* ─── Info Modal: Special Expenses (Lump-Sum Needs) ──────────── */}
+      {showInfo && (
+        <div
+          className="fixed inset-0 z-[70] flex items-end md:items-center justify-center bg-black/40"
+          onClick={() => setShowInfo(false)}
+        >
+          <div
+            className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-xl max-h-[85vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-pink-600 text-white px-5 py-4 flex items-center justify-between z-10 md:rounded-t-2xl rounded-t-2xl">
+              <div className="flex items-center gap-2">
+                <Info size={18} />
+                <h3 className="text-sm font-bold">หลักการคำนวณค่าใช้จ่ายพิเศษ</h3>
+              </div>
+              <button onClick={() => setShowInfo(false)} className="text-white/70 hover:text-white">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="px-5 py-4 space-y-5 text-gray-700">
+              <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl p-4 border border-pink-100">
+                <p className="text-xs font-bold text-gray-800 leading-relaxed">
+                  &ldquo;รถคันใหม่ 1 ล้าน... แต่ 25 ปีข้างหน้าจะราคาเท่าไหร่?&rdquo;
+                </p>
+                <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                  เงินก้อนที่วางแผนใช้หลังเกษียณ ต้องปรับด้วยเงินเฟ้อเฉพาะของแต่ละกลุ่มสินค้า/บริการ
+                </p>
+              </div>
+
+              <p className="text-xs leading-relaxed">
+                ตามหลัก <strong>CFP Module 4</strong> (การวางแผนเพื่อวัยเกษียณ) ค่าใช้จ่ายพิเศษที่จ่ายเป็น
+                <strong> เงินก้อนครั้งเดียว</strong> มีขั้นตอนคำนวณ <strong>3 ขั้นตอน</strong>:
+              </p>
+
+              <div className="border border-gray-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-pink-100 text-pink-700 text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <h4 className="text-xs font-bold text-gray-800">ระบุรายการและราคา ณ ปัจจุบัน (PV)</h4>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  ค่าใช้จ่ายที่วางแผนไว้หลังเกษียณ เช่น รถใหม่, ท่องเที่ยว, ค่ารักษาพยาบาล,
+                  เบี้ยประกันสุขภาพ — ใส่ราคาวันนี้
+                </p>
+                <div className="bg-pink-50 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                  <div className="text-green-700">✓ แยกเป็นรายการ เพื่อใช้อัตราเงินเฟ้อเฉพาะตัว</div>
+                </div>
+              </div>
+
+              <div className="border-2 border-pink-400 rounded-xl p-4 space-y-2 bg-pink-50/30">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-pink-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
+                  <h4 className="text-xs font-bold text-pink-800">เลือกอัตราเงินเฟ้อเฉพาะแต่ละรายการ ⭐</h4>
+                </div>
+                <div className="text-[10px] text-pink-600 font-bold bg-pink-100 rounded-lg px-2 py-1 inline-block">ใช้ในหน้านี้</div>
+                <p className="text-[11px] leading-relaxed">
+                  เงินเฟ้อไม่ได้เท่ากันทุกสินค้า — ค่ารักษาพยาบาลเฟ้อเร็วสุด (~7%) ยานพาหนะ (~2%)
+                  อาหาร/ทั่วไป (~3%)
+                </p>
+                <div className="bg-pink-100 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                  <div><strong>สูตร:</strong> FV = PV × (1 + inflation<sub>i</sub>)<sup>n</sup></div>
+                  <div className="text-green-700">✓ ปรับเงินเฟ้อแยกรายการ ได้ตัวเลขแม่นยำกว่า</div>
+                </div>
+              </div>
+
+              <div className="border border-gray-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-pink-100 text-pink-700 text-[10px] font-bold flex items-center justify-center shrink-0">3</span>
+                  <h4 className="text-xs font-bold text-gray-800">รวมเป็น ทุนเกษียณ (B)</h4>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  ผลรวม FV ของทุกรายการ = เงินก้อนที่ต้องเตรียมเพิ่มเติมจากรายจ่ายพื้นฐาน
+                  (ไม่ต้องคำนวณ annuity เพราะเป็นเงินจ่ายครั้งเดียว)
+                </p>
+                <div className="bg-gray-50 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                  <div><strong>สูตร:</strong> B = Σ FV<sub>i</sub></div>
+                </div>
+              </div>
+
+              <div className="bg-teal-50 rounded-xl p-3 border border-teal-200">
+                <div className="text-[10px] text-teal-700 leading-relaxed">
+                  💡 หมวด &ldquo;เบี้ยประกันสุขภาพ&rdquo; สามารถดึง NPV จาก Risk Management (Pillar 2)
+                  ได้อัตโนมัติ เพื่อไม่ต้องคำนวณเอง
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-5 py-3 md:rounded-b-2xl">
+              <button
+                onClick={() => setShowInfo(false)}
+                className="w-full py-2.5 rounded-xl bg-pink-600 text-white text-sm font-bold hover:bg-pink-700 transition"
+              >
+                เข้าใจแล้ว
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
