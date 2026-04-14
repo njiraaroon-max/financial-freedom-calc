@@ -303,7 +303,7 @@ export default function BasicExpensesPage() {
                     <table className="w-full text-xs border-collapse">
                       <thead>
                         <tr className="bg-gray-50 border-b border-gray-200">
-                          <th className="text-left px-3 py-2 text-gray-600 font-bold" rowSpan={2}>ผลตอบแทนเฉลี่ย<br/>หลังเกษียณอายุ<br/>(% ต่อปี)</th>
+                          <th className="text-left px-3 py-2 text-gray-600 font-bold border-r border-gray-300" rowSpan={2}>ผลตอบแทนเฉลี่ย<br/>หลังเกษียณอายุ<br/>(% ต่อปี)</th>
                           <th className="text-center px-2 py-1.5 text-gray-600 font-bold border-b-0" colSpan={residuals.length}>เงินสำรองเผื่อความอุ่นใจ ณ สิ้นอายุขัย</th>
                         </tr>
                         <tr className="bg-gray-50 border-b border-gray-200">
@@ -317,11 +317,11 @@ export default function BasicExpensesPage() {
                             );
                           })}
                         </tr>
-                        <tr className="bg-yellow-50 border-b border-gray-200">
-                          <td className="px-3 py-1.5 text-gray-500 font-medium">พอใช้อีก =&gt;</td>
+                        <tr className="bg-gray-50 border-b border-gray-200">
+                          <td className="px-3 py-1.5 text-gray-500 font-medium border-r border-gray-300">พอใช้อีก =&gt;</td>
                           {residuals.map((r) => (
-                            <td key={r} className="text-center px-2 py-1.5 font-bold text-amber-600">
-                              {r === 0 ? "-" : expenseAtLifeEnd > 0 ? (r / expenseAtLifeEnd).toFixed(1) : "-"}
+                            <td key={r} className="text-center px-2 py-1.5 font-bold text-gray-700">
+                              {r === 0 ? "-" : expenseAtLifeEnd > 0 ? `${(r / expenseAtLifeEnd).toFixed(1)} ปี` : "-"}
                             </td>
                           ))}
                         </tr>
@@ -331,8 +331,8 @@ export default function BasicExpensesPage() {
                           const realRate = (1 + ret) / (1 + inflation) - 1;
                           const rowActive = matchRow(ret);
                           return (
-                            <tr key={ret} className={`border-b border-gray-100 ${rowActive ? "bg-blue-50/40" : "hover:bg-gray-50"}`}>
-                              <td className={`px-3 py-2 font-bold ${rowActive ? "text-[#1e3a5f] bg-blue-100" : "text-[#1e3a5f]"}`}>
+                            <tr key={ret} className={`border-b border-gray-100 ${rowActive ? "bg-gray-50" : "hover:bg-gray-50"}`}>
+                              <td className="px-3 py-2 font-bold text-[#1e3a5f] border-r border-gray-300">
                                 {(ret * 100).toFixed(1)}%
                               </td>
                               {residuals.map((res) => {
@@ -344,7 +344,7 @@ export default function BasicExpensesPage() {
                                     onClick={() => selectCell(ret, res)}
                                     className={`text-center px-2 py-2 font-bold cursor-pointer transition ${
                                       isSelected
-                                        ? "bg-gray-100 text-gray-900 ring-2 ring-gray-300 ring-inset"
+                                        ? "bg-gray-100 text-gray-900"
                                         : "text-gray-700 hover:bg-blue-50 hover:text-[#1e3a5f]"
                                     }`}
                                     title="คลิกเพื่อใช้ค่านี้ในแผน"
