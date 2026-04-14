@@ -11,12 +11,14 @@ import type {
   PVDParams,
   SocialSecurityParams,
   SeveranceParams,
+  CaretakerParams,
 } from "@/types/retirement";
 import {
   DEFAULT_ASSUMPTIONS,
   DEFAULT_BASIC_EXPENSES,
   DEFAULT_SPECIAL_EXPENSES,
   DEFAULT_SAVING_FUNDS,
+  DEFAULT_CARETAKER,
 } from "@/types/retirement";
 
 function generateId() {
@@ -34,6 +36,7 @@ interface RetirementState {
   pvdParams: PVDParams;
   ssParams: SocialSecurityParams;
   severanceParams: SeveranceParams;
+  caretakerParams: CaretakerParams;
 
   // Actions — Assumptions
   updateAssumption: <K extends keyof RetirementAssumptions>(key: K, value: RetirementAssumptions[K]) => void;
@@ -68,6 +71,8 @@ interface RetirementState {
   updatePVDParam: <K extends keyof PVDParams>(key: K, value: PVDParams[K]) => void;
   updateSSParam: <K extends keyof SocialSecurityParams>(key: K, value: SocialSecurityParams[K]) => void;
   updateSeveranceParam: <K extends keyof SeveranceParams>(key: K, value: SeveranceParams[K]) => void;
+  updateCaretakerParam: <K extends keyof CaretakerParams>(key: K, value: CaretakerParams[K]) => void;
+  resetCaretakerParams: () => void;
 
   // Completion tracking
   completedSteps: Record<string, boolean>;
@@ -116,6 +121,7 @@ export const useRetirementStore = create<RetirementState>()(
       pvdParams: { ...DEFAULT_PVD },
       ssParams: { ...DEFAULT_SS },
       severanceParams: { ...DEFAULT_SEVERANCE },
+      caretakerParams: { ...DEFAULT_CARETAKER },
       completedSteps: {},
 
       updateAssumption: (key, value) =>
@@ -226,6 +232,10 @@ export const useRetirementStore = create<RetirementState>()(
         set((s) => ({ ssParams: { ...s.ssParams, [key]: value } })),
       updateSeveranceParam: (key, value) =>
         set((s) => ({ severanceParams: { ...s.severanceParams, [key]: value } })),
+      updateCaretakerParam: (key, value) =>
+        set((s) => ({ caretakerParams: { ...s.caretakerParams, [key]: value } })),
+      resetCaretakerParams: () =>
+        set({ caretakerParams: { ...DEFAULT_CARETAKER } }),
 
       markStepCompleted: (step) =>
         set((state) => ({
@@ -246,12 +256,13 @@ export const useRetirementStore = create<RetirementState>()(
           pvdParams: { ...DEFAULT_PVD },
           ssParams: { ...DEFAULT_SS },
           severanceParams: { ...DEFAULT_SEVERANCE },
+          caretakerParams: { ...DEFAULT_CARETAKER },
           completedSteps: {},
         }),
     }),
     {
       name: "ffc-retirement",
-      version: 2,
+      version: 3,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       migrate: (persisted: any, version: number) => {
         if (persisted?.savingFunds) {
@@ -267,6 +278,10 @@ export const useRetirementStore = create<RetirementState>()(
               f.source = "calculator";
             }
           });
+        }
+        // v3: add caretakerParams if missing
+        if (!persisted?.caretakerParams) {
+          persisted.caretakerParams = { ...DEFAULT_CARETAKER };
         }
         return persisted;
       },

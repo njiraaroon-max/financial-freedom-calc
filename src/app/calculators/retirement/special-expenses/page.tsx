@@ -6,6 +6,7 @@ import { Save, Plus, Trash2, Info, Download, CheckCircle2, ExternalLink, X } fro
 import { useRetirementStore } from "@/store/retirement-store";
 import { useProfileStore } from "@/store/profile-store";
 import { useInsuranceStore } from "@/store/insurance-store";
+import { useVariableStore } from "@/store/variable-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 import { futureValue, calcRetirementFund } from "@/types/retirement";
@@ -31,6 +32,7 @@ export default function SpecialExpensesPage() {
   const store = useRetirementStore();
   const profile = useProfileStore();
   const insuranceStore = useInsuranceStore();
+  const { variables } = useVariableStore();
   const a = store.assumptions;
   const [hasSaved, setHasSaved] = useState(false);
   const [showInflation, setShowInflation] = useState<string | null>(null);
@@ -63,6 +65,19 @@ export default function SpecialExpensesPage() {
   const handlePullFromPillar2 = (id: string) => {
     if (!pillar2NPV.hasData) return;
     store.updateSpecialExpense(id, pillar2NPV.npv);
+    setPulledId(id);
+    setTimeout(() => setPulledId(null), 2500);
+  };
+
+  // ─── Caretaker NPV (from calculator variable store) ──────────────────────────
+  const caretakerNPV = useMemo(() => {
+    const v = variables["caretaker_npv"];
+    return { npv: v?.value || 0, hasData: !!v && v.value > 0 };
+  }, [variables]);
+
+  const handlePullFromCaretaker = (id: string) => {
+    if (!caretakerNPV.hasData) return;
+    store.updateSpecialExpense(id, caretakerNPV.npv);
     setPulledId(id);
     setTimeout(() => setPulledId(null), 2500);
   };
@@ -229,6 +244,41 @@ export default function SpecialExpensesPage() {
                             <><CheckCircle2 size={11} /> ดึงแล้ว</>
                           ) : (
                             <><Download size={11} /> ดึงจาก Risk Management</>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {/* Pull from Caretaker calculator */}
+                  {item.id === "se2" && (
+                    <div className="mt-2 pt-2 border-t border-gray-200 flex items-center justify-between gap-2 flex-wrap">
+                      <span className="text-[10px] text-gray-500">
+                        {caretakerNPV.hasData
+                          ? <>NPV จากเครื่องคำนวณ: <b className="text-pink-600">฿{fmt(caretakerNPV.npv)}</b></>
+                          : <span className="text-gray-400">ยังไม่ได้คำนวณค่าคนดูแล</span>}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href="/calculators/retirement/caretaker"
+                          className="flex items-center gap-1 text-[10px] text-gray-500 hover:text-pink-600 hover:underline"
+                        >
+                          ไปคำนวณ <ExternalLink size={10} />
+                        </Link>
+                        <button
+                          onClick={() => handlePullFromCaretaker(item.id)}
+                          disabled={!caretakerNPV.hasData}
+                          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                            pulledId === item.id
+                              ? "bg-emerald-500 text-white"
+                              : caretakerNPV.hasData
+                                ? "bg-pink-500 text-white hover:bg-pink-600 active:scale-95"
+                                : "bg-gray-100 text-gray-300 cursor-not-allowed"
+                          }`}
+                        >
+                          {pulledId === item.id ? (
+                            <><CheckCircle2 size={11} /> ดึงแล้ว</>
+                          ) : (
+                            <><Download size={11} /> ดึงจากเครื่องคำนวณ</>
                           )}
                         </button>
                       </div>

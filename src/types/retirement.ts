@@ -73,6 +73,18 @@ export interface SeveranceParams {
   salaryCap: number;
 }
 
+export interface CaretakerParams {
+  /** Local overrides — default pulled from profile/assumptions but editable independently */
+  currentAge: number;
+  retireAge: number;
+  lifeExpectancy: number;
+  caretakerStartAge: number;   // อายุที่เริ่มใช้คนดูแล
+  monthlyRate: number;          // ค่าคนดูแล/เดือน ณ ราคาปัจจุบัน
+  inflationRate: number;        // เงินเฟ้อค่าจ้าง (สูงกว่าทั่วไป)
+  postRetireReturn: number;     // ผลตอบแทนหลังเกษียณ (discount rate)
+  probability: number;          // % โอกาสต้องใช้จริง (0-1)
+}
+
 // ===== Default values =====
 export const DEFAULT_ASSUMPTIONS: RetirementAssumptions = {
   currentAge: 35,
@@ -113,6 +125,17 @@ export const DEFAULT_SAVING_FUNDS: SavingFundItem[] = [
   { id: "sf7", name: "เงินครบกำหนดประกันชีวิต", value: 0, source: "manual" },
   { id: "sf8", name: "แหล่งเงินออมอื่นๆ", value: 0, source: "manual" },
 ];
+
+export const DEFAULT_CARETAKER: CaretakerParams = {
+  currentAge: 35,
+  retireAge: 60,
+  lifeExpectancy: 85,
+  caretakerStartAge: 75,
+  monthlyRate: 25000,
+  inflationRate: 0.05,
+  postRetireReturn: 0.045,
+  probability: 1.0,
+};
 
 // ===== Financial Formulas =====
 
@@ -311,4 +334,70 @@ export function calcInvestmentPlan(
   }
 
   return results;
+}
+
+// ===== Caretaker (คนดูแลหลังเกษียณ) =====
+
+export interface CaretakerYearRow {
+  age: number;
+  yearFromRetire: number;
+  monthlyAtAge: number;
+  annualAtAge: number;
+  pvAtRetire: number;
+}
+
+export interface CaretakerResult {
+  rows: CaretakerYearRow[];
+  totalCostFV: number;     // รวมค่าใช้จ่าย ณ แต่ละปี (ไม่คิด discount)
+  npvAtRetire: number;     // ทุน ณ วันเกษียณ (discounted, × probability)
+  yearsNeeded: number;
+  monthlyAtStart: number;  // ค่าคนดูแล/เดือน ณ ปีที่เริ่ม
+}
+
+/**
+ * คำนวณ NPV ค่าคนดูแลหลังเกษียณ
+ * - คนดูแลเริ่มใช้ตั้งแต่ caretakerStartAge จนถึง lifeExpectancy
+ * - ค่าจ้างโตตาม inflationRate ตั้งแต่ปีปัจจุบัน
+ * - Discount กลับมาที่ retireAge ด้วย postRetireReturn
+ * - คูณด้วย probability (ความน่าจะเป็นว่าต้องใช้จริง)
+ */
+export function calcCaretakerNPV(params: CaretakerParams): CaretakerResult {
+  const {
+    currentAge,
+    retireAge,
+    lifeExpectancy,
+    caretakerStartAge,
+    monthlyRate,
+    inflationRate,
+    postRetireReturn,
+    probability,
+  } = params;
+
+  const rows: CaretakerYearRow[] = [];
+  let totalCostFV = 0;
+  let npvAtRetire = 0;
+
+  const startAge = Math.max(caretakerStartAge, retireAge);
+  const endAge = lifeExpectancy;
+  const yearsNeeded = Math.max(endAge - startAge + 1, 0);
+
+  // ค่าคนดูแล/เดือน ณ ปีเริ่มใช้
+  const monthlyAtStart = monthlyRate * Math.pow(1 + inflationRate, Math.max(startAge - currentAge, 0));
+
+  for (let age = startAge; age <= endAge; age++) {
+    const yearsFromNow = age - currentAge;
+    const yearsFromRetire = age - retireAge;
+    const monthlyAtAge = monthlyRate * Math.pow(1 + inflationRate, Math.max(yearsFromNow, 0));
+    const annualAtAge = monthlyAtAge * 12;
+    const pvAtRetire = annualAtAge / Math.pow(1 + postRetireReturn, Math.max(yearsFromRetire, 0));
+
+    totalCostFV += annualAtAge;
+    npvAtRetire += pvAtRetire;
+
+    rows.push({ age, yearFromRetire: yearsFromRetire, monthlyAtAge, annualAtAge, pvAtRetire });
+  }
+
+  npvAtRetire *= probability;
+
+  return { rows, totalCostFV, npvAtRetire, yearsNeeded, monthlyAtStart };
 }
