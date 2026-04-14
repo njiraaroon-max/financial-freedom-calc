@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Save, Plus, Trash2, Download, ChevronDown, ChevronUp, TrendingUp } from "lucide-react";
+import { Save, Plus, Trash2, Download, ChevronDown, ChevronUp, TrendingUp, AlertTriangle, RotateCw, Check, X } from "lucide-react";
 
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
@@ -68,6 +68,8 @@ export default function RetirementPlanPage() {
   const profile = useProfileStore();
   const [openSteps, setOpenSteps] = useState<Set<number>>(new Set([1]));
   const hasAutoFilled = useRef(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [clearStage, setClearStage] = useState<"idle" | "clearing" | "done">("idle");
 
   // Auto-compute savedSteps based on data presence
   const a = store.assumptions;
@@ -329,18 +331,132 @@ export default function RetirementPlanPage() {
           บันทึก
         </button>
         <button
-          onClick={() => {
-            if (confirm("ต้องการ reset ค่าทั้งหมดเป็นค่าเริ่มต้นใช่ไหม?\nข้อมูลที่กรอกไว้จะหายทั้งหมด")) {
-              store.clearAll();
-              hasAutoFilled.current = false;
-            }
-          }}
+          onClick={() => setShowClearConfirm(true)}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-red-200 text-red-500 font-medium text-sm hover:bg-red-50 active:scale-[0.98] transition-all"
         >
           <Trash2 size={16} />
           ล้างข้อมูลทั้งหมด
         </button>
       </div>
+
+      {/* ─── Clear All Data Confirmation Modal ──────────── */}
+      {showClearConfirm && (
+        <div
+          className="fixed inset-0 z-[80] flex items-end md:items-center justify-center bg-black/50 backdrop-blur-sm"
+          onClick={() => {
+            if (clearStage === "idle") setShowClearConfirm(false);
+          }}
+        >
+          <div
+            className="bg-white w-full max-w-md md:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {clearStage === "idle" && (
+              <>
+                {/* Header */}
+                <div className="bg-gradient-to-br from-red-500 to-rose-600 px-5 py-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                    <AlertTriangle size={22} className="text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-white text-sm font-bold">ล้างข้อมูลแผนเกษียณทั้งหมด?</h3>
+                    <p className="text-white/80 text-[10px] mt-0.5">การกระทำนี้ไม่สามารถกู้คืนได้</p>
+                  </div>
+                  <button
+                    onClick={() => setShowClearConfirm(false)}
+                    className="text-white/70 hover:text-white p-1"
+                    aria-label="ปิด"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                {/* Body */}
+                <div className="px-5 py-4 space-y-3">
+                  <p className="text-xs text-gray-700 leading-relaxed">
+                    ระบบจะ <b>รีเซ็ตข้อมูลแผนเกษียณทั้งหมด</b> กลับเป็นค่าเริ่มต้น ได้แก่:
+                  </p>
+                  <div className="bg-red-50 border border-red-100 rounded-xl p-3 space-y-1.5 text-[11px] text-gray-700">
+                    <div className="flex items-start gap-2">
+                      <span className="text-red-500 shrink-0">•</span>
+                      <span><b>สมมติฐาน</b> — อายุ, เงินเฟ้อ, ผลตอบแทน</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-red-500 shrink-0">•</span>
+                      <span><b>ค่าใช้จ่ายพื้นฐาน</b> 6 หมวด + <b>ค่าใช้จ่ายพิเศษ</b></span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-red-500 shrink-0">•</span>
+                      <span><b>แหล่งเงินทุน</b> — บำนาญประกันสังคม, PVD, ชดเชย</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-red-500 shrink-0">•</span>
+                      <span><b>แผนการออม</b> และสถานะการทำแต่ละขั้น</span>
+                    </div>
+                  </div>
+                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-[10px] text-blue-700 leading-relaxed">
+                    💡 ข้อมูลในหน้าอื่น (Profile, Cash Flow, ประกัน ฯลฯ) จะ <b>ไม่ถูกล้าง</b>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex gap-2">
+                  <button
+                    onClick={() => setShowClearConfirm(false)}
+                    className="flex-1 py-2.5 rounded-xl border border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition"
+                  >
+                    ยกเลิก
+                  </button>
+                  <button
+                    onClick={() => {
+                      setClearStage("clearing");
+                      // spinner visible ~1s before actually clearing
+                      setTimeout(() => {
+                        store.clearAll();
+                        hasAutoFilled.current = false;
+                        setClearStage("done");
+                        // auto-close after success
+                        setTimeout(() => {
+                          setShowClearConfirm(false);
+                          setClearStage("idle");
+                        }, 900);
+                      }, 1000);
+                    }}
+                    className="flex-1 py-2.5 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 text-white text-sm font-bold hover:from-red-600 hover:to-rose-700 shadow-lg shadow-red-200 transition flex items-center justify-center gap-1.5"
+                  >
+                    <Trash2 size={15} />
+                    ล้างข้อมูล
+                  </button>
+                </div>
+              </>
+            )}
+
+            {clearStage === "clearing" && (
+              <div className="px-6 py-10 flex flex-col items-center justify-center gap-4">
+                <div className="relative w-20 h-20">
+                  <RotateCw size={80} className="text-[#1e3a5f] animate-spin" style={{ animationDuration: "1.2s" }} />
+                </div>
+                <div className="text-center">
+                  <div className="text-sm font-bold text-gray-800">กำลังล้างข้อมูล...</div>
+                  <div className="text-[11px] text-gray-500 mt-1">กรุณารอสักครู่</div>
+                </div>
+              </div>
+            )}
+
+            {clearStage === "done" && (
+              <div className="px-6 py-10 flex flex-col items-center justify-center gap-4">
+                <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center animate-[scaleIn_0.3s_ease-out]">
+                  <Check size={48} className="text-emerald-600" strokeWidth={3} />
+                </div>
+                <div className="text-center">
+                  <div className="text-sm font-bold text-emerald-700">ล้างข้อมูลเรียบร้อย</div>
+                  <div className="text-[11px] text-gray-500 mt-1">กลับไปเริ่มต้นแผนใหม่ได้เลย</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Spacer to ensure scrollable */}
       <div className="h-8" />
