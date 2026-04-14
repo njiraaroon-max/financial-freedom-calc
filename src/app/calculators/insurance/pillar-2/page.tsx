@@ -223,7 +223,8 @@ export default function Pillar2Page() {
   const update = store.updatePillar2;
 
   const currentAge = profile.getAge?.() || 35;
-  const retireAge = profile.retireAge || 60;
+  const profileRetireAge = profile.retireAge || 60;
+  const retireAge = p2.useProfileRetireAge ? profileRetireAge : (p2.customRetireAge || 60);
 
   // ─── Health policies from store ───────────────────────────────────────
   const healthPolicies = store.policies.filter((p) =>
@@ -1117,26 +1118,77 @@ export default function Pillar2Page() {
 
           {/* NPV params */}
           {(p2.premiumBrackets || []).length > 0 && (
-            <div className="bg-gray-50 rounded-xl p-3 space-y-2 border border-gray-100">
+            <div className="bg-gray-50 rounded-xl p-3 space-y-3 border border-gray-100">
               <div className="text-[11px] font-bold text-gray-600">สมมติฐาน NPV</div>
-              <div className="flex items-center gap-3">
-                <div className="flex-1">
-                  <label className="text-[10px] text-gray-500 font-semibold block mb-1">ผลตอบแทนหลังเกษียณ (%/ปี)</label>
-                  <div className="flex gap-1.5">
-                    {[2, 3, 4, 5].map((rate) => (
+
+              {/* Retire age selector */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[10px] text-gray-500 font-semibold">อายุเกษียณ</label>
+                  <label className="flex items-center gap-1 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={p2.useProfileRetireAge ?? true}
+                      onChange={(e) => update({ useProfileRetireAge: e.target.checked })}
+                      className="rounded border-gray-300 text-teal-600 focus:ring-teal-500 w-3 h-3"
+                    />
+                    <span className="text-[9px] text-gray-600">ใช้จาก Personal Info ({profileRetireAge} ปี)</span>
+                  </label>
+                </div>
+                <div className="flex gap-1.5 items-center">
+                  {[55, 60, 65].map((a) => {
+                    const current = p2.useProfileRetireAge ? profileRetireAge : (p2.customRetireAge || 60);
+                    const isActive = current === a;
+                    const disabled = p2.useProfileRetireAge ?? true;
+                    return (
                       <button
-                        key={rate}
-                        onClick={() => update({ postRetireReturn: rate })}
+                        key={a}
+                        disabled={disabled}
+                        onClick={() => update({ customRetireAge: a })}
                         className={`flex-1 text-xs py-1.5 rounded-lg border transition-all ${
-                          (p2.postRetireReturn ?? 4) === rate
-                            ? "border-teal-400 bg-teal-50 text-teal-700 font-bold"
-                            : "border-gray-200 text-gray-500"
+                          disabled
+                            ? "border-gray-200 text-gray-300 bg-gray-50 cursor-not-allowed"
+                            : isActive
+                              ? "border-teal-400 bg-teal-50 text-teal-700 font-bold"
+                              : "border-gray-200 text-gray-500 hover:border-teal-300"
                         }`}
                       >
-                        {rate}%
+                        {a} ปี
                       </button>
-                    ))}
-                  </div>
+                    );
+                  })}
+                  <input
+                    type="number"
+                    disabled={p2.useProfileRetireAge ?? true}
+                    value={![55, 60, 65].includes(p2.customRetireAge || 60) ? (p2.customRetireAge || "") : ""}
+                    onChange={(e) => update({ customRetireAge: Number(e.target.value) || 60 })}
+                    placeholder="เอง"
+                    className={`w-14 text-xs text-center py-1.5 rounded-lg border outline-none ${
+                      p2.useProfileRetireAge
+                        ? "border-gray-200 text-gray-300 bg-gray-50 cursor-not-allowed"
+                        : "border-gray-200 focus:border-teal-400 focus:ring-1 focus:ring-teal-200"
+                    }`}
+                  />
+                </div>
+              </div>
+
+              {/* Discount rate */}
+              <div>
+                <label className="text-[10px] text-gray-500 font-semibold block mb-1">ผลตอบแทนหลังเกษียณ (%/ปี)</label>
+                <div className="flex gap-1.5">
+                  {[2, 3, 4, 5].map((rate) => (
+                    <button
+                      key={rate}
+                      onClick={() => update({ postRetireReturn: rate })}
+                      className={`flex-1 text-xs py-1.5 rounded-lg border transition-all ${
+                        (p2.postRetireReturn ?? 4) === rate
+                          ? "border-teal-400 bg-teal-50 text-teal-700 font-bold"
+                          : "border-gray-200 text-gray-500"
+                      }`}
+                    >
+                      {rate}%
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>

@@ -341,6 +341,8 @@ export interface Pillar2Data {
   // ── Premium projection ──
   premiumBrackets: PremiumBracket[];
   postRetireReturn: number;           // ผลตอบแทนหลังเกษียณ (% สำหรับ NPV)
+  useProfileRetireAge: boolean;       // ใช้อายุเกษียณจาก Profile หรือกำหนดเอง
+  customRetireAge: number;            // อายุเกษียณที่กำหนดเอง (ถ้าไม่ใช้ profile)
   // Notes
   healthNotes: string;
 }
@@ -460,6 +462,8 @@ export const DEFAULT_PILLAR2: Pillar2Data = {
   personalAccident: 0,
   premiumBrackets: [],
   postRetireReturn: 4,
+  useProfileRetireAge: true,
+  customRetireAge: 60,
   healthNotes: "",
 };
 
@@ -664,7 +668,7 @@ export const useInsuranceStore = create<InsuranceState>()(
     }),
     {
       name: "ffc-insurance",
-      version: 16,
+      version: 17,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
         if (version < 2) {
@@ -828,6 +832,15 @@ export const useInsuranceStore = create<InsuranceState>()(
             if (p2.premiumBrackets === undefined) p2.premiumBrackets = [];
             if (p2.postRetireReturn === undefined) p2.postRetireReturn = 4;
             if (p2.medicalInflationRate === 5) p2.medicalInflationRate = 7; // update default
+          }
+        }
+        if (version < 17) {
+          // Add Pillar2 retire age override fields
+          const rm = state.riskManagement as RiskManagementData | undefined;
+          if (rm && rm.pillar2) {
+            const p2 = rm.pillar2 as unknown as Record<string, unknown>;
+            if (p2.useProfileRetireAge === undefined) p2.useProfileRetireAge = true;
+            if (p2.customRetireAge === undefined) p2.customRetireAge = 60;
           }
         }
         return state;
