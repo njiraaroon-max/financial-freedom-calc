@@ -181,7 +181,7 @@ export default function SpecialExpensesPage() {
                       </span>
                       <div className="flex items-center gap-2">
                         <Link
-                          href="/calculators/insurance/pillar-2"
+                          href="/calculators/insurance/pillar-2#premium"
                           className="flex items-center gap-1 text-[10px] text-gray-500 hover:text-teal-600 hover:underline"
                         >
                           ไปคำนวณ <ExternalLink size={10} />

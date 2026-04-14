@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { HeartPulse, Building2, ShieldCheck, AlertTriangle, CheckCircle2, TrendingUp, Info, X, ChevronDown, ChevronRight, Send } from "lucide-react";
+import React, { useState, useMemo, useEffect } from "react";
+import Link from "next/link";
+import { HeartPulse, Building2, ShieldCheck, AlertTriangle, CheckCircle2, TrendingUp, Info, X, ChevronDown, ChevronRight, Send, ArrowLeft } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { useInsuranceStore, HospitalTier, PremiumBracket } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
@@ -376,6 +377,21 @@ export default function Pillar2Page() {
   // ─── UI States ────────────────────────────────────────────────────────
   const [openSteps, setOpenSteps] = useState<Record<number, boolean>>({ 1: false, 2: false, 3: false });
   const [openPremium, setOpenPremium] = useState(false);
+  const [fromSpecialExpenses, setFromSpecialExpenses] = useState(false);
+
+  // Auto-open and scroll to premium section when navigated via #premium hash
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.location.hash !== "#premium") return;
+    setOpenPremium(true);
+    setFromSpecialExpenses(true);
+    // Wait a tick for the section to expand before scrolling
+    const t = setTimeout(() => {
+      const el = document.getElementById("premium-section");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+    return () => clearTimeout(t);
+  }, []);
   // Local buffers for custom numeric inputs (to allow intermediate states like "4." or ".5")
   const [customRateStr, setCustomRateStr] = useState<string>(() => {
     const r = p2.postRetireReturn ?? 4;
@@ -1033,7 +1049,7 @@ export default function Pillar2Page() {
         </div>
 
         {/* ═══ PREMIUM PROJECTION & NPV ═══ */}
-        <div className="bg-white rounded-2xl shadow-sm mx-1">
+        <div id="premium-section" className="bg-white rounded-2xl shadow-sm mx-1 scroll-mt-24">
           <button onClick={() => setOpenPremium(!openPremium)} className="w-full p-4 md:p-6 flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
               <TrendingUp size={16} className="text-teal-600" />
@@ -1045,6 +1061,14 @@ export default function Pillar2Page() {
             </div>
           </button>
           {openPremium && <div className="px-4 md:px-6 pb-4 md:pb-6 space-y-4">
+          {fromSpecialExpenses && (
+            <Link
+              href="/calculators/retirement/special-expenses"
+              className="inline-flex items-center gap-1 text-[11px] font-medium text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-full px-3 py-1.5 transition"
+            >
+              <ArrowLeft size={12} /> กลับไปค่าใช้จ่ายพิเศษ
+            </Link>
+          )}
           <p className="text-[10px] text-gray-500 leading-relaxed">
             เบี้ยประกันสุขภาพปรับตามอายุ ยิ่งอายุมากยิ่งแพง — ใส่ประมาณการเบี้ยตามช่วงอายุเพื่อคำนวณเงินที่ต้องเตรียมหลังเกษียณ
           </p>
