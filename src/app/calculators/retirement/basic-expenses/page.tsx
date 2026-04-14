@@ -344,12 +344,20 @@ export default function BasicExpensesPage() {
                                     onClick={() => selectCell(ret, res)}
                                     className={`text-center px-2 py-2 font-bold cursor-pointer transition ${
                                       isSelected
-                                        ? "bg-[#1e3a5f] text-white ring-2 ring-[#1e3a5f] ring-inset"
+                                        ? "bg-gray-100 text-gray-900 ring-2 ring-gray-300 ring-inset"
                                         : "text-gray-700 hover:bg-blue-50 hover:text-[#1e3a5f]"
                                     }`}
                                     title="คลิกเพื่อใช้ค่านี้ในแผน"
                                   >
-                                    {fmt(Math.round(fund))}
+                                    {isSelected ? (
+                                      <span className="inline-flex items-center justify-center gap-1.5">
+                                        <span className="text-[#1e3a5f] text-[11px] leading-none">▶</span>
+                                        <span>{fmt(Math.round(fund))}</span>
+                                        <span className="text-[#1e3a5f] text-[11px] leading-none">◀</span>
+                                      </span>
+                                    ) : (
+                                      fmt(Math.round(fund))
+                                    )}
                                   </td>
                                 );
                               })}
