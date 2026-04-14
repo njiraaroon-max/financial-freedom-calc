@@ -70,6 +70,25 @@ export default function RetirementPlanPage() {
   const hasAutoFilled = useRef(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [clearStage, setClearStage] = useState<"idle" | "clearing" | "done">("idle");
+  const [clearMessage, setClearMessage] = useState("");
+
+  // Cycle through status messages while clearing
+  useEffect(() => {
+    if (clearStage !== "clearing") return;
+    const messages = [
+      "กำลังล้างสมมติฐาน...",
+      "กำลังล้างค่าใช้จ่าย...",
+      "กำลังล้างแหล่งเงินทุน...",
+      "กำลังล้างแผนการออม...",
+    ];
+    let i = 0;
+    setClearMessage(messages[0]);
+    const interval = setInterval(() => {
+      i = (i + 1) % messages.length;
+      setClearMessage(messages[i]);
+    }, 550);
+    return () => clearInterval(interval);
+  }, [clearStage]);
 
   // Auto-compute savedSteps based on data presence
   const a = store.assumptions;
@@ -410,7 +429,7 @@ export default function RetirementPlanPage() {
                   <button
                     onClick={() => {
                       setClearStage("clearing");
-                      // spinner visible ~1s before actually clearing
+                      // spinner visible ~2.2s before actually clearing
                       setTimeout(() => {
                         store.clearAll();
                         hasAutoFilled.current = false;
@@ -419,8 +438,8 @@ export default function RetirementPlanPage() {
                         setTimeout(() => {
                           setShowClearConfirm(false);
                           setClearStage("idle");
-                        }, 900);
-                      }, 1000);
+                        }, 1200);
+                      }, 2200);
                     }}
                     className="flex-1 py-2.5 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 text-white text-sm font-bold hover:from-red-600 hover:to-rose-700 shadow-lg shadow-red-200 transition flex items-center justify-center gap-1.5"
                   >
@@ -432,23 +451,116 @@ export default function RetirementPlanPage() {
             )}
 
             {clearStage === "clearing" && (
-              <div className="px-6 py-10 flex flex-col items-center justify-center gap-4">
-                <div className="relative w-20 h-20">
-                  <RotateCw size={80} className="text-[#1e3a5f] animate-spin" style={{ animationDuration: "1.2s" }} />
+              <div className="relative px-6 py-10 flex flex-col items-center justify-center gap-5 overflow-hidden">
+                {/* Soft red radial bg */}
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: "radial-gradient(circle at center, rgba(254,226,226,0.8) 0%, rgba(255,255,255,0) 60%)",
+                  }}
+                />
+
+                {/* Orbiting particles + multi-layer spinner */}
+                <div className="relative w-32 h-32 flex items-center justify-center">
+                  {/* Outer pulsing glow */}
+                  <div className="absolute inset-0 rounded-full bg-red-200/50 animate-ping" style={{ animationDuration: "1.8s" }} />
+
+                  {/* Conic gradient spinning ring */}
+                  <div
+                    className="absolute inset-0 rounded-full animate-spin"
+                    style={{
+                      background: "conic-gradient(from 0deg, transparent 0%, transparent 55%, #ef4444 80%, #e11d48 100%)",
+                      animationDuration: "1.2s",
+                      WebkitMask: "radial-gradient(circle, transparent 44%, black 46%, black 50%, transparent 52%)",
+                      mask: "radial-gradient(circle, transparent 44%, black 46%, black 50%, transparent 52%)",
+                    }}
+                  />
+
+                  {/* Dashed middle ring, counter-spin */}
+                  <div
+                    className="absolute inset-3 rounded-full border-2 border-dashed border-red-300/70"
+                    style={{ animation: "spin 3s linear infinite reverse" }}
+                  />
+
+                  {/* Orbiting particles */}
+                  {[0, 1, 2, 3].map((i) => (
+                    <div
+                      key={i}
+                      className="absolute w-2 h-2 rounded-full bg-red-500 shadow-md shadow-red-300"
+                      style={{
+                        left: "50%",
+                        top: "50%",
+                        marginLeft: "-4px",
+                        marginTop: "-4px",
+                        animation: `orbit 2.2s linear infinite`,
+                        animationDelay: `${i * -0.55}s`,
+                      }}
+                    />
+                  ))}
+
+                  {/* Center icon */}
+                  <div
+                    className="relative z-10 w-14 h-14 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-xl shadow-red-300"
+                    style={{ animation: "pulse-scale 1s ease-in-out infinite" }}
+                  >
+                    <Trash2 size={24} className="text-white" />
+                  </div>
                 </div>
-                <div className="text-center">
-                  <div className="text-sm font-bold text-gray-800">กำลังล้างข้อมูล...</div>
-                  <div className="text-[11px] text-gray-500 mt-1">กรุณารอสักครู่</div>
+
+                {/* Status text */}
+                <div className="relative text-center min-h-[44px]">
+                  <div className="text-sm font-bold text-gray-800">กำลังล้างข้อมูล</div>
+                  <div
+                    key={clearMessage}
+                    className="text-[11px] text-red-500 font-medium mt-1"
+                    style={{ animation: "fade-in-up 0.35s ease-out" }}
+                  >
+                    {clearMessage}
+                  </div>
+                </div>
+
+                {/* Bouncing dots */}
+                <div className="relative flex gap-1.5">
+                  {[0, 0.15, 0.3].map((delay, i) => (
+                    <div
+                      key={i}
+                      className="w-2 h-2 rounded-full bg-red-500"
+                      style={{ animation: `bounce-dot 1s ease-in-out ${delay}s infinite` }}
+                    />
+                  ))}
+                </div>
+
+                {/* Progress bar */}
+                <div className="relative w-full h-1 rounded-full bg-red-100 overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-red-500 via-rose-500 to-red-600 rounded-full"
+                    style={{ animation: "fill-progress 2.2s ease-out forwards" }}
+                  />
                 </div>
               </div>
             )}
 
             {clearStage === "done" && (
-              <div className="px-6 py-10 flex flex-col items-center justify-center gap-4">
-                <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center animate-[scaleIn_0.3s_ease-out]">
-                  <Check size={48} className="text-emerald-600" strokeWidth={3} />
+              <div className="relative px-6 py-10 flex flex-col items-center justify-center gap-4 overflow-hidden">
+                {/* Soft emerald bg */}
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: "radial-gradient(circle at center, rgba(209,250,229,0.8) 0%, rgba(255,255,255,0) 60%)",
+                  }}
+                />
+                <div className="relative w-24 h-24 flex items-center justify-center">
+                  {/* Expanding ring */}
+                  <div className="absolute inset-0 rounded-full bg-emerald-200/60 animate-ping" style={{ animationDuration: "1.5s" }} />
+                  {/* Check circle */}
+                  <div
+                    className="relative w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-xl shadow-emerald-300"
+                    style={{ animation: "scale-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)" }}
+                  >
+                    <Check size={44} className="text-white" strokeWidth={3} />
+                  </div>
                 </div>
-                <div className="text-center">
+                <div className="relative text-center">
                   <div className="text-sm font-bold text-emerald-700">ล้างข้อมูลเรียบร้อย</div>
                   <div className="text-[11px] text-gray-500 mt-1">กลับไปเริ่มต้นแผนใหม่ได้เลย</div>
                 </div>
