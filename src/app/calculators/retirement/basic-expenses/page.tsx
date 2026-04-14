@@ -289,7 +289,7 @@ export default function BasicExpensesPage() {
 
               return (
                 <div>
-                  <div className="bg-[#1e3a5f] text-white text-xs font-bold px-4 py-2.5 flex items-center justify-between">
+                  <div className="bg-[#1e3a5f] text-white text-xs font-bold px-4 py-2.5 flex items-center justify-between border-b-2 border-white">
                     <span>ตารางวิเคราะห์ทุนเกษียณ (Sensitivity Analysis)</span>
                     <button
                       onClick={() => setShowSensitivityInfo(true)}
@@ -321,7 +321,7 @@ export default function BasicExpensesPage() {
                           <td className="px-3 py-1.5 text-gray-500 font-medium border-r border-gray-300">พอใช้อีก =&gt;</td>
                           {residuals.map((r) => (
                             <td key={r} className="text-center px-2 py-1.5 font-bold text-gray-700">
-                              {r === 0 ? "-" : expenseAtLifeEnd > 0 ? `${(r / expenseAtLifeEnd).toFixed(1)} ปี` : "-"}
+                              {r === 0 ? "หมดพอดี" : expenseAtLifeEnd > 0 ? `${(r / expenseAtLifeEnd).toFixed(1)} ปี` : "-"}
                             </td>
                           ))}
                         </tr>
