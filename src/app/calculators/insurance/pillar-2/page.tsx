@@ -327,9 +327,10 @@ export default function Pillar2Page() {
     let postRetireTotal = 0;
     let npvPostRetire = 0;
 
-    // Per-year calculation (up to life expectancy)
+    // Per-year calculation (up to life expectancy + buffer years)
     const yearDetails: { age: number; premium: number; isPostRetire: boolean; pv: number }[] = [];
-    const maxAge = Math.max(lifeExpectancy, retireAge);
+    const extraYears = Math.max(0, p2.premiumExtraYears || 0);
+    const maxAge = Math.max(lifeExpectancy + extraYears, retireAge);
 
     for (let age = currentAge; age <= maxAge; age++) {
       const bracket = brackets.find((b) => age >= b.ageFrom && age <= b.ageTo);
@@ -370,7 +371,7 @@ export default function Pillar2Page() {
     }
 
     return { preRetireTotal, postRetireTotal, npvPostRetire: Math.round(npvPostRetire), blocks, yearDetails, maxAge };
-  }, [p2.premiumBrackets, p2.postRetireReturn, currentAge, retireAge, lifeExpectancy]);
+  }, [p2.premiumBrackets, p2.postRetireReturn, p2.premiumExtraYears, currentAge, retireAge, lifeExpectancy]);
 
   // ─── UI States ────────────────────────────────────────────────────────
   const [openSteps, setOpenSteps] = useState<Record<number, boolean>>({ 1: false, 2: false, 3: false });
@@ -1249,6 +1250,52 @@ export default function Pillar2Page() {
                           className={`w-full text-xs text-center outline-none bg-transparent ${rateIsCustom ? "text-teal-700 font-bold" : ""}`}
                         />
                         <span className={`text-[9px] shrink-0 ${rateIsCustom ? "text-teal-600" : "text-gray-400"}`}>%</span>
+                      </label>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* Extra years beyond life expectancy */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[10px] text-gray-500 font-semibold">ปีเผื่อเกินอายุขัย</label>
+                  <span className="text-[9px] text-gray-400">อายุขัย {lifeExpectancy} + เผื่อ {p2.premiumExtraYears || 0} = {lifeExpectancy + (p2.premiumExtraYears || 0)} ปี</span>
+                </div>
+                <div className="flex gap-1.5 items-center">
+                  {[0, 3, 5, 10].map((y) => (
+                    <button
+                      key={y}
+                      onClick={() => update({ premiumExtraYears: y })}
+                      className={`flex-1 text-xs py-1.5 rounded-lg border transition-all ${
+                        (p2.premiumExtraYears || 0) === y
+                          ? "border-teal-400 bg-teal-50 text-teal-700 font-bold"
+                          : "border-gray-200 text-gray-500"
+                      }`}
+                    >
+                      {y === 0 ? "ไม่เผื่อ" : `+${y} ปี`}
+                    </button>
+                  ))}
+                  {(() => {
+                    const extraIsCustom = ![0, 3, 5, 10].includes(p2.premiumExtraYears || 0);
+                    return (
+                      <label className={`flex items-center gap-1 w-24 rounded-lg border px-2 py-1.5 cursor-text ${
+                        extraIsCustom
+                          ? "border-teal-400 bg-teal-50 ring-1 ring-teal-200"
+                          : "border-gray-200 focus-within:border-teal-400 focus-within:ring-1 focus-within:ring-teal-200"
+                      }`}>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={extraIsCustom ? String(p2.premiumExtraYears) : ""}
+                          onChange={(e) => {
+                            const n = parseInt(e.target.value, 10);
+                            update({ premiumExtraYears: Number.isNaN(n) ? 0 : Math.max(0, n) });
+                          }}
+                          placeholder=""
+                          className={`w-full text-xs text-center outline-none bg-transparent ${extraIsCustom ? "text-teal-700 font-bold" : ""}`}
+                        />
+                        <span className={`text-[9px] shrink-0 ${extraIsCustom ? "text-teal-600" : "text-gray-400"}`}>ปี</span>
                       </label>
                     );
                   })()}
