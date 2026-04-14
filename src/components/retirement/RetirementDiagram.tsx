@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Info } from "lucide-react";
 
 function fmt(n: number): string {
   return Math.round(n).toLocaleString("th-TH");
@@ -18,6 +19,8 @@ export interface RetirementDiagramProps {
   postRetireReturn: number;
   /** Whether to render the full bar-chart section (needs data) */
   showChart?: boolean;
+  /** Optional info button callback — shows (i) at top-right when provided */
+  onInfoClick?: () => void;
 }
 
 /**
@@ -35,6 +38,7 @@ export default function RetirementDiagram({
   generalInflation,
   postRetireReturn,
   showChart = true,
+  onInfoClick,
 }: RetirementDiagramProps) {
   const workYears = Math.max(retireAge - currentAge, 1);
   const retireYears = Math.max(lifeExpectancy - retireAge, 1);
@@ -45,7 +49,16 @@ export default function RetirementDiagram({
   const extraYears = expenseAtLifeEnd > 0 ? residualFund / expenseAtLifeEnd : 0;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-4">
+    <div className="bg-white rounded-2xl border border-gray-200 p-4 relative">
+      {onInfoClick && (
+        <button
+          onClick={onInfoClick}
+          className="absolute top-3 right-3 w-7 h-7 rounded-full bg-gray-100 hover:bg-[#1e3a5f] text-gray-500 hover:text-white flex items-center justify-center transition z-10"
+          aria-label="วิธีคำนวณทุนเกษียณ"
+        >
+          <Info size={14} />
+        </button>
+      )}
       {/* Icons */}
       <div className="flex items-end mb-1" style={{ height: "40px" }}>
         <div className="flex flex-col items-center" style={{ width: "44px", flexShrink: 0 }}>

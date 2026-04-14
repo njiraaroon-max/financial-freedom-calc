@@ -34,6 +34,7 @@ export default function BasicExpensesPage() {
   const a = store.assumptions;
   const [hasSaved, setHasSaved] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [showDiagramInfo, setShowDiagramInfo] = useState(false);
 
   // Auto-sync age from profile
   useEffect(() => {
@@ -165,11 +166,72 @@ export default function BasicExpensesPage() {
           </div>
         </div>
 
-        {/* Timeline + Chart Diagram (shared) */}
+        {/* Simple Bar Chart: PV vs FV (quick glance) */}
+        {totalBasicMonthly > 0 && (
+          <div className="mt-4 bg-white rounded-2xl border border-gray-200 p-4">
+            <div className="text-xs font-bold text-center text-[#1e3a5f] mb-4">
+              ประเมินรายจ่ายพื้นฐานต่อเดือนหลังเกษียณอายุ
+            </div>
+
+            {/* SVG Bar Chart with Y-axis */}
+            <div className="flex justify-center">
+              <svg width="280" height="200" viewBox="0 0 280 200">
+                {/* Y-axis labels */}
+                {(() => {
+                  const maxVal = Math.ceil(basicMonthlyFV / 5000) * 5000;
+                  const minVal = Math.floor(totalBasicMonthly * 0.8 / 5000) * 5000;
+                  const range = maxVal - minVal;
+                  const steps = 5;
+                  return Array.from({ length: steps + 1 }, (_, i) => {
+                    const val = minVal + (range / steps) * i;
+                    const y = 170 - (i / steps) * 150;
+                    return (
+                      <g key={i}>
+                        <text x="55" y={y + 3} textAnchor="end" className="text-[9px]" fill="#9ca3af">{fmt(Math.round(val))}</text>
+                        <line x1="60" y1={y} x2="260" y2={y} stroke="#e5e7eb" strokeWidth="0.5" />
+                      </g>
+                    );
+                  });
+                })()}
+
+                {/* Bars */}
+                {(() => {
+                  const maxVal = Math.ceil(basicMonthlyFV / 5000) * 5000;
+                  const minVal = Math.floor(totalBasicMonthly * 0.8 / 5000) * 5000;
+                  const range = maxVal - minVal;
+                  const h1 = ((totalBasicMonthly - minVal) / range) * 150;
+                  const h2 = ((basicMonthlyFV - minVal) / range) * 150;
+                  return (
+                    <>
+                      <rect x="90" y={170 - h1} width="55" height={h1} fill="#c7d2fe" rx="4" />
+                      <text x="117" y={170 - h1 - 8} textAnchor="middle" className="text-[11px]" fontWeight="bold" fill="#374151">{fmt(totalBasicMonthly)}</text>
+                      <text x="117" y="190" textAnchor="middle" className="text-[10px]" fill="#6b7280">ปัจจุบัน</text>
+
+                      <rect x="175" y={170 - h2} width="55" height={h2} fill="#1e3a5f" rx="4" />
+                      <text x="202" y={170 - h2 - 8} textAnchor="middle" className="text-[11px]" fontWeight="bold" fill="#1e3a5f">{fmt(Math.round(basicMonthlyFV))}</text>
+                      <text x="202" y="190" textAnchor="middle" className="text-[10px]" fill="#6b7280">อนาคต</text>
+                    </>
+                  );
+                })()}
+              </svg>
+            </div>
+
+            {/* Multiplier */}
+            <div className="text-center text-sm font-bold text-red-500 mt-1">
+              x{(basicMonthlyFV / totalBasicMonthly).toFixed(2)} เท่า
+            </div>
+
+            <div className="text-[9px] text-gray-400 text-center mt-2">
+              [ สมมติฐาน อัตราเงินเฟ้อ = {(a.generalInflation * 100).toFixed(1)}% ]
+            </div>
+          </div>
+        )}
+
+        {/* Full Timeline + Chart Diagram (shared) — detailed view */}
         {totalBasicMonthly > 0 && (
           <div className="mt-4">
             <div className="text-xs font-bold text-center text-[#1e3a5f] mb-2">
-              ประเมินรายจ่ายพื้นฐานต่อเดือนหลังเกษียณอายุ
+              ภาพรวมทุนเกษียณ (A) ตลอดช่วงชีวิต
             </div>
             <RetirementDiagram
               currentAge={a.currentAge}
@@ -181,6 +243,7 @@ export default function BasicExpensesPage() {
               residualFund={a.residualFund}
               generalInflation={a.generalInflation}
               postRetireReturn={a.postRetireReturn}
+              onInfoClick={() => setShowDiagramInfo(true)}
             />
           </div>
         )}
@@ -275,6 +338,147 @@ export default function BasicExpensesPage() {
           className="mt-4"
         />
       </div>
+
+      {/* ─── Diagram Info Modal: FV → PMT → PV at retirement ──────────── */}
+      {showDiagramInfo && (
+        <div
+          className="fixed inset-0 z-[70] flex items-end md:items-center justify-center bg-black/40"
+          onClick={() => setShowDiagramInfo(false)}
+        >
+          <div
+            className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-xl max-h-[85vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-[#1e3a5f] text-white px-5 py-4 flex items-center justify-between z-10 md:rounded-t-2xl rounded-t-2xl">
+              <div className="flex items-center gap-2">
+                <Info size={18} />
+                <h3 className="text-sm font-bold">วิธีแปลง FV → ทุนเกษียณ (A)</h3>
+              </div>
+              <button onClick={() => setShowDiagramInfo(false)} className="text-white/70 hover:text-white">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="px-5 py-4 space-y-5 text-gray-700">
+              <div className="bg-gradient-to-br from-[#1e3a5f]/5 to-[#3b6fa0]/10 rounded-xl p-4 border border-blue-100">
+                <p className="text-xs font-bold text-gray-800 leading-relaxed">
+                  &ldquo;รู้ค่าใช้จ่าย/เดือน ณ วันเกษียณแล้ว ฿{fmt(basicMonthlyFV)}...
+                  ต้องมีเงินก้อนเท่าไหร่ถึงจะพอใช้ {a.lifeExpectancy - a.retireAge} ปี?&rdquo;
+                </p>
+                <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                  เงินก้อน ณ วันเกษียณต้อง &ldquo;รองรับ&rdquo; ค่าใช้จ่ายที่โตขึ้นทุกปีจากเงินเฟ้อ
+                  ในขณะที่ตัวเงินก้อนเองก็ได้รับผลตอบแทนจากการลงทุน
+                </p>
+              </div>
+
+              <p className="text-xs leading-relaxed">
+                หลังจากได้ <strong>FV/เดือน</strong> แล้ว การแปลงเป็น <strong>ทุนเกษียณ (A)</strong>
+                มี <strong>4 ขั้นตอน</strong>:
+              </p>
+
+              {/* Step 1 — FV monthly → annual */}
+              <div className="border border-gray-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <h4 className="text-xs font-bold text-gray-800">แปลง FV/เดือน → PMT/ปี</h4>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  นำค่าใช้จ่ายรายเดือน ณ วันเกษียณ × 12 ได้เป็น <strong>PMT</strong> (Payment รายปี)
+                </p>
+                <div className="bg-blue-50 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                  <div><strong>PMT</strong> = FV/เดือน × 12</div>
+                  <div className="text-gray-500">= ฿{fmt(basicMonthlyFV)} × 12 = <b>฿{fmt(basicMonthlyFV * 12)}</b> /ปี</div>
+                </div>
+              </div>
+
+              {/* Step 2 — Real rate */}
+              <div className="border border-gray-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
+                  <h4 className="text-xs font-bold text-gray-800">ปรับ Inflation-Adjusted Return (Real Rate)</h4>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  เพราะค่าใช้จ่ายจะโตขึ้นทุกปีตามเงินเฟ้อ ขณะที่เงินก้อนได้ผลตอบแทนลงทุน
+                  จึงต้องคิดลดด้วย <strong>Real Rate</strong> (ผลตอบแทนสุทธิหลังหักเงินเฟ้อ)
+                </p>
+                <div className="bg-blue-50 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                  <div><strong>r*</strong> = (1 + r) ÷ (1 + i) − 1</div>
+                  <div className="text-gray-500">
+                    = (1 + {(a.postRetireReturn * 100).toFixed(1)}%) ÷ (1 + {(a.generalInflation * 100).toFixed(1)}%) − 1
+                    ≈ <b>{(((1 + a.postRetireReturn) / (1 + a.generalInflation) - 1) * 100).toFixed(2)}%</b>
+                  </div>
+                  <div className="text-green-700">✓ ใช้ r* แทน r เพื่อให้สูตรใช้ PMT คงที่ได้</div>
+                </div>
+              </div>
+
+              {/* Step 3 — Annuity Due PV */}
+              <div className="border-2 border-blue-400 rounded-xl p-4 space-y-2 bg-blue-50/30">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">3</span>
+                  <h4 className="text-xs font-bold text-blue-800">PV ของ Annuity Due (เงินพอใช้ตลอดชีพ) ⭐</h4>
+                </div>
+                <div className="text-[10px] text-blue-600 font-bold bg-blue-100 rounded-lg px-2 py-1 inline-block">หัวใจของการคำนวณ</div>
+                <p className="text-[11px] leading-relaxed">
+                  คำนวณเงินก้อน ณ วันเกษียณที่จ่าย PMT ต้นงวด (Annuity Due) ได้ต่อเนื่อง m ปี
+                </p>
+                <div className="bg-blue-100 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                  <div className="font-bold">สูตร:</div>
+                  <div className="pl-2">PV<sub>A</sub> = PMT × [(1 − (1 + r*)<sup>−m</sup>) ÷ r*] × (1 + r*)</div>
+                  <div className="text-gray-500 text-[9px] pl-2">
+                    โดย m = {a.lifeExpectancy - a.retireAge} ปี (ช่วงหลังเกษียณ)
+                  </div>
+                  <div className="text-green-700">✓ × (1 + r*) ท้ายสูตร คือ &ldquo;ต้นงวด&rdquo; (เบิกเงินต้นปี)</div>
+                </div>
+              </div>
+
+              {/* Step 4 — Residual */}
+              <div className="border border-gray-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0">4</span>
+                  <h4 className="text-xs font-bold text-gray-800">บวก PV ของเงินคงเหลือ (ถ้ามี)</h4>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  ถ้าตั้งเป้าทิ้งเงินไว้เป็นมรดก ณ สิ้นอายุขัย ต้องคิดลดกลับมาที่วันเกษียณ
+                  (ใช้ r ปกติ ไม่ใช่ r* เพราะเงินก้อนไม่ได้เฟ้อ)
+                </p>
+                <div className="bg-gray-50 rounded-lg px-3 py-2 text-[10px]">
+                  <div><strong>PV<sub>residual</sub></strong> = Residual ÷ (1 + r)<sup>m</sup></div>
+                </div>
+              </div>
+
+              {/* Final Formula */}
+              <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl p-4 border-2 border-cyan-300">
+                <div className="text-xs font-bold text-cyan-800 mb-2">🎯 ทุนเกษียณ (A) ที่ต้องมี ณ วันเกษียณ</div>
+                <div className="bg-white rounded-lg px-3 py-2 text-[11px] space-y-1">
+                  <div className="font-bold text-[#1e3a5f]">A = PV<sub>A</sub> + PV<sub>residual</sub></div>
+                  <div className="text-gray-500 text-[10px]">
+                    = {fmt(basicRetireFund - a.residualFund / Math.pow(1 + a.postRetireReturn, a.lifeExpectancy - a.retireAge))} + {fmt(a.residualFund / Math.pow(1 + a.postRetireReturn, a.lifeExpectancy - a.retireAge))}
+                  </div>
+                  <div className="border-t border-gray-200 pt-1 mt-1 font-bold text-cyan-700 text-xs">
+                    = ฿{fmt(basicRetireFund)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
+                <div className="text-[10px] text-amber-700 leading-relaxed">
+                  💡 การใช้ Real Rate (r*) ทำให้สูตรใช้ PMT คงที่ได้ แทนที่จะต้องเติบโต PMT ทุกปีตามเงินเฟ้อ
+                  ซึ่งเป็นเทคนิคมาตรฐานที่ CFP Module 4 ใช้ในการวางแผนเกษียณ
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-5 py-3 md:rounded-b-2xl">
+              <button
+                onClick={() => setShowDiagramInfo(false)}
+                className="w-full py-2.5 rounded-xl bg-[#1e3a5f] text-white text-sm font-bold hover:bg-[#2d5a8e] transition"
+              >
+                เข้าใจแล้ว
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ─── Info Modal: CFP Module 4 — Retirement Planning ──────────── */}
       {showInfo && (
