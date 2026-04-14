@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Save, Plus, Trash2, Info } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Save, Plus, Trash2, Info, Download, CheckCircle2 } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import { useProfileStore } from "@/store/profile-store";
+import { useInsuranceStore } from "@/store/insurance-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 import { futureValue, calcRetirementFund } from "@/types/retirement";
@@ -28,9 +29,46 @@ const INFLATION_HINTS: { label: string; rate: number }[] = [
 export default function SpecialExpensesPage() {
   const store = useRetirementStore();
   const profile = useProfileStore();
+  const insuranceStore = useInsuranceStore();
   const a = store.assumptions;
   const [hasSaved, setHasSaved] = useState(false);
   const [showInflation, setShowInflation] = useState<string | null>(null);
+  const [pulledId, setPulledId] = useState<string | null>(null);
+
+  // ─── NPV from Pillar 2 (Risk Management) ──────────────────────────────
+  const pillar2NPV = useMemo(() => {
+    const p2 = insuranceStore.riskManagement.pillar2;
+    const brackets = p2.premiumBrackets || [];
+    if (brackets.length === 0) return { npv: 0, hasData: false, inflationRate: 0.07 };
+    const currentAge = profile.getAge?.() || 35;
+    const retireAge = p2.useProfileRetireAge ? (profile.retireAge || 60) : (p2.customRetireAge || 60);
+    const lifeExpectancy = a.lifeExpectancy || 85;
+    const extraYears = Math.max(0, p2.premiumExtraYears || 0);
+    const maxAge = Math.max(lifeExpectancy + extraYears, retireAge);
+    const discountRate = (p2.postRetireReturn ?? 4) / 100;
+    let npv = 0;
+    for (let age = currentAge; age <= maxAge; age++) {
+      const bracket = brackets.find((b) => age >= b.ageFrom && age <= b.ageTo);
+      const premium = bracket?.annualPremium || 0;
+      if (age >= retireAge) {
+        const yearsFromRetire = age - retireAge;
+        npv += discountRate > 0 ? premium / Math.pow(1 + discountRate, yearsFromRetire) : premium;
+      }
+    }
+    return {
+      npv: Math.round(npv),
+      hasData: npv > 0,
+      inflationRate: (p2.medicalInflationRate ?? 7) / 100,
+    };
+  }, [insuranceStore.riskManagement.pillar2, profile, a.lifeExpectancy]);
+
+  const handlePullFromPillar2 = (id: string) => {
+    if (!pillar2NPV.hasData) return;
+    store.updateSpecialExpense(id, pillar2NPV.npv);
+    store.updateSpecialExpenseInflation(id, pillar2NPV.inflationRate);
+    setPulledId(id);
+    setTimeout(() => setPulledId(null), 2500);
+  };
 
   // Auto-sync age from profile
   useEffect(() => {
@@ -135,6 +173,33 @@ export default function SpecialExpensesPage() {
                   {item.amount > 0 && (
                     <div className="text-[10px] text-gray-400 mt-1">
                       → มูลค่า ณ วันเกษียณ: <span className="text-pink-600 font-bold">฿{fmt(fv)}/เดือน</span>
+                    </div>
+                  )}
+                  {/* Pull from Pillar 2 (health insurance premium only) */}
+                  {item.id === "se1" && (
+                    <div className="mt-2 pt-2 border-t border-gray-200 flex items-center justify-between gap-2">
+                      <span className="text-[10px] text-gray-500">
+                        {pillar2NPV.hasData
+                          ? <>NPV จาก Risk Management: <b className="text-teal-700">฿{fmt(pillar2NPV.npv)}</b></>
+                          : <span className="text-gray-400">ยังไม่มีข้อมูลเบี้ยใน Pillar 2</span>}
+                      </span>
+                      <button
+                        onClick={() => handlePullFromPillar2(item.id)}
+                        disabled={!pillar2NPV.hasData}
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                          pulledId === item.id
+                            ? "bg-emerald-500 text-white"
+                            : pillar2NPV.hasData
+                              ? "bg-teal-500 text-white hover:bg-teal-600 active:scale-95"
+                              : "bg-gray-100 text-gray-300 cursor-not-allowed"
+                        }`}
+                      >
+                        {pulledId === item.id ? (
+                          <><CheckCircle2 size={11} /> ดึงแล้ว</>
+                        ) : (
+                          <><Download size={11} /> ดึงจาก Pillar 2</>
+                        )}
+                      </button>
                     </div>
                   )}
                 </div>
