@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Landmark, Link2, AlertTriangle, CheckCircle2, TrendingUp, Coins } from "lucide-react";
+import { useMemo } from "react";
+import { Landmark, Coins, TrendingUp, Calendar } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { useInsuranceStore } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
-import { useVariableStore } from "@/store/variable-store";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(n: number): string {
@@ -16,382 +15,519 @@ function fmtShort(n: number): string {
   if (n >= 1_000) return `${Math.round(n / 1000)}K`;
   return fmt(n);
 }
-function commaInput(n: number): string {
-  if (n === 0) return "";
-  return n.toLocaleString("th-TH");
-}
-function parseNum(s: string): number {
-  return Number(s.replace(/[^0-9.-]/g, "")) || 0;
-}
 
-// ─── Input Components ────────────────────────────────────────────────────────
-function MoneyInput({ label, value, onChange, hint, suffix = "บาท" }: {
-  label: string; value: number; onChange: (v: number) => void; hint?: string; suffix?: string;
-}) {
-  const [display, setDisplay] = useState(value > 0 ? commaInput(value) : "");
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = parseNum(e.target.value);
-    setDisplay(raw > 0 ? commaInput(raw) : e.target.value.replace(/[^0-9]/g, ""));
-    onChange(raw);
-  };
-  return (
-    <div>
-      <label className="text-[11px] text-gray-500 font-semibold block mb-1">{label}</label>
-      <div className="flex items-center gap-2">
-        <input type="text" inputMode="numeric" value={display} onChange={handleChange}
-          className="flex-1 text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-400 border border-gray-200 text-right font-bold"
-          placeholder="0" />
-        <span className="text-xs text-gray-400 shrink-0 w-8">{suffix}</span>
-      </div>
-      {hint && <div className="text-[9px] text-gray-400 mt-0.5 pl-1">{hint}</div>}
-    </div>
-  );
-}
-
-function LinkToggle({ label, checked, onChange, linkedValue, linkedLabel }: {
-  label: string; checked: boolean; onChange: (v: boolean) => void; linkedValue?: number; linkedLabel?: string;
-}) {
-  return (
-    <div className={`rounded-xl border p-3 transition-all ${checked ? "border-indigo-300 bg-indigo-50" : "border-gray-200 bg-white"}`}>
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
-        <Link2 size={14} className={checked ? "text-indigo-500" : "text-gray-400"} />
-        <span className="text-xs text-gray-700 font-medium">{label}</span>
-      </label>
-      {checked && linkedValue !== undefined && (
-        <div className="mt-1.5 ml-7 text-[10px] text-indigo-600 font-bold">
-          {linkedLabel}: {fmt(linkedValue)} บาท
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// MAIN PAGE — Long Live Protection (Saving & Retirement & Annuity)
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function LongLivePage() {
-  const store = useInsuranceStore();
+  const { policies } = useInsuranceStore();
   const profile = useProfileStore();
-  const variableStore = useVariableStore();
-
-  const ll = store.riskManagement.longLiveProtection;
-  const update = store.updateLongLiveProtection;
 
   const currentAge = profile.getAge?.() || 35;
-  const retireAge = profile.retireAge || 60;
-  const yearsToRetire = Math.max(retireAge - currentAge, 0);
+  const currentYear = new Date().getFullYear();
+  const birthYear = currentYear - currentAge;
+  const BE_OFFSET = 543;
 
-  // ─── Saving & Pension policies from store ─────────────────────────────
-  const savingPolicies = store.policies.filter((p) => ["endowment"].includes(p.policyType));
-  const pensionPolicies = store.policies.filter((p) => p.policyType === "annuity");
-  const totalSavingCashValue = savingPolicies.reduce((s, p) => s + p.cashValue, 0);
-  const totalSavingSumInsured = savingPolicies.reduce((s, p) => s + p.sumInsured, 0);
-  const totalPensionSumInsured = pensionPolicies.reduce((s, p) => s + p.sumInsured, 0);
-  const totalSavingPremium = savingPolicies.reduce((s, p) => s + p.premium, 0);
-  const totalPensionPremium = pensionPolicies.reduce((s, p) => s + p.premium, 0);
+  const endowmentPolicies = policies.filter((p) => p.policyType === "endowment");
+  const annuityPolicies   = policies.filter((p) => p.policyType === "annuity");
 
-  // ─── Variable store data (from retirement module) ─────────────────────
-  const retireFundNeeded = variableStore.getVariable("retire_fund_needed");
-  const retireFundHave = variableStore.getVariable("retire_fund_at_retire");
+  // ─── Compute maturity age for each endowment policy ───────────────────
+  function getEndowmentMaturityAge(p: (typeof endowmentPolicies)[0]): number {
+    const startYear = p.startDate ? new Date(p.startDate).getFullYear() : currentYear;
+    const startAge  = startYear - birthYear;
+    const d = p.endowmentDetails;
+    if (d?.maturityYear && d.maturityYear > 0) {
+      // maturityYear = ปีที่ N ของกรมธรรม์ (policy year number)
+      return startAge + d.maturityYear;
+    }
+    if (p.coverageMode === "age" && p.coverageEndAge > 0)   return p.coverageEndAge;
+    if (p.coverageMode === "years" && p.coverageYears > 0)  return startAge + p.coverageYears;
+    return 0;
+  }
 
-  // ─── Gap Analysis ─────────────────────────────────────────────────────
-  const analysis = useMemo(() => {
-    const fundNeeded = ll.useRetirementGap && retireFundNeeded
-      ? retireFundNeeded.value
-      : ll.retirementFundNeeded;
-    const fundHave = ll.useRetirementGap && retireFundHave
-      ? retireFundHave.value
-      : ll.retirementFundHave;
+  // ─── Build cashflow event list ─────────────────────────────────────────
+  type Event =
+    | { kind: "lump";     age: number; amount: number; label: string; policyId: string }
+    | { kind: "dividend"; age: number; amount: number; label: string; policyId: string; policyYear: number }
+    | { kind: "annuity";  startAge: number; endAge: number; perYear: number; label: string; policyId: string };
 
-    // Add saving/pension policies to what we have
-    const totalHave = fundHave + totalSavingCashValue + totalPensionSumInsured;
-    const gap = fundNeeded - totalHave;
-    const coveragePct = fundNeeded > 0 ? Math.min((totalHave / fundNeeded) * 100, 200) : 0;
+  const events = useMemo<Event[]>(() => {
+    const result: Event[] = [];
 
-    return { fundNeeded, fundHave, totalHave, gap, coveragePct };
-  }, [ll, retireFundNeeded, retireFundHave, totalSavingCashValue, totalPensionSumInsured]);
+    endowmentPolicies.forEach((p) => {
+      const startYear = p.startDate ? new Date(p.startDate).getFullYear() : currentYear;
+      const label = [p.planName, p.company].filter(Boolean).join(" · ") || "สะสมทรัพย์";
+      const maturityAge = getEndowmentMaturityAge(p);
+      const d = p.endowmentDetails;
 
-  const handleSave = () => {
-    store.markPillarCompleted("longLive");
-  };
+      // Lump sum at maturity
+      const lumpAmount = d?.maturityPayout || p.sumInsured || 0;
+      if (maturityAge > 0 && lumpAmount > 0) {
+        result.push({ kind: "lump", age: maturityAge, amount: lumpAmount, label, policyId: p.id });
+      }
+
+      // Dividends (ปีที่ N = policy year N, convert to age)
+      if (d?.dividends) {
+        d.dividends.forEach((dv) => {
+          if (dv.year > 0 && dv.amount > 0) {
+            const divAge = (startYear - birthYear) + dv.year;
+            result.push({ kind: "dividend", age: divAge, amount: dv.amount, label, policyId: p.id, policyYear: dv.year });
+          }
+        });
+      }
+    });
+
+    annuityPolicies.forEach((p) => {
+      const d = p.annuityDetails;
+      if (!d || d.payoutPerYear <= 0) return;
+      const label = [p.planName, p.company].filter(Boolean).join(" · ") || "บำนาญ";
+      const startAge = d.payoutStartAge || 60;
+      const endAge   = d.payoutEndAge > 0 ? d.payoutEndAge : 99;
+      result.push({ kind: "annuity", startAge, endAge, perYear: d.payoutPerYear, label, policyId: p.id });
+    });
+
+    return result.sort((a, b) => {
+      const aAge = a.kind === "annuity" ? a.startAge : a.age;
+      const bAge = b.kind === "annuity" ? b.startAge : b.age;
+      return aAge - bAge;
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [endowmentPolicies, annuityPolicies, birthYear, currentYear]);
+
+  // ─── Timeline range ────────────────────────────────────────────────────
+  const { tlMin, tlMax } = useMemo(() => {
+    const ages: number[] = [currentAge];
+    events.forEach((e) => {
+      if (e.kind === "annuity") { ages.push(e.startAge, e.endAge); }
+      else { ages.push(e.age); }
+    });
+    return { tlMin: Math.min(...ages), tlMax: Math.max(...ages) + 2 };
+  }, [events, currentAge]);
+  const tlRange = Math.max(tlMax - tlMin, 1);
+
+  // ─── Summary totals ────────────────────────────────────────────────────
+  const { totalLump, totalDiv, totalAnnuity, grandTotal } = useMemo(() => {
+    let totalLump = 0, totalDiv = 0, totalAnnuity = 0;
+    events.forEach((e) => {
+      if (e.kind === "lump")     totalLump += e.amount;
+      if (e.kind === "dividend") totalDiv  += e.amount;
+      if (e.kind === "annuity")  totalAnnuity += e.perYear * (e.endAge - e.startAge + 1);
+    });
+    return { totalLump, totalDiv, totalAnnuity, grandTotal: totalLump + totalDiv + totalAnnuity };
+  }, [events]);
+
+  const hasData = endowmentPolicies.length > 0 || annuityPolicies.length > 0;
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
       <PageHeader
         title="Long Live Protection"
-        subtitle="Pillar 4 — Saving & Retirement"
+        subtitle="สรุปเงินออกจากประกันตลอดชีวิต"
         characterImg="/circle-icons/risk-management.png"
         backHref="/calculators/insurance"
       />
 
       <div className="px-2 md:px-4 pt-3 pb-8 space-y-3">
-        {/* Intro Card */}
+
+        {/* ── Intro ─────────────────────────────────────────────────────── */}
         <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 text-white mx-1">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-1">
             <Landmark size={20} />
-            <span className="text-sm font-bold">เกษียณไปใครเลี้ยง? (Live too long)</span>
+            <span className="text-sm font-bold">เงินจากประกัน — ตลอดช่วงชีวิต</span>
           </div>
           <p className="text-[11px] opacity-80 leading-relaxed">
-            ประเมินความพร้อมทางการเงินหลังเกษียณ ผ่านประกันสะสมทรัพย์ ประกันบำนาญ
-            และแผนเกษียณอายุ เพื่อให้มั่นใจว่าจะมีเงินพอใช้ตลอดชีวิต
+            รวมเงินก้อน เงินปันผล และเงินบำนาญรายปีจากกรมธรรม์ทั้งหมด
           </p>
         </div>
 
-        {/* ─── SECTION 1: กรมธรรม์สะสมทรัพย์ ──────────────────────── */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
-          <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-indigo-500 text-white text-[10px] font-bold flex items-center justify-center">1</span>
-            <Coins size={14} className="text-indigo-600" />
-            กรมธรรม์สะสมทรัพย์ & บำนาญ
-          </h3>
-
-          {/* Saving policies */}
-          <div className="bg-indigo-50 rounded-xl p-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-indigo-800">ประกันสะสมทรัพย์ (Endowment)</span>
-              <span className="text-xs font-bold text-indigo-600">{savingPolicies.length} เล่ม</span>
-            </div>
-            {savingPolicies.length > 0 ? (
-              <>
-                {savingPolicies.map((p) => (
-                  <div key={p.id} className="flex items-center justify-between text-[10px] py-1">
-                    <span className="text-indigo-700">{p.planName} <span className="text-indigo-400">({p.company || "-"})</span></span>
-                    <span className="font-bold text-indigo-600">{fmt(p.sumInsured)}</span>
-                  </div>
-                ))}
-                <div className="border-t border-indigo-200 mt-2 pt-2 grid grid-cols-3 gap-2 text-[9px]">
-                  <div className="text-center">
-                    <div className="text-indigo-500">ทุนประกันรวม</div>
-                    <div className="font-bold text-indigo-700">{fmtShort(totalSavingSumInsured)}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-indigo-500">มูลค่าเวนคืน</div>
-                    <div className="font-bold text-indigo-700">{fmtShort(totalSavingCashValue)}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-indigo-500">เบี้ย/ปี</div>
-                    <div className="font-bold text-indigo-700">{fmtShort(totalSavingPremium)}</div>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="text-[10px] text-indigo-400">ยังไม่มีกรมธรรม์สะสมทรัพย์</div>
-            )}
+        {/* ── Empty state ────────────────────────────────────────────────── */}
+        {!hasData && (
+          <div className="bg-white rounded-2xl shadow-sm p-10 mx-1 text-center">
+            <div className="text-3xl mb-2">📋</div>
+            <div className="text-sm font-bold text-gray-500">ยังไม่มีกรมธรรม์สะสมทรัพย์หรือบำนาญ</div>
+            <div className="text-[10px] text-gray-400 mt-1">เพิ่มได้ที่หน้าสรุปกรมธรรม์ → เลือกประเภท &ldquo;สะสมทรัพย์&rdquo; หรือ &ldquo;บำนาญ&rdquo;</div>
           </div>
+        )}
 
-          {/* Pension/Annuity policies */}
-          <div className="bg-purple-50 rounded-xl p-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-purple-800">ประกันบำนาญ (Annuity)</span>
-              <span className="text-xs font-bold text-purple-600">{pensionPolicies.length} เล่ม</span>
-            </div>
-            {pensionPolicies.length > 0 ? (
-              <>
-                {pensionPolicies.map((p) => (
-                  <div key={p.id} className="flex items-center justify-between text-[10px] py-1">
-                    <span className="text-purple-700">{p.planName} <span className="text-purple-400">({p.company || "-"})</span></span>
-                    <span className="font-bold text-purple-600">{fmt(p.sumInsured)}</span>
-                  </div>
-                ))}
-                <div className="border-t border-purple-200 mt-2 pt-2 grid grid-cols-2 gap-2 text-[9px]">
-                  <div className="text-center">
-                    <div className="text-purple-500">ทุนประกันรวม</div>
-                    <div className="font-bold text-purple-700">{fmtShort(totalPensionSumInsured)}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-purple-500">เบี้ย/ปี</div>
-                    <div className="font-bold text-purple-700">{fmtShort(totalPensionPremium)}</div>
-                  </div>
+        {hasData && (
+          <>
+            {/* ── Summary totals ──────────────────────────────────────────── */}
+            <div className="bg-white rounded-2xl shadow-sm p-4 mx-1 space-y-3">
+              <div className="text-center">
+                <div className="text-[10px] text-gray-400">เงินจากประกันรวมตลอดชีวิต (ประมาณการ)</div>
+                <div className="text-2xl font-extrabold text-indigo-600 mt-0.5">฿{fmtShort(grandTotal)}</div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-purple-50 rounded-xl p-2.5 text-center">
+                  <div className="text-[9px] text-purple-400">เงินก้อน (สะสม)</div>
+                  <div className="text-sm font-bold text-purple-700">{totalLump > 0 ? fmtShort(totalLump) : "—"}</div>
                 </div>
-              </>
-            ) : (
-              <div className="text-[10px] text-purple-400">ยังไม่มีกรมธรรม์บำนาญ — เพิ่มได้ที่หน้าสรุปกรมธรรม์</div>
-            )}
-          </div>
-        </div>
-
-        {/* ─── SECTION 2: ทุนเกษียณ (Retirement Fund) ────────────── */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
-          <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-indigo-500 text-white text-[10px] font-bold flex items-center justify-center">2</span>
-            <TrendingUp size={14} className="text-indigo-600" />
-            ข้อมูลเกษียณ (Retirement Data)
-          </h3>
-
-          {/* Link from retirement module */}
-          <LinkToggle
-            label="ดึงข้อมูลจากแผนเกษียณ (Retirement Module)"
-            checked={ll.useRetirementGap}
-            onChange={(v) => update({ useRetirementGap: v })}
-            linkedValue={retireFundNeeded?.value}
-            linkedLabel="ทุนเกษียณที่ต้องมี"
-          />
-
-          {ll.useRetirementGap && retireFundNeeded && (
-            <div className="bg-indigo-50 rounded-xl p-3 text-[10px] text-indigo-700">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <div className="text-indigo-500">ทุนเกษียณที่ต้องมี</div>
-                  <div className="font-bold text-lg text-indigo-700">{fmtShort(retireFundNeeded.value)}</div>
+                <div className="bg-violet-50 rounded-xl p-2.5 text-center">
+                  <div className="text-[9px] text-violet-400">เงินปันผล (สะสม)</div>
+                  <div className="text-sm font-bold text-violet-700">{totalDiv > 0 ? fmtShort(totalDiv) : "—"}</div>
                 </div>
-                {retireFundHave && (
-                  <div>
-                    <div className="text-indigo-500">ที่คาดว่าจะมีตอนเกษียณ</div>
-                    <div className="font-bold text-lg text-indigo-700">{fmtShort(retireFundHave.value)}</div>
-                  </div>
-                )}
+                <div className="bg-indigo-50 rounded-xl p-2.5 text-center">
+                  <div className="text-[9px] text-indigo-400">บำนาญ (รวม)</div>
+                  <div className="text-sm font-bold text-indigo-700">{totalAnnuity > 0 ? fmtShort(totalAnnuity) : "—"}</div>
+                </div>
               </div>
             </div>
-          )}
 
-          {!ll.useRetirementGap && (
-            <div className="space-y-3">
-              <MoneyInput
-                label="ทุนเกษียณที่ต้องการ"
-                value={ll.retirementFundNeeded}
-                onChange={(v) => update({ retirementFundNeeded: v })}
-                hint={`อีก ${yearsToRetire} ปีจะเกษียณ (อายุ ${retireAge})`}
-              />
-              <MoneyInput
-                label="ทุนเกษียณที่มีแล้ว (ณ ปัจจุบัน)"
-                value={ll.retirementFundHave}
-                onChange={(v) => update({ retirementFundHave: v })}
-                hint="เงินออม + กองทุน + สินทรัพย์ลงทุน"
-              />
-            </div>
-          )}
-
-          <MoneyInput
-            label="เงินบำนาญที่ต้องการ/เดือน (หลังเกษียณ)"
-            value={ll.desiredPensionMonthly}
-            onChange={(v) => update({ desiredPensionMonthly: v })}
-            hint="แนะนำ 50-70% ของรายได้ปัจจุบัน"
-            suffix="บาท/เดือน"
-          />
-
-          {/* Quick stats */}
-          <div className="grid grid-cols-3 gap-2">
-            <div className="bg-gray-50 rounded-xl p-2.5 text-center">
-              <div className="text-[9px] text-gray-500">อายุปัจจุบัน</div>
-              <div className="text-sm font-bold text-gray-800">{currentAge}</div>
-            </div>
-            <div className="bg-gray-50 rounded-xl p-2.5 text-center">
-              <div className="text-[9px] text-gray-500">เกษียณอายุ</div>
-              <div className="text-sm font-bold text-gray-800">{retireAge}</div>
-            </div>
-            <div className="bg-gray-50 rounded-xl p-2.5 text-center">
-              <div className="text-[9px] text-gray-500">อีกกี่ปี</div>
-              <div className="text-sm font-bold text-indigo-600">{yearsToRetire}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* ─── SECTION 3: Gap Analysis ────────────────────────────────── */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
-          <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-indigo-500 text-white text-[10px] font-bold flex items-center justify-center">3</span>
-            วิเคราะห์ช่องว่าง (Retirement Gap Analysis)
-          </h3>
-
-          {analysis.fundNeeded > 0 ? (
-            <>
-              {/* Need vs Have */}
-              <div className="border border-gray-100 rounded-xl overflow-hidden">
-                <div className="flex items-center justify-between px-3 py-2.5 border-b border-gray-50">
-                  <span className="text-xs text-gray-600">ทุนเกษียณที่ต้องการ</span>
-                  <span className="text-xs font-bold text-red-600">{fmtShort(analysis.fundNeeded)}</span>
-                </div>
-                <div className="flex items-center justify-between px-3 py-2.5 border-b border-gray-50">
-                  <span className="text-xs text-gray-600">ทุนจากแผนเกษียณ</span>
-                  <span className="text-xs font-bold text-gray-700">{fmtShort(analysis.fundHave)}</span>
-                </div>
-                {totalSavingCashValue > 0 && (
-                  <div className="flex items-center justify-between px-3 py-2 border-b border-gray-50">
-                    <span className="text-[10px] text-gray-500 pl-4">+ มูลค่าเวนคืนสะสมทรัพย์</span>
-                    <span className="text-[10px] font-bold text-gray-600">{fmtShort(totalSavingCashValue)}</span>
-                  </div>
-                )}
-                {totalPensionSumInsured > 0 && (
-                  <div className="flex items-center justify-between px-3 py-2 border-b border-gray-50">
-                    <span className="text-[10px] text-gray-500 pl-4">+ ทุนประกันบำนาญ</span>
-                    <span className="text-[10px] font-bold text-gray-600">{fmtShort(totalPensionSumInsured)}</span>
-                  </div>
-                )}
-                <div className={`flex items-center justify-between px-3 py-2.5 ${analysis.gap <= 0 ? "bg-emerald-50" : "bg-red-50"}`}>
-                  <span className={`text-xs font-bold ${analysis.gap <= 0 ? "text-emerald-700" : "text-red-700"}`}>
-                    {analysis.gap <= 0 ? "เหลือเกิน" : "Gap (ขาดอีก)"}
+            {/* ── Endowment policy cards ───────────────────────────────────── */}
+            {endowmentPolicies.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm p-4 mx-1 space-y-3">
+                <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-[10px] font-bold flex items-center justify-center">
+                    {endowmentPolicies.length}
                   </span>
-                  <span className={`text-sm font-extrabold ${analysis.gap <= 0 ? "text-emerald-600" : "text-red-600"}`}>
-                    {fmt(Math.abs(analysis.gap))}
-                  </span>
-                </div>
-              </div>
+                  <Coins size={14} className="text-purple-600" />
+                  กรมธรรม์สะสมทรัพย์
+                </h3>
 
-              {/* Visual bar */}
-              <div>
-                <div className="flex items-center justify-between text-[10px] mb-1">
-                  <span className="text-gray-600">ความพร้อมเกษียณ</span>
-                  <span className={`font-bold ${analysis.coveragePct >= 100 ? "text-emerald-600" : "text-red-600"}`}>
-                    {analysis.coveragePct.toFixed(0)}%
-                  </span>
-                </div>
-                <div className="h-5 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all ${
-                      analysis.coveragePct >= 100 ? "bg-emerald-400" : analysis.coveragePct >= 50 ? "bg-amber-400" : "bg-red-400"
-                    }`}
-                    style={{ width: `${Math.min(analysis.coveragePct, 100)}%` }}
-                  />
-                </div>
-              </div>
+                {endowmentPolicies.map((p) => {
+                  const maturityAge = getEndowmentMaturityAge(p);
+                  const d = p.endowmentDetails;
+                  const lumpAmount = d?.maturityPayout || p.sumInsured || 0;
+                  const totalDivAmt = d?.dividends?.reduce((s, dv) => s + dv.amount, 0) || 0;
+                  const startYear = p.startDate ? new Date(p.startDate).getFullYear() : currentYear;
 
-              {/* Result */}
-              <div className={`rounded-xl p-4 text-center ${analysis.gap <= 0 ? "bg-emerald-50 border border-emerald-200" : "bg-red-50 border border-red-200"}`}>
-                {analysis.gap <= 0 ? (
-                  <>
-                    <CheckCircle2 size={32} className="text-emerald-500 mx-auto mb-2" />
-                    <div className="text-sm font-bold text-emerald-700">ทุนเกษียณเพียงพอ!</div>
-                    <div className="text-xs text-emerald-600 mt-1">มีทุนเกินกว่าที่ต้องการ {fmtShort(Math.abs(analysis.gap))} บาท</div>
-                  </>
-                ) : (
-                  <>
-                    <AlertTriangle size={32} className="text-red-500 mx-auto mb-2" />
-                    <div className="text-sm font-bold text-red-700">ทุนเกษียณยังไม่เพียงพอ</div>
-                    <div className="text-2xl font-extrabold text-red-600 mt-1">{fmtShort(analysis.gap)} บาท</div>
-                    <div className="text-[10px] text-red-500 mt-1">
-                      ต้องออมเพิ่มเดือนละ ~{fmtShort(Math.round(analysis.gap / (yearsToRetire * 12)))} บาท
+                  return (
+                    <div key={p.id} className="border border-purple-100 rounded-xl p-3 space-y-2.5">
+                      {/* Header */}
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="text-xs font-bold text-gray-800">{p.planName || "—"}</div>
+                          <div className="text-[10px] text-gray-400">{p.company}</div>
+                        </div>
+                        {maturityAge > 0 && (
+                          <div className="text-right">
+                            <div className="text-xs font-bold text-purple-600">ครบอายุ {maturityAge} ปี</div>
+                            <div className="text-[9px] text-gray-400">พ.ศ. {birthYear + maturityAge + BE_OFFSET}</div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Stats */}
+                      <div className="grid grid-cols-3 gap-1.5 text-[9px]">
+                        <div className="bg-purple-50 rounded-lg p-2 text-center">
+                          <div className="text-purple-400">เบี้ยที่จ่าย/ปี</div>
+                          <div className="font-bold text-purple-700">{fmtShort(p.premium)}</div>
+                        </div>
+                        <div className="bg-purple-50 rounded-lg p-2 text-center">
+                          <div className="text-purple-400">เงินก้อนครบ</div>
+                          <div className="font-bold text-purple-700">{lumpAmount > 0 ? fmtShort(lumpAmount) : "—"}</div>
+                        </div>
+                        <div className="bg-purple-50 rounded-lg p-2 text-center">
+                          <div className="text-purple-400">เงินปันผลรวม</div>
+                          <div className="font-bold text-purple-700">{totalDivAmt > 0 ? fmtShort(totalDivAmt) : "—"}</div>
+                        </div>
+                      </div>
+
+                      {/* Dividend detail */}
+                      {d?.dividends && d.dividends.length > 0 && (
+                        <div className="bg-purple-50/50 rounded-lg px-3 py-2">
+                          <div className="text-[9px] text-purple-500 font-bold mb-1">เงินปันผลรายปี</div>
+                          <div className="flex flex-wrap gap-2">
+                            {d.dividends.map((dv, i) => (
+                              <div key={i} className="text-[9px] bg-white border border-purple-100 rounded-lg px-2 py-1 text-center">
+                                <div className="text-gray-400">ปีที่ {dv.year}</div>
+                                <div className="font-bold text-purple-600">{fmtShort(dv.amount)}</div>
+                                <div className="text-[8px] text-gray-400">อายุ {(startYear - birthYear) + dv.year} ปี</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Mini timeline bar */}
+                      {maturityAge > 0 && (
+                        <div>
+                          <div className="text-[9px] text-gray-400 mb-1">
+                            ระยะเวลา: อายุ {startYear - birthYear} → {maturityAge} ปี
+                          </div>
+                          <div className="h-4 bg-gray-100 rounded-full overflow-visible relative">
+                            <div
+                              className="absolute h-full bg-purple-200 rounded-full"
+                              style={{
+                                left: `${Math.max(0, (startYear - birthYear - tlMin) / tlRange * 100)}%`,
+                                width: `${Math.min((maturityAge - (startYear - birthYear)) / tlRange * 100, 100)}%`,
+                              }}
+                            />
+                            {/* Maturity marker */}
+                            <div
+                              className="absolute top-0 w-4 h-4 bg-purple-500 rounded-full border-2 border-white shadow"
+                              style={{ left: `calc(${(maturityAge - tlMin) / tlRange * 100}% - 8px)` }}
+                            />
+                            {/* Dividend markers */}
+                            {d?.dividends?.map((dv, i) => {
+                              const divAge = (startYear - birthYear) + dv.year;
+                              return (
+                                <div
+                                  key={i}
+                                  className="absolute top-0.5 w-3 h-3 bg-purple-400 rounded-full border border-white"
+                                  style={{ left: `calc(${(divAge - tlMin) / tlRange * 100}% - 6px)` }}
+                                />
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </>
-                )}
+                  );
+                })}
               </div>
-            </>
-          ) : (
-            <div className="text-center py-6 text-gray-400 text-xs">
-              กรุณาระบุทุนเกษียณที่ต้องการ หรือ link จากแผนเกษียณ
-            </div>
-          )}
-        </div>
+            )}
 
-        {/* ─── CFP Tips ───────────────────────────────────────────────── */}
-        <div className="bg-amber-50 rounded-xl p-3 border border-amber-200 mx-1">
-          <div className="text-[10px] font-bold text-amber-800 mb-1">💡 คำแนะนำจาก CFP</div>
-          <div className="text-[10px] text-amber-700 leading-relaxed space-y-1">
-            <p>• <strong>ประกันบำนาญ</strong> ช่วยสร้างรายได้ประจำหลังเกษียณ ลดความเสี่ยง "Live Too Long"</p>
-            <p>• แนะนำเงินบำนาญหลังเกษียณ = <strong>50-70%</strong> ของรายได้ก่อนเกษียณ</p>
-            <p>• <strong>ประกันสะสมทรัพย์</strong> เหมาะสำหรับเป้าหมายระยะกลาง-ยาว + มีความคุ้มครองชีวิตด้วย</p>
-            <p>• เบี้ยประกันบำนาญ ลดหย่อนภาษีได้สูงสุด <strong>200,000</strong> บาท (15% ของรายได้)</p>
-            <p>• ควรเริ่มวางแผนเกษียณ <strong>ตั้งแต่เนิ่นๆ</strong> — ดอกเบี้ยทบต้นช่วยมหาศาล</p>
-          </div>
-        </div>
+            {/* ── Annuity policy cards ─────────────────────────────────────── */}
+            {annuityPolicies.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm p-4 mx-1 space-y-3">
+                <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-indigo-500 text-white text-[10px] font-bold flex items-center justify-center">
+                    {annuityPolicies.length}
+                  </span>
+                  <TrendingUp size={14} className="text-indigo-600" />
+                  กรมธรรม์บำนาญ
+                </h3>
 
-        {/* Save button */}
-        <div className="mx-1">
-          <button onClick={handleSave}
-            className="w-full py-3 rounded-2xl bg-indigo-500 text-white text-sm font-bold hover:bg-indigo-600 active:scale-[0.98] transition shadow-lg">
-            บันทึกการประเมิน Long Live Protection
-          </button>
-        </div>
+                {annuityPolicies.map((p) => {
+                  const d = p.annuityDetails;
+                  const startAge  = d?.payoutStartAge || 60;
+                  const endAge    = d?.payoutEndAge && d.payoutEndAge > 0 ? d.payoutEndAge : 99;
+                  const perYear   = d?.payoutPerYear || 0;
+                  const years     = endAge - startAge + 1;
+                  const totalPay  = perYear * years;
+
+                  return (
+                    <div key={p.id} className="border border-indigo-100 rounded-xl p-3 space-y-2.5">
+                      {/* Header */}
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="text-xs font-bold text-gray-800">{p.planName || "—"}</div>
+                          <div className="text-[10px] text-gray-400">{p.company}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs font-bold text-indigo-600">{fmt(perYear)} บาท/ปี</div>
+                          <div className="text-[9px] text-gray-400">อายุ {startAge}–{endAge} ปี</div>
+                        </div>
+                      </div>
+
+                      {/* Stats */}
+                      <div className="grid grid-cols-3 gap-1.5 text-[9px]">
+                        <div className="bg-indigo-50 rounded-lg p-2 text-center">
+                          <div className="text-indigo-400">เบี้ยที่จ่าย/ปี</div>
+                          <div className="font-bold text-indigo-700">{fmtShort(p.premium)}</div>
+                        </div>
+                        <div className="bg-indigo-50 rounded-lg p-2 text-center">
+                          <div className="text-indigo-400">รับ {years} ปี</div>
+                          <div className="font-bold text-indigo-700">{fmtShort(perYear)}/ปี</div>
+                        </div>
+                        <div className="bg-indigo-50 rounded-lg p-2 text-center">
+                          <div className="text-indigo-400">รวมทั้งหมด</div>
+                          <div className="font-bold text-indigo-700">{fmtShort(totalPay)}</div>
+                        </div>
+                      </div>
+
+                      {/* Payout timeline bar */}
+                      <div>
+                        <div className="text-[9px] text-gray-400 mb-1">
+                          ช่วงรับบำนาญ: อายุ {startAge}–{endAge} ปี ({years} ปี)
+                        </div>
+                        <div className="h-4 bg-gray-100 rounded-full overflow-hidden relative">
+                          <div
+                            className="absolute h-full bg-indigo-400 rounded-full"
+                            style={{
+                              left:  `${Math.max(0, (startAge - tlMin) / tlRange * 100)}%`,
+                              width: `${Math.min(years / tlRange * 100, 100)}%`,
+                            }}
+                          />
+                        </div>
+                        <div className="flex justify-between text-[8px] text-gray-400 mt-0.5 px-0.5">
+                          <span>อายุ {tlMin}</span>
+                          <span>อายุ {tlMax}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* ── Combined Timeline ────────────────────────────────────────── */}
+            {events.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm p-4 mx-1 space-y-3">
+                <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                  <Calendar size={14} className="text-indigo-600" />
+                  Timeline รวม (อายุ {tlMin}–{tlMax} ปี)
+                </h3>
+
+                <div className="space-y-3">
+                  {/* Age axis labels */}
+                  <div className="flex justify-between text-[8px] text-gray-400 px-0.5">
+                    <span>{tlMin}</span>
+                    <span>{Math.round((tlMin + tlMax) / 2)}</span>
+                    <span>{tlMax}</span>
+                  </div>
+                  <div className="h-px bg-gray-200" />
+
+                  {/* Endowment bars */}
+                  {endowmentPolicies.map((p) => {
+                    const startYear   = p.startDate ? new Date(p.startDate).getFullYear() : currentYear;
+                    const startAge    = startYear - birthYear;
+                    const maturityAge = getEndowmentMaturityAge(p);
+                    if (maturityAge <= 0) return null;
+                    const d = p.endowmentDetails;
+
+                    const barLeft  = Math.max(0, (startAge - tlMin) / tlRange * 100);
+                    const barWidth = Math.min((maturityAge - startAge) / tlRange * 100, 100 - barLeft);
+
+                    return (
+                      <div key={p.id}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="w-2 h-2 rounded-full bg-purple-400 shrink-0" />
+                          <span className="text-[9px] text-gray-600 truncate">{p.planName || "สะสมทรัพย์"}</span>
+                        </div>
+                        <div className="h-5 bg-gray-50 rounded-full relative overflow-visible">
+                          {/* payment bar */}
+                          <div className="absolute h-full bg-purple-200 rounded-full"
+                            style={{ left: `${barLeft}%`, width: `${barWidth}%` }} />
+                          {/* maturity dot */}
+                          <div className="absolute top-0 w-5 h-5 bg-purple-500 rounded-full border-2 border-white shadow flex items-center justify-center"
+                            style={{ left: `calc(${(maturityAge - tlMin) / tlRange * 100}% - 10px)` }}>
+                            <span className="text-[7px] text-white font-bold">฿</span>
+                          </div>
+                          {/* dividend dots */}
+                          {d?.dividends?.map((dv, i) => {
+                            const dvAge = startAge + dv.year;
+                            return (
+                              <div key={i} className="absolute top-1 w-3 h-3 bg-purple-400 rounded-full border border-white"
+                                style={{ left: `calc(${(dvAge - tlMin) / tlRange * 100}% - 6px)` }} />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Annuity bars */}
+                  {annuityPolicies.map((p) => {
+                    const d = p.annuityDetails;
+                    const startAge = d?.payoutStartAge || 60;
+                    const endAge   = d?.payoutEndAge && d.payoutEndAge > 0 ? d.payoutEndAge : 99;
+
+                    const barLeft  = Math.max(0, (startAge - tlMin) / tlRange * 100);
+                    const barWidth = Math.min((endAge - startAge + 1) / tlRange * 100, 100 - barLeft);
+
+                    return (
+                      <div key={p.id}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="w-2 h-2 rounded-full bg-indigo-400 shrink-0" />
+                          <span className="text-[9px] text-gray-600 truncate">{p.planName || "บำนาญ"}</span>
+                        </div>
+                        <div className="h-5 bg-gray-50 rounded-full overflow-hidden relative">
+                          <div className="absolute h-full bg-indigo-400 rounded-full"
+                            style={{ left: `${barLeft}%`, width: `${barWidth}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Legend */}
+                  <div className="flex flex-wrap gap-3 pt-1 text-[9px] text-gray-500">
+                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-purple-200" />ระยะชำระเบี้ย</div>
+                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-purple-500 flex items-center justify-center"><span className="text-[6px] text-white">฿</span></div>รับเงินก้อน</div>
+                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-purple-400" />เงินปันผล</div>
+                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-indigo-400" />รับบำนาญ</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── Cashflow Table ───────────────────────────────────────────── */}
+            {events.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm mx-1 overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-100">
+                  <h3 className="text-sm font-bold text-gray-800">ตารางเงินออก</h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-[#1e3a5f] text-white">
+                        <th className="px-3 py-2 text-left sticky left-0 bg-[#1e3a5f] z-10">ประเภท</th>
+                        <th className="px-2 py-2 text-center">อายุ</th>
+                        <th className="px-2 py-2 text-left">กรมธรรม์</th>
+                        <th className="px-2 py-2 text-right font-bold">จำนวน (บาท)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {events.map((e, idx) => {
+                        if (e.kind === "lump") return (
+                          <tr key={idx} className="border-b border-gray-50 bg-purple-50">
+                            <td className="px-3 py-2 sticky left-0 bg-purple-50 z-10">
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-purple-700 bg-purple-100 px-1.5 py-0.5 rounded-full">
+                                💰 เงินก้อน
+                              </span>
+                            </td>
+                            <td className="px-2 py-2 text-center text-gray-600 whitespace-nowrap">
+                              {e.age} ปี<br />
+                              <span className="text-[9px] text-gray-400">{birthYear + e.age + BE_OFFSET}</span>
+                            </td>
+                            <td className="px-2 py-2 text-gray-700">{e.label}</td>
+                            <td className="px-2 py-2 text-right font-extrabold text-purple-700">{fmt(e.amount)}</td>
+                          </tr>
+                        );
+
+                        if (e.kind === "dividend") return (
+                          <tr key={idx} className="border-b border-gray-50 bg-violet-50/40">
+                            <td className="px-3 py-2 sticky left-0 bg-violet-50/40 z-10">
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-violet-700 bg-violet-100 px-1.5 py-0.5 rounded-full">
+                                📈 ปันผล
+                              </span>
+                            </td>
+                            <td className="px-2 py-2 text-center text-gray-600 whitespace-nowrap">
+                              {e.age} ปี<br />
+                              <span className="text-[9px] text-gray-400">(ปีที่ {e.policyYear})</span>
+                            </td>
+                            <td className="px-2 py-2 text-gray-700">{e.label}</td>
+                            <td className="px-2 py-2 text-right font-bold text-violet-700">{fmt(e.amount)}</td>
+                          </tr>
+                        );
+
+                        if (e.kind === "annuity") return (
+                          <tr key={idx} className="border-b border-gray-50 bg-indigo-50/40">
+                            <td className="px-3 py-2 sticky left-0 bg-indigo-50/40 z-10">
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded-full">
+                                🏦 บำนาญ
+                              </span>
+                            </td>
+                            <td className="px-2 py-2 text-center text-gray-600 whitespace-nowrap">
+                              {e.startAge}–{e.endAge} ปี<br />
+                              <span className="text-[9px] text-gray-400">{e.endAge - e.startAge + 1} ปี</span>
+                            </td>
+                            <td className="px-2 py-2 text-gray-700">{e.label}</td>
+                            <td className="px-2 py-2 text-right whitespace-nowrap">
+                              <span className="font-bold text-indigo-700">{fmt(e.perYear)}/ปี</span>
+                              <br />
+                              <span className="text-[9px] text-indigo-500">รวม {fmtShort(e.perYear * (e.endAge - e.startAge + 1))}</span>
+                            </td>
+                          </tr>
+                        );
+
+                        return null;
+                      })}
+
+                      {/* Summary row */}
+                      <tr className="bg-[#1e3a5f] text-white font-bold">
+                        <td colSpan={3} className="px-3 py-2.5 sticky left-0 bg-[#1e3a5f] z-10">รวมเงินออกทั้งหมด</td>
+                        <td className="px-2 py-2.5 text-right text-base">{fmtShort(grandTotal)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div className="px-4 py-2 bg-gray-50 text-[9px] text-gray-400">
+                  * บำนาญแสดงเป็นช่วงอายุ ไม่แจกแจงรายปี | เงินก้อน = ณ วันครบกำหนดกรมธรรม์
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
