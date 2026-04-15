@@ -142,6 +142,7 @@ function buildRows(
       const specialAnnual = specialExpenses
         .filter((s) => (s.kind ?? "annual") === "annual")
         .filter((s) => age >= (s.startAge ?? retireAge))
+        .filter((s) => age <= (s.endAge ?? endAge))
         .reduce(
           (sum, s) =>
             sum + s.amount * Math.pow(1 + (s.inflationRate || generalInflation), yearsFromNow),
@@ -320,6 +321,7 @@ export function runMonteCarloProjection(
         const specialAnnual = inputs.specialExpenses
           .filter((s) => (s.kind ?? "annual") === "annual")
           .filter((s) => age >= (s.startAge ?? inputs.retireAge))
+          .filter((s) => age <= (s.endAge ?? endAge))
           .reduce(
             (sum, s) =>
               sum +

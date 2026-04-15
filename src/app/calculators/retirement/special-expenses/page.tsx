@@ -8,7 +8,7 @@ import { useProfileStore } from "@/store/profile-store";
 import { useInsuranceStore } from "@/store/insurance-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
-import { futureValue, DEFAULT_SPECIAL_EXPENSES } from "@/types/retirement";
+import { DEFAULT_SPECIAL_EXPENSES, calcTotalSpecialCapital, calcSpecialExpenseCapital } from "@/types/retirement";
 import type { SpecialExpenseItem } from "@/types/retirement";
 
 function fmt(n: number): string {
@@ -164,13 +164,20 @@ export default function SpecialExpensesPage() {
   const yearsToRetire = Math.max(a.retireAge - a.currentAge, 0);
   const yearsAfterRetire = Math.max(a.lifeExpectancy - a.retireAge, 0);
 
-  // ค่าใช้จ่ายพิเศษ = เงินก้อน ปรับ FV ด้วยเงินเฟ้อแต่ละรายการ แล้วรวมกัน (ไม่คิด annuity)
-  const totalSpecialFV = store.specialExpenses.reduce((sum, e) => {
-    const rate = e.inflationRate ?? a.generalInflation;
-    return sum + futureValue(e.amount, rate, yearsToRetire);
-  }, 0);
+  // ค่าใช้จ่ายพิเศษ — รวมทุนที่ต้องเตรียม ณ วันเกษียณ
+  // - lump = FV(amount, inflation, yearsToRetire)
+  // - annual = NPV annuity จาก startAge ถึง endAge (ค่าเริ่มต้น = lifeExpectancy)
+  const totalSpecialFV = calcTotalSpecialCapital(
+    store.specialExpenses,
+    a.currentAge,
+    a.retireAge,
+    a.lifeExpectancy,
+    a.generalInflation,
+    a.postRetireReturn,
+    store.caretakerParams.extraYearsBeyondLife ?? 0,
+  );
 
-  // ทุนเกษียณ (B) = แค่รวมเงินก้อนทั้งหมด (ไม่ต้องคิด annuity เพราะจ่ายครั้งเดียว)
+  // ทุนเกษียณ (B)
   const specialRetireFund = totalSpecialFV;
 
   const handleSave = () => {
@@ -258,7 +265,15 @@ export default function SpecialExpensesPage() {
           <div className="space-y-3">
             {store.specialExpenses.map((item) => {
               const rate = item.inflationRate ?? a.generalInflation;
-              const fv = futureValue(item.amount, rate, yearsToRetire);
+              const fv = calcSpecialExpenseCapital(
+                item,
+                a.currentAge,
+                a.retireAge,
+                a.lifeExpectancy,
+                a.generalInflation,
+                a.postRetireReturn,
+                store.caretakerParams.extraYearsBeyondLife ?? 0,
+              );
               return (
                 <div key={item.id} className="bg-gray-50 rounded-xl p-3">
                   <div className="flex items-center gap-2 mb-2">
@@ -479,7 +494,15 @@ export default function SpecialExpensesPage() {
           <div className="divide-y divide-gray-100">
             {store.specialExpenses.map((item) => {
               const rate = item.inflationRate ?? a.generalInflation;
-              const fv = futureValue(item.amount, rate, yearsToRetire);
+              const fv = calcSpecialExpenseCapital(
+                item,
+                a.currentAge,
+                a.retireAge,
+                a.lifeExpectancy,
+                a.generalInflation,
+                a.postRetireReturn,
+                store.caretakerParams.extraYearsBeyondLife ?? 0,
+              );
               const meta = ITEM_META[item.id] || { icon: Sparkles, desc: "ค่าใช้จ่ายพิเศษเพิ่มเติม" };
               const Icon = meta.icon;
               const descText = meta.desc

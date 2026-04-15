@@ -94,7 +94,8 @@ const DEMO_INPUTS: WealthProjectionInputs = {
 // ---------- main page ----------
 export default function WealthJourneyPage() {
   const retire = useRetirementStore();
-  const { policies } = useInsuranceStore();
+  const insurance = useInsuranceStore();
+  const { policies } = insurance;
   const a = retire.assumptions;
 
   type ChartMode = "single" | "compare" | "monteCarlo";
@@ -162,6 +163,78 @@ export default function WealthJourneyPage() {
       return sum + (f.value || 0);
     }, 0);
 
+    // ─── Special expenses — derive from source calculators when available ───
+    // se1 (health) → use pillar-2 premium brackets if set (one annual item per bracket)
+    // se2 (caretaker) → use caretakerParams if monthlyRate > 0
+    // Fall back to values in retire.specialExpenses if source data missing.
+    const pillar2 = insurance.riskManagement.pillar2;
+    const brackets = pillar2.premiumBrackets || [];
+    const hasBrackets = brackets.some((b) => b.annualPremium > 0);
+    const caretaker = retire.caretakerParams;
+    const hasCaretakerSource = (caretaker.monthlyRate || 0) > 0;
+
+    const nonSe1Se2 = retire.specialExpenses.filter(
+      (s) => s.id !== "se1" && s.id !== "se2",
+    );
+
+    const specialExpensesDerived: WealthProjectionInputs["specialExpenses"] = [
+      // Other special expenses (se3, se4, se5, custom) — copy as-is
+      ...nonSe1Se2.map((s) => ({
+        amount: s.amount,
+        inflationRate: s.inflationRate ?? a.generalInflation,
+        kind: (s.kind ?? "annual") as "annual" | "lump",
+        startAge: s.startAge,
+      })),
+    ];
+
+    // Health (se1) from brackets — no inflation (brackets already absolute values)
+    if (hasBrackets) {
+      for (const b of brackets) {
+        if (b.annualPremium <= 0) continue;
+        specialExpensesDerived.push({
+          amount: b.annualPremium,
+          inflationRate: 0,
+          kind: "annual",
+          startAge: b.ageFrom,
+          endAge: b.ageTo,
+        });
+      }
+    } else {
+      const se1 = retire.specialExpenses.find((s) => s.id === "se1");
+      if (se1 && se1.amount > 0) {
+        specialExpensesDerived.push({
+          amount: se1.amount,
+          inflationRate: se1.inflationRate ?? a.generalInflation,
+          kind: (se1.kind ?? "annual") as "annual" | "lump",
+          startAge: se1.startAge,
+        });
+      }
+    }
+
+    // Caretaker (se2) from caretakerParams — annual × probability, inflation from params
+    if (hasCaretakerSource) {
+      const annualCaretaker =
+        (caretaker.monthlyRate || 0) * 12 * (caretaker.probability ?? 1);
+      if (annualCaretaker > 0) {
+        specialExpensesDerived.push({
+          amount: annualCaretaker,
+          inflationRate: caretaker.inflationRate ?? 0.05,
+          kind: "annual",
+          startAge: caretaker.caretakerStartAge ?? 75,
+        });
+      }
+    } else {
+      const se2 = retire.specialExpenses.find((s) => s.id === "se2");
+      if (se2 && se2.amount > 0) {
+        specialExpensesDerived.push({
+          amount: se2.amount,
+          inflationRate: se2.inflationRate ?? a.generalInflation,
+          kind: (se2.kind ?? "annual") as "annual" | "lump",
+          startAge: se2.startAge,
+        });
+      }
+    }
+
     return {
       currentAge: a.currentAge,
       retireAge: a.retireAge,
@@ -178,12 +251,7 @@ export default function WealthJourneyPage() {
       postRetireReturn: a.postRetireReturn,
       generalInflation: a.generalInflation,
       basicMonthlyToday,
-      specialExpenses: retire.specialExpenses.map((s) => ({
-        amount: s.amount,
-        inflationRate: s.inflationRate ?? a.generalInflation,
-        kind: s.kind ?? "annual",
-        startAge: s.startAge,
-      })),
+      specialExpenses: specialExpensesDerived,
       ssMonthlyPension: ss.monthlyPension,
       ssStartAge: a.retireAge,
       pvdLumpAtRetire: pvdLump,
@@ -193,7 +261,7 @@ export default function WealthJourneyPage() {
       badOffset: -0.01,
       goodOffset: 0.01,
     };
-  }, [retire, a, policies, isEmpty]);
+  }, [retire, a, policies, insurance, isEmpty]);
 
   // ----- run projections -----
   const baseResult = useMemo(() => calcWealthProjection(inputs, "base"), [inputs]);

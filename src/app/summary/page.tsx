@@ -13,6 +13,7 @@ import {
   futureValue,
   calcRetirementFund,
   calcInvestmentPlan,
+  calcTotalSpecialCapital,
 } from "@/types/retirement";
 import { INCOME_TAX_CATEGORIES } from "@/types/cashflow";
 
@@ -81,10 +82,15 @@ export default function SummaryPage() {
   const totalBasicMonthly = retireStore.basicExpenses.reduce((sum, e) => sum + e.monthlyAmount, 0);
   const basicMonthlyFV = futureValue(totalBasicMonthly, a.generalInflation, yearsToRetire);
   const basicRetireFund = calcRetirementFund(basicMonthlyFV, a.postRetireReturn, a.generalInflation, yearsAfterRetire, a.residualFund);
-  const totalSpecialFV = retireStore.specialExpenses.reduce((sum, e) => {
-    const rate = e.inflationRate ?? a.generalInflation;
-    return sum + futureValue(e.amount, rate, yearsToRetire);
-  }, 0);
+  const totalSpecialFV = calcTotalSpecialCapital(
+    retireStore.specialExpenses,
+    currentAge,
+    a.retireAge,
+    a.lifeExpectancy,
+    a.generalInflation,
+    a.postRetireReturn,
+    retireStore.caretakerParams.extraYearsBeyondLife ?? 0,
+  );
   const totalRetireFund = basicRetireFund + totalSpecialFV;
   const totalSavingFund = retireStore.savingFunds.reduce((sum, f) => sum + f.value, 0);
   const shortage = totalRetireFund - totalSavingFund;

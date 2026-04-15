@@ -27,6 +27,7 @@ export interface SpecialExpenseItem {
   inflationRate?: number;         // ใช้เงินเฟ้อตัวไหน (default = general)
   kind?: SpecialExpenseKind;      // "annual" = จ่ายทุกปี, "lump" = จ่ายครั้งเดียวตอนเกษียณ
   startAge?: number;              // อายุที่เริ่มจ่าย (ใช้กับ kind="annual" เท่านั้น; default = retireAge)
+  endAge?: number;                // อายุที่หยุดจ่าย (ใช้กับ kind="annual" เท่านั้น; default = lifeExpectancy + extraYears)
 }
 
 // ===== Saving Fund Source =====
@@ -150,6 +151,69 @@ export const DEFAULT_CARETAKER: CaretakerParams = {
 /** Future Value: ค่าใช้จ่ายปัจจุบัน → มูลค่า ณ วันเกษียณ */
 export function futureValue(presentValue: number, rate: number, years: number): number {
   return presentValue * Math.pow(1 + rate, years);
+}
+
+/**
+ * คำนวณทุนที่ต้องเตรียม ณ วันเกษียณ สำหรับรายจ่ายพิเศษ 1 รายการ
+ * - kind = "lump": ก้อนเดียว = FV(amount, inflation, yearsToRetire)
+ * - kind = "annual": NPV annuity จาก startAge ถึง endAge
+ *   NPV = Σ (amount × (1+infl)^(age-currentAge)) / (1+postRetireReturn)^(age-retireAge)
+ */
+export function calcSpecialExpenseCapital(
+  item: SpecialExpenseItem,
+  currentAge: number,
+  retireAge: number,
+  lifeExpectancy: number,
+  generalInflation: number,
+  postRetireReturn: number,
+  extraYearsBeyondLife: number = 0,
+): number {
+  const rate = item.inflationRate ?? generalInflation;
+  const isAnnual = (item.kind ?? "annual") === "annual";
+  if (!isAnnual) {
+    // Lump → FV ณ วันเกษียณ
+    return futureValue(item.amount, rate, Math.max(retireAge - currentAge, 0));
+  }
+  // Annual → NPV of annuity (age ∈ [startAge, endAge])
+  const startAge = Math.max(item.startAge ?? retireAge, retireAge);
+  const endAge = item.endAge ?? lifeExpectancy + extraYearsBeyondLife;
+  let npv = 0;
+  for (let age = startAge; age <= endAge; age++) {
+    const yearsFromNow = age - currentAge;
+    const yearsFromRetire = age - retireAge;
+    const yearFV = item.amount * Math.pow(1 + rate, yearsFromNow);
+    const yearPV = postRetireReturn > 0
+      ? yearFV / Math.pow(1 + postRetireReturn, yearsFromRetire)
+      : yearFV;
+    npv += yearPV;
+  }
+  return npv;
+}
+
+/** Sum ของ calcSpecialExpenseCapital สำหรับทุกรายการ */
+export function calcTotalSpecialCapital(
+  items: SpecialExpenseItem[],
+  currentAge: number,
+  retireAge: number,
+  lifeExpectancy: number,
+  generalInflation: number,
+  postRetireReturn: number,
+  extraYearsBeyondLife: number = 0,
+): number {
+  return items.reduce(
+    (sum, e) =>
+      sum +
+      calcSpecialExpenseCapital(
+        e,
+        currentAge,
+        retireAge,
+        lifeExpectancy,
+        generalInflation,
+        postRetireReturn,
+        extraYearsBeyondLife,
+      ),
+    0,
+  );
 }
 
 /** Present Value */
