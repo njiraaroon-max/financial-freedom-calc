@@ -298,7 +298,7 @@ export const useRetirementStore = create<RetirementState>()(
     }),
     {
       name: "ffc-retirement",
-      version: 7,
+      version: 8,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       migrate: (persisted: any, version: number) => {
         if (persisted?.savingFunds) {
@@ -351,6 +351,35 @@ export const useRetirementStore = create<RetirementState>()(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           persisted.specialExpenses.forEach((e: any) => {
             if (e && e.id === "se2" && (!e.amount || e.amount === 0)) {
+              e.kind = "annual";
+              e.inflationRate = 0.05;
+              e.startAge = 75;
+            }
+          });
+        }
+        // v8: detect stale NPV pull data in se1/se2 and reset for re-pull.
+        // OLD pull stored NPV (5M+) as amount — either as kind="lump" (post-fix)
+        // or kind="annual" (pre-fix, caused compounding bug). NEW pull stores
+        // AVG annual premium (≤500k typical). Reset amount=0 so user re-pulls.
+        if (persisted?.specialExpenses && Array.isArray(persisted.specialExpenses)) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          persisted.specialExpenses.forEach((e: any) => {
+            if (!e) return;
+            // se1 (health) — new format: annual, 7% inflation, amount < 500k.
+            // Stale NPV data: any amount > 500k is suspicious (NPV not premium).
+            if (e.id === "se1" && e.amount > 500_000) {
+              e.amount = 0;
+              e.kind = "annual";
+              e.inflationRate = 0.07;
+              e.startAge = undefined;
+            }
+            // se2 (caretaker) — new format: annual, 5% inflation, startAge 75,
+            // amount < 1M typical. Old NPV was 5-20M. Also kind="lump" is old.
+            if (
+              e.id === "se2" &&
+              (e.kind === "lump" || e.amount > 1_000_000)
+            ) {
+              e.amount = 0;
               e.kind = "annual";
               e.inflationRate = 0.05;
               e.startAge = 75;

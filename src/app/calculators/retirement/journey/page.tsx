@@ -463,7 +463,7 @@ export default function WealthJourneyPage() {
           <div className="h-[420px] -ml-2">
             <ResponsiveContainer width="100%" height="100%">
               {chartMode === "monteCarlo" && mcResult ? (
-                <ComposedChart data={mcChartData} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
+                <ComposedChart data={mcChartData} margin={{ top: 24, right: 16, bottom: 8, left: 8 }}>
                   <defs>
                     <linearGradient id="gMcOuter" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.25} />
@@ -490,7 +490,7 @@ export default function WealthJourneyPage() {
                   <Line type="monotone" dataKey="p50" stroke="#7C3AED" strokeWidth={2.5} dot={false} name="Median (P50)" />
                 </ComposedChart>
               ) : (
-                <ComposedChart data={chartData} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
+                <ComposedChart data={chartData} margin={{ top: 24, right: 16, bottom: 8, left: 8 }}>
                   <defs>
                     <linearGradient id="gAccum" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.55} />
