@@ -301,6 +301,32 @@ export default function SpecialExpensesPage() {
                       </button>
                     ))}
                   </div>
+                  {/* Kind selector — annual vs lump (for Wealth Journey post-retire cashflow) */}
+                  <div className="flex items-center gap-1 mt-1.5">
+                    <span className="text-[10px] text-gray-400 mr-1">ลักษณะจ่าย:</span>
+                    <button
+                      onClick={() => store.updateSpecialExpenseKind(item.id, "annual")}
+                      className={`px-2 py-0.5 rounded-full text-[10px] transition ${
+                        (item.kind ?? "annual") === "annual"
+                          ? "bg-purple-500 text-white font-bold"
+                          : "bg-gray-200 text-gray-500 hover:bg-gray-300"
+                      }`}
+                      title="จ่ายทุกปีหลังเกษียณ เช่น เบี้ยประกันสุขภาพ ท่องเที่ยว"
+                    >
+                      รายปี
+                    </button>
+                    <button
+                      onClick={() => store.updateSpecialExpenseKind(item.id, "lump")}
+                      className={`px-2 py-0.5 rounded-full text-[10px] transition ${
+                        item.kind === "lump"
+                          ? "bg-purple-500 text-white font-bold"
+                          : "bg-gray-200 text-gray-500 hover:bg-gray-300"
+                      }`}
+                      title="จ่ายก้อนเดียว ณ วันเกษียณ เช่น ซ่อมบ้าน ซื้อรถ NPV ค่าคนดูแล"
+                    >
+                      ก้อนเดียว
+                    </button>
+                  </div>
                   {/* FV preview */}
                   {item.amount > 0 && (
                     <div className="text-[10px] text-gray-400 mt-1">

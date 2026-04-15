@@ -6,6 +6,7 @@ import type {
   RetirementAssumptions,
   RetirementExpenseItem,
   SpecialExpenseItem,
+  SpecialExpenseKind,
   SavingFundItem,
   InvestmentPlanItem,
   PVDParams,
@@ -53,6 +54,7 @@ interface RetirementState {
   updateSpecialExpense: (id: string, amount: number) => void;
   updateSpecialExpenseName: (id: string, name: string) => void;
   updateSpecialExpenseInflation: (id: string, rate: number) => void;
+  updateSpecialExpenseKind: (id: string, kind: SpecialExpenseKind) => void;
   removeSpecialExpense: (id: string) => void;
   restoreSpecialExpense: (item: SpecialExpenseItem, index?: number) => void;
   restoreDefaultSpecialExpenses: () => void;
@@ -159,7 +161,7 @@ export const useRetirementStore = create<RetirementState>()(
       // Special Expenses
       addSpecialExpense: (name) =>
         set((s) => ({
-          specialExpenses: [...s.specialExpenses, { id: generateId(), name, amount: 0 }],
+          specialExpenses: [...s.specialExpenses, { id: generateId(), name, amount: 0, kind: "annual" }],
         })),
       updateSpecialExpense: (id, amount) =>
         set((s) => ({
@@ -172,6 +174,10 @@ export const useRetirementStore = create<RetirementState>()(
       updateSpecialExpenseInflation: (id, rate) =>
         set((s) => ({
           specialExpenses: s.specialExpenses.map((e) => (e.id === id ? { ...e, inflationRate: rate } : e)),
+        })),
+      updateSpecialExpenseKind: (id, kind) =>
+        set((s) => ({
+          specialExpenses: s.specialExpenses.map((e) => (e.id === id ? { ...e, kind } : e)),
         })),
       removeSpecialExpense: (id) =>
         set((s) => ({ specialExpenses: s.specialExpenses.filter((e) => e.id !== id) })),
@@ -285,7 +291,7 @@ export const useRetirementStore = create<RetirementState>()(
     }),
     {
       name: "ffc-retirement",
-      version: 5,
+      version: 6,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       migrate: (persisted: any, version: number) => {
         if (persisted?.savingFunds) {
@@ -313,6 +319,23 @@ export const useRetirementStore = create<RetirementState>()(
         // v5: backfill currentSavings for existing assumptions (baseline for wealth journey)
         if (persisted?.assumptions && persisted.assumptions.currentSavings === undefined) {
           persisted.assumptions.currentSavings = 0;
+        }
+        // v6: backfill kind on specialExpenses (annual/lump distinction for wealth journey)
+        if (persisted?.specialExpenses && Array.isArray(persisted.specialExpenses)) {
+          // Canonical defaults for se1..se5
+          const defaultKindById: Record<string, "annual" | "lump"> = {
+            se1: "annual",  // health premium
+            se2: "lump",    // caretaker NPV
+            se3: "annual",  // travel budget
+            se4: "lump",    // home repair
+            se5: "lump",    // car purchase
+          };
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          persisted.specialExpenses.forEach((e: any) => {
+            if (e && e.kind === undefined) {
+              e.kind = defaultKindById[e.id] ?? "lump"; // safe default for custom items
+            }
+          });
         }
         return persisted;
       },

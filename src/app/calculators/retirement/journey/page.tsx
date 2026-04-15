@@ -77,13 +77,15 @@ const DEMO_INPUTS: WealthProjectionInputs = {
   generalInflation: 0.03,
   basicMonthlyToday: 40_000,
   specialExpenses: [
-    { amount: 50_000, inflationRate: 0.07 }, // health
-    { amount: 30_000, inflationRate: 0.03 }, // travel
+    { amount: 50_000, inflationRate: 0.07, kind: "annual" }, // health
+    { amount: 30_000, inflationRate: 0.03, kind: "annual" }, // travel
+    { amount: 500_000, inflationRate: 0.03, kind: "lump" }, // car
   ],
   ssMonthlyPension: 8_500,
   ssStartAge: 60,
   pvdLumpAtRetire: 2_500_000,
   severanceLumpAtRetire: 800_000,
+  savingFundsLump: 1_000_000,
   annuityStreams: [{ payoutStartAge: 60, payoutPerYear: 120_000 }],
   badOffset: -0.01,
   goodOffset: 0.01,
@@ -145,6 +147,21 @@ export default function WealthJourneyPage() {
       0,
     );
 
+    // Saving funds lump at retirement — exclude duplicates already counted elsewhere
+    // (SS pension NPV, PVD, severance, pension insurance NPV are aggregated separately
+    //  via ssMonthlyPension/pvdLumpAtRetire/severanceLumpAtRetire/annuityStreams)
+    const DUPLICATE_CALC_KEYS = new Set([
+      "ss_pension_npv",
+      "pvd_at_retire",
+      "severance_pay",
+      "pension_insurance_npv",
+    ]);
+    const savingFundsLump = retire.savingFunds.reduce((sum, f) => {
+      const key = (f as { calculatorKey?: string }).calculatorKey;
+      if (key && DUPLICATE_CALC_KEYS.has(key)) return sum;
+      return sum + (f.value || 0);
+    }, 0);
+
     return {
       currentAge: a.currentAge,
       retireAge: a.retireAge,
@@ -164,11 +181,13 @@ export default function WealthJourneyPage() {
       specialExpenses: retire.specialExpenses.map((s) => ({
         amount: s.amount,
         inflationRate: s.inflationRate ?? a.generalInflation,
+        kind: s.kind ?? "annual",
       })),
       ssMonthlyPension: ss.monthlyPension,
       ssStartAge: a.retireAge,
       pvdLumpAtRetire: pvdLump,
       severanceLumpAtRetire: sevLump,
+      savingFundsLump,
       annuityStreams,
       badOffset: -0.01,
       goodOffset: 0.01,

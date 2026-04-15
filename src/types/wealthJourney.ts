@@ -56,6 +56,7 @@ export interface WealthProjectionInputs {
   specialExpenses: {
     amount: number;                // PV
     inflationRate: number;         // per-item inflation
+    kind: "annual" | "lump";       // annual = recurring yearly post-retire; lump = one-time at retireAge
   }[];
 
   // post-retire inflows
@@ -65,6 +66,7 @@ export interface WealthProjectionInputs {
   // lumps at retireAge (one-time)
   pvdLumpAtRetire: number;
   severanceLumpAtRetire: number;
+  savingFundsLump: number;         // sum of non-duplicate saving funds (manual/RMF/กบข/etc.) added at retireAge
 
   // annuity streams (from insurance policies)
   annuityStreams: AnnuityStream[];

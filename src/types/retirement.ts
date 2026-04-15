@@ -18,11 +18,14 @@ export interface RetirementExpenseItem {
 }
 
 // ===== Special Expenses =====
+export type SpecialExpenseKind = "annual" | "lump";
+
 export interface SpecialExpenseItem {
   id: string;
   name: string;
-  amount: number;         // มูลค่าปัจจุบัน
-  inflationRate?: number; // ใช้เงินเฟ้อตัวไหน (default = general)
+  amount: number;                 // มูลค่าปัจจุบัน (PV)
+  inflationRate?: number;         // ใช้เงินเฟ้อตัวไหน (default = general)
+  kind?: SpecialExpenseKind;      // "annual" = จ่ายทุกปี, "lump" = จ่ายครั้งเดียวตอนเกษียณ
 }
 
 // ===== Saving Fund Source =====
@@ -111,11 +114,11 @@ export const DEFAULT_BASIC_EXPENSES: RetirementExpenseItem[] = [
 ];
 
 export const DEFAULT_SPECIAL_EXPENSES: SpecialExpenseItem[] = [
-  { id: "se1", name: "เบี้ยประกันสุขภาพหลังเกษียณ", amount: 0, inflationRate: 0.07 },
-  { id: "se2", name: "ค่าคนดูแลยามเกษียณ", amount: 0 },
-  { id: "se3", name: "ท่องเที่ยวและสันทนาการ", amount: 0 },
-  { id: "se4", name: "ซ่อมแซมที่อยู่อาศัย", amount: 0 },
-  { id: "se5", name: "รถยนต์", amount: 0 },
+  { id: "se1", name: "เบี้ยประกันสุขภาพหลังเกษียณ", amount: 0, inflationRate: 0.07, kind: "annual" },
+  { id: "se2", name: "ค่าคนดูแลยามเกษียณ", amount: 0, kind: "lump" },
+  { id: "se3", name: "ท่องเที่ยวและสันทนาการ", amount: 0, kind: "annual" },
+  { id: "se4", name: "ซ่อมแซมที่อยู่อาศัย", amount: 0, kind: "lump" },
+  { id: "se5", name: "รถยนต์", amount: 0, kind: "lump" },
 ];
 
 export const DEFAULT_SAVING_FUNDS: SavingFundItem[] = [
