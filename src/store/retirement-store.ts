@@ -298,7 +298,7 @@ export const useRetirementStore = create<RetirementState>()(
     }),
     {
       name: "ffc-retirement",
-      version: 8,
+      version: 9,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       migrate: (persisted: any, version: number) => {
         if (persisted?.savingFunds) {
@@ -314,6 +314,29 @@ export const useRetirementStore = create<RetirementState>()(
               f.source = "calculator";
             }
           });
+        }
+        // v9: inject sf5 (ประกันบำนาญ) for existing users who don't have it yet
+        if (persisted?.savingFunds && Array.isArray(persisted.savingFunds)) {
+          const hasPensionInsurance = persisted.savingFunds.some(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (f: any) => f.id === "sf5" || f.calculatorKey === "pension_insurance_npv"
+          );
+          if (!hasPensionInsurance) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const sf4Idx = persisted.savingFunds.findIndex((f: any) => f.id === "sf4");
+            const sf5Entry = {
+              id: "sf5",
+              name: "ประกันบำนาญ",
+              value: 0,
+              source: "calculator",
+              calculatorKey: "pension_insurance_npv",
+            };
+            if (sf4Idx >= 0) {
+              persisted.savingFunds.splice(sf4Idx + 1, 0, sf5Entry);
+            } else {
+              persisted.savingFunds.push(sf5Entry);
+            }
+          }
         }
         // v3: add caretakerParams if missing
         if (!persisted?.caretakerParams) {
