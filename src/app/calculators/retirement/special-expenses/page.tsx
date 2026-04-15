@@ -418,7 +418,14 @@ export default function SpecialExpensesPage() {
                     </div>
                     <div className="shrink-0 text-right">
                       {item.amount > 0 ? (
-                        <div className="text-sm font-bold text-[#1e3a5f]">฿{fmt(fv)}</div>
+                        <>
+                          <div className="text-sm font-bold text-[#1e3a5f]">฿{fmt(fv)}</div>
+                          {rate > 0 && Math.abs(fv - item.amount) > 1 && (
+                            <div className="text-[9px] text-gray-300 mt-0.5 font-medium">
+                              ≈ ฿{fmt(item.amount)} ณ ปัจจุบัน
+                            </div>
+                          )}
+                        </>
                       ) : (
                         <div className="text-xs text-gray-300">—</div>
                       )}
