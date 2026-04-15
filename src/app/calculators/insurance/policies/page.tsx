@@ -809,7 +809,7 @@ export default function PortfolioDashboard() {
                   </div>
                 )}
                 <div>
-                  <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">เบี้ยต่อปี</label>
+                  <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">เบี้ยที่จ่าย/ปี</label>
                   <input type="text" inputMode="numeric" value={form.premium}
                     onChange={(e) => { const raw = parseNum(e.target.value); setForm({ ...form, premium: raw > 0 ? commaInput(raw) : e.target.value.replace(/[^0-9]/g, "") }); }}
                     className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold" placeholder="55,000" />
@@ -925,7 +925,7 @@ export default function PortfolioDashboard() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-[10px] text-gray-500 mb-0.5 block">จ่ายต่อปี</label>
+                      <label className="text-[10px] text-gray-500 mb-0.5 block">บำนาญที่รับ/ปี</label>
                       <div className="flex items-center gap-1">
                         <input type="text" inputMode="numeric"
                           value={form.annuityDetails.payoutPerYear ? commaInput(form.annuityDetails.payoutPerYear) : ""}
