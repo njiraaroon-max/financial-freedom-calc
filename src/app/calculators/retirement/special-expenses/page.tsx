@@ -115,6 +115,11 @@ export default function SpecialExpensesPage() {
   const handlePullFromPillar2 = (id: string) => {
     if (!pillar2NPV.hasData) return;
     store.updateSpecialExpense(id, pillar2NPV.npv);
+    // NPV from Risk Management is already a lump-sum value at retirement
+    // (discounted + summed across all post-retire years). Must be kind="lump"
+    // + inflation=0 to avoid Wealth Journey treating it as recurring annual.
+    store.updateSpecialExpenseInflation(id, 0);
+    store.updateSpecialExpenseKind(id, "lump");
     setPulledId(id);
     setTimeout(() => setPulledId(null), 2500);
   };
@@ -132,8 +137,11 @@ export default function SpecialExpensesPage() {
     if (npv <= 0) return;
     store.updateSpecialExpense(id, npv);
     // NPV from caretaker is already value-at-retirement — set inflation to 0
-    // so the summary doesn't double-compound inflation over yearsToRetire
+    // so the summary doesn't double-compound inflation over yearsToRetire.
+    // Also set kind="lump" so Wealth Journey applies it once at retirement
+    // instead of treating it as recurring annual outflow.
     store.updateSpecialExpenseInflation(id, 0);
+    store.updateSpecialExpenseKind(id, "lump");
     setPulledId(id);
     setTimeout(() => setPulledId(null), 2500);
   };
