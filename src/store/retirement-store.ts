@@ -285,7 +285,7 @@ export const useRetirementStore = create<RetirementState>()(
     }),
     {
       name: "ffc-retirement",
-      version: 4,
+      version: 5,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       migrate: (persisted: any, version: number) => {
         if (persisted?.savingFunds) {
@@ -309,6 +309,10 @@ export const useRetirementStore = create<RetirementState>()(
         // v4: backfill extraYearsBeyondLife for existing caretakerParams
         if (persisted?.caretakerParams && persisted.caretakerParams.extraYearsBeyondLife === undefined) {
           persisted.caretakerParams.extraYearsBeyondLife = 5;
+        }
+        // v5: backfill currentSavings for existing assumptions (baseline for wealth journey)
+        if (persisted?.assumptions && persisted.assumptions.currentSavings === undefined) {
+          persisted.assumptions.currentSavings = 0;
         }
         return persisted;
       },

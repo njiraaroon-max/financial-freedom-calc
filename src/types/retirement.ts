@@ -7,6 +7,7 @@ export interface RetirementAssumptions {
   healthInflation: number;       // e.g. 0.07
   postRetireReturn: number;      // e.g. 0.045
   residualFund: number;          // เงินทุนคงเหลือ ณ วันสิ้นอายุขัย
+  currentSavings: number;        // เงินออมเริ่มต้นสำหรับการเกษียณ ณ ปัจจุบัน (baseline)
 }
 
 // ===== Basic Expenses =====
@@ -95,6 +96,7 @@ export const DEFAULT_ASSUMPTIONS: RetirementAssumptions = {
   healthInflation: 0.07,
   postRetireReturn: 0.045,
   residualFund: 0,
+  currentSavings: 0,
 };
 
 export const DEFAULT_BASIC_EXPENSES: RetirementExpenseItem[] = [

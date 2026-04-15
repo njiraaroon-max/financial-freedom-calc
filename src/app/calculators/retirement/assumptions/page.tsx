@@ -146,6 +146,17 @@ export default function AssumptionsPage() {
             <span className="text-sm text-gray-600">เงินคงเหลือ ณ สิ้นอายุขัย</span>
             <NumberInput value={a.residualFund} onChange={(v) => store.updateAssumption("residualFund", v)} />
           </div>
+
+          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+            <div>
+              <div className="text-sm text-gray-600">เงินออมเริ่มต้น (ปัจจุบัน)</div>
+              <div className="text-[10px] text-gray-400 mt-0.5">baseline สำหรับ Wealth Journey</div>
+            </div>
+            <NumberInput
+              value={a.currentSavings || 0}
+              onChange={(v) => store.updateAssumption("currentSavings", v)}
+            />
+          </div>
         </div>
 
         {/* Summary */}
