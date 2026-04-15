@@ -369,6 +369,28 @@ export default function InsuranceSummaryPage() {
   const totalSumInsured = policies.reduce((s, p) => s + p.sumInsured, 0);
   const totalCashValue = policies.reduce((s, p) => s + p.cashValue, 0);
 
+  // Premium breakdown by group
+  const premiumByGroup = useMemo(() => {
+    const groups: Record<string, number> = {};
+    sorted.forEach((p) => {
+      groups[p.group] = (groups[p.group] || 0) + p.premium;
+    });
+    return Object.entries(groups)
+      .filter(([, total]) => total > 0)
+      .map(([group, total]) => ({
+        group,
+        label: getGroupLabel(group),
+        total,
+        pct: totalPremium > 0 ? (total / totalPremium) * 100 : 0,
+        colors: GROUP_COLORS[group] || GROUP_COLORS.other,
+      }))
+      .sort((a, b) => b.total - a.total);
+  }, [sorted, totalPremium]);
+
+  // Premium ratio vs income
+  const annualIncome = (profile.salary || 0) * 12;
+  const premiumRatioPct = annualIncome > 0 ? (totalPremium / annualIncome) * 100 : 0;
+
   // Compute year range for Gantt — annuity ใช้ payoutEndAge แทน endDate
   const years = policies.flatMap((p) => {
     const start = yearFromDate(p.startDate);
@@ -524,6 +546,101 @@ export default function InsuranceSummaryPage() {
             <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
               <span className="text-xs font-bold text-gray-600">เบี้ยประกันรวม/ปี</span>
               <span className="text-sm font-extrabold text-orange-600">฿{fmt(totalPremium)}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Premium Breakdown by Group */}
+        {sorted.length > 0 && premiumByGroup.length > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-100">
+              <h3 className="text-sm font-extrabold text-gray-800">สรุปเบี้ยประกันตามประเภท</h3>
+              <p className="text-[10px] text-gray-400">การกระจายเบี้ยประกันแต่ละหมวด</p>
+            </div>
+            <div className="px-4 py-3 space-y-2.5">
+              {premiumByGroup.map(({ group, label, total, pct, colors }) => (
+                <div key={group}>
+                  <div className="flex justify-between text-xs mb-0.5">
+                    <span className={`font-medium ${colors.text}`}>{label}</span>
+                    <span className="font-bold text-gray-700">
+                      ฿{fmt(total)}
+                      <span className="text-gray-400 font-normal ml-1">({pct.toFixed(1)}%)</span>
+                    </span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${colors.bar} transition-all`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+              <div className="pt-2 border-t border-gray-100 flex justify-between text-sm font-bold text-gray-800">
+                <span>รวมทั้งหมด</span>
+                <span className="text-orange-600">฿{fmt(totalPremium)} / ปี</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Premium Ratio vs Income */}
+        {sorted.length > 0 && annualIncome > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-100">
+              <h3 className="text-sm font-extrabold text-gray-800">สัดส่วนเบี้ยต่อรายได้</h3>
+              <p className="text-[10px] text-gray-400">เบี้ยประกันรวมเทียบกับรายได้ต่อปี</p>
+            </div>
+            <div className="px-4 py-3 space-y-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-gray-500">เบี้ยรวม/ปี</span>
+                <span className="font-bold text-orange-600">฿{fmt(totalPremium)}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-gray-500">รายได้ต่อปี</span>
+                <span className="font-bold text-gray-700">฿{fmt(annualIncome)}</span>
+              </div>
+              <div className="h-4 bg-gray-100 rounded-full overflow-hidden mt-1">
+                <div
+                  className={`h-full rounded-full transition-all ${
+                    premiumRatioPct <= 10
+                      ? "bg-emerald-500"
+                      : premiumRatioPct <= 15
+                      ? "bg-amber-500"
+                      : "bg-red-500"
+                  }`}
+                  style={{ width: `${Math.min(premiumRatioPct * 5, 100)}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-[10px] mt-0.5">
+                <span className="text-gray-400">0%</span>
+                <span
+                  className={`font-bold ${
+                    premiumRatioPct <= 10
+                      ? "text-emerald-600"
+                      : premiumRatioPct <= 15
+                      ? "text-amber-600"
+                      : "text-red-600"
+                  }`}
+                >
+                  {premiumRatioPct.toFixed(1)}% ของรายได้
+                </span>
+                <span className="text-gray-400">20%+</span>
+              </div>
+              <div
+                className={`mt-1 text-[10px] rounded-lg p-2 ${
+                  premiumRatioPct <= 10
+                    ? "bg-emerald-50 text-emerald-700"
+                    : premiumRatioPct <= 15
+                    ? "bg-amber-50 text-amber-700"
+                    : "bg-red-50 text-red-700"
+                }`}
+              >
+                {premiumRatioPct <= 10
+                  ? "✅ สัดส่วนเบี้ยอยู่ในเกณฑ์ดี (แนะนำไม่เกิน 10–15% ของรายได้)"
+                  : premiumRatioPct <= 15
+                  ? "⚠️ สัดส่วนเบี้ยอยู่ในเกณฑ์ปานกลาง ควรทบทวน"
+                  : "🚨 สัดส่วนเบี้ยสูงเกินไป ควรทบทวนความคุ้มค่า"}
+              </div>
             </div>
           </div>
         )}

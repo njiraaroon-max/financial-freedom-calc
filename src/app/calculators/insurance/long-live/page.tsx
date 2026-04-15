@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Landmark, Coins, TrendingUp, Calendar } from "lucide-react";
+import { Landmark, Coins, TrendingUp, BarChart2 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { useInsuranceStore } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
@@ -99,7 +99,7 @@ export default function LongLivePage() {
       if (e.kind === "annuity") { ages.push(e.startAge, e.endAge); }
       else { ages.push(e.age); }
     });
-    return { tlMin: Math.min(...ages), tlMax: Math.max(...ages) + 2 };
+    return { tlMin: Math.min(...ages), tlMax: Math.max(...ages) };
   }, [events, currentAge]);
   const tlRange = Math.max(tlMax - tlMin, 1);
 
@@ -113,6 +113,32 @@ export default function LongLivePage() {
     });
     return { totalLump, totalDiv, totalAnnuity, grandTotal: totalLump + totalDiv + totalAnnuity };
   }, [events]);
+
+  // ─── Bar chart data — year-by-year cashflow ────────────────────────
+  const barData = useMemo(() => {
+    if (events.length === 0) return [];
+    const byAge = new Map<number, { endowment: number; annuity: number }>();
+
+    events.forEach((e) => {
+      if (e.kind === "lump" || e.kind === "dividend") {
+        const r = byAge.get(e.age) || { endowment: 0, annuity: 0 };
+        r.endowment += e.amount;
+        byAge.set(e.age, r);
+      } else if (e.kind === "annuity") {
+        for (let a = e.startAge; a <= e.endAge; a++) {
+          const r = byAge.get(a) || { endowment: 0, annuity: 0 };
+          r.annuity += e.perYear;
+          byAge.set(a, r);
+        }
+      }
+    });
+
+    return Array.from(byAge.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([age, d]) => ({ age, endowment: d.endowment, annuity: d.annuity, total: d.endowment + d.annuity }));
+  }, [events]);
+
+  const barMax = barData.length > 0 ? Math.max(...barData.map((r) => r.total)) : 1;
 
   const hasData = endowmentPolicies.length > 0 || annuityPolicies.length > 0;
 
@@ -350,91 +376,64 @@ export default function LongLivePage() {
               </div>
             )}
 
-            {/* ── Combined Timeline ────────────────────────────────────────── */}
-            {events.length > 0 && (
+            {/* ── Bar Chart ────────────────────────────────────────────────── */}
+            {barData.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm p-4 mx-1 space-y-3">
                 <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-                  <Calendar size={14} className="text-indigo-600" />
-                  Timeline รวม (อายุ {tlMin}–{tlMax} ปี)
+                  <BarChart2 size={14} className="text-indigo-600" />
+                  ผลตอบแทนรายปี (แยกตามอายุ)
                 </h3>
 
-                <div className="space-y-3">
-                  {/* Age axis labels */}
-                  <div className="flex justify-between text-[8px] text-gray-400 px-0.5">
-                    <span>{tlMin}</span>
-                    <span>{Math.round((tlMin + tlMax) / 2)}</span>
-                    <span>{tlMax}</span>
-                  </div>
-                  <div className="h-px bg-gray-200" />
+                {/* Y-axis label */}
+                <div className="text-[9px] text-gray-400">สูงสุด {barMax >= 1_000_000 ? `${(barMax / 1_000_000).toFixed(1)}M` : `${Math.round(barMax / 1000)}K`} บาท</div>
 
-                  {/* Endowment bars */}
-                  {endowmentPolicies.map((p) => {
-                    const startYear   = p.startDate ? new Date(p.startDate).getFullYear() : currentYear;
-                    const startAge    = startYear - birthYear;
-                    const maturityAge = getEndowmentMaturityAge(p);
-                    if (maturityAge <= 0) return null;
-                    const d = p.endowmentDetails;
-
-                    const barLeft  = Math.max(0, (startAge - tlMin) / tlRange * 100);
-                    const barWidth = Math.min((maturityAge - startAge) / tlRange * 100, 100 - barLeft);
-
-                    return (
-                      <div key={p.id}>
-                        <div className="flex items-center gap-2 mb-1">
-                          <div className="w-2 h-2 rounded-full bg-purple-400 shrink-0" />
-                          <span className="text-[9px] text-gray-600 truncate">{p.planName || "สะสมทรัพย์"}</span>
-                        </div>
-                        <div className="h-5 bg-gray-50 rounded-full relative overflow-visible">
-                          {/* payment bar */}
-                          <div className="absolute h-full bg-purple-200 rounded-full"
-                            style={{ left: `${barLeft}%`, width: `${barWidth}%` }} />
-                          {/* maturity dot */}
-                          <div className="absolute top-0 w-5 h-5 bg-purple-500 rounded-full border-2 border-white shadow flex items-center justify-center"
-                            style={{ left: `calc(${(maturityAge - tlMin) / tlRange * 100}% - 10px)` }}>
-                            <span className="text-[7px] text-white font-bold">฿</span>
+                {/* Chart scroll container */}
+                <div className="overflow-x-auto pb-1">
+                  <div style={{ minWidth: `${barData.length * 26}px` }}>
+                    {/* Bars */}
+                    <div className="flex items-end gap-px" style={{ height: 120 }}>
+                      {barData.map((row) => {
+                        const totalH  = Math.max((row.total / barMax) * 100, row.total > 0 ? 2 : 0);
+                        const annuityPct = row.total > 0 ? (row.annuity / row.total) * totalH : 0;
+                        const endowPct   = totalH - annuityPct;
+                        return (
+                          <div key={row.age} className="flex-1 flex flex-col justify-end" style={{ minWidth: 20 }}>
+                            <div className="w-full flex flex-col rounded-t-sm overflow-hidden">
+                              {endowPct > 0 && (
+                                <div className="w-full bg-purple-500" style={{ height: `${endowPct / 100 * 120}px` }} />
+                              )}
+                              {annuityPct > 0 && (
+                                <div className="w-full bg-indigo-400" style={{ height: `${annuityPct / 100 * 120}px` }} />
+                              )}
+                            </div>
                           </div>
-                          {/* dividend dots */}
-                          {d?.dividends?.map((dv, i) => {
-                            const dvAge = startAge + dv.year;
-                            return (
-                              <div key={i} className="absolute top-1 w-3 h-3 bg-purple-400 rounded-full border border-white"
-                                style={{ left: `calc(${(dvAge - tlMin) / tlRange * 100}% - 6px)` }} />
-                            );
-                          })}
+                        );
+                      })}
+                    </div>
+
+                    {/* X-axis line */}
+                    <div className="h-px bg-gray-300 w-full" />
+
+                    {/* X-axis labels (age) */}
+                    <div className="flex gap-px mt-1">
+                      {barData.map((row) => (
+                        <div key={row.age} className="flex-1 text-center text-[8px] text-gray-400 leading-none" style={{ minWidth: 20 }}>
+                          {row.age % 5 === 0 ? row.age : ""}
                         </div>
-                      </div>
-                    );
-                  })}
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
-                  {/* Annuity bars */}
-                  {annuityPolicies.map((p) => {
-                    const d = p.annuityDetails;
-                    const startAge = d?.payoutStartAge || 60;
-                    const endAge   = d?.payoutEndAge && d.payoutEndAge > 0 ? d.payoutEndAge : 99;
-
-                    const barLeft  = Math.max(0, (startAge - tlMin) / tlRange * 100);
-                    const barWidth = Math.min((endAge - startAge + 1) / tlRange * 100, 100 - barLeft);
-
-                    return (
-                      <div key={p.id}>
-                        <div className="flex items-center gap-2 mb-1">
-                          <div className="w-2 h-2 rounded-full bg-indigo-400 shrink-0" />
-                          <span className="text-[9px] text-gray-600 truncate">{p.planName || "บำนาญ"}</span>
-                        </div>
-                        <div className="h-5 bg-gray-50 rounded-full overflow-hidden relative">
-                          <div className="absolute h-full bg-indigo-400 rounded-full"
-                            style={{ left: `${barLeft}%`, width: `${barWidth}%` }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {/* Legend */}
-                  <div className="flex flex-wrap gap-3 pt-1 text-[9px] text-gray-500">
-                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-purple-200" />ระยะชำระเบี้ย</div>
-                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-purple-500 flex items-center justify-center"><span className="text-[6px] text-white">฿</span></div>รับเงินก้อน</div>
-                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-purple-400" />เงินปันผล</div>
-                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-indigo-400" />รับบำนาญ</div>
+                {/* Legend */}
+                <div className="flex flex-wrap gap-4 text-[9px] text-gray-500 pt-1">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-sm bg-purple-500" />
+                    <span>เงินก้อน / ปันผล (สะสมทรัพย์)</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-sm bg-indigo-400" />
+                    <span>เงินบำนาญ (รายปี)</span>
                   </div>
                 </div>
               </div>
