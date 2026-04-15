@@ -12,7 +12,6 @@ import {
   futureValue,
   calcRetirementFund,
   calcInvestmentPlan,
-  calcTotalSpecialCapital,
 } from "@/types/retirement";
 
 function fmt(n: number): string {
@@ -54,15 +53,10 @@ export default function InvestmentPlanPage() {
   const basicMonthlyFV = futureValue(totalBasicMonthly, a.generalInflation, yearsToRetire);
   const basicRetireFund = calcRetirementFund(basicMonthlyFV, a.postRetireReturn, a.generalInflation, yearsAfterRetire, a.residualFund);
 
-  const totalSpecialFV = calcTotalSpecialCapital(
-    store.specialExpenses,
-    a.currentAge,
-    a.retireAge,
-    a.lifeExpectancy,
-    a.generalInflation,
-    a.postRetireReturn,
-    store.caretakerParams.extraYearsBeyondLife ?? 0,
-  );
+  const totalSpecialFV = store.specialExpenses.reduce((sum, e) => {
+    const rate = e.inflationRate ?? a.generalInflation;
+    return sum + futureValue(e.amount, rate, yearsToRetire);
+  }, 0);
 
   const totalRetireFund = basicRetireFund + totalSpecialFV;
   const totalSavingFund = store.savingFunds.reduce((sum, f) => sum + f.value, 0);

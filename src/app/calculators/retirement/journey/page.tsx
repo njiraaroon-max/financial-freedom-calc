@@ -163,55 +163,44 @@ export default function WealthJourneyPage() {
       return sum + (f.value || 0);
     }, 0);
 
-    // ─── Special expenses — derive from source calculators when available ───
-    // se1 (health) → use pillar-2 premium brackets if set (one annual item per bracket)
-    // se2 (caretaker) → use caretakerParams if monthlyRate > 0
-    // Fall back to values in retire.specialExpenses if source data missing.
+    // ─── Special expenses for Wealth Journey ───
+    // se1 (health) → ดึงจาก pillar-2 premium brackets (annual stream)
+    // se2 (caretaker) → ดึงจาก caretakerParams (annual stream)
+    // อื่นๆ (se3/se4/se5/custom) → lump ณ วันเกษียณ
     const pillar2 = insurance.riskManagement.pillar2;
     const brackets = pillar2.premiumBrackets || [];
     const hasBrackets = brackets.some((b) => b.annualPremium > 0);
     const caretaker = retire.caretakerParams;
     const hasCaretakerSource = (caretaker.monthlyRate || 0) > 0;
 
-    const nonSe1Se2 = retire.specialExpenses.filter(
-      (s) => s.id !== "se1" && s.id !== "se2",
-    );
+    const specialExpensesDerived: WealthProjectionInputs["specialExpenses"] = [];
 
-    const specialExpensesDerived: WealthProjectionInputs["specialExpenses"] = [
-      // Other special expenses (se3, se4, se5, custom) — copy as-is
-      ...nonSe1Se2.map((s) => ({
+    // se3/se4/se5/custom → lump at retireAge (ใช้ inflationRate ของรายการนั้น)
+    for (const s of retire.specialExpenses) {
+      if (s.id === "se1" || s.id === "se2") continue;
+      if (s.amount <= 0) continue;
+      specialExpensesDerived.push({
         amount: s.amount,
         inflationRate: s.inflationRate ?? a.generalInflation,
-        kind: (s.kind ?? "annual") as "annual" | "lump",
-        startAge: s.startAge,
-      })),
-    ];
+        kind: "lump",
+      });
+    }
 
-    // Health (se1) from brackets — no inflation (brackets already absolute values)
+    // Health (se1) — ใช้ brackets จาก Pillar 2 ถ้ามี (annual stream per bracket)
     if (hasBrackets) {
       for (const b of brackets) {
         if (b.annualPremium <= 0) continue;
         specialExpensesDerived.push({
           amount: b.annualPremium,
-          inflationRate: 0,
+          inflationRate: 0, // brackets already absolute per-age
           kind: "annual",
           startAge: b.ageFrom,
           endAge: b.ageTo,
         });
       }
-    } else {
-      const se1 = retire.specialExpenses.find((s) => s.id === "se1");
-      if (se1 && se1.amount > 0) {
-        specialExpensesDerived.push({
-          amount: se1.amount,
-          inflationRate: se1.inflationRate ?? a.generalInflation,
-          kind: (se1.kind ?? "annual") as "annual" | "lump",
-          startAge: se1.startAge,
-        });
-      }
     }
 
-    // Caretaker (se2) from caretakerParams — annual × probability, inflation from params
+    // Caretaker (se2) — annual stream จาก caretakerParams
     if (hasCaretakerSource) {
       const annualCaretaker =
         (caretaker.monthlyRate || 0) * 12 * (caretaker.probability ?? 1);
@@ -221,16 +210,6 @@ export default function WealthJourneyPage() {
           inflationRate: caretaker.inflationRate ?? 0.05,
           kind: "annual",
           startAge: caretaker.caretakerStartAge ?? 75,
-        });
-      }
-    } else {
-      const se2 = retire.specialExpenses.find((s) => s.id === "se2");
-      if (se2 && se2.amount > 0) {
-        specialExpensesDerived.push({
-          amount: se2.amount,
-          inflationRate: se2.inflationRate ?? a.generalInflation,
-          kind: (se2.kind ?? "annual") as "annual" | "lump",
-          startAge: se2.startAge,
         });
       }
     }

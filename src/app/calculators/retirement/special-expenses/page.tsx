@@ -6,9 +6,10 @@ import { Save, Plus, Trash2, Info, Download, CheckCircle2, ExternalLink, X, Hear
 import { useRetirementStore } from "@/store/retirement-store";
 import { useProfileStore } from "@/store/profile-store";
 import { useInsuranceStore } from "@/store/insurance-store";
+import { useVariableStore } from "@/store/variable-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
-import { DEFAULT_SPECIAL_EXPENSES, calcTotalSpecialCapital, calcSpecialExpenseCapital } from "@/types/retirement";
+import { futureValue, DEFAULT_SPECIAL_EXPENSES } from "@/types/retirement";
 import type { SpecialExpenseItem } from "@/types/retirement";
 
 function fmt(n: number): string {
@@ -31,7 +32,7 @@ const INFLATION_HINTS: { label: string; rate: number }[] = [
 // ─── Icon + description metadata for summary table ───
 const ITEM_META: Record<string, { icon: React.ElementType; desc: string }> = {
   se1: { icon: HeartPulse, desc: "เบี้ยประกันสุขภาพหลังเกษียณ · เงินเฟ้อ {rate} × {years} ปี" },
-  se2: { icon: HandHelping, desc: "ค่าคนดูแล · เริ่มอายุ {startAge} · เงินเฟ้อ {rate}/ปี" },
+  se2: { icon: HandHelping, desc: "NPV ค่าคนดูแล (คิดเงินเฟ้อ + discount แล้ว)" },
   se3: { icon: Plane, desc: "ท่องเที่ยว/สันทนาการ · เงินเฟ้อ {rate} × {years} ปี" },
   se4: { icon: Home, desc: "ซ่อมแซม/ต่อเติมที่อยู่อาศัย · เงินเฟ้อ {rate} × {years} ปี" },
   se5: { icon: Car, desc: "ยานพาหนะ/ค่าบำรุงรักษา · เงินเฟ้อ {rate} × {years} ปี" },
@@ -41,6 +42,7 @@ export default function SpecialExpensesPage() {
   const store = useRetirementStore();
   const profile = useProfileStore();
   const insuranceStore = useInsuranceStore();
+  const { variables } = useVariableStore();
   const a = store.assumptions;
   const [hasSaved, setHasSaved] = useState(false);
   const [showInflation, setShowInflation] = useState<string | null>(null);
@@ -87,68 +89,52 @@ export default function SpecialExpensesPage() {
     setLastDeleted(null);
   };
 
-  // ─── Average annual premium from Pillar 2 (Risk Management) ─────────────
-  // เดิมใช้ NPV แต่ผู้ใช้งงว่าทำไมเป็น "ก้อนเดียว" → เปลี่ยนเป็น "เบี้ยเฉลี่ย/ปี"
-  // คำนวณจาก premium brackets: (Σ annualPremium × years) / totalYears ตั้งแต่ retireAge ถึง endAge
-  const pillar2Premium = useMemo(() => {
+  // ─── NPV of health premium from Pillar 2 (Risk Management) ────────────
+  // คำนวณ NPV ของเบี้ยประกันสุขภาพทั้งหมดตั้งแต่ retireAge → lifeExp+extra
+  // discount กลับมาที่ retireAge ด้วย postRetireReturn
+  const pillar2NPV = useMemo(() => {
     const p2 = insuranceStore.riskManagement.pillar2;
     const brackets = p2.premiumBrackets || [];
-    if (brackets.length === 0) return { avgAnnual: 0, hasData: false };
+    if (brackets.length === 0) return { npv: 0, hasData: false };
     const retireAge = p2.useProfileRetireAge ? (profile.retireAge || 60) : (p2.customRetireAge || 60);
     const lifeExpectancy = a.lifeExpectancy || 85;
     const extraYears = Math.max(0, p2.premiumExtraYears || 0);
     const endAge = Math.max(lifeExpectancy + extraYears, retireAge);
-    let totalPremium = 0;
-    let totalYears = 0;
+    const discountRate = (p2.postRetireReturn ?? 4) / 100;
+    let npv = 0;
     for (let age = retireAge; age <= endAge; age++) {
       const bracket = brackets.find((b) => age >= b.ageFrom && age <= b.ageTo);
       const premium = bracket?.annualPremium || 0;
       if (premium > 0) {
-        totalPremium += premium;
-        totalYears++;
+        const yearsFromRetire = age - retireAge;
+        npv += discountRate > 0 ? premium / Math.pow(1 + discountRate, yearsFromRetire) : premium;
       }
     }
-    const avgAnnual = totalYears > 0 ? Math.round(totalPremium / totalYears) : 0;
-    return { avgAnnual, hasData: avgAnnual > 0 };
+    return { npv: Math.round(npv), hasData: npv > 0 };
   }, [insuranceStore.riskManagement.pillar2, profile, a.lifeExpectancy]);
 
   const handlePullFromPillar2 = (id: string) => {
-    if (!pillar2Premium.hasData) return;
-    // ดึง "เบี้ยเฉลี่ยรายปี" → Wealth Journey คำนวณเงินเฟ้อตามอัตราสุขภาพเอง
-    store.updateSpecialExpense(id, pillar2Premium.avgAnnual);
-    store.updateSpecialExpenseInflation(id, 0.07); // default health inflation
-    store.updateSpecialExpenseKind(id, "annual");
-    store.updateSpecialExpenseStartAge(id, undefined); // เริ่มที่ retireAge
+    if (!pillar2NPV.hasData) return;
+    // NPV ถูก discount ณ retireAge แล้ว → set inflation = 0 กัน double-compound
+    store.updateSpecialExpense(id, pillar2NPV.npv);
+    store.updateSpecialExpenseInflation(id, 0);
     setPulledId(id);
     setTimeout(() => setPulledId(null), 2500);
   };
 
-  // ─── Caretaker — ค่าดูแลรายปีที่เริ่มอายุ 75 (ตามอัตราเงินเฟ้อที่ตั้งไว้) ──
-  // เดิมดึง NPV (lump) ตอน retire แต่ผู้ใช้อยากเห็น "ค่าดูแลรายปี × เงินเฟ้อ" ในช่วงอายุ 75+
-  const caretakerAnnual = useMemo(() => {
-    const p = store.caretakerParams;
-    const monthly = p?.monthlyRate || 0;
-    const prob = p?.probability ?? 1;
-    const annual = Math.round(monthly * 12 * prob);
-    return {
-      annual,
-      hasData: annual > 0,
-      startAge: p?.caretakerStartAge || 75,
-      inflationRate: p?.inflationRate ?? 0.05,
-    };
-  }, [store.caretakerParams]);
+  // ─── Caretaker NPV (from calculator variable store) ──────────────────────────
+  const caretakerNPV = useMemo(() => {
+    const v = variables["caretaker_npv"];
+    return { npv: v?.value || 0, hasData: !!v && v.value > 0 };
+  }, [variables]);
 
   const handlePullFromCaretaker = (id: string) => {
-    // Read directly from store to avoid stale closure
-    const p = useRetirementStore.getState().caretakerParams;
-    const monthly = p?.monthlyRate || 0;
-    const prob = p?.probability ?? 1;
-    const annual = Math.round(monthly * 12 * prob);
-    if (annual <= 0) return;
-    store.updateSpecialExpense(id, annual);
-    store.updateSpecialExpenseInflation(id, p?.inflationRate ?? 0.05);
-    store.updateSpecialExpenseKind(id, "annual");
-    store.updateSpecialExpenseStartAge(id, p?.caretakerStartAge || 75);
+    const v = useVariableStore.getState().variables["caretaker_npv"];
+    const npv = v?.value || 0;
+    if (npv <= 0) return;
+    store.updateSpecialExpense(id, npv);
+    // NPV จากเครื่องคำนวณเป็นมูลค่า ณ วันเกษียณแล้ว → set inflation = 0
+    store.updateSpecialExpenseInflation(id, 0);
     setPulledId(id);
     setTimeout(() => setPulledId(null), 2500);
   };
@@ -164,20 +150,14 @@ export default function SpecialExpensesPage() {
   const yearsToRetire = Math.max(a.retireAge - a.currentAge, 0);
   const yearsAfterRetire = Math.max(a.lifeExpectancy - a.retireAge, 0);
 
-  // ค่าใช้จ่ายพิเศษ — รวมทุนที่ต้องเตรียม ณ วันเกษียณ
-  // - lump = FV(amount, inflation, yearsToRetire)
-  // - annual = NPV annuity จาก startAge ถึง endAge (ค่าเริ่มต้น = lifeExpectancy)
-  const totalSpecialFV = calcTotalSpecialCapital(
-    store.specialExpenses,
-    a.currentAge,
-    a.retireAge,
-    a.lifeExpectancy,
-    a.generalInflation,
-    a.postRetireReturn,
-    store.caretakerParams.extraYearsBeyondLife ?? 0,
-  );
+  // ค่าใช้จ่ายพิเศษ = เงินก้อน ปรับ FV ด้วยเงินเฟ้อแต่ละรายการ แล้วรวมกัน
+  // NPV items (se1/se2 ที่ดึงจากเครื่องคำนวณ) จะ set inflation = 0 → FV = amount
+  const totalSpecialFV = store.specialExpenses.reduce((sum, e) => {
+    const rate = e.inflationRate ?? a.generalInflation;
+    return sum + futureValue(e.amount, rate, yearsToRetire);
+  }, 0);
 
-  // ทุนเกษียณ (B)
+  // ทุนเกษียณ (B) = รวมเงินก้อนทั้งหมด ณ วันเกษียณ
   const specialRetireFund = totalSpecialFV;
 
   const handleSave = () => {
@@ -265,15 +245,7 @@ export default function SpecialExpensesPage() {
           <div className="space-y-3">
             {store.specialExpenses.map((item) => {
               const rate = item.inflationRate ?? a.generalInflation;
-              const fv = calcSpecialExpenseCapital(
-                item,
-                a.currentAge,
-                a.retireAge,
-                a.lifeExpectancy,
-                a.generalInflation,
-                a.postRetireReturn,
-                store.caretakerParams.extraYearsBeyondLife ?? 0,
-              );
+              const fv = futureValue(item.amount, rate, yearsToRetire);
               return (
                 <div key={item.id} className="bg-gray-50 rounded-xl p-3">
                   <div className="flex items-center gap-2 mb-2">
@@ -331,65 +303,6 @@ export default function SpecialExpensesPage() {
                       </button>
                     ))}
                   </div>
-                  {/* Kind selector — annual vs lump (for Wealth Journey post-retire cashflow) */}
-                  <div className="flex items-center gap-1 mt-1.5">
-                    <span className="text-[10px] text-gray-400 mr-1">ลักษณะจ่าย:</span>
-                    <button
-                      onClick={() => store.updateSpecialExpenseKind(item.id, "annual")}
-                      className={`px-2 py-0.5 rounded-full text-[10px] transition ${
-                        (item.kind ?? "annual") === "annual"
-                          ? "bg-purple-500 text-white font-bold"
-                          : "bg-gray-200 text-gray-500 hover:bg-gray-300"
-                      }`}
-                      title="จ่ายทุกปีหลังเกษียณ เช่น เบี้ยประกันสุขภาพ ท่องเที่ยว ค่าคนดูแล"
-                    >
-                      รายปี
-                    </button>
-                    <button
-                      onClick={() => store.updateSpecialExpenseKind(item.id, "lump")}
-                      className={`px-2 py-0.5 rounded-full text-[10px] transition ${
-                        item.kind === "lump"
-                          ? "bg-purple-500 text-white font-bold"
-                          : "bg-gray-200 text-gray-500 hover:bg-gray-300"
-                      }`}
-                      title="จ่ายก้อนเดียว ณ วันเกษียณ เช่น ซ่อมบ้าน ซื้อรถ"
-                    >
-                      ก้อนเดียว
-                    </button>
-                  </div>
-                  {/* startAge selector — only for annual items */}
-                  {(item.kind ?? "annual") === "annual" && (
-                    <div className="flex items-center gap-1 mt-1.5 flex-wrap">
-                      <span className="text-[10px] text-gray-400 mr-1">เริ่มจ่ายอายุ:</span>
-                      <input
-                        type="number"
-                        value={item.startAge ?? a.retireAge}
-                        onChange={(e) => {
-                          const v = Number(e.target.value);
-                          if (!Number.isFinite(v) || v <= 0) return;
-                          // ถ้าเท่ากับ retireAge → clear (ใช้ default)
-                          store.updateSpecialExpenseStartAge(
-                            item.id,
-                            v === a.retireAge ? undefined : v,
-                          );
-                        }}
-                        className="w-14 text-[10px] font-semibold bg-white rounded-md px-2 py-0.5 outline-none focus:ring-2 focus:ring-purple-400 text-center border border-gray-200"
-                      />
-                      <span className="text-[10px] text-gray-400">ปี</span>
-                      {item.startAge !== undefined && item.startAge !== a.retireAge && (
-                        <button
-                          onClick={() => store.updateSpecialExpenseStartAge(item.id, undefined)}
-                          className="text-[10px] text-gray-400 hover:text-purple-600 underline-offset-2 hover:underline"
-                          title={`รีเซ็ตเป็น ${a.retireAge} (อายุเกษียณ)`}
-                        >
-                          รีเซ็ต
-                        </button>
-                      )}
-                      <span className="text-[10px] text-gray-300 ml-1">
-                        (default: {a.retireAge})
-                      </span>
-                    </div>
-                  )}
                   {/* FV preview */}
                   {item.amount > 0 && (
                     <div className="text-[10px] text-gray-400 mt-1">
@@ -400,8 +313,8 @@ export default function SpecialExpensesPage() {
                   {item.id === "se1" && (
                     <div className="mt-2 pt-2 border-t border-gray-200 flex items-center justify-between gap-2 flex-wrap">
                       <span className="text-[10px] text-gray-500">
-                        {pillar2Premium.hasData
-                          ? <>เบี้ยเฉลี่ย/ปี: <b className="text-teal-700">฿{fmt(pillar2Premium.avgAnnual)}</b></>
+                        {pillar2NPV.hasData
+                          ? <>NPV จาก Risk Management: <b className="text-teal-700">฿{fmt(pillar2NPV.npv)}</b></>
                           : <span className="text-gray-400">ยังไม่มีข้อมูลเบี้ยใน Risk Management</span>}
                       </span>
                       <div className="flex items-center gap-2">
@@ -413,12 +326,12 @@ export default function SpecialExpensesPage() {
                         </Link>
                         <button
                           onClick={() => handlePullFromPillar2(item.id)}
-                          disabled={!pillar2Premium.hasData}
-                          title="ดึงเบี้ยประกันสุขภาพเฉลี่ยรายปี (จาก premium brackets ที่กรอกไว้)"
+                          disabled={!pillar2NPV.hasData}
+                          title="ดึง NPV เบี้ยประกันสุขภาพ (คิด discount กลับมาที่ retireAge แล้ว)"
                           className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
                             pulledId === item.id
                               ? "bg-emerald-500 text-white"
-                              : pillar2Premium.hasData
+                              : pillar2NPV.hasData
                                 ? "bg-teal-500 text-white hover:bg-teal-600 active:scale-95"
                                 : "bg-gray-100 text-gray-300 cursor-not-allowed"
                           }`}
@@ -426,24 +339,19 @@ export default function SpecialExpensesPage() {
                           {pulledId === item.id ? (
                             <><CheckCircle2 size={11} /> ดึงแล้ว</>
                           ) : (
-                            <><Download size={11} /> ดึงเบี้ยเฉลี่ย/ปี</>
+                            <><Download size={11} /> ดึงจาก Risk Management</>
                           )}
                         </button>
                       </div>
                     </div>
                   )}
-                  {/* Pull from Caretaker calculator — pulls annual rate + startAge */}
+                  {/* Pull from Caretaker calculator (NPV) */}
                   {item.id === "se2" && (
                     <div className="mt-2 pt-2 border-t border-gray-200 flex items-center justify-between gap-2 flex-wrap">
                       <span className="text-[10px] text-gray-500">
-                        {caretakerAnnual.hasData ? (
-                          <>
-                            ค่าดูแล/ปี: <b className="text-pink-600">฿{fmt(caretakerAnnual.annual)}</b>
-                            <span className="text-gray-400"> · เริ่มอายุ {caretakerAnnual.startAge}</span>
-                          </>
-                        ) : (
-                          <span className="text-gray-400">ยังไม่ได้ตั้งค่าคนดูแล</span>
-                        )}
+                        {caretakerNPV.hasData
+                          ? <>NPV จากเครื่องคำนวณ: <b className="text-pink-600">฿{fmt(caretakerNPV.npv)}</b></>
+                          : <span className="text-gray-400">ยังไม่ได้คำนวณค่าคนดูแล</span>}
                       </span>
                       <div className="flex items-center gap-2">
                         <Link
@@ -454,12 +362,12 @@ export default function SpecialExpensesPage() {
                         </Link>
                         <button
                           onClick={() => handlePullFromCaretaker(item.id)}
-                          disabled={!caretakerAnnual.hasData}
-                          title="ดึงค่าดูแลรายปี + อายุเริ่ม → Wealth Journey คำนวณเงินเฟ้อเองตามช่วงอายุ"
+                          disabled={!caretakerNPV.hasData}
+                          title="ดึง NPV ค่าคนดูแล (คิด discount กลับมาที่ retireAge แล้ว)"
                           className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
                             pulledId === item.id
                               ? "bg-emerald-500 text-white"
-                              : caretakerAnnual.hasData
+                              : caretakerNPV.hasData
                                 ? "bg-pink-500 text-white hover:bg-pink-600 active:scale-95"
                                 : "bg-gray-100 text-gray-300 cursor-not-allowed"
                           }`}
@@ -467,7 +375,7 @@ export default function SpecialExpensesPage() {
                           {pulledId === item.id ? (
                             <><CheckCircle2 size={11} /> ดึงแล้ว</>
                           ) : (
-                            <><Download size={11} /> ดึงค่าดูแล/ปี</>
+                            <><Download size={11} /> ดึงจากเครื่องคำนวณ</>
                           )}
                         </button>
                       </div>
@@ -494,21 +402,12 @@ export default function SpecialExpensesPage() {
           <div className="divide-y divide-gray-100">
             {store.specialExpenses.map((item) => {
               const rate = item.inflationRate ?? a.generalInflation;
-              const fv = calcSpecialExpenseCapital(
-                item,
-                a.currentAge,
-                a.retireAge,
-                a.lifeExpectancy,
-                a.generalInflation,
-                a.postRetireReturn,
-                store.caretakerParams.extraYearsBeyondLife ?? 0,
-              );
+              const fv = futureValue(item.amount, rate, yearsToRetire);
               const meta = ITEM_META[item.id] || { icon: Sparkles, desc: "ค่าใช้จ่ายพิเศษเพิ่มเติม" };
               const Icon = meta.icon;
               const descText = meta.desc
                 .replace("{rate}", `${(rate * 100).toFixed(0)}%`)
-                .replace("{years}", `${yearsToRetire}`)
-                .replace("{startAge}", `${item.startAge ?? a.retireAge}`);
+                .replace("{years}", `${yearsToRetire}`);
               return (
                 <div key={item.id} className="flex items-stretch">
                   <div className="w-14 shrink-0 flex items-center justify-center bg-[#1e3a5f]/5 border-r border-gray-100">
