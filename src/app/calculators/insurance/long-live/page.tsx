@@ -416,11 +416,9 @@ export default function LongLivePage() {
             {endowmentPolicies.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm p-4 mx-1 space-y-3">
                 <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-[10px] font-bold flex items-center justify-center">
-                    {endowmentPolicies.length}
-                  </span>
                   <Coins size={14} className="text-purple-600" />
                   กรมธรรม์สะสมทรัพย์
+                  <span className="text-[10px] font-medium text-purple-500">{endowmentPolicies.length} เล่ม</span>
                 </h3>
 
                 {endowmentPolicies.map((p) => {
@@ -488,11 +486,9 @@ export default function LongLivePage() {
             {annuityPolicies.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm p-4 mx-1 space-y-3">
                 <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-indigo-500 text-white text-[10px] font-bold flex items-center justify-center">
-                    {annuityPolicies.length}
-                  </span>
                   <TrendingUp size={14} className="text-indigo-600" />
                   กรมธรรม์บำนาญ
+                  <span className="text-[10px] font-medium text-indigo-500">{annuityPolicies.length} เล่ม</span>
                 </h3>
 
                 {annuityPolicies.map((p) => {
