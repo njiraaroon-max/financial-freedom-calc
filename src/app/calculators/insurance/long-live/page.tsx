@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Landmark, Coins, TrendingUp, BarChart2 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { useInsuranceStore } from "@/store/insurance-store";
@@ -14,6 +14,196 @@ function fmtShort(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${Math.round(n / 1000)}K`;
   return fmt(n);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SVG Bar Chart — same axis style as InsuranceCharts.tsx
+// ═══════════════════════════════════════════════════════════════════════════════
+function LongLiveBarChart({
+  barData,
+  birthYear,
+}: {
+  barData: { age: number; endowment: number; annuity: number; total: number }[];
+  birthYear: number;
+}) {
+  const [hoverAge, setHoverAge] = useState<number | null>(null);
+  if (barData.length === 0) return null;
+
+  const BE_OFFSET = 543;
+  const yearColW = 16;
+  const padL = 44;
+  const padR = 12;
+  const padT = 20;
+  const chartH = 160;
+  const axisH = 80;
+  const barW = 6;
+
+  const barMax = Math.max(...barData.map((r) => r.total), 1);
+  const minAge = barData[0].age;
+  const maxAge = barData[barData.length - 1].age;
+
+  // Full age range for axis (include every year)
+  const allAges: number[] = [];
+  for (let a = minAge; a <= maxAge; a++) allAges.push(a);
+
+  const chartW = (maxAge - minAge + 1) * yearColW;
+  const svgW = padL + chartW + padR;
+  const svgH = padT + chartH + axisH;
+
+  const xPos = (age: number) => padL + (age - minAge) * yearColW + yearColW / 2;
+  const yVal = (val: number) => padT + chartH - (val / barMax) * chartH;
+
+  const ySteps = 4;
+  const yTicks = Array.from({ length: ySteps + 1 }, (_, i) => (barMax / ySteps) * i);
+
+  const hoveredBar = hoverAge !== null ? barData.find((d) => d.age === hoverAge) ?? null : null;
+
+  return (
+    <div className="overflow-x-auto">
+      <svg width={svgW} height={svgH} style={{ minWidth: svgW, display: "block" }}>
+
+        {/* ─── Y grid + labels ─────────────────────────────────────── */}
+        {yTicks.map((v, i) => (
+          <g key={i}>
+            <line x1={padL} y1={yVal(v)} x2={padL + chartW} y2={yVal(v)}
+              stroke={i === 0 ? "#d1d5db" : "#f0f0f0"} strokeWidth={i === 0 ? 1 : 0.5} />
+            <text x={padL - 4} y={yVal(v) + 3} textAnchor="end" fontSize={8} fill="#9ca3af">
+              {fmtShort(v)}
+            </text>
+          </g>
+        ))}
+
+        {/* ─── X axis ticks + dual labels (พ.ศ. / อายุ) ──────────── */}
+        {allAges.map((age) => {
+          const isMajor = age % 10 === 0;
+          const isMinor = age % 5 === 0;
+          const showLabel = isMajor || isMinor;
+          const cx = xPos(age);
+          return (
+            <g key={age}>
+              {isMajor && (
+                <line x1={cx} y1={padT} x2={cx} y2={padT + chartH}
+                  stroke="#e5e7eb" strokeWidth={1} />
+              )}
+              <line x1={cx} y1={padT + chartH}
+                x2={cx} y2={padT + chartH + (isMajor ? 8 : isMinor ? 5 : 3)}
+                stroke={isMajor ? "#6b7280" : "#d1d5db"}
+                strokeWidth={isMajor ? 1.5 : 0.5} />
+              {showLabel && (
+                <>
+                  <g transform={`translate(${cx},${padT + chartH + 12}) rotate(90)`}>
+                    <text x={0} y={4} fontSize={8}
+                      fill={isMajor ? "#4b5563" : "#9ca3af"}
+                      fontWeight={isMajor ? "700" : "400"}>
+                      {birthYear + age + BE_OFFSET}
+                    </text>
+                  </g>
+                  <g transform={`translate(${cx},${padT + chartH + 44}) rotate(90)`}>
+                    <text x={0} y={4} fontSize={8}
+                      fill={isMajor ? "#3b82f6" : "#93c5fd"}
+                      fontWeight={isMajor ? "700" : "400"}>
+                      {age}
+                    </text>
+                  </g>
+                </>
+              )}
+            </g>
+          );
+        })}
+
+        {/* ─── Bars ────────────────────────────────────────────────── */}
+        {barData.map((row) => {
+          const cx = xPos(row.age);
+          const bx = cx - barW / 2;
+          const annuityH = (row.annuity / barMax) * chartH;
+          const endowH   = (row.endowment / barMax) * chartH;
+          const totalH   = annuityH + endowH;
+          const isHov = hoverAge === row.age;
+
+          return (
+            <g key={row.age}>
+              {/* Hover column highlight */}
+              {isHov && (
+                <rect x={cx - yearColW / 2} y={padT} width={yearColW} height={chartH} fill="#eef2ff" />
+              )}
+              {/* Endowment (purple) — top segment */}
+              {endowH > 0 && (
+                <rect x={bx} y={padT + chartH - totalH} width={barW} height={endowH}
+                  fill={isHov ? "#9333ea" : "#a855f7"} rx={2} />
+              )}
+              {/* Annuity (indigo) — bottom segment */}
+              {annuityH > 0 && (
+                <rect x={bx} y={padT + chartH - annuityH} width={barW} height={annuityH}
+                  fill={isHov ? "#4f46e5" : "#818cf8"} rx={2} />
+              )}
+              {/* Invisible hover hit area */}
+              <rect
+                x={cx - yearColW / 2} y={padT}
+                width={yearColW} height={chartH}
+                fill="transparent"
+                onMouseEnter={() => setHoverAge(row.age)}
+                onMouseLeave={() => setHoverAge(null)}
+                style={{ cursor: "crosshair" }}
+              />
+            </g>
+          );
+        })}
+
+        {/* ─── Tooltip ─────────────────────────────────────────────── */}
+        {hoveredBar && (() => {
+          const cx = xPos(hoverAge!);
+          const lines = ([
+            hoveredBar.endowment > 0
+              ? { label: "สะสมทรัพย์", val: hoveredBar.endowment, color: "#a855f7" }
+              : null,
+            hoveredBar.annuity > 0
+              ? { label: "บำนาญ",      val: hoveredBar.annuity,   color: "#818cf8" }
+              : null,
+          ] as ({ label: string; val: number; color: string } | null)[]).filter(Boolean) as { label: string; val: number; color: string }[];
+
+          const hasTwo = lines.length > 1;
+          const ttW = 152;
+          const ttH = 22 + lines.length * 18 + (hasTwo ? 24 : 0);
+          const tx = cx + ttW + 16 > svgW ? cx - ttW - 8 : cx + 10;
+          const ty = Math.max(padT, Math.min(padT + chartH - ttH, padT + chartH / 2 - ttH / 2));
+
+          return (
+            <g>
+              <line x1={cx} y1={padT} x2={cx} y2={padT + chartH}
+                stroke="#1e3a5f" strokeWidth={1} strokeDasharray="3,2" opacity={0.35} />
+              <rect x={tx} y={ty} width={ttW} height={ttH} rx={7}
+                fill="white" stroke="#e5e7eb" strokeWidth={1}
+                style={{ filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.10))" }} />
+              <text x={tx + 10} y={ty + 15} fontSize={9} fill="#6b7280" fontWeight="500">
+                พ.ศ.{birthYear + hoverAge! + BE_OFFSET} · อายุ {hoverAge}
+              </text>
+              {lines.map((l, i) => (
+                <g key={i}>
+                  <rect x={tx + 10} y={ty + 23 + i * 18} width={7} height={7} rx={1.5} fill={l.color} />
+                  <text x={tx + 22} y={ty + 31 + i * 18} fontSize={9} fill="#374151">{l.label}</text>
+                  <text x={tx + ttW - 10} y={ty + 31 + i * 18} fontSize={9}
+                    fill={l.color} fontWeight="700" textAnchor="end">
+                    ฿{fmtShort(l.val)}
+                  </text>
+                </g>
+              ))}
+              {hasTwo && (
+                <g>
+                  <line x1={tx + 10} y1={ty + ttH - 20} x2={tx + ttW - 10} y2={ty + ttH - 20}
+                    stroke="#f3f4f6" strokeWidth={1} />
+                  <text x={tx + 10} y={ty + ttH - 6} fontSize={9} fill="#111827" fontWeight="bold">รวม</text>
+                  <text x={tx + ttW - 10} y={ty + ttH - 6} fontSize={10}
+                    fill="#1e3a5f" fontWeight="bold" textAnchor="end">
+                    ฿{fmtShort(hoveredBar.total)}
+                  </text>
+                </g>
+              )}
+            </g>
+          );
+        })()}
+      </svg>
+    </div>
+  );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -137,8 +327,6 @@ export default function LongLivePage() {
       .sort(([a], [b]) => a - b)
       .map(([age, d]) => ({ age, endowment: d.endowment, annuity: d.annuity, total: d.endowment + d.annuity }));
   }, [events]);
-
-  const barMax = barData.length > 0 ? Math.max(...barData.map((r) => r.total)) : 1;
 
   const hasData = endowmentPolicies.length > 0 || annuityPolicies.length > 0;
 
@@ -378,55 +566,16 @@ export default function LongLivePage() {
 
             {/* ── Bar Chart ────────────────────────────────────────────────── */}
             {barData.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-sm p-4 mx-1 space-y-3">
+              <div className="bg-white rounded-2xl shadow-sm p-4 mx-1 space-y-2">
                 <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
                   <BarChart2 size={14} className="text-indigo-600" />
                   ผลตอบแทนรายปี (แยกตามอายุ)
                 </h3>
 
-                {/* Y-axis label */}
-                <div className="text-[9px] text-gray-400">สูงสุด {barMax >= 1_000_000 ? `${(barMax / 1_000_000).toFixed(1)}M` : `${Math.round(barMax / 1000)}K`} บาท</div>
-
-                {/* Chart scroll container */}
-                <div className="overflow-x-auto pb-1">
-                  <div style={{ minWidth: `${barData.length * 26}px` }}>
-                    {/* Bars */}
-                    <div className="flex items-end gap-px" style={{ height: 120 }}>
-                      {barData.map((row) => {
-                        const totalH  = Math.max((row.total / barMax) * 100, row.total > 0 ? 2 : 0);
-                        const annuityPct = row.total > 0 ? (row.annuity / row.total) * totalH : 0;
-                        const endowPct   = totalH - annuityPct;
-                        return (
-                          <div key={row.age} className="flex-1 flex flex-col justify-end" style={{ minWidth: 20 }}>
-                            <div className="w-full flex flex-col rounded-t-sm overflow-hidden">
-                              {endowPct > 0 && (
-                                <div className="w-full bg-purple-500" style={{ height: `${endowPct / 100 * 120}px` }} />
-                              )}
-                              {annuityPct > 0 && (
-                                <div className="w-full bg-indigo-400" style={{ height: `${annuityPct / 100 * 120}px` }} />
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* X-axis line */}
-                    <div className="h-px bg-gray-300 w-full" />
-
-                    {/* X-axis labels (age) */}
-                    <div className="flex gap-px mt-1">
-                      {barData.map((row) => (
-                        <div key={row.age} className="flex-1 text-center text-[8px] text-gray-400 leading-none" style={{ minWidth: 20 }}>
-                          {row.age % 5 === 0 ? row.age : ""}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                <LongLiveBarChart barData={barData} birthYear={birthYear} />
 
                 {/* Legend */}
-                <div className="flex flex-wrap gap-4 text-[9px] text-gray-500 pt-1">
+                <div className="flex flex-wrap gap-4 text-[9px] text-gray-500 pt-1 border-t border-gray-50">
                   <div className="flex items-center gap-1.5">
                     <div className="w-3 h-3 rounded-sm bg-purple-500" />
                     <span>เงินก้อน / ปันผล (สะสมทรัพย์)</span>
