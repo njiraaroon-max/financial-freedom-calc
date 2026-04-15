@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus, Trash2, UserCircle, FolderOpen, Save } from "lucide-react";
 import { useClientManagerStore } from "@/store/client-manager-store";
+import { toast } from "@/store/toast-store";
 import PageHeader from "@/components/PageHeader";
 
 function formatDate(iso: string): string {
@@ -40,7 +41,7 @@ export default function ClientsPage() {
   const handleSaveCurrent = () => {
     if (activeClientId) {
       updateClient(activeClientId);
-      alert("บันทึกข้อมูลUserเรียบร้อย!");
+      toast.success("บันทึกข้อมูล User เรียบร้อย");
     }
   };
 

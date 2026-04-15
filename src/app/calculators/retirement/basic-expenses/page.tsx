@@ -8,6 +8,7 @@ import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 import RetirementDiagram from "@/components/retirement/RetirementDiagram";
 import { useCashFlowStore } from "@/store/cashflow-store";
+import { toast } from "@/store/toast-store";
 import { futureValue, calcRetirementFund } from "@/types/retirement";
 
 function fmt(n: number): string {
@@ -63,7 +64,7 @@ export default function BasicExpensesPage() {
     if (essentialItems.length > 0) {
       store.loadBasicExpensesFromCF(0, essentialItems);
     } else {
-      alert("ยังไม่มีรายจ่ายจำเป็นใน Cash Flow กรุณากรอกและบันทึกก่อน");
+      toast.warning("ยังไม่มีรายจ่ายจำเป็นใน Cash Flow กรุณากรอกและบันทึกก่อน");
     }
   };
 

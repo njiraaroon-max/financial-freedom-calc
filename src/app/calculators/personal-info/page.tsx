@@ -6,6 +6,7 @@ import { useProfileStore, OCCUPATION_OPTIONS, MARITAL_OPTIONS } from "@/store/pr
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 import ThaiDatePicker from "@/components/ThaiDatePicker";
+import { confirmDialog } from "@/components/ConfirmDialog";
 import type { OccupationType, MaritalStatus } from "@/store/profile-store";
 
 function fmt(n: number): string {
@@ -368,8 +369,16 @@ export default function PersonalInfoPage() {
 
         <ActionButton
           label="ล้างข้อมูลทั้งหมด (Reset)"
-          onClick={() => {
-            if (confirm("ต้องการล้างข้อมูลทั้งหมดของลูกค้านี้ใช่ไหม?\n\nข้อมูลที่จะถูกล้าง:\n• ข้อมูลส่วนตัว\n• งบกระแสเงินสด\n• งบดุล\n• แผนเกษียณ\n• ตัวแปรที่บันทึกไว้\n\nข้อมูลจะกลับเป็นค่าเริ่มต้นทั้งหมด")) {
+          onClick={async () => {
+            const ok = await confirmDialog({
+              title: "ล้างข้อมูลทั้งหมดของลูกค้านี้?",
+              message:
+                "ข้อมูลที่จะถูกล้าง:\n• ข้อมูลส่วนตัว\n• งบกระแสเงินสด\n• งบดุล\n• แผนเกษียณ\n• ตัวแปรที่บันทึกไว้\n\nข้อมูลจะกลับเป็นค่าเริ่มต้นทั้งหมด และไม่สามารถย้อนกลับได้",
+              confirmText: "ล้างข้อมูล",
+              cancelText: "ยกเลิก",
+              variant: "danger",
+            });
+            if (ok) {
               const storeKeys = ["ffc-profile", "ffc-cashflow", "ffc-balance-sheet", "ffc-retirement", "ffc-variables", "ffc-goals"];
               storeKeys.forEach((key) => localStorage.removeItem(key));
               window.location.reload();

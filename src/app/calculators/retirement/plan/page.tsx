@@ -10,6 +10,7 @@ import PageHeader from "@/components/PageHeader";
 import { useVariableStore } from "@/store/variable-store";
 import { useProfileStore } from "@/store/profile-store";
 import { useCashFlowStore } from "@/store/cashflow-store";
+import { toast } from "@/store/toast-store";
 import {
   futureValue,
   calcRetirementFund,
@@ -204,7 +205,7 @@ export default function RetirementPlanPage() {
     setVariable({ key: "retire_invest_at_retire", label: "พอร์ตลงทุน ณ วันเกษียณ", value: investAtRetire, source: "retirement" });
     markStepCompleted("retirement_plan");
     markStepCompleted("investment_plan");
-    alert("บันทึกเรียบร้อยแล้ว!");
+    toast.success("บันทึกเรียบร้อยแล้ว");
   };
 
   const StepHeader = ({ step, title, subtitle }: { step: number; title: string; subtitle?: string }) => {

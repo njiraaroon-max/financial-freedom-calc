@@ -6,6 +6,7 @@ import { useBalanceSheetStore } from "@/store/balance-sheet-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 import { useVariableStore } from "@/store/variable-store";
+import { confirmDialog } from "@/components/ConfirmDialog";
 import { ASSET_CATEGORIES, LIABILITY_CATEGORIES } from "@/types/balance-sheet";
 import type { AssetCategory, LiabilityCategory } from "@/types/balance-sheet";
 import BalanceSheetItemRow from "@/components/BalanceSheetItemRow";
@@ -252,10 +253,15 @@ export default function BalanceSheetPage() {
         />
         <ActionButton
           label="ล้างข้อมูลทั้งหมด"
-          onClick={() => {
-            if (confirm("ต้องการล้างข้อมูลงบดุลทั้งหมดใช่ไหม?\nข้อมูลที่กรอกไว้จะหายทั้งหมด")) {
-              clearAll();
-            }
+          onClick={async () => {
+            const ok = await confirmDialog({
+              title: "ล้างข้อมูลงบดุลทั้งหมด?",
+              message: "ข้อมูลที่กรอกไว้จะหายทั้งหมด การกระทำนี้ไม่สามารถย้อนกลับได้",
+              confirmText: "ล้างข้อมูล",
+              cancelText: "ยกเลิก",
+              variant: "danger",
+            });
+            if (ok) clearAll();
           }}
           variant="danger"
           icon={<Trash2 size={16} />}

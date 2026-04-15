@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import ToastContainer from "@/components/ToastContainer";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 export const metadata: Metadata = {
   title: "Financial Friend Calculator",
@@ -36,7 +38,11 @@ export default function RootLayout({
         <meta name="theme-color" content="#6366f1" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        {children}
+        <ToastContainer />
+        <ConfirmDialog />
+      </body>
     </html>
   );
 }

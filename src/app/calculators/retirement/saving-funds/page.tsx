@@ -6,6 +6,7 @@ import { useRetirementStore } from "@/store/retirement-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 import { useVariableStore } from "@/store/variable-store";
+import { toast } from "@/store/toast-store";
 
 function fmt(n: number): string {
   return Math.round(n).toLocaleString("th-TH");
@@ -36,7 +37,7 @@ export default function SavingFundsPage() {
       }
     });
     if (pulled === 0) {
-      alert("ยังไม่มีค่าจากเครื่องคิดเลข กรุณาคำนวณ PVD / ประกันสังคม / เงินชดเชย ก่อน");
+      toast.warning("ยังไม่มีค่าจากเครื่องคิดเลข กรุณาคำนวณ PVD / ประกันสังคม / เงินชดเชย ก่อน");
     }
   };
 

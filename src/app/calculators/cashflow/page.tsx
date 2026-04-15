@@ -6,6 +6,7 @@ import { useCashFlowStore } from "@/store/cashflow-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 import { useVariableStore } from "@/store/variable-store";
+import { confirmDialog } from "@/components/ConfirmDialog";
 import { useProfileStore } from "@/store/profile-store";
 import { MONTH_NAMES_TH, INCOME_TAX_CATEGORIES, EXPENSE_CATEGORIES, DEBT_REPAYMENT_OPTIONS } from "@/types/cashflow";
 import type { IncomeTaxCategory, ExpenseCategory, DebtRepaymentType } from "@/types/cashflow";
@@ -479,8 +480,15 @@ export default function CashFlowPage() {
         />
         <ActionButton
           label="ล้างข้อมูลทั้งหมด"
-          onClick={() => {
-            if (confirm("ต้องการล้างข้อมูล Cash Flow ทั้งหมดใช่ไหม?\nข้อมูลที่กรอกไว้จะหายทั้งหมด")) {
+          onClick={async () => {
+            const ok = await confirmDialog({
+              title: "ล้างข้อมูล Cash Flow ทั้งหมด?",
+              message: "ข้อมูลที่กรอกไว้จะหายทั้งหมด การกระทำนี้ไม่สามารถย้อนกลับได้",
+              confirmText: "ล้างข้อมูล",
+              cancelText: "ยกเลิก",
+              variant: "danger",
+            });
+            if (ok) {
               clearAll();
               setTaggedItems(new Set());
             }

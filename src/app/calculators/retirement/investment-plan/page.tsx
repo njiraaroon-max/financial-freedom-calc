@@ -7,6 +7,7 @@ import { useProfileStore } from "@/store/profile-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 import { useVariableStore } from "@/store/variable-store";
+import { toast } from "@/store/toast-store";
 import {
   futureValue,
   calcRetirementFund,
@@ -77,7 +78,7 @@ export default function InvestmentPlanPage() {
     setVariable({ key: "retire_invest_at_retire", label: "พอร์ตลงทุน ณ วันเกษียณ", value: investAtRetire, source: "retirement" });
     markStepCompleted("investment_plan");
     setSaved(true);
-    alert("บันทึกเรียบร้อยแล้ว!");
+    toast.success("บันทึกเรียบร้อยแล้ว");
   };
 
   // ---- Chart rendering ----
