@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Download, Save, ChevronDown, ChevronUp, Receipt } from "lucide-react";
+import { Download, Save, ChevronDown, ChevronUp, Receipt, Shield } from "lucide-react";
 import { useTaxStore } from "@/store/tax-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 import { useCashFlowStore } from "@/store/cashflow-store";
 import { useVariableStore } from "@/store/variable-store";
+import { useInsuranceStore } from "@/store/insurance-store";
+import { toast } from "@/store/toast-store";
 import {
   calcExpenseDeductions,
   calcTaxFromNetIncome,
@@ -210,6 +212,45 @@ export default function TaxPage() {
     });
   };
 
+  const pullFromInsurance = () => {
+    const policies = useInsuranceStore.getState().policies;
+
+    // Life / Endowment / Term → d11 (max 100,000)
+    const lifeTotal = policies
+      .filter((p) => ["whole_life", "endowment", "term"].includes(p.policyType))
+      .reduce((s, p) => s + p.premium, 0);
+
+    // Health (life & non-life) → d12 (max 25,000)
+    const healthTotal = policies
+      .filter((p) => p.policyType === "health" || p.policyType === "nonlife_health")
+      .reduce((s, p) => s + p.premium, 0);
+
+    // Annuity → d14 (15% of income, max 200,000)
+    const annuityTotal = policies
+      .filter((p) => p.policyType === "annuity")
+      .reduce((s, p) => s + p.premium, 0);
+
+    if (lifeTotal + healthTotal + annuityTotal === 0) {
+      toast.warning("ยังไม่มีกรมธรรม์ในแผนประกัน กรุณาเพิ่มกรมธรรม์ก่อน");
+      return;
+    }
+
+    const income = useTaxStore.getState().incomes.reduce((s, i) => s + i.amount, 0);
+    const lifeDeductible = Math.min(lifeTotal, 100000);
+    const healthDeductible = Math.min(healthTotal, 25000);
+    const annuityCap = income > 0 ? Math.min(income * 0.15, 200000) : 200000;
+    const annuityDeductible = Math.min(annuityTotal, annuityCap);
+
+    store.updateDeduction("d11", "beforeAmount", lifeDeductible);
+    store.updateDeduction("d11", "afterAmount", lifeDeductible);
+    store.updateDeduction("d12", "beforeAmount", healthDeductible);
+    store.updateDeduction("d12", "afterAmount", healthDeductible);
+    store.updateDeduction("d14", "beforeAmount", annuityDeductible);
+    store.updateDeduction("d14", "afterAmount", annuityDeductible);
+
+    toast.success("ดึงค่าลดหย่อนจากแผนประกันแล้ว");
+  };
+
   const handleSave = () => {
     setVariable({ key: "annual_tax_before", label: "ภาษีเงินได้ (Before)", value: totalTaxBefore, source: "tax" });
     setVariable({ key: "annual_tax_after", label: "ภาษีเงินได้ (After)", value: totalTaxAfter, source: "tax" });
@@ -250,6 +291,15 @@ export default function TaxPage() {
         >
           <Download size={14} />
           ดึงข้อมูลจาก Cash Flow
+        </button>
+
+        {/* Pull from Insurance button */}
+        <button
+          onClick={pullFromInsurance}
+          className="w-full py-2.5 rounded-xl bg-purple-50 text-purple-600 text-xs font-medium hover:bg-purple-100 transition flex items-center justify-center gap-1"
+        >
+          <Shield size={14} />
+          ดึงค่าลดหย่อนจากแผนประกัน
         </button>
 
         {/* ===== Section 1: เงินได้พึงประเมิน ===== */}

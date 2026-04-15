@@ -7,6 +7,7 @@ import { useInsuranceStore, DEFAULT_ANNUITY_DETAILS } from "@/store/insurance-st
 import { useProfileStore } from "@/store/profile-store";
 import { useRetirementStore } from "@/store/retirement-store";
 import { useVariableStore } from "@/store/variable-store";
+import { useTaxStore } from "@/store/tax-store";
 import { toast } from "@/store/toast-store";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -192,6 +193,19 @@ export default function Pillar4Page() {
     });
     setPensionSaved(true);
     toast.success("บันทึก NPV ประกันบำนาญแล้ว");
+  };
+
+  const handlePushToTax = () => {
+    const taxS = useTaxStore.getState();
+    taxS.updateDeduction("d11", "beforeAmount", taxAnalysis.lifeDeductible);
+    taxS.updateDeduction("d11", "afterAmount", taxAnalysis.lifeDeductible);
+    taxS.updateDeduction("d12", "beforeAmount", taxAnalysis.healthDeductible);
+    taxS.updateDeduction("d12", "afterAmount", taxAnalysis.healthDeductible);
+    taxS.updateDeduction("d13", "beforeAmount", taxAnalysis.parentHealthDeductible);
+    taxS.updateDeduction("d13", "afterAmount", taxAnalysis.parentHealthDeductible);
+    taxS.updateDeduction("d14", "beforeAmount", taxAnalysis.pensionDeductible);
+    taxS.updateDeduction("d14", "afterAmount", taxAnalysis.pensionDeductible);
+    toast.success("ส่งค่าลดหย่อนไปแผนภาษีแล้ว");
   };
 
   const handleSave = () => {
@@ -411,6 +425,20 @@ export default function Pillar4Page() {
               )}
             </div>
           </div>
+
+          {/* Push to Tax planning */}
+          <button
+            onClick={handlePushToTax}
+            disabled={taxAnalysis.totalDeductible === 0}
+            className={`w-full py-2.5 rounded-xl text-xs font-medium transition flex items-center justify-center gap-1.5 ${
+              taxAnalysis.totalDeductible === 0
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-purple-50 text-purple-600 hover:bg-purple-100"
+            }`}
+          >
+            <TrendingDown size={13} />
+            ส่งค่าลดหย่อนไปวางแผนภาษี
+          </button>
 
           {/* Unused deduction opportunities */}
           {(taxAnalysis.unusedLifeHealth > 0 || taxAnalysis.unusedPension > 0) && (
