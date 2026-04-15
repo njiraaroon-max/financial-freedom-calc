@@ -26,6 +26,7 @@ export interface SpecialExpenseItem {
   amount: number;                 // มูลค่าปัจจุบัน (PV)
   inflationRate?: number;         // ใช้เงินเฟ้อตัวไหน (default = general)
   kind?: SpecialExpenseKind;      // "annual" = จ่ายทุกปี, "lump" = จ่ายครั้งเดียวตอนเกษียณ
+  startAge?: number;              // อายุที่เริ่มจ่าย (ใช้กับ kind="annual" เท่านั้น; default = retireAge)
 }
 
 // ===== Saving Fund Source =====
@@ -115,7 +116,7 @@ export const DEFAULT_BASIC_EXPENSES: RetirementExpenseItem[] = [
 
 export const DEFAULT_SPECIAL_EXPENSES: SpecialExpenseItem[] = [
   { id: "se1", name: "เบี้ยประกันสุขภาพหลังเกษียณ", amount: 0, inflationRate: 0.07, kind: "annual" },
-  { id: "se2", name: "ค่าคนดูแลยามเกษียณ", amount: 0, kind: "lump" },
+  { id: "se2", name: "ค่าคนดูแลยามเกษียณ", amount: 0, inflationRate: 0.05, kind: "annual", startAge: 75 },
   { id: "se3", name: "ท่องเที่ยวและสันทนาการ", amount: 0, kind: "annual" },
   { id: "se4", name: "ซ่อมแซมที่อยู่อาศัย", amount: 0, kind: "lump" },
   { id: "se5", name: "รถยนต์", amount: 0, kind: "lump" },

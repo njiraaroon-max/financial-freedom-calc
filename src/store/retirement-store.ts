@@ -55,6 +55,7 @@ interface RetirementState {
   updateSpecialExpenseName: (id: string, name: string) => void;
   updateSpecialExpenseInflation: (id: string, rate: number) => void;
   updateSpecialExpenseKind: (id: string, kind: SpecialExpenseKind) => void;
+  updateSpecialExpenseStartAge: (id: string, startAge: number | undefined) => void;
   removeSpecialExpense: (id: string) => void;
   restoreSpecialExpense: (item: SpecialExpenseItem, index?: number) => void;
   restoreDefaultSpecialExpenses: () => void;
@@ -179,6 +180,12 @@ export const useRetirementStore = create<RetirementState>()(
         set((s) => ({
           specialExpenses: s.specialExpenses.map((e) => (e.id === id ? { ...e, kind } : e)),
         })),
+      updateSpecialExpenseStartAge: (id, startAge) =>
+        set((s) => ({
+          specialExpenses: s.specialExpenses.map((e) =>
+            e.id === id ? { ...e, startAge } : e,
+          ),
+        })),
       removeSpecialExpense: (id) =>
         set((s) => ({ specialExpenses: s.specialExpenses.filter((e) => e.id !== id) })),
       restoreSpecialExpense: (item, index) =>
@@ -291,7 +298,7 @@ export const useRetirementStore = create<RetirementState>()(
     }),
     {
       name: "ffc-retirement",
-      version: 6,
+      version: 7,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       migrate: (persisted: any, version: number) => {
         if (persisted?.savingFunds) {
@@ -325,7 +332,7 @@ export const useRetirementStore = create<RetirementState>()(
           // Canonical defaults for se1..se5
           const defaultKindById: Record<string, "annual" | "lump"> = {
             se1: "annual",  // health premium
-            se2: "lump",    // caretaker NPV
+            se2: "lump",    // caretaker NPV (legacy — v7 switches empty se2 to annual)
             se3: "annual",  // travel budget
             se4: "lump",    // home repair
             se5: "lump",    // car purchase
@@ -334,6 +341,19 @@ export const useRetirementStore = create<RetirementState>()(
           persisted.specialExpenses.forEach((e: any) => {
             if (e && e.kind === undefined) {
               e.kind = defaultKindById[e.id] ?? "lump"; // safe default for custom items
+            }
+          });
+        }
+        // v7: switch se2 (caretaker) default to annual+startAge=75 for users who
+        // haven't entered data yet. Preserve existing amounts/kinds for users
+        // who already pulled NPV (amount > 0) — they can re-pull for new format.
+        if (persisted?.specialExpenses && Array.isArray(persisted.specialExpenses)) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          persisted.specialExpenses.forEach((e: any) => {
+            if (e && e.id === "se2" && (!e.amount || e.amount === 0)) {
+              e.kind = "annual";
+              e.inflationRate = 0.05;
+              e.startAge = 75;
             }
           });
         }

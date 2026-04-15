@@ -182,6 +182,7 @@ export default function WealthJourneyPage() {
         amount: s.amount,
         inflationRate: s.inflationRate ?? a.generalInflation,
         kind: s.kind ?? "annual",
+        startAge: s.startAge,
       })),
       ssMonthlyPension: ss.monthlyPension,
       ssStartAge: a.retireAge,
@@ -312,6 +313,7 @@ export default function WealthJourneyPage() {
                 label="โอกาสสำเร็จ"
                 value={`${(mcResult.successRate * 100).toFixed(0)}%`}
                 subtext={`จาก ${mcResult.simulations.toLocaleString()} simulations`}
+                tooltip="% simulation ที่เงินยังไม่หมดถึงอายุเป้าหมาย (life expectancy) — ยิ่งสูงยิ่งปลอดภัย ควร ≥85%"
                 color={
                   mcResult.successRate >= 0.85
                     ? "from-emerald-400 to-emerald-600"
@@ -326,6 +328,7 @@ export default function WealthJourneyPage() {
                 value={`${mcResult.depletionAges.p10} ปี`}
                 subtext="10% ที่แย่สุด"
                 color="from-red-400 to-red-600"
+                tooltip="อายุที่เงินจะหมดใน 10% กรณีที่แย่ที่สุด (ผลตอบแทนต่ำ) — ถ้าต่ำกว่า life expectancy ควรเพิ่ม safety margin"
               />
               <StatCard
                 icon={Dices}
@@ -333,6 +336,7 @@ export default function WealthJourneyPage() {
                 value={`${mcResult.depletionAges.p50} ปี`}
                 subtext="median"
                 color="from-pink-400 to-pink-600"
+                tooltip="ค่ากลาง (median) ของอายุที่เงินหมด — 50% ของ simulations อยู่รอบค่านี้"
               />
               <StatCard
                 icon={ShieldCheck}
@@ -340,6 +344,7 @@ export default function WealthJourneyPage() {
                 value={`${mcResult.depletionAges.p90} ปี`}
                 subtext="10% ที่ดีสุด"
                 color="from-emerald-400 to-emerald-600"
+                tooltip="อายุที่เงินยังเหลือใน 10% กรณีที่ดีที่สุด (ผลตอบแทนสูง)"
               />
             </>
           ) : (
@@ -350,6 +355,7 @@ export default function WealthJourneyPage() {
                 value={fmtCurrency(summary.peakBalance)}
                 subtext={`อายุ ${summary.peakAge} ปี`}
                 color="from-amber-400 to-yellow-500"
+                tooltip="ยอดเงินสูงสุดในช่วงชีวิต — ปกติเกิดรอบวันเกษียณก่อนเริ่มถอนใช้"
               />
               <StatCard
                 icon={TrendingUp}
@@ -357,6 +363,7 @@ export default function WealthJourneyPage() {
                 value={fmtCurrency(summary.totalReturns)}
                 subtext="ตลอดอายุ"
                 color="from-blue-400 to-blue-600"
+                tooltip="ผลตอบแทนสะสมจากดอกเบี้ย/การลงทุน ตลอดช่วง accumulation + decumulation"
               />
               <StatCard
                 icon={CircleDollarSign}
@@ -364,6 +371,7 @@ export default function WealthJourneyPage() {
                 value={fmtCurrency(summary.totalOutflows)}
                 subtext="หลังเกษียณ"
                 color="from-pink-400 to-pink-600"
+                tooltip="รวมค่าใช้จ่ายหลังเกษียณทั้งหมด (basic + special expenses ปรับเงินเฟ้อแล้ว)"
               />
               <StatCard
                 icon={summary.passesGoal ? ShieldCheck : AlertTriangle}
@@ -371,6 +379,7 @@ export default function WealthJourneyPage() {
                 value={`${summary.marginYears > 0 ? "+" : ""}${summary.marginYears} ปี`}
                 subtext={summary.passesGoal ? "ผ่านเป้า" : "ต่ำกว่าเป้า"}
                 color={summary.passesGoal ? "from-emerald-400 to-emerald-600" : "from-red-400 to-red-600"}
+                tooltip="ส่วนต่างระหว่างอายุที่เงินหมด กับ life expectancy (+ = เหลือ, − = ขาด)"
               />
             </>
           )}
@@ -507,7 +516,7 @@ export default function WealthJourneyPage() {
                     tickFormatter={(v) => fmtM(v)}
                     width={56}
                   />
-                  <Tooltip content={<ChartTooltip rows={baseResult.rows} />} />
+                  <Tooltip content={<ChartTooltip rows={baseResult.rows} retireAge={inputs.retireAge} lifeExpectancy={inputs.lifeExpectancy} />} />
                   <ReferenceLine
                     x={a.retireAge}
                     stroke="#F59E0B"
@@ -817,21 +826,43 @@ function StatCard({
   value,
   subtext,
   color,
+  tooltip,
 }: {
   icon: React.ElementType;
   label: string;
   value: string;
   subtext: string;
   color: string;
+  tooltip?: string;
 }) {
+  const [showTip, setShowTip] = useState(false);
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
-      <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center mb-2`}>
-        <Icon size={18} className="text-white" />
+    <div className="relative bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+      <div className="flex items-start justify-between">
+        <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center mb-2`}>
+          <Icon size={18} className="text-white" />
+        </div>
+        {tooltip && (
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowTip((v) => !v); }}
+            onMouseEnter={() => setShowTip(true)}
+            onMouseLeave={() => setShowTip(false)}
+            className="text-slate-300 hover:text-slate-500 transition"
+            aria-label="ข้อมูลเพิ่มเติม"
+          >
+            <Info size={14} />
+          </button>
+        )}
       </div>
       <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{label}</div>
       <div className="text-xl font-black text-[#0B1E3F] mt-0.5">{value}</div>
       <div className="text-[10px] text-slate-400 mt-0.5">{subtext}</div>
+      {tooltip && showTip && (
+        <div className="absolute top-10 right-3 z-20 w-56 bg-slate-900 text-white text-[10px] leading-relaxed rounded-lg shadow-xl p-2.5">
+          {tooltip}
+          <div className="absolute -top-1 right-3 w-2 h-2 bg-slate-900 rotate-45"></div>
+        </div>
+      )}
     </div>
   );
 }
@@ -886,25 +917,35 @@ interface TooltipRow {
   outflow: number;
   balanceEnd: number;
   phase: string;
+  returnRate: number;
 }
 
 function ChartTooltip({
   active,
   payload,
   rows,
+  retireAge,
+  lifeExpectancy,
 }: {
   active?: boolean;
   payload?: Array<{ payload: { age: number } }>;
   rows: TooltipRow[];
+  retireAge?: number;
+  lifeExpectancy?: number;
 }) {
   if (!active || !payload || payload.length === 0) return null;
   const age = payload[0].payload.age;
   const row = rows.find((r) => r.age === age);
   if (!row) return null;
 
+  const netChange = row.returnAmount + row.contribution + row.inflow - row.outflow;
+  const isRetireAge = retireAge !== undefined && age === retireAge;
+  const isLifeExp = lifeExpectancy !== undefined && age === lifeExpectancy;
+  const isDepleted = row.balanceEnd === 0 && row.phase === "decumulation";
+
   return (
-    <div className="bg-white/95 backdrop-blur border border-gray-200 rounded-xl shadow-lg p-3 text-[11px] min-w-[180px]">
-      <div className="font-bold text-[#0B1E3F] text-[12px] mb-2 flex items-center gap-1.5">
+    <div className="bg-white/95 backdrop-blur border border-gray-200 rounded-xl shadow-lg p-3 text-[11px] min-w-[210px] max-w-[260px]">
+      <div className="font-bold text-[#0B1E3F] text-[12px] mb-1 flex items-center gap-1.5">
         <span
           className={`w-2 h-2 rounded-full ${
             row.phase === "accumulation" ? "bg-blue-500" : "bg-pink-500"
@@ -915,18 +956,43 @@ function ChartTooltip({
           ({row.phase === "accumulation" ? "สะสม" : "ใช้จ่าย"})
         </span>
       </div>
+      {/* Phase / milestone hint */}
+      {isRetireAge && (
+        <div className="text-[9px] text-amber-700 bg-amber-50 rounded px-1.5 py-0.5 mb-1.5">
+          🎯 วันเกษียณ — รับเงินก้อน (PVD, Severance, Saving Funds)
+        </div>
+      )}
+      {isLifeExp && !isDepleted && (
+        <div className="text-[9px] text-emerald-700 bg-emerald-50 rounded px-1.5 py-0.5 mb-1.5">
+          🎯 อายุเป้าหมาย (Life Expectancy)
+        </div>
+      )}
+      {isDepleted && (
+        <div className="text-[9px] text-rose-700 bg-rose-50 rounded px-1.5 py-0.5 mb-1.5">
+          ⚠️ เงินหมดในปีนี้
+        </div>
+      )}
       <TooltipRow label="ยอดต้นปี" value={fmt(row.balanceStart)} color="text-slate-700" />
-      <TooltipRow label="ผลตอบแทน" value={`+${fmt(row.returnAmount)}`} color="text-emerald-600" />
+      <TooltipRow
+        label={`ผลตอบแทน (${(row.returnRate * 100).toFixed(1)}%)`}
+        value={`+${fmt(row.returnAmount)}`}
+        color="text-emerald-600"
+      />
       {row.contribution > 0 && (
-        <TooltipRow label="เงินสะสม" value={`+${fmt(row.contribution)}`} color="text-blue-600" />
+        <TooltipRow label="เงินสะสมเข้า" value={`+${fmt(row.contribution)}`} color="text-blue-600" />
       )}
       {row.inflow > 0 && (
-        <TooltipRow label="เงินเข้า" value={`+${fmt(row.inflow)}`} color="text-blue-600" />
+        <TooltipRow label="เงินเข้า (pension/ก้อน)" value={`+${fmt(row.inflow)}`} color="text-blue-600" />
       )}
       {row.outflow > 0 && (
-        <TooltipRow label="ใช้จ่าย" value={`−${fmt(row.outflow)}`} color="text-rose-600" />
+        <TooltipRow label="เงินออก (basic + special)" value={`−${fmt(row.outflow)}`} color="text-rose-600" />
       )}
-      <div className="border-t border-gray-100 mt-1.5 pt-1.5">
+      <div className="border-t border-gray-100 mt-1.5 pt-1.5 space-y-0.5">
+        <TooltipRow
+          label="สุทธิปีนี้"
+          value={`${netChange >= 0 ? "+" : ""}${fmt(netChange)}`}
+          color={netChange >= 0 ? "text-emerald-700" : "text-rose-700"}
+        />
         <TooltipRow
           label="ยอดปลายปี"
           value={fmt(row.balanceEnd)}

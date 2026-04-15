@@ -63,7 +63,9 @@ export default function InvestmentPlanPage() {
   const shortage = totalRetireFund - totalSavingFund;
 
   // ---- Investment plan projection ----
-  const investResult = calcInvestmentPlan(store.investmentPlans, a.currentAge, a.retireAge, 0);
+  // ใช้เงินออมเริ่มต้น (currentSavings) เป็นเงินต้น — เงินนี้จะเติบโตตาม expectedReturn ของแต่ละช่วง
+  const initialAmount = a.currentSavings || 0;
+  const investResult = calcInvestmentPlan(store.investmentPlans, a.currentAge, a.retireAge, initialAmount);
   const investAtRetire = investResult.length > 0 ? investResult[investResult.length - 1].baseCase : 0;
   const investAtRetireBad = investResult.length > 0 ? investResult[investResult.length - 1].badCase : 0;
   const investAtRetireGood = investResult.length > 0 ? investResult[investResult.length - 1].goodCase : 0;
@@ -412,6 +414,12 @@ export default function InvestmentPlanPage() {
             </div>
 
             <div className="bg-white/10 rounded-xl p-3 space-y-1.5 text-xs">
+              {initialAmount > 0 && (
+                <div className="flex justify-between">
+                  <span className="opacity-70">เงินต้น (จากสมมติฐาน)</span>
+                  <span className="font-bold">฿{fmt(initialAmount)}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="opacity-70">ทุนที่ต้องเตรียมเพิ่ม</span>
                 <span className="font-bold">฿{fmt(Math.max(shortage, 0))}</span>

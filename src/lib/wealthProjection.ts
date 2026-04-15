@@ -141,6 +141,7 @@ function buildRows(
       // Split annual vs lump special expenses
       const specialAnnual = specialExpenses
         .filter((s) => (s.kind ?? "annual") === "annual")
+        .filter((s) => age >= (s.startAge ?? retireAge))
         .reduce(
           (sum, s) =>
             sum + s.amount * Math.pow(1 + (s.inflationRate || generalInflation), yearsFromNow),
@@ -318,6 +319,7 @@ export function runMonteCarloProjection(
           inputs.basicMonthlyToday * 12 * Math.pow(1 + inputs.generalInflation, yearsFromNow);
         const specialAnnual = inputs.specialExpenses
           .filter((s) => (s.kind ?? "annual") === "annual")
+          .filter((s) => age >= (s.startAge ?? inputs.retireAge))
           .reduce(
             (sum, s) =>
               sum +

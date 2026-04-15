@@ -57,6 +57,7 @@ export interface WealthProjectionInputs {
     amount: number;                // PV
     inflationRate: number;         // per-item inflation
     kind: "annual" | "lump";       // annual = recurring yearly post-retire; lump = one-time at retireAge
+    startAge?: number;             // for kind="annual": first age to apply outflow (default = retireAge)
   }[];
 
   // post-retire inflows
