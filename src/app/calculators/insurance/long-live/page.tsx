@@ -278,17 +278,6 @@ export default function LongLivePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [endowmentPolicies, annuityPolicies, birthYear, currentYear]);
 
-  // ─── Timeline range ────────────────────────────────────────────────────
-  const { tlMin, tlMax } = useMemo(() => {
-    const ages: number[] = [currentAge];
-    events.forEach((e) => {
-      if (e.kind === "annuity") { ages.push(e.startAge, e.endAge); }
-      else { ages.push(e.age); }
-    });
-    return { tlMin: Math.min(...ages), tlMax: Math.max(...ages) };
-  }, [events, currentAge]);
-  const tlRange = Math.max(tlMax - tlMin, 1);
-
   // ─── Summary totals ────────────────────────────────────────────────────
   const { totalLump, totalDiv, totalAnnuity, grandTotal } = useMemo(() => {
     let totalLump = 0, totalDiv = 0, totalAnnuity = 0;
@@ -489,39 +478,6 @@ export default function LongLivePage() {
                         </div>
                       )}
 
-                      {/* Mini timeline bar */}
-                      {maturityAge > 0 && (
-                        <div>
-                          <div className="text-[9px] text-gray-400 mb-1">
-                            ระยะเวลา: อายุ {startYear - birthYear} → {maturityAge} ปี
-                          </div>
-                          <div className="h-4 bg-gray-100 rounded-full overflow-visible relative">
-                            <div
-                              className="absolute h-full bg-purple-200 rounded-full"
-                              style={{
-                                left: `${Math.max(0, (startYear - birthYear - tlMin) / tlRange * 100)}%`,
-                                width: `${Math.min((maturityAge - (startYear - birthYear)) / tlRange * 100, 100)}%`,
-                              }}
-                            />
-                            {/* Maturity marker */}
-                            <div
-                              className="absolute top-0 w-4 h-4 bg-purple-500 rounded-full border-2 border-white shadow"
-                              style={{ left: `calc(${(maturityAge - tlMin) / tlRange * 100}% - 8px)` }}
-                            />
-                            {/* Dividend markers */}
-                            {d?.dividends?.map((dv, i) => {
-                              const divAge = (startYear - birthYear) + dv.year;
-                              return (
-                                <div
-                                  key={i}
-                                  className="absolute top-0.5 w-3 h-3 bg-purple-400 rounded-full border border-white"
-                                  style={{ left: `calc(${(divAge - tlMin) / tlRange * 100}% - 6px)` }}
-                                />
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
                     </div>
                   );
                 })}
@@ -577,25 +533,6 @@ export default function LongLivePage() {
                         </div>
                       </div>
 
-                      {/* Payout timeline bar */}
-                      <div>
-                        <div className="text-[9px] text-gray-400 mb-1">
-                          ช่วงรับบำนาญ: อายุ {startAge}–{endAge} ปี ({years} ปี)
-                        </div>
-                        <div className="h-4 bg-gray-100 rounded-full overflow-hidden relative">
-                          <div
-                            className="absolute h-full bg-indigo-400 rounded-full"
-                            style={{
-                              left:  `${Math.max(0, (startAge - tlMin) / tlRange * 100)}%`,
-                              width: `${Math.min(years / tlRange * 100, 100)}%`,
-                            }}
-                          />
-                        </div>
-                        <div className="flex justify-between text-[8px] text-gray-400 mt-0.5 px-0.5">
-                          <span>อายุ {tlMin}</span>
-                          <span>อายุ {tlMax}</span>
-                        </div>
-                      </div>
                     </div>
                   );
                 })}
