@@ -916,7 +916,7 @@ export default function PortfolioDashboard() {
                   <div className="text-[10px] font-bold text-purple-700 uppercase">ข้อมูลบำนาญ</div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-[10px] text-gray-500 mb-0.5 block">จ่ายเงินตอนอายุ</label>
+                      <label className="text-[10px] text-gray-500 mb-0.5 block">เริ่มรับบำนาญอายุ</label>
                       <div className="flex items-center gap-1">
                         <input type="text" inputMode="numeric" value={form.annuityDetails.payoutStartAge || ""}
                           onChange={(e) => setForm({ ...form, annuityDetails: { ...form.annuityDetails, payoutStartAge: parseInt(e.target.value.replace(/[^0-9]/g, "")) || 0 } })}
@@ -933,6 +933,42 @@ export default function PortfolioDashboard() {
                           className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-purple-400 border border-gray-200 text-center font-bold" placeholder="120,000" />
                         <span className="text-[10px] text-gray-500">บาท</span>
                       </div>
+                    </div>
+                  </div>
+                  {/* กรมธรรม์จ่ายถึงอายุ */}
+                  <div>
+                    <label className="text-[10px] text-gray-500 mb-1 block">กรมธรรม์จ่ายถึงอายุ</label>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {[85, 90, 99].map((age) => (
+                        <button
+                          key={age}
+                          type="button"
+                          onClick={() => setForm({ ...form, annuityDetails: { ...form.annuityDetails, payoutEndAge: form.annuityDetails.payoutEndAge === age ? 0 : age } })}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            form.annuityDetails.payoutEndAge === age
+                              ? "bg-purple-500 text-white shadow"
+                              : "bg-white border border-gray-200 text-gray-500 hover:border-purple-300"
+                          }`}
+                        >
+                          {age === 99 ? "99 (ตลอดชีพ)" : `${age} ปี`}
+                        </button>
+                      ))}
+                      <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg px-2 py-1">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={![0, 85, 90, 99].includes(form.annuityDetails.payoutEndAge) ? form.annuityDetails.payoutEndAge : ""}
+                          onChange={(e) => setForm({ ...form, annuityDetails: { ...form.annuityDetails, payoutEndAge: parseInt(e.target.value.replace(/[^0-9]/g, "")) || 0 } })}
+                          className="w-12 text-xs font-bold bg-transparent outline-none text-center"
+                          placeholder="อื่นๆ"
+                        />
+                        <span className="text-[10px] text-gray-400">ปี</span>
+                      </div>
+                    </div>
+                    <div className="text-[9px] text-gray-400 mt-1">
+                      {form.annuityDetails.payoutEndAge === 0
+                        ? "ไม่ระบุ — ระบบใช้อายุขัยจากแผนเกษียณแทน"
+                        : `จ่ายถึงอายุ ${form.annuityDetails.payoutEndAge} ปี`}
                     </div>
                   </div>
                 </div>

@@ -58,6 +58,7 @@ export interface HealthDetails {
 export interface AnnuityDetails {
   payoutStartAge: number;
   payoutPerYear: number;
+  payoutEndAge: number;   // กรมธรรม์จ่ายถึงอายุ (เช่น 85, 90, 99) — 0 = ตลอดชีพ (ใช้ lifeExpectancy)
 }
 
 export interface DividendEntry {
@@ -211,6 +212,7 @@ export const DEFAULT_HEALTH_DETAILS: HealthDetails = {
 export const DEFAULT_ANNUITY_DETAILS: AnnuityDetails = {
   payoutStartAge: 60,
   payoutPerYear: 0,
+  payoutEndAge: 0,   // 0 = ตลอดชีพ / ใช้ lifeExpectancy
 };
 
 // Default endowment details

@@ -149,17 +149,22 @@ export default function Pillar4Page() {
   // ─── Pension NPV Analysis (from annuity policies) ─────────────────────
   const pensionNPV = useMemo(() => {
     const annuityPolicies = policies.filter((p) => p.policyType === "annuity");
-    const payoutEndAge = lifeExpectancy + bufferYears;
+    const assumptionEndAge = lifeExpectancy + bufferYears; // เพดานจากสมมติฐาน
 
     const items = annuityPolicies.map((p) => {
       const details = p.annuityDetails || DEFAULT_ANNUITY_DETAILS;
       const payoutStartAge = details.payoutStartAge || 60;
       const payoutPerYear = details.payoutPerYear || 0;
+      // ถ้ากรมธรรม์ระบุ payoutEndAge → ใช้ min(กรมธรรม์, สมมติฐาน) ไม่จ่ายเกินที่กรมธรรม์กำหนด
+      // ถ้าไม่ระบุ (0) → ใช้อายุขัยจากสมมติฐาน (ตลอดชีพ)
+      const policyEndAge = details.payoutEndAge && details.payoutEndAge > 0
+        ? Math.min(details.payoutEndAge, assumptionEndAge)
+        : assumptionEndAge;
 
       let npv = 0;
       let totalPayout = 0;
       const startAge = Math.max(payoutStartAge, retireAge);
-      for (let age = startAge; age <= payoutEndAge; age++) {
+      for (let age = startAge; age <= policyEndAge; age++) {
         const nper = age - retireAge; // years after retirement
         const pv = payoutPerYear / Math.pow(1 + discountRate, nper);
         npv += pv;
@@ -172,8 +177,8 @@ export default function Pillar4Page() {
         planName: p.planName,
         payoutStartAge,
         payoutPerYear,
-        payoutEndAge,
-        years: Math.max(0, payoutEndAge - startAge + 1),
+        policyEndAge,
+        years: Math.max(0, policyEndAge - startAge + 1),
         totalPayout,
         npv,
       };
@@ -634,7 +639,7 @@ export default function Pillar4Page() {
                       )}
                       {hasData && (
                         <div className="text-[9px] text-gray-400 mt-1.5">
-                          รับ {item.years} ปี (อายุ {Math.max(item.payoutStartAge, retireAge)}–{item.payoutEndAge})
+                          รับ {item.years} ปี (อายุ {Math.max(item.payoutStartAge, retireAge)}–{item.policyEndAge})
                           · รวม {fmt(item.totalPayout)} บาท
                         </div>
                       )}

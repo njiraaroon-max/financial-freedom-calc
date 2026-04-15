@@ -28,6 +28,7 @@ export default function SavingFundsPage() {
   const [sf5Company, setSf5Company] = useState("");
   const [sf5StartAge, setSf5StartAge] = useState(60);
   const [sf5PayoutPerYear, setSf5PayoutPerYear] = useState(0);
+  const [sf5PayoutEndAge, setSf5PayoutEndAge] = useState(0);
   const [sf5Premium, setSf5Premium] = useState(0);
   const [sf5PolicyId, setSf5PolicyId] = useState<string | null>(null);
 
@@ -39,6 +40,7 @@ export default function SavingFundsPage() {
       setSf5Company(existing.company || "");
       setSf5StartAge(existing.annuityDetails?.payoutStartAge ?? 60);
       setSf5PayoutPerYear(existing.annuityDetails?.payoutPerYear ?? 0);
+      setSf5PayoutEndAge(existing.annuityDetails?.payoutEndAge ?? 0);
       setSf5Premium(existing.premium ?? 0);
     }
   }, []);
@@ -47,7 +49,7 @@ export default function SavingFundsPage() {
     const policyData = {
       company: sf5Company,
       premium: sf5Premium,
-      annuityDetails: { payoutStartAge: sf5StartAge, payoutPerYear: sf5PayoutPerYear },
+      annuityDetails: { payoutStartAge: sf5StartAge, payoutPerYear: sf5PayoutPerYear, payoutEndAge: sf5PayoutEndAge },
     };
     if (sf5PolicyId) {
       insStore.updatePolicy(sf5PolicyId, policyData);
