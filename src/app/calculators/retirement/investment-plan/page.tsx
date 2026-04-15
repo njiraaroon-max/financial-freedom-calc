@@ -90,7 +90,7 @@ export default function InvestmentPlanPage() {
     const chartW = 500;
     const chartH = 280;
     const leftPad = 55;
-    const rightPad = 60;
+    const rightPad = 95;
     const topPad = 20;
     const bottomPad = 30;
     const plotW = chartW - leftPad - rightPad;
@@ -165,25 +165,29 @@ export default function InvestmentPlanPage() {
         {/* Good case line */}
         <path d={goodPath} fill="none" stroke="#10b981" strokeWidth={1.5} />
 
-        {/* End-point dots and labels */}
+        {/* End-point dots and labels (value + scenario name on the right) */}
         <circle cx={endX} cy={valToY(last.goodCase)} r={3} fill="#10b981" />
         <text x={endX + 5} y={valToY(last.goodCase) + 3} className="text-[6px] fill-emerald-600 font-bold">
           {fmtM(last.goodCase)}
+          <tspan className="fill-emerald-500 font-bold" dx="3">Good Case</tspan>
         </text>
 
         <circle cx={endX} cy={valToY(last.baseCase)} r={3} fill="#3b82f6" />
         <text x={endX + 5} y={valToY(last.baseCase) + 3} className="text-[6px] fill-blue-600 font-bold">
           {fmtM(last.baseCase)}
+          <tspan className="fill-blue-500 font-bold" dx="3">Base Case</tspan>
         </text>
 
         <circle cx={endX} cy={valToY(last.badCase)} r={3} fill="#f59e0b" />
         <text x={endX + 5} y={valToY(last.badCase) + 3} className="text-[6px] fill-amber-600 font-bold">
           {fmtM(last.badCase)}
+          <tspan className="fill-amber-500 font-bold" dx="3">Bad Case</tspan>
         </text>
 
         <circle cx={endX} cy={valToY(last.cost)} r={3} fill="#9ca3af" />
         <text x={endX + 5} y={valToY(last.cost) + 3} className="text-[6px] fill-gray-500 font-bold">
           {fmtM(last.cost)}
+          <tspan className="fill-gray-400 font-bold" dx="3">ต้นทุน</tspan>
         </text>
 
         {/* Bottom axis */}
