@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { Save, Plus, Trash2, Info, Download, CheckCircle2, ExternalLink, X } from "lucide-react";
+import { Save, Plus, Trash2, Info, Download, CheckCircle2, ExternalLink, X, HeartPulse, Plane, Home, Car, HandHelping, Sparkles } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import { useProfileStore } from "@/store/profile-store";
 import { useInsuranceStore } from "@/store/insurance-store";
@@ -27,6 +27,15 @@ const INFLATION_HINTS: { label: string; rate: number }[] = [
   { label: "8%", rate: 0.08 },
   { label: "9%", rate: 0.09 },
 ];
+
+// ─── Icon + description metadata for summary table ───
+const ITEM_META: Record<string, { icon: React.ElementType; desc: string }> = {
+  se1: { icon: HeartPulse, desc: "เบี้ยประกันสุขภาพหลังเกษียณ · เงินเฟ้อ {rate} × {years} ปี" },
+  se2: { icon: HandHelping, desc: "NPV ค่าคนดูแล (คิดเงินเฟ้อ + discount แล้ว)" },
+  se3: { icon: Plane, desc: "ท่องเที่ยว/สันทนาการ · เงินเฟ้อ {rate} × {years} ปี" },
+  se4: { icon: Home, desc: "ซ่อมแซม/ต่อเติมที่อยู่อาศัย · เงินเฟ้อ {rate} × {years} ปี" },
+  se5: { icon: Car, desc: "ยานพาหนะ/ค่าบำรุงรักษา · เงินเฟ้อ {rate} × {years} ปี" },
+};
 
 export default function SpecialExpensesPage() {
   const store = useRetirementStore();
@@ -76,8 +85,14 @@ export default function SpecialExpensesPage() {
   }, [variables]);
 
   const handlePullFromCaretaker = (id: string) => {
-    if (!caretakerNPV.hasData) return;
-    store.updateSpecialExpense(id, caretakerNPV.npv);
+    // Read directly from store to avoid any stale closure issues
+    const v = useVariableStore.getState().variables["caretaker_npv"];
+    const npv = v?.value || 0;
+    if (npv <= 0) return;
+    store.updateSpecialExpense(id, npv);
+    // NPV from caretaker is already value-at-retirement — set inflation to 0
+    // so the summary doesn't double-compound inflation over yearsToRetire
+    store.updateSpecialExpenseInflation(id, 0);
     setPulledId(id);
     setTimeout(() => setPulledId(null), 2500);
   };
@@ -94,7 +109,6 @@ export default function SpecialExpensesPage() {
   const yearsAfterRetire = Math.max(a.lifeExpectancy - a.retireAge, 0);
 
   // ค่าใช้จ่ายพิเศษ = เงินก้อน ปรับ FV ด้วยเงินเฟ้อแต่ละรายการ แล้วรวมกัน (ไม่คิด annuity)
-  const totalSpecialPV = store.specialExpenses.reduce((sum, e) => sum + e.amount, 0);
   const totalSpecialFV = store.specialExpenses.reduce((sum, e) => {
     const rate = e.inflationRate ?? a.generalInflation;
     return sum + futureValue(e.amount, rate, yearsToRetire);
@@ -211,7 +225,7 @@ export default function SpecialExpensesPage() {
                   {/* FV preview */}
                   {item.amount > 0 && (
                     <div className="text-[10px] text-gray-400 mt-1">
-                      → มูลค่า ณ วันเกษียณ: <span className="text-pink-600 font-bold">฿{fmt(fv)}/เดือน</span>
+                      → มูลค่า ณ วันเกษียณ: <span className="text-pink-600 font-bold">฿{fmt(fv)}</span>
                     </div>
                   )}
                   {/* Pull from Risk Management (health insurance premium only) */}
@@ -296,18 +310,51 @@ export default function SpecialExpensesPage() {
           </button>
         </div>
 
-        {/* Summary */}
-        <div className="mt-4 bg-pink-50 rounded-xl p-4 space-y-2">
-          <div className="flex justify-between text-xs">
-            <span className="text-gray-600">รวมค่าใช้จ่ายพิเศษ (ราคาปัจจุบัน)</span>
-            <span className="font-bold">฿{fmt(totalSpecialPV)}</span>
+        {/* Summary Table */}
+        <div className="mt-4 bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+          <div className="bg-[#1e3a5f] px-4 py-2.5 flex items-center justify-between">
+            <span className="text-xs font-bold text-white">ตารางสรุป ค่าใช้จ่ายพิเศษหลังเกษียณ</span>
+            <span className="text-[10px] text-white/80 font-medium">มูลค่า ณ วันเกษียณ</span>
           </div>
-          <div className="border-t border-pink-200 pt-2 flex justify-between text-sm">
-            <span className="font-bold text-gray-700">ทุนเกษียณ (B) มูลค่า ณ วันเกษียณ</span>
-            <span className="font-bold text-pink-700">฿{fmt(specialRetireFund)}</span>
+          <div className="divide-y divide-gray-100">
+            {store.specialExpenses.map((item) => {
+              const rate = item.inflationRate ?? a.generalInflation;
+              const fv = futureValue(item.amount, rate, yearsToRetire);
+              const meta = ITEM_META[item.id] || { icon: Sparkles, desc: "ค่าใช้จ่ายพิเศษเพิ่มเติม" };
+              const Icon = meta.icon;
+              const descText = meta.desc
+                .replace("{rate}", `${(rate * 100).toFixed(0)}%`)
+                .replace("{years}", `${yearsToRetire}`);
+              return (
+                <div key={item.id} className="flex items-stretch">
+                  <div className="w-14 shrink-0 flex items-center justify-center bg-[#1e3a5f]/5 border-r border-gray-100">
+                    <div className="w-10 h-10 rounded-full bg-[#1e3a5f] text-white flex items-center justify-center shadow-sm">
+                      <Icon size={18} />
+                    </div>
+                  </div>
+                  <div className="flex-1 flex items-center justify-between gap-3 px-4 py-3 min-w-0">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-bold text-gray-800 truncate">{item.name}</div>
+                      <div className="text-[10px] text-gray-400 mt-0.5 leading-snug">{descText}</div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      {item.amount > 0 ? (
+                        <div className="text-sm font-bold text-[#1e3a5f]">฿{fmt(fv)}</div>
+                      ) : (
+                        <div className="text-xs text-gray-300">—</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          <div className="text-[10px] text-gray-400">
-            * ปรับเงินเฟ้อตามอัตราแต่ละรายการ × {yearsToRetire} ปี
+          <div className="bg-pink-50 px-4 py-3 flex items-center justify-between border-t-2 border-pink-200">
+            <div>
+              <div className="text-sm font-bold text-gray-700">ทุนเกษียณ (B)</div>
+              <div className="text-[10px] text-gray-500">รวมค่าใช้จ่ายพิเศษ ณ วันเกษียณ</div>
+            </div>
+            <span className="text-lg font-extrabold text-pink-700">฿{fmt(specialRetireFund)}</span>
           </div>
         </div>
 
