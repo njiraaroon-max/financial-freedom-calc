@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Landmark, Coins, TrendingUp, BarChart2 } from "lucide-react";
+import { Landmark, Coins, TrendingUp, BarChart2, ChevronDown } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { useInsuranceStore } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
@@ -77,7 +77,6 @@ function LongLiveBarChart({
         {allAges.map((age) => {
           const isMajor = age % 10 === 0;
           const isMinor = age % 5 === 0;
-          const showLabel = isMajor || isMinor;
           const cx = xPos(age);
           return (
             <g key={age}>
@@ -87,26 +86,23 @@ function LongLiveBarChart({
               )}
               <line x1={cx} y1={padT + chartH}
                 x2={cx} y2={padT + chartH + (isMajor ? 8 : isMinor ? 5 : 3)}
-                stroke={isMajor ? "#6b7280" : "#d1d5db"}
-                strokeWidth={isMajor ? 1.5 : 0.5} />
-              {showLabel && (
-                <>
-                  <g transform={`translate(${cx},${padT + chartH + 12}) rotate(90)`}>
-                    <text x={0} y={4} fontSize={8}
-                      fill={isMajor ? "#4b5563" : "#9ca3af"}
-                      fontWeight={isMajor ? "700" : "400"}>
-                      {birthYear + age + BE_OFFSET}
-                    </text>
-                  </g>
-                  <g transform={`translate(${cx},${padT + chartH + 44}) rotate(90)`}>
-                    <text x={0} y={4} fontSize={8}
-                      fill={isMajor ? "#3b82f6" : "#93c5fd"}
-                      fontWeight={isMajor ? "700" : "400"}>
-                      {age}
-                    </text>
-                  </g>
-                </>
-              )}
+                stroke={isMajor ? "#6b7280" : isMinor ? "#9ca3af" : "#d1d5db"}
+                strokeWidth={isMajor ? 1.5 : isMinor ? 1 : 0.5} />
+              {/* Show every year label */}
+              <g transform={`translate(${cx},${padT + chartH + 12}) rotate(90)`}>
+                <text x={0} y={4} fontSize={7}
+                  fill={isMajor ? "#4b5563" : isMinor ? "#6b7280" : "#9ca3af"}
+                  fontWeight={isMajor ? "700" : "400"}>
+                  {birthYear + age + BE_OFFSET}
+                </text>
+              </g>
+              <g transform={`translate(${cx},${padT + chartH + 44}) rotate(90)`}>
+                <text x={0} y={4} fontSize={7}
+                  fill={isMajor ? "#3b82f6" : isMinor ? "#60a5fa" : "#93c5fd"}
+                  fontWeight={isMajor ? "700" : "400"}>
+                  {age}
+                </text>
+              </g>
             </g>
           );
         })}
@@ -326,6 +322,48 @@ export default function LongLivePage() {
     return Array.from(byAge.entries())
       .sort(([a], [b]) => a - b)
       .map(([age, d]) => ({ age, endowment: d.endowment, annuity: d.annuity, total: d.endowment + d.annuity }));
+  }, [events]);
+
+  // ─── Pivot table: age × policy ────────────────────────────────────────
+  const [tableOpen, setTableOpen] = useState(false);
+
+  const pivotData = useMemo(() => {
+    if (events.length === 0) return { cols: [] as { id: string; label: string }[], rows: [] as { age: number; cells: number[]; total: number }[] };
+
+    // Discover unique policies from events (preserve order)
+    const colMap = new Map<string, string>();
+    events.forEach((e) => {
+      if (!colMap.has(e.policyId)) colMap.set(e.policyId, e.label);
+    });
+    const cols = Array.from(colMap.entries()).map(([id, label]) => ({ id, label }));
+
+    // Build age → { policyId → amount }
+    const ageMap = new Map<number, Map<string, number>>();
+    const add = (age: number, pid: string, val: number) => {
+      if (!ageMap.has(age)) ageMap.set(age, new Map());
+      const row = ageMap.get(age)!;
+      row.set(pid, (row.get(pid) || 0) + val);
+    };
+
+    events.forEach((e) => {
+      if (e.kind === "lump" || e.kind === "dividend") {
+        add(e.age, e.policyId, e.amount);
+      } else if (e.kind === "annuity") {
+        for (let a = e.startAge; a <= e.endAge; a++) {
+          add(a, e.policyId, e.perYear);
+        }
+      }
+    });
+
+    const rows = Array.from(ageMap.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([age, pMap]) => ({
+        age,
+        cells: cols.map((col) => pMap.get(col.id) || 0),
+        total: Array.from(pMap.values()).reduce((s, v) => s + v, 0),
+      }));
+
+    return { cols, rows };
   }, [events]);
 
   const hasData = endowmentPolicies.length > 0 || annuityPolicies.length > 0;
@@ -588,90 +626,87 @@ export default function LongLivePage() {
               </div>
             )}
 
-            {/* ── Cashflow Table ───────────────────────────────────────────── */}
-            {events.length > 0 && (
+            {/* ── Cashflow Pivot Table ─────────────────────────────────────── */}
+            {pivotData.rows.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm mx-1 overflow-hidden">
-                <div className="px-4 py-3 border-b border-gray-100">
-                  <h3 className="text-sm font-bold text-gray-800">ตารางเงินออก</h3>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="bg-[#1e3a5f] text-white">
-                        <th className="px-3 py-2 text-left sticky left-0 bg-[#1e3a5f] z-10">ประเภท</th>
-                        <th className="px-2 py-2 text-center">อายุ</th>
-                        <th className="px-2 py-2 text-left">กรมธรรม์</th>
-                        <th className="px-2 py-2 text-right font-bold">จำนวน (บาท)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {events.map((e, idx) => {
-                        if (e.kind === "lump") return (
-                          <tr key={idx} className="border-b border-gray-50 bg-purple-50">
-                            <td className="px-3 py-2 sticky left-0 bg-purple-50 z-10">
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-purple-700 bg-purple-100 px-1.5 py-0.5 rounded-full">
-                                💰 เงินก้อน
-                              </span>
-                            </td>
-                            <td className="px-2 py-2 text-center text-gray-600 whitespace-nowrap">
-                              {e.age} ปี<br />
-                              <span className="text-[9px] text-gray-400">{birthYear + e.age + BE_OFFSET}</span>
-                            </td>
-                            <td className="px-2 py-2 text-gray-700">{e.label}</td>
-                            <td className="px-2 py-2 text-right font-extrabold text-purple-700">{fmt(e.amount)}</td>
-                          </tr>
-                        );
+                {/* Header / toggle */}
+                <button
+                  onClick={() => setTableOpen(!tableOpen)}
+                  className="w-full px-4 py-3 flex items-center justify-between border-b border-gray-100 hover:bg-gray-50 transition"
+                >
+                  <h3 className="text-sm font-bold text-gray-800">ตารางรับเงินจากกรมธรรม์</h3>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-gray-400">{pivotData.rows.length} รายการ</span>
+                    <ChevronDown
+                      size={16}
+                      className={`text-gray-400 transition-transform duration-200 ${tableOpen ? "rotate-180" : ""}`}
+                    />
+                  </div>
+                </button>
 
-                        if (e.kind === "dividend") return (
-                          <tr key={idx} className="border-b border-gray-50 bg-violet-50/40">
-                            <td className="px-3 py-2 sticky left-0 bg-violet-50/40 z-10">
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-violet-700 bg-violet-100 px-1.5 py-0.5 rounded-full">
-                                📈 ปันผล
-                              </span>
+                {tableOpen && (
+                  <div className="overflow-x-auto">
+                    <table className="text-xs border-collapse" style={{ minWidth: "100%" }}>
+                      <thead>
+                        <tr className="bg-[#1e3a5f] text-white">
+                          <th className="px-3 py-2 text-left sticky left-0 bg-[#1e3a5f] z-10 whitespace-nowrap min-w-[64px]">
+                            อายุ
+                          </th>
+                          {pivotData.cols.map((col) => (
+                            <th key={col.id} className="px-3 py-2 text-right whitespace-nowrap min-w-[110px] font-medium">
+                              {col.label}
+                            </th>
+                          ))}
+                          <th className="px-3 py-2 text-right whitespace-nowrap min-w-[100px] font-bold bg-[#162d4a]">
+                            รวม
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pivotData.rows.map((row, idx) => (
+                          <tr
+                            key={row.age}
+                            className={`border-b border-gray-50 ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/60"}`}
+                          >
+                            <td className={`px-3 py-2 sticky left-0 z-10 font-medium text-gray-700 whitespace-nowrap ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/60"}`}>
+                              {row.age} ปี
+                              <div className="text-[9px] text-gray-400 font-normal">
+                                พ.ศ.{birthYear + row.age + BE_OFFSET}
+                              </div>
                             </td>
-                            <td className="px-2 py-2 text-center text-gray-600 whitespace-nowrap">
-                              {e.age} ปี<br />
-                              <span className="text-[9px] text-gray-400">(ปีที่ {e.policyYear})</span>
-                            </td>
-                            <td className="px-2 py-2 text-gray-700">{e.label}</td>
-                            <td className="px-2 py-2 text-right font-bold text-violet-700">{fmt(e.amount)}</td>
-                          </tr>
-                        );
-
-                        if (e.kind === "annuity") return (
-                          <tr key={idx} className="border-b border-gray-50 bg-indigo-50/40">
-                            <td className="px-3 py-2 sticky left-0 bg-indigo-50/40 z-10">
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded-full">
-                                🏦 บำนาญ
-                              </span>
-                            </td>
-                            <td className="px-2 py-2 text-center text-gray-600 whitespace-nowrap">
-                              {e.startAge}–{e.endAge} ปี<br />
-                              <span className="text-[9px] text-gray-400">{e.endAge - e.startAge + 1} ปี</span>
-                            </td>
-                            <td className="px-2 py-2 text-gray-700">{e.label}</td>
-                            <td className="px-2 py-2 text-right whitespace-nowrap">
-                              <span className="font-bold text-indigo-700">{fmt(e.perYear)}/ปี</span>
-                              <br />
-                              <span className="text-[9px] text-indigo-500">รวม {fmtShort(e.perYear * (e.endAge - e.startAge + 1))}</span>
+                            {row.cells.map((val, ci) => (
+                              <td key={ci} className="px-3 py-2 text-right">
+                                {val > 0 ? (
+                                  <span className="font-semibold text-gray-800">{fmt(val)}</span>
+                                ) : (
+                                  <span className="text-gray-300">—</span>
+                                )}
+                              </td>
+                            ))}
+                            <td className="px-3 py-2 text-right font-extrabold text-indigo-700">
+                              {fmt(row.total)}
                             </td>
                           </tr>
-                        );
-
-                        return null;
-                      })}
-
-                      {/* Summary row */}
-                      <tr className="bg-[#1e3a5f] text-white font-bold">
-                        <td colSpan={3} className="px-3 py-2.5 sticky left-0 bg-[#1e3a5f] z-10">รวมเงินออกทั้งหมด</td>
-                        <td className="px-2 py-2.5 text-right text-base">{fmtShort(grandTotal)}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div className="px-4 py-2 bg-gray-50 text-[9px] text-gray-400">
-                  * บำนาญแสดงเป็นช่วงอายุ ไม่แจกแจงรายปี | เงินก้อน = ณ วันครบกำหนดกรมธรรม์
-                </div>
+                        ))}
+                        {/* Footer: column totals */}
+                        <tr className="bg-[#1e3a5f] text-white font-bold">
+                          <td className="px-3 py-2.5 sticky left-0 bg-[#1e3a5f] z-10 whitespace-nowrap">รวมทั้งหมด</td>
+                          {pivotData.cols.map((_, ci) => {
+                            const colTotal = pivotData.rows.reduce((s, r) => s + r.cells[ci], 0);
+                            return (
+                              <td key={ci} className="px-3 py-2.5 text-right whitespace-nowrap">
+                                {fmtShort(colTotal)}
+                              </td>
+                            );
+                          })}
+                          <td className="px-3 py-2.5 text-right text-sm bg-[#162d4a] whitespace-nowrap">
+                            {fmtShort(grandTotal)}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
           </>
