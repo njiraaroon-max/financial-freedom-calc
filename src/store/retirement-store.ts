@@ -262,7 +262,7 @@ export const useRetirementStore = create<RetirementState>()(
     }),
     {
       name: "ffc-retirement",
-      version: 3,
+      version: 4,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       migrate: (persisted: any, version: number) => {
         if (persisted?.savingFunds) {
@@ -282,6 +282,10 @@ export const useRetirementStore = create<RetirementState>()(
         // v3: add caretakerParams if missing
         if (!persisted?.caretakerParams) {
           persisted.caretakerParams = { ...DEFAULT_CARETAKER };
+        }
+        // v4: backfill extraYearsBeyondLife for existing caretakerParams
+        if (persisted?.caretakerParams && persisted.caretakerParams.extraYearsBeyondLife === undefined) {
+          persisted.caretakerParams.extraYearsBeyondLife = 5;
         }
         return persisted;
       },

@@ -78,6 +78,7 @@ export interface CaretakerParams {
   currentAge: number;
   retireAge: number;
   lifeExpectancy: number;
+  extraYearsBeyondLife: number; // ปีเผื่อเกินอายุขัย (default 5)
   caretakerStartAge: number;   // อายุที่เริ่มใช้คนดูแล
   monthlyRate: number;          // ค่าคนดูแล/เดือน ณ ราคาปัจจุบัน
   inflationRate: number;        // เงินเฟ้อค่าจ้าง (สูงกว่าทั่วไป)
@@ -130,6 +131,7 @@ export const DEFAULT_CARETAKER: CaretakerParams = {
   currentAge: 35,
   retireAge: 60,
   lifeExpectancy: 85,
+  extraYearsBeyondLife: 5,
   caretakerStartAge: 75,
   monthlyRate: 25000,
   inflationRate: 0.05,
@@ -366,6 +368,7 @@ export function calcCaretakerNPV(params: CaretakerParams): CaretakerResult {
     currentAge,
     retireAge,
     lifeExpectancy,
+    extraYearsBeyondLife,
     caretakerStartAge,
     monthlyRate,
     inflationRate,
@@ -378,7 +381,7 @@ export function calcCaretakerNPV(params: CaretakerParams): CaretakerResult {
   let npvAtRetire = 0;
 
   const startAge = Math.max(caretakerStartAge, retireAge);
-  const endAge = lifeExpectancy;
+  const endAge = lifeExpectancy + (extraYearsBeyondLife || 0);
   const yearsNeeded = Math.max(endAge - startAge + 1, 0);
 
   // ค่าคนดูแล/เดือน ณ ปีเริ่มใช้

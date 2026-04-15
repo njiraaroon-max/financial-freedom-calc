@@ -181,6 +181,15 @@ export default function CaretakerPage() {
             suffix="ปี"
           />
           <AgeRow
+            label="ปีเผื่อเกินอายุขัย"
+            value={p.extraYearsBeyondLife}
+            onChange={(v) => store.updateCaretakerParam("extraYearsBeyondLife", v)}
+            min={0}
+            max={20}
+            suffix="ปี"
+            hint="เผื่อกรณีอายุยืนเกินคาด (แนะนำ 5 ปี)"
+          />
+          <AgeRow
             label="อายุที่เริ่มใช้คนดูแล"
             value={p.caretakerStartAge}
             onChange={(v) => store.updateCaretakerParam("caretakerStartAge", v)}
@@ -393,18 +402,18 @@ export default function CaretakerPage() {
             <div className="px-5 py-4 space-y-4 text-gray-700 text-[11px] leading-relaxed">
               <div className="bg-pink-50 border border-pink-200 rounded-xl p-3">
                 <div className="font-bold text-pink-700 text-xs mb-1">🎯 หลักคิด</div>
-                <div>สะสมค่าคนดูแลรายปีตั้งแต่ <b>อายุที่เริ่มใช้</b> ถึง <b>อายุขัย</b> แล้ว discount กลับมาที่ <b>วันเกษียณ</b></div>
+                <div>สะสมค่าคนดูแลรายปีตั้งแต่ <b>อายุที่เริ่มใช้</b> ถึง <b>อายุขัย + ปีเผื่อ</b> แล้ว discount กลับมาที่ <b>วันเกษียณ</b></div>
               </div>
 
               <div className="space-y-2">
-                <Step n={1} title="ค่าจ้าง/เดือน ณ แต่ละปี">
-                  <code className="text-pink-600">current × (1 + inflation)^(อายุ - อายุปัจจุบัน)</code>
+                <Step n={1} title="จำนวนปีที่จ้าง">
+                  <code className="text-pink-600">(อายุขัย + ปีเผื่อ) − อายุเริ่มจ้าง + 1</code>
                 </Step>
-                <Step n={2} title="ค่าใช้จ่าย/ปี ณ แต่ละปี">
-                  <code className="text-pink-600">ค่าจ้าง/เดือน × 12</code>
+                <Step n={2} title="ค่าจ้าง/เดือน ณ แต่ละปี">
+                  <code className="text-pink-600">current × (1 + inflation)^(อายุ − อายุปัจจุบัน)</code>
                 </Step>
                 <Step n={3} title="Present Value ณ วันเกษียณ">
-                  <code className="text-pink-600">ค่าใช้จ่าย/ปี ÷ (1 + return)^(อายุ - อายุเกษียณ)</code>
+                  <code className="text-pink-600">ค่าจ้าง/ปี ÷ (1 + return)^(อายุ − อายุเกษียณ)</code>
                 </Step>
                 <Step n={4} title="รวม PV × โอกาสใช้จริง">
                   <code className="text-pink-600">Σ PV × probability</code>
@@ -416,6 +425,7 @@ export default function CaretakerPage() {
                 <ul className="space-y-1 list-disc pl-4">
                   <li>ใช้เงินเฟ้อ <b>5-7%</b> สำหรับค่าจ้างแรงงาน (สูงกว่าเงินเฟ้อทั่วไป)</li>
                   <li>อายุเริ่มใช้ <b>75-80</b> เป็นค่าที่พบบ่อย</li>
+                  <li><b>ปีเผื่อเกินอายุขัย</b> แนะนำ 5 ปี (เผื่อกรณีอายุยืนเกินคาด)</li>
                   <li>ลดโอกาสใช้จริงได้ถ้ามีครอบครัวช่วย / สุขภาพดี</li>
                 </ul>
               </div>
