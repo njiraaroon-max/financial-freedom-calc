@@ -1,10 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
-import { Wallet, PieChart, Receipt, AlertTriangle, CheckCircle2, TrendingDown } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import { Wallet, PieChart, Receipt, AlertTriangle, CheckCircle2, TrendingDown, Calculator, RefreshCw, Save } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
-import { useInsuranceStore } from "@/store/insurance-store";
+import { useInsuranceStore, DEFAULT_ANNUITY_DETAILS } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
+import { useRetirementStore } from "@/store/retirement-store";
+import { useVariableStore } from "@/store/variable-store";
+import { toast } from "@/store/toast-store";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(n: number): string {
@@ -38,11 +41,34 @@ function getRatioStatus(ratio: number): { label: string; color: string; bgColor:
 export default function Pillar4Page() {
   const store = useInsuranceStore();
   const profile = useProfileStore();
+  const retire = useRetirementStore();
+  const { setVariable } = useVariableStore();
 
   const p4 = store.riskManagement.pillar4;
   const policies = store.policies;
 
   const annualIncome = (profile.salary || 0) * 12;
+
+  // ─── Pension NPV Assumptions (sync from retirement plan) ──────────────
+  const [retireAge, setRetireAge] = useState(retire.assumptions.retireAge || 60);
+  const [lifeExpectancy, setLifeExpectancy] = useState(retire.assumptions.lifeExpectancy || 85);
+  const [discountRate, setDiscountRate] = useState(retire.assumptions.postRetireReturn || 0.035);
+  const [bufferYears, setBufferYears] = useState(5);
+  const [pensionSaved, setPensionSaved] = useState(false);
+
+  const pullRetireAssumptions = () => {
+    const r = useRetirementStore.getState();
+    if (r.assumptions.retireAge) setRetireAge(r.assumptions.retireAge);
+    if (r.assumptions.lifeExpectancy) setLifeExpectancy(r.assumptions.lifeExpectancy);
+    if (r.assumptions.postRetireReturn) setDiscountRate(r.assumptions.postRetireReturn);
+    setPensionSaved(false);
+  };
+
+  // Auto-sync on mount
+  useEffect(() => {
+    pullRetireAssumptions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ─── Premium Analysis ─────────────────────────────────────────────────
   const premiumAnalysis = useMemo(() => {
@@ -118,6 +144,55 @@ export default function Pillar4Page() {
       unusedLifeHealth, unusedPension, unusedParent,
     };
   }, [policies, annualIncome, p4.parentHealthDeduction]);
+
+  // ─── Pension NPV Analysis (from annuity policies) ─────────────────────
+  const pensionNPV = useMemo(() => {
+    const annuityPolicies = policies.filter((p) => p.policyType === "annuity");
+    const payoutEndAge = lifeExpectancy + bufferYears;
+
+    const items = annuityPolicies.map((p) => {
+      const details = p.annuityDetails || DEFAULT_ANNUITY_DETAILS;
+      const payoutStartAge = details.payoutStartAge || 60;
+      const payoutPerYear = details.payoutPerYear || 0;
+
+      let npv = 0;
+      let totalPayout = 0;
+      const startAge = Math.max(payoutStartAge, retireAge);
+      for (let age = startAge; age <= payoutEndAge; age++) {
+        const nper = age - retireAge; // years after retirement
+        const pv = payoutPerYear / Math.pow(1 + discountRate, nper);
+        npv += pv;
+        totalPayout += payoutPerYear;
+      }
+
+      return {
+        id: p.id,
+        company: p.company,
+        planName: p.planName,
+        payoutStartAge,
+        payoutPerYear,
+        payoutEndAge,
+        years: Math.max(0, payoutEndAge - startAge + 1),
+        totalPayout,
+        npv,
+      };
+    });
+
+    const totalNPV = items.reduce((s, i) => s + i.npv, 0);
+    const totalAnnualPayout = items.reduce((s, i) => s + i.payoutPerYear, 0);
+    return { items, totalNPV, totalAnnualPayout };
+  }, [policies, retireAge, lifeExpectancy, bufferYears, discountRate]);
+
+  const handleSavePensionNPV = () => {
+    setVariable({
+      key: "pension_insurance_npv",
+      label: "NPV ประกันบำนาญ ณ วันเกษียณ",
+      value: pensionNPV.totalNPV,
+      source: "pillar-4",
+    });
+    setPensionSaved(true);
+    toast.success("บันทึก NPV ประกันบำนาญแล้ว");
+  };
 
   const handleSave = () => {
     store.markPillarCompleted("pillar4");
@@ -409,6 +484,174 @@ export default function Pillar4Page() {
             <div className="bg-gray-50 rounded-xl p-4 text-center text-xs text-gray-400">
               กรุณาระบุรายได้ในหน้า Personal Info เพื่อวิเคราะห์กระแสเงินสด
             </div>
+          )}
+        </div>
+
+        {/* ─── SECTION 5: Pension NPV (from annuity policies) ────────── */}
+        <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-[10px] font-bold flex items-center justify-center">5</span>
+              <Calculator size={14} className="text-purple-600" />
+              มูลค่าประกันบำนาญ (NPV)
+            </h3>
+            <button
+              onClick={pullRetireAssumptions}
+              className="flex items-center gap-1 text-[10px] text-blue-600 font-medium bg-blue-50 px-2.5 py-1.5 rounded-lg hover:bg-blue-100 transition"
+            >
+              <RefreshCw size={11} />
+              ดึงค่าจากแผนเกษียณ
+            </button>
+          </div>
+
+          {/* Assumptions (editable) */}
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-[9px] text-gray-500 mb-1 block">อายุเกษียณ</label>
+              <div className="flex items-center gap-1 bg-gray-50 rounded-lg px-2 py-1.5">
+                <input
+                  type="number"
+                  value={retireAge || ""}
+                  onChange={(e) => { setRetireAge(Number(e.target.value) || 0); setPensionSaved(false); }}
+                  className="w-full text-xs font-semibold bg-transparent outline-none text-right"
+                />
+                <span className="text-[9px] text-gray-400">ปี</span>
+              </div>
+            </div>
+            <div>
+              <label className="text-[9px] text-gray-500 mb-1 block">อายุขัย</label>
+              <div className="flex items-center gap-1 bg-gray-50 rounded-lg px-2 py-1.5">
+                <input
+                  type="number"
+                  value={lifeExpectancy || ""}
+                  onChange={(e) => { setLifeExpectancy(Number(e.target.value) || 0); setPensionSaved(false); }}
+                  className="w-full text-xs font-semibold bg-transparent outline-none text-right"
+                />
+                <span className="text-[9px] text-gray-400">ปี</span>
+              </div>
+            </div>
+            <div>
+              <label className="text-[9px] text-gray-500 mb-1 block">อัตราคิดลด</label>
+              <div className="flex items-center gap-1 bg-gray-50 rounded-lg px-2 py-1.5">
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={(discountRate * 100).toFixed(1)}
+                  onChange={(e) => { setDiscountRate(Number(e.target.value) / 100 || 0); setPensionSaved(false); }}
+                  className="w-full text-xs font-semibold bg-transparent outline-none text-right"
+                />
+                <span className="text-[9px] text-gray-400">%</span>
+              </div>
+            </div>
+            <div>
+              <label className="text-[9px] text-gray-500 mb-1 block">เผื่ออายุ</label>
+              <div className="flex items-center gap-1">
+                {[0, 3, 5, 10].map((y) => (
+                  <button
+                    key={y}
+                    onClick={() => { setBufferYears(y); setPensionSaved(false); }}
+                    className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                      bufferYears === y ? "bg-purple-500 text-white" : "bg-gray-100 text-gray-500"
+                    }`}
+                  >
+                    {y}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Policy list */}
+          {pensionNPV.items.length === 0 ? (
+            <div className="text-center py-6 text-gray-400 text-xs bg-gray-50 rounded-xl">
+              ยังไม่มีกรมธรรม์ประเภทบำนาญ
+              <div className="text-[10px] mt-1">เพิ่มได้ที่หน้าสรุปกรมธรรม์ (เลือก &ldquo;บำนาญ (Annuity)&rdquo;)</div>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                {pensionNPV.items.map((item) => {
+                  const hasData = item.payoutPerYear > 0 && item.payoutStartAge > 0;
+                  return (
+                    <div
+                      key={item.id}
+                      className={`rounded-xl border p-3 ${
+                        hasData ? "border-purple-100 bg-purple-50/30" : "border-amber-200 bg-amber-50/40"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-xs font-bold text-gray-800 truncate">
+                          {item.planName || item.company || "กรมธรรม์"}
+                        </div>
+                        <div className="text-[10px] text-gray-500 truncate ml-2">{item.company}</div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-[10px]">
+                        <div>
+                          <div className="text-gray-400">เริ่มจ่าย</div>
+                          <div className="font-semibold text-gray-700">{item.payoutStartAge} ปี</div>
+                        </div>
+                        <div>
+                          <div className="text-gray-400">จ่าย/ปี</div>
+                          <div className="font-semibold text-gray-700">{fmt(item.payoutPerYear)}</div>
+                        </div>
+                        <div>
+                          <div className="text-gray-400">NPV</div>
+                          <div className="font-bold text-purple-700">{fmt(item.npv)}</div>
+                        </div>
+                      </div>
+                      {!hasData && (
+                        <div className="text-[10px] text-amber-600 font-medium mt-2">
+                          ⚠️ ยังไม่ได้ระบุข้อมูลบำนาญ (อายุเริ่มรับ / เงินจ่ายต่อปี)
+                        </div>
+                      )}
+                      {hasData && (
+                        <div className="text-[9px] text-gray-400 mt-1.5">
+                          รับ {item.years} ปี (อายุ {Math.max(item.payoutStartAge, retireAge)}–{item.payoutEndAge})
+                          · รวม {fmt(item.totalPayout)} บาท
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Total NPV */}
+              <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl p-3 text-white">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[11px] opacity-80">NPV ประกันบำนาญ ณ วันเกษียณ</span>
+                  <span className="text-[10px] opacity-70">{pensionNPV.items.length} กรมธรรม์</span>
+                </div>
+                <div className="text-xl font-extrabold">฿{fmt(pensionNPV.totalNPV)}</div>
+                {pensionNPV.totalAnnualPayout > 0 && (
+                  <div className="text-[10px] opacity-80 mt-1">
+                    รวมเงินบำนาญ {fmt(pensionNPV.totalAnnualPayout)} บาท/ปี
+                  </div>
+                )}
+              </div>
+
+              {/* Save to variable store */}
+              <button
+                onClick={handleSavePensionNPV}
+                disabled={pensionNPV.totalNPV === 0}
+                className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${
+                  pensionSaved
+                    ? "bg-green-100 text-green-700 border border-green-300"
+                    : pensionNPV.totalNPV === 0
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-purple-500 text-white hover:bg-purple-600 shadow"
+                }`}
+              >
+                <Save size={13} />
+                {pensionSaved ? "บันทึกแล้ว ✓" : "บันทึก NPV ไปแผนเกษียณ"}
+              </button>
+
+              <div className="bg-blue-50 rounded-xl p-3 border border-blue-100">
+                <div className="text-[10px] text-blue-700 leading-relaxed">
+                  💡 ค่า NPV นี้จะถูกส่งไปที่ <strong>แผนเกษียณ → แหล่งเงินทุนที่มี</strong> (ประกันบำนาญ)
+                  เพื่อใช้คำนวณเงินทุนเกษียณที่ต้องเก็บเพิ่ม
+                </div>
+              </div>
+            </>
           )}
         </div>
 
