@@ -2,14 +2,15 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { Save, Plus, Trash2, Info, Download, CheckCircle2, ExternalLink, X, HeartPulse, Plane, Home, Car, HandHelping, Sparkles } from "lucide-react";
+import { Save, Plus, Trash2, Info, Download, CheckCircle2, ExternalLink, X, HeartPulse, Plane, Home, Car, HandHelping, Sparkles, Undo2, RotateCcw } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import { useProfileStore } from "@/store/profile-store";
 import { useInsuranceStore } from "@/store/insurance-store";
 import { useVariableStore } from "@/store/variable-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
-import { futureValue, calcRetirementFund } from "@/types/retirement";
+import { futureValue, DEFAULT_SPECIAL_EXPENSES } from "@/types/retirement";
+import type { SpecialExpenseItem } from "@/types/retirement";
 
 function fmt(n: number): string {
   return Math.round(n).toLocaleString("th-TH");
@@ -47,6 +48,46 @@ export default function SpecialExpensesPage() {
   const [showInflation, setShowInflation] = useState<string | null>(null);
   const [pulledId, setPulledId] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [lastDeleted, setLastDeleted] = useState<{ item: SpecialExpenseItem; index: number } | null>(null);
+
+  // Detect missing default items (so deletes can be undone by restore button)
+  const missingDefaults = useMemo(
+    () => {
+      const existingIds = new Set(store.specialExpenses.map((e) => e.id));
+      return DEFAULT_SPECIAL_EXPENSES.filter((d) => !existingIds.has(d.id));
+    },
+    [store.specialExpenses],
+  );
+
+  const handleRequestDelete = (id: string) => {
+    if (confirmDeleteId === id) {
+      // second click = actually delete + keep snapshot for undo
+      const idx = store.specialExpenses.findIndex((e) => e.id === id);
+      const item = store.specialExpenses[idx];
+      if (item) {
+        setLastDeleted({ item, index: idx });
+        store.removeSpecialExpense(id);
+        setConfirmDeleteId(null);
+        // Auto-hide undo after 8 seconds
+        setTimeout(() => {
+          setLastDeleted((prev) => (prev && prev.item.id === id ? null : prev));
+        }, 8000);
+      }
+    } else {
+      // first click — ask for confirmation, auto-revert after 3s
+      setConfirmDeleteId(id);
+      setTimeout(() => {
+        setConfirmDeleteId((prev) => (prev === id ? null : prev));
+      }, 3000);
+    }
+  };
+
+  const handleUndoDelete = () => {
+    if (!lastDeleted) return;
+    store.restoreSpecialExpense(lastDeleted.item, lastDeleted.index);
+    setLastDeleted(null);
+  };
 
   // ─── NPV from Pillar 2 (Risk Management) ──────────────────────────────
   const pillar2NPV = useMemo(() => {
@@ -170,6 +211,32 @@ export default function SpecialExpensesPage() {
           </div>
         </div>
 
+        {/* Missing-defaults banner (shown only if user deleted any default item) */}
+        {missingDefaults.length > 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 flex items-start gap-2">
+            <RotateCcw size={14} className="text-blue-500 mt-0.5 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="text-[11px] text-blue-900 font-bold">
+                มีรายการ default หายไป {missingDefaults.length} รายการ
+              </div>
+              <div className="text-[10px] text-blue-700 mt-0.5 leading-relaxed">
+                {missingDefaults.map((d) => d.name).join(" · ")}
+                {missingDefaults.some((d) => d.id === "se2") && (
+                  <span className="block mt-0.5 text-blue-600">
+                    💡 กู้คืน &ldquo;ค่าคนดูแลยามเกษียณ&rdquo; แล้วปุ่ม &ldquo;ไปคำนวณ&rdquo; จะกลับมาด้วย
+                  </span>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={() => store.restoreDefaultSpecialExpenses()}
+              className="shrink-0 px-3 py-1.5 rounded-lg bg-blue-500 text-white text-[10px] font-bold hover:bg-blue-600 active:scale-95 transition"
+            >
+              กู้คืน
+            </button>
+          </div>
+        )}
+
         {/* Items */}
         <div className="bg-white rounded-2xl border border-gray-200 p-4">
           <div className="text-xs font-bold text-gray-500 mb-3">รายจ่ายพิเศษ (ราคาปัจจุบัน)</div>
@@ -194,8 +261,20 @@ export default function SpecialExpensesPage() {
                       className="w-28 text-sm font-semibold bg-white rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition text-right"
                     />
                     <span className="text-[10px] text-gray-400">บาท</span>
-                    <button onClick={() => store.removeSpecialExpense(item.id)} className="text-gray-300 hover:text-red-500">
-                      <Trash2 size={14} />
+                    <button
+                      onClick={() => handleRequestDelete(item.id)}
+                      className={`shrink-0 flex items-center gap-1 rounded-md transition ${
+                        confirmDeleteId === item.id
+                          ? "px-2 py-1 bg-red-500 text-white hover:bg-red-600"
+                          : "px-1 py-1 text-gray-300 hover:text-red-500"
+                      }`}
+                      title={confirmDeleteId === item.id ? "กดอีกครั้งเพื่อยืนยันลบ" : "ลบรายการนี้"}
+                    >
+                      {confirmDeleteId === item.id ? (
+                        <span className="text-[10px] font-bold">ยืนยันลบ?</span>
+                      ) : (
+                        <Trash2 size={14} />
+                      )}
                     </button>
                   </div>
                   {/* Inflation selector */}
@@ -369,6 +448,28 @@ export default function SpecialExpensesPage() {
           className="mt-4"
         />
       </div>
+
+      {/* Undo toast (shown for 8s after a delete) */}
+      {lastDeleted && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[80] bg-gray-900 text-white rounded-xl shadow-xl px-4 py-3 flex items-center gap-3 max-w-[90vw] animate-fade-in-up">
+          <div className="text-xs">
+            ลบรายการ <b className="text-pink-300">&ldquo;{lastDeleted.item.name}&rdquo;</b> แล้ว
+          </div>
+          <button
+            onClick={handleUndoDelete}
+            className="flex items-center gap-1 px-3 py-1.5 bg-pink-500 hover:bg-pink-600 rounded-lg text-xs font-bold active:scale-95 transition"
+          >
+            <Undo2 size={12} /> ย้อนกลับ
+          </button>
+          <button
+            onClick={() => setLastDeleted(null)}
+            className="text-gray-400 hover:text-white"
+            aria-label="ปิด"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
 
       {/* ─── Info Modal: Special Expenses (Lump-Sum Needs) ──────────── */}
       {showInfo && (

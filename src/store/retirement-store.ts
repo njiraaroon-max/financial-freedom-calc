@@ -54,6 +54,8 @@ interface RetirementState {
   updateSpecialExpenseName: (id: string, name: string) => void;
   updateSpecialExpenseInflation: (id: string, rate: number) => void;
   removeSpecialExpense: (id: string) => void;
+  restoreSpecialExpense: (item: SpecialExpenseItem, index?: number) => void;
+  restoreDefaultSpecialExpenses: () => void;
 
   // Actions — Saving Funds
   addSavingFund: (name: string) => void;
@@ -173,6 +175,27 @@ export const useRetirementStore = create<RetirementState>()(
         })),
       removeSpecialExpense: (id) =>
         set((s) => ({ specialExpenses: s.specialExpenses.filter((e) => e.id !== id) })),
+      restoreSpecialExpense: (item, index) =>
+        set((s) => {
+          const arr = [...s.specialExpenses];
+          const at = typeof index === "number" && index >= 0 && index <= arr.length ? index : arr.length;
+          arr.splice(at, 0, item);
+          return { specialExpenses: arr };
+        }),
+      restoreDefaultSpecialExpenses: () =>
+        set((s) => {
+          const existingIds = new Set(s.specialExpenses.map((e) => e.id));
+          const missing = DEFAULT_SPECIAL_EXPENSES.filter((d) => !existingIds.has(d.id));
+          if (missing.length === 0) return {};
+          // Insert missing defaults at their canonical order (se1..se5 first, then custom)
+          const defaultsOrdered = DEFAULT_SPECIAL_EXPENSES.map(
+            (d) => s.specialExpenses.find((e) => e.id === d.id) || d
+          );
+          const customs = s.specialExpenses.filter(
+            (e) => !DEFAULT_SPECIAL_EXPENSES.some((d) => d.id === e.id)
+          );
+          return { specialExpenses: [...defaultsOrdered, ...customs] };
+        }),
 
       // Saving Funds
       addSavingFund: (name) =>
