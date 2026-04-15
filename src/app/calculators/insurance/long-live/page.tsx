@@ -460,21 +460,6 @@ export default function LongLivePage() {
                         </div>
                       </div>
 
-                      {/* Dividend detail */}
-                      {d?.dividends && d.dividends.length > 0 && (
-                        <div className="bg-purple-50/50 rounded-lg px-3 py-2">
-                          <div className="text-[9px] text-purple-500 font-bold mb-1">เงินปันผลรายปี</div>
-                          <div className="flex flex-wrap gap-2">
-                            {d.dividends.map((dv, i) => (
-                              <div key={i} className="text-[9px] bg-white border border-purple-100 rounded-lg px-2 py-1 text-center">
-                                <div className="text-gray-400">ปีที่ {dv.year}</div>
-                                <div className="font-bold text-purple-600">{fmtShort(dv.amount)}</div>
-                                <div className="text-[8px] text-gray-400">อายุ {(startYear - birthYear) + dv.year} ปี</div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
 
                     </div>
                   );
