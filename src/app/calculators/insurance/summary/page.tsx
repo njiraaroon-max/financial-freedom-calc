@@ -64,36 +64,60 @@ function getPaymentStatus(p: InsurancePolicy): { label: string; color: string } 
 // Gantt Chart
 // ---------------------------------------------------------------------------
 
-function GanttBar({ policy, minYear, maxYear }: { policy: InsurancePolicy; minYear: number; maxYear: number }) {
+function GanttBar({ policy, minYear, maxYear, birthYear }: { policy: InsurancePolicy; minYear: number; maxYear: number; birthYear: number }) {
   const totalYears = maxYear - minYear;
   if (totalYears <= 0) return null;
 
+  const isAnnuity = policy.policyType === "annuity";
+  const details = policy.annuityDetails;
+
   const startYear = yearFromDate(policy.startDate) || minYear;
-  const endYear = yearFromDate(policy.endDate) || maxYear;
-  const payEndYear = yearFromDate(policy.lastPayDate) || endYear;
   const currentYear = new Date().getFullYear();
+
+  // Annuity: ใช้ payoutEndAge แทน endDate
+  const endYear = isAnnuity && details
+    ? (details.payoutEndAge > 0 ? birthYear + details.payoutEndAge : birthYear + 99)
+    : (yearFromDate(policy.endDate) || maxYear);
+
+  const payEndYear = yearFromDate(policy.lastPayDate) || endYear;
+
+  // Annuity: payout bar เริ่มที่ payoutStartAge
+  const payoutStartYear = isAnnuity && details && details.payoutStartAge > 0
+    ? birthYear + details.payoutStartAge
+    : startYear;
 
   const left = ((startYear - minYear) / totalYears) * 100;
   const coverageWidth = ((endYear - startYear) / totalYears) * 100;
   const payWidth = ((Math.min(payEndYear, endYear) - startYear) / totalYears) * 100;
   const progressWidth = ((Math.min(currentYear, endYear) - startYear) / totalYears) * 100;
 
+  // Annuity payout segment
+  const payoutLeft = ((payoutStartYear - minYear) / totalYears) * 100;
+  const payoutWidth = ((endYear - payoutStartYear) / totalYears) * 100;
+
   const colors = GROUP_COLORS[policy.group] || GROUP_COLORS.other;
 
   return (
     <div className="relative h-5 w-full">
-      {/* Coverage period - light */}
+      {/* Coverage / premium payment period - light */}
       <div
         className={`absolute top-1 h-3 rounded-full ${colors.bg} opacity-60`}
         style={{ left: `${Math.max(0, left)}%`, width: `${Math.min(coverageWidth, 100 - left)}%` }}
       />
-      {/* Payment period - dark */}
+      {/* Payment period (จ่ายเบี้ย) - dark */}
       <div
         className={`absolute top-1 h-3 rounded-full ${colors.bar} opacity-40`}
         style={{ left: `${Math.max(0, left)}%`, width: `${Math.min(payWidth, 100 - left)}%` }}
       />
-      {/* Progress (elapsed) - solid */}
-      {progressWidth > 0 && (
+      {/* Annuity: payout period (รับบำนาญ) - solid stripe */}
+      {isAnnuity && payoutWidth > 0 && (
+        <div
+          className={`absolute top-1 h-3 rounded-full ${colors.bar}`}
+          style={{ left: `${Math.max(0, payoutLeft)}%`, width: `${Math.min(payoutWidth, 100 - payoutLeft)}%` }}
+        />
+      )}
+      {/* Progress (elapsed) - solid (non-annuity only) */}
+      {!isAnnuity && progressWidth > 0 && (
         <div
           className={`absolute top-1 h-3 rounded-full ${colors.bar}`}
           style={{ left: `${Math.max(0, left)}%`, width: `${Math.min(Math.max(0, progressWidth), coverageWidth)}%` }}
@@ -338,14 +362,22 @@ export default function InsuranceSummaryPage() {
   const profile = useProfileStore();
   const currentAge = profile.getAge();
   const currentYear = new Date().getFullYear();
+  const birthYear = currentYear - currentAge;
 
   const sorted = [...policies].sort((a, b) => a.order - b.order);
   const totalPremium = policies.reduce((s, p) => s + p.premium, 0);
   const totalSumInsured = policies.reduce((s, p) => s + p.sumInsured, 0);
   const totalCashValue = policies.reduce((s, p) => s + p.cashValue, 0);
 
-  // Compute year range for Gantt
-  const years = policies.flatMap((p) => [yearFromDate(p.startDate), yearFromDate(p.endDate)]).filter(Boolean);
+  // Compute year range for Gantt — annuity ใช้ payoutEndAge แทน endDate
+  const years = policies.flatMap((p) => {
+    const start = yearFromDate(p.startDate);
+    if (p.policyType === "annuity" && p.annuityDetails) {
+      const endAge = p.annuityDetails.payoutEndAge > 0 ? p.annuityDetails.payoutEndAge : 99;
+      return [start, birthYear + endAge];
+    }
+    return [start, yearFromDate(p.endDate)];
+  }).filter(Boolean) as number[];
   const minYear = years.length > 0 ? Math.min(...years) : currentYear;
   const maxYear = years.length > 0 ? Math.max(...years, currentYear + 10) : currentYear + 30;
 
@@ -480,7 +512,7 @@ export default function InsuranceSummaryPage() {
                     {/* Row 2: Full-width Gantt bar */}
                     <div className="mt-1.5 ml-6">
                       <div className="h-4">
-                        <GanttBar policy={p} minYear={minYear} maxYear={maxYear} />
+                        <GanttBar policy={p} minYear={minYear} maxYear={maxYear} birthYear={birthYear} />
                       </div>
                     </div>
                   </div>

@@ -738,8 +738,8 @@ export default function PortfolioDashboard() {
                 )}
               </div>
 
-              {/* ── Coverage Period (3 modes) — same order: years | age | date ── */}
-              <div>
+              {/* ── Coverage Period — ซ่อนสำหรับ annuity (ใช้ payoutEndAge แทน) ── */}
+              {form.policyType !== "annuity" && <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">ระยะคุ้มครอง</label>
                 <div className="flex bg-gray-100 rounded-full p-0.5 mb-2">
                   <button type="button" onClick={() => setForm({ ...form, coverageMode: "years" })}
@@ -790,7 +790,7 @@ export default function PortfolioDashboard() {
                         : ""}
                   </div>
                 )}
-              </div>
+              </div>}
 
               {/* Sum Insured, Cash Value & Premium */}
               <div className={`grid ${form.policyType === "term" ? "grid-cols-2" : "grid-cols-3"} gap-2`}>
