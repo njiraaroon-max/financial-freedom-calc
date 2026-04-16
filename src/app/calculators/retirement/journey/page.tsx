@@ -17,6 +17,8 @@ import {
   Settings2,
   Target,
   X,
+  Car,
+  Wrench,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -281,6 +283,23 @@ export default function WealthJourneyPage() {
     return () => clearTimeout(id);
   }, [chartMode, inputs, mcSimulations, mcSigma]);
 
+  // ----- icon markers for one-off expenses (car, home repair) on bar chart -----
+  const cashflowMarkers = useMemo<CfMarker[]>(() => {
+    const out: CfMarker[] = [];
+    for (const item of retire.specialExpenses) {
+      if (item.kind !== "lump") continue;
+      if ((item.amount ?? 0) <= 0) continue;
+      const age = item.occurAge;
+      if (age === undefined) continue;
+      if (item.id === "se4") {
+        out.push({ age, icon: "wrench", label: item.name });
+      } else if (item.id === "se5") {
+        out.push({ age, icon: "car", label: item.name });
+      }
+    }
+    return out;
+  }, [retire.specialExpenses]);
+
   // ----- chart data -----
   const chartData = useMemo(() => {
     return baseResult.rows.map((row, i) => {
@@ -479,6 +498,7 @@ export default function WealthJourneyPage() {
               currentAge={a.currentAge}
               retireAge={a.retireAge}
               lifeExpectancy={a.lifeExpectancy}
+              markers={cashflowMarkers}
             />
           ) : (
           <>
@@ -1217,18 +1237,28 @@ function cfValue(row: { contribution: number; inflow: number; outflow: number; r
   }
 }
 
+interface CfMarker {
+  age: number;
+  icon: "car" | "wrench";
+  label: string;
+}
+
 function CashflowBarChart({
   rows,
   currentAge,
   retireAge,
   lifeExpectancy,
+  markers = [],
 }: {
   rows: TooltipRow[];
   currentAge: number;
   retireAge: number;
   lifeExpectancy: number;
+  markers?: CfMarker[];
 }) {
-  const [visible, setVisible] = useState<Set<CfSeriesKey>>(new Set(["contribution", "inflow", "outflow", "returns"]));
+  const [visible, setVisible] = useState<Set<CfSeriesKey>>(
+    new Set(["contribution", "inflow", "outflow", "returns", "balance"]),
+  );
   const [hoverAge, setHoverAge] = useState<number | null>(null);
 
   const toggle = (key: CfSeriesKey) => {
@@ -1500,6 +1530,48 @@ function CashflowBarChart({
               </g>
             )}
           </svg>
+
+          {/* ── Icon markers for one-off lump expenses (car / home repair) ── */}
+          {(() => {
+            // Group markers by age to stack horizontally when same age
+            const byAge = new Map<number, CfMarker[]>();
+            for (const m of markers) {
+              if (m.age < minAge || m.age > maxAge) continue;
+              const arr = byAge.get(m.age) ?? [];
+              arr.push(m);
+              byAge.set(m.age, arr);
+            }
+            const out: React.ReactElement[] = [];
+            byAge.forEach((arr, age) => {
+              const cx = xPos(age);
+              arr.forEach((m, i) => {
+                const Icon = m.icon === "car" ? Car : Wrench;
+                const bg = m.icon === "car" ? "#fef3c7" : "#dbeafe";
+                const fg = m.icon === "car" ? "#92400e" : "#1d4ed8";
+                const offsetX = (i - (arr.length - 1) / 2) * 22;
+                out.push(
+                  <div
+                    key={`mk-${age}-${i}`}
+                    className="absolute flex items-center justify-center rounded-full border shadow-sm"
+                    style={{
+                      left: cx - 10 + offsetX,
+                      top: 22,
+                      width: 20,
+                      height: 20,
+                      backgroundColor: bg,
+                      borderColor: fg,
+                      zIndex: 15,
+                      pointerEvents: "none",
+                    }}
+                    title={`${m.label} (อายุ ${age})`}
+                  >
+                    <Icon size={11} color={fg} />
+                  </div>,
+                );
+              });
+            });
+            return out;
+          })()}
 
           {/* ── Floating tooltip next to hovered bar ── */}
           {hoveredRow && hoveredData && (() => {
