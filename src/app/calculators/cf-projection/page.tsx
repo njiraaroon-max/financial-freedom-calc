@@ -14,6 +14,10 @@ import {
   Calendar,
   ChevronDown,
   Sliders,
+  Flashlight,
+  CheckCircle2,
+  XCircle,
+  Flag,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { useProfileStore } from "@/store/profile-store";
@@ -68,8 +72,8 @@ export default function CFProjectionPage() {
     ((retire.assumptions?.postRetireReturn ?? 0.045) * 100),
   );
 
-  // Tab: pre-retire | post-retire | all | summary
-  const [view, setView] = useState<"all" | "pre" | "post" | "summary">("summary");
+  // Tab: summary | pre | post | spreadsheet | all
+  const [view, setView] = useState<"summary" | "pre" | "post" | "spreadsheet" | "all">("summary");
 
   // ── Compute annual totals from cashflow store ─────────────────────────
   const { annualIncome, annualExpense } = useMemo(() => {
@@ -205,9 +209,91 @@ export default function CFProjectionPage() {
     if (view === "pre") return rows.filter((r) => r.phase === "pre_retire");
     if (view === "post")
       return rows.filter((r) => r.phase === "post_retire" || r.phase === "retire_year");
-    if (view === "all") return rows;
+    if (view === "all" || view === "spreadsheet") return rows;
     return [];
   }, [rows, view]);
+
+  // ── Narrative insights — auto-generate a "flashlight-ahead" story ────
+  const insights = useMemo(() => {
+    if (rows.length === 0) {
+      return {
+        status: "idle" as const,
+        title: "ยังไม่มีข้อมูล",
+        body: "เริ่มจากการกรอก Cash Flow ปัจจุบัน แล้วมาปรับสมมติฐานที่หน้านี้",
+        milestones: [] as { year: number; age: number; label: string; tone: "info" | "warn" | "good" }[],
+      };
+    }
+    const retireRow = rows.find((r) => r.age === retireAge);
+    const firstNeg = rows.find((r) => r.endingBalance < 0);
+    const lastRow = rows[rows.length - 1];
+    const peakRow = rows.find((r) => r.year === summary.peakBalanceYear);
+
+    // Detect consecutive "red" streaks (net outflow) post-retire
+    let warningStreakStart: number | null = null;
+    let inStreak = 0;
+    let maxStreak = 0;
+    let streakStartOfMax: number | null = null;
+    for (const r of rows) {
+      if (r.phase !== "pre_retire" && r.netCashflow < 0) {
+        if (inStreak === 0) warningStreakStart = r.year;
+        inStreak += 1;
+        if (inStreak > maxStreak) {
+          maxStreak = inStreak;
+          streakStartOfMax = warningStreakStart;
+        }
+      } else {
+        inStreak = 0;
+      }
+    }
+
+    const milestones: { year: number; age: number; label: string; tone: "info" | "warn" | "good" }[] = [];
+    if (retireRow) {
+      milestones.push({
+        year: retireRow.year,
+        age: retireRow.age,
+        label: `เกษียณ — ยอดคงเหลือ ${fmtShort(retireRow.endingBalance)}`,
+        tone: "info",
+      });
+    }
+    if (peakRow && peakRow.year !== retireRow?.year) {
+      milestones.push({
+        year: peakRow.year,
+        age: peakRow.age,
+        label: `ยอดสูงสุด ${fmtShort(peakRow.endingBalance)}`,
+        tone: "good",
+      });
+    }
+    if (firstNeg) {
+      milestones.push({
+        year: firstNeg.year,
+        age: firstNeg.age,
+        label: `🚨 เงินเริ่มติดลบ`,
+        tone: "warn",
+      });
+    }
+
+    if (!firstNeg) {
+      return {
+        status: "safe" as const,
+        title: "แผนดูอุ่นใจได้ — ไม่มีใครรังแกเรา ยกเว้นเราเอง",
+        body: `คาดว่าจะมีเงินเหลือ ${fmtShort(lastRow.endingBalance)} บาทที่อายุ ${lastRow.age} ปี ยอดเงินสูงสุดอยู่ปี ${summary.peakBalanceYear} (${fmtShort(summary.peakBalance)} บาท)`,
+        milestones,
+      };
+    } else {
+      const depletionAge = firstNeg.age;
+      const yearsToDepletion = firstNeg.year - CURRENT_YEAR;
+      return {
+        status: "danger" as const,
+        title: `⚠️ แผนมีความเสี่ยง — เงินอาจหมดในอีก ${yearsToDepletion} ปี`,
+        body: `ปี ${firstNeg.year} (อายุ ${depletionAge}) ยอดคงเหลือจะลงต่ำกว่า 0${
+          maxStreak >= 3 && streakStartOfMax
+            ? ` และช่วงปี ${streakStartOfMax} เป็นช่วงที่ใช้จ่ายมากกว่ารายรับติดต่อกัน ${maxStreak} ปี`
+            : ""
+        } — พิจารณาเพิ่มเงินออม, ลดรายจ่าย, หรือเลื่อนวันเกษียณ`,
+        milestones,
+      };
+    }
+  }, [rows, summary, retireAge]);
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
@@ -222,14 +308,101 @@ export default function CFProjectionPage() {
         {/* Intro */}
         <div className="bg-gradient-to-br from-sky-500 to-indigo-600 rounded-2xl p-4 text-white mx-1">
           <div className="flex items-center gap-2 mb-2">
-            <TrendingUp size={20} />
-            <span className="text-sm font-bold">ประมาณการรายปี ก่อน/หลังเกษียณ</span>
+            <Flashlight size={20} />
+            <span className="text-sm font-bold">ฉายไฟฉายไปข้างหน้า — ดูอนาคตแบบ Excel</span>
           </div>
           <p className="text-[11px] opacity-80 leading-relaxed">
             ระบบดึงข้อมูลจากทุก module (Cash Flow, Retirement, Education, Insurance, Tax, Balance Sheet)
-            มาคำนวณกระแสเงินสดปีต่อปี พร้อมปรับตามเงินเฟ้อ ดูว่าแผนเป็นไปได้จริงมั้ย
+            มาคำนวณกระแสเงินสดปีต่อปี — ดูว่าเงินจะมีปัญหาช่วงไหน หรืออุ่นใจได้ไหม
           </p>
         </div>
+
+        {/* Flashlight — Narrative Insights */}
+        {rows.length > 0 && (
+          <div
+            className={`rounded-2xl shadow-sm p-4 mx-1 border-2 ${
+              insights.status === "safe"
+                ? "bg-emerald-50 border-emerald-300"
+                : insights.status === "danger"
+                  ? "bg-red-50 border-red-300"
+                  : "bg-gray-50 border-gray-200"
+            }`}
+          >
+            <div className="flex items-start gap-3 mb-2">
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                  insights.status === "safe"
+                    ? "bg-emerald-500 text-white"
+                    : insights.status === "danger"
+                      ? "bg-red-500 text-white"
+                      : "bg-gray-400 text-white"
+                }`}
+              >
+                {insights.status === "safe" ? (
+                  <CheckCircle2 size={20} />
+                ) : insights.status === "danger" ? (
+                  <XCircle size={20} />
+                ) : (
+                  <Flashlight size={20} />
+                )}
+              </div>
+              <div className="flex-1">
+                <div
+                  className={`text-sm font-bold ${
+                    insights.status === "safe"
+                      ? "text-emerald-800"
+                      : insights.status === "danger"
+                        ? "text-red-800"
+                        : "text-gray-800"
+                  }`}
+                >
+                  {insights.title}
+                </div>
+                <div
+                  className={`text-[11px] leading-relaxed mt-1 ${
+                    insights.status === "safe"
+                      ? "text-emerald-700"
+                      : insights.status === "danger"
+                        ? "text-red-700"
+                        : "text-gray-600"
+                  }`}
+                >
+                  {insights.body}
+                </div>
+              </div>
+            </div>
+
+            {insights.milestones.length > 0 && (
+              <div className="border-t border-white/60 pt-3 mt-3">
+                <div className="text-[10px] font-bold text-gray-600 mb-2 uppercase tracking-wider">
+                  📍 หลักไมล์สำคัญ
+                </div>
+                <div className="space-y-1.5">
+                  {insights.milestones.map((m, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-2 bg-white/60 rounded-lg px-2.5 py-1.5"
+                    >
+                      <Flag
+                        size={12}
+                        className={
+                          m.tone === "good"
+                            ? "text-emerald-500"
+                            : m.tone === "warn"
+                              ? "text-red-500"
+                              : "text-sky-500"
+                        }
+                      />
+                      <span className="text-[11px] text-gray-600">
+                        ปี {m.year} (อายุ {m.age}) — {m.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Quick summary cards */}
         <div className="grid grid-cols-2 gap-2 mx-1">
@@ -327,9 +500,10 @@ export default function CFProjectionPage() {
         </div>
 
         {/* View toggle */}
-        <div className="bg-white rounded-2xl shadow-sm p-1.5 mx-1 flex gap-1">
+        <div className="bg-white rounded-2xl shadow-sm p-1.5 mx-1 flex gap-1 overflow-x-auto">
           {[
             { key: "summary", label: "สรุปย่อ" },
+            { key: "spreadsheet", label: "Excel View" },
             { key: "pre", label: "ก่อนเกษียณ" },
             { key: "post", label: "หลังเกษียณ" },
             { key: "all", label: "ตารางเต็ม" },
@@ -337,7 +511,7 @@ export default function CFProjectionPage() {
             <button
               key={v.key}
               onClick={() => setView(v.key as typeof view)}
-              className={`flex-1 py-2 rounded-lg text-xs font-bold transition ${
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition whitespace-nowrap ${
                 view === v.key
                   ? "bg-sky-500 text-white shadow"
                   : "text-gray-500 hover:bg-gray-100"
@@ -351,6 +525,8 @@ export default function CFProjectionPage() {
         {/* Content */}
         {view === "summary" ? (
           <CondensedSummary rows={rows} currentAge={currentAge} retireAge={retireAge} />
+        ) : view === "spreadsheet" ? (
+          <SpreadsheetView rows={filteredRows} retireAge={retireAge} summary={summary} />
         ) : (
           <FullProjectionTable rows={filteredRows} retireAge={retireAge} />
         )}
@@ -707,5 +883,182 @@ function BalanceLineChart({
         {maxYear}
       </text>
     </svg>
+  );
+}
+
+// ─── Excel-like Spreadsheet View ──────────────────────────────────────────
+// A wide, scrollable table mirroring how a financial planner would lay out
+// the cashflow in Excel: one row per year, many columns, sticky year column,
+// colour-coded row health, running balance on the far right.
+function SpreadsheetView({
+  rows,
+  retireAge,
+  summary,
+}: {
+  rows: CFProjectionRow[];
+  retireAge: number;
+  summary: {
+    peakBalance: number;
+    peakBalanceYear: number;
+    depletionYear: number | null;
+  };
+}) {
+  if (rows.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl p-8 text-center text-xs text-gray-400 mx-1">
+        ไม่มีข้อมูลในช่วงที่เลือก
+      </div>
+    );
+  }
+
+  // Health classification per year — used for row background tint
+  const healthFor = (r: CFProjectionRow): "peak" | "retire" | "ok" | "caution" | "danger" => {
+    if (r.depleted || r.endingBalance < 0) return "danger";
+    if (r.year === summary.peakBalanceYear) return "peak";
+    if (r.age === retireAge) return "retire";
+    // Caution: running out in the next 5 years
+    const oneYearExpense = r.totalExpense;
+    if (oneYearExpense > 0 && r.endingBalance < oneYearExpense * 2) return "caution";
+    return "ok";
+  };
+
+  const healthBg: Record<ReturnType<typeof healthFor>, string> = {
+    peak: "bg-emerald-50",
+    retire: "bg-amber-50",
+    ok: "",
+    caution: "bg-yellow-50",
+    danger: "bg-red-50",
+  };
+
+  const depletionRow = rows.find((r) => r.depleted);
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm mx-1 overflow-hidden">
+      {/* Legend */}
+      <div className="px-3 py-2 border-b border-gray-100 bg-gray-50 flex flex-wrap gap-2 text-[9px]">
+        <span className="inline-flex items-center gap-1">
+          <span className="w-3 h-3 rounded bg-emerald-200" /> ยอดสูงสุด
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="w-3 h-3 rounded bg-amber-200" /> ปีเกษียณ
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="w-3 h-3 rounded bg-yellow-100" /> ยอดเริ่มตึง
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="w-3 h-3 rounded bg-red-200" /> เงินติดลบ
+        </span>
+      </div>
+
+      {/* Scrollable table */}
+      <div className="overflow-x-auto max-h-[70vh] overflow-y-auto relative">
+        <table className="w-full text-[10px] border-collapse">
+          <thead className="sticky top-0 z-10 bg-[#1e3a5f] text-white shadow">
+            <tr>
+              <th className="py-2 px-2 text-left font-bold sticky left-0 bg-[#1e3a5f] z-20 min-w-[70px]">ปี</th>
+              <th className="py-2 px-1 text-center font-bold min-w-[36px]">อายุ</th>
+              <th className="py-2 px-2 text-right font-bold bg-emerald-700 min-w-[72px]">เงินเดือน</th>
+              <th className="py-2 px-2 text-right font-bold bg-emerald-700 min-w-[72px]">บำนาญ SS</th>
+              <th className="py-2 px-2 text-right font-bold bg-emerald-700 min-w-[72px]">บำนาญประกัน</th>
+              <th className="py-2 px-2 text-right font-bold bg-emerald-700 min-w-[60px]">ก้อน</th>
+              <th className="py-2 px-2 text-right font-extrabold bg-emerald-800 min-w-[80px]">รวมเข้า</th>
+              <th className="py-2 px-2 text-right font-bold bg-red-700 min-w-[80px]">ใช้จ่าย</th>
+              <th className="py-2 px-2 text-right font-bold bg-red-700 min-w-[72px]">การศึกษา</th>
+              <th className="py-2 px-2 text-right font-bold bg-red-700 min-w-[60px]">พิเศษ</th>
+              <th className="py-2 px-2 text-right font-extrabold bg-red-800 min-w-[80px]">รวมออก</th>
+              <th className="py-2 px-2 text-right font-bold bg-sky-700 min-w-[72px]">Net</th>
+              <th className="py-2 px-2 text-right font-bold bg-sky-700 min-w-[72px]">ดอกเบี้ย</th>
+              <th className="py-2 px-2 text-right font-extrabold bg-sky-900 min-w-[84px]">คงเหลือ</th>
+              <th className="py-2 px-1 text-center font-bold min-w-[28px]">สถานะ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => {
+              const h = healthFor(r);
+              const isRetireYear = r.age === retireAge;
+              const isDepletionStart = depletionRow && r.year === depletionRow.year;
+              return (
+                <tr
+                  key={r.year}
+                  className={`border-b border-gray-100 ${healthBg[h]} hover:brightness-95 transition`}
+                >
+                  <td className={`py-1.5 px-2 sticky left-0 z-[5] font-medium ${healthBg[h] || "bg-white"}`}>
+                    <div className="text-gray-800 font-bold">{r.year}</div>
+                    <div className="text-[9px] text-gray-400">พ.ศ. {r.yearBE}</div>
+                  </td>
+                  <td className="py-1.5 px-1 text-center font-bold text-gray-700">
+                    {r.age}
+                    {isRetireYear && <div className="text-[8px] text-amber-600">★</div>}
+                  </td>
+                  <td className="py-1.5 px-2 text-right text-emerald-700">
+                    {r.salaryIncome > 0 ? fmtShort(r.salaryIncome) : "—"}
+                  </td>
+                  <td className="py-1.5 px-2 text-right text-emerald-700">
+                    {r.ssIncome > 0 ? fmtShort(r.ssIncome) : "—"}
+                  </td>
+                  <td className="py-1.5 px-2 text-right text-emerald-700">
+                    {r.annuityIncome > 0 ? fmtShort(r.annuityIncome) : "—"}
+                  </td>
+                  <td className="py-1.5 px-2 text-right text-emerald-700">
+                    {r.lumpIncome > 0 ? fmtShort(r.lumpIncome) : "—"}
+                  </td>
+                  <td className="py-1.5 px-2 text-right font-extrabold text-emerald-800 bg-emerald-50/50">
+                    {fmtShort(r.totalIncome)}
+                  </td>
+                  <td className="py-1.5 px-2 text-right text-red-600">
+                    {fmtShort(r.livingExpense)}
+                  </td>
+                  <td className="py-1.5 px-2 text-right text-blue-600">
+                    {r.educationCost > 0 ? fmtShort(r.educationCost) : "—"}
+                  </td>
+                  <td className="py-1.5 px-2 text-right text-amber-600">
+                    {r.specialExpense > 0 ? fmtShort(r.specialExpense) : "—"}
+                  </td>
+                  <td className="py-1.5 px-2 text-right font-extrabold text-red-700 bg-red-50/50">
+                    {fmtShort(r.totalExpense)}
+                  </td>
+                  <td
+                    className={`py-1.5 px-2 text-right font-bold ${
+                      r.netCashflow >= 0 ? "text-emerald-700" : "text-red-600"
+                    }`}
+                  >
+                    {fmtSigned(r.netCashflow)}
+                  </td>
+                  <td className="py-1.5 px-2 text-right text-sky-600">
+                    {r.investmentReturn > 0 ? `+${fmtShort(r.investmentReturn)}` : "—"}
+                  </td>
+                  <td
+                    className={`py-1.5 px-2 text-right font-extrabold ${
+                      r.endingBalance > 0 ? "text-sky-800" : "text-red-800"
+                    } bg-sky-50/50`}
+                  >
+                    {fmtShort(r.endingBalance)}
+                  </td>
+                  <td className="py-1.5 px-1 text-center">
+                    {h === "peak"
+                      ? "🏆"
+                      : h === "retire"
+                        ? "⭐"
+                        : isDepletionStart
+                          ? "🚨"
+                          : h === "danger"
+                            ? "💀"
+                            : h === "caution"
+                              ? "⚠️"
+                              : ""}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Footer explanation */}
+      <div className="px-3 py-2.5 border-t border-gray-100 bg-gray-50 text-[10px] text-gray-500 leading-relaxed">
+        💡 <strong>วิธีอ่าน:</strong> แถวสีเขียว = ยอดเงินสูงสุด, สีเหลือง = เริ่มตึง (ยอดเหลือ &lt; 2 ปีของรายจ่าย),
+        สีแดง = เงินติดลบแล้ว, ★ = ปีเกษียณ, 🚨 = ปีแรกที่เงินเริ่มติดลบ
+      </div>
+    </div>
   );
 }
