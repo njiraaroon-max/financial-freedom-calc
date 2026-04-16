@@ -15,6 +15,7 @@
  */
 
 import Link from "next/link";
+import { useState } from "react";
 import {
   Trash2,
   ChevronRight,
@@ -50,6 +51,18 @@ function fmtM(n: number): string {
 }
 function parseNum(s: string): number {
   return Number(s.replace(/[^0-9.-]/g, "")) || 0;
+}
+
+/** Normalize typed input: digits + single dot only */
+function cleanNumericInput(raw: string): string {
+  let cleaned = raw.replace(/[^\d.]/g, "");
+  const firstDot = cleaned.indexOf(".");
+  if (firstDot !== -1) {
+    cleaned =
+      cleaned.slice(0, firstDot + 1) +
+      cleaned.slice(firstDot + 1).replace(/\./g, "");
+  }
+  return cleaned;
 }
 
 function averageAnnual(rows: YearlyFlowRow[]): number {
@@ -298,19 +311,12 @@ function InlineCard({
       </div>
 
       {/* Amount */}
-      <div className="flex items-center gap-2">
-        <input
-          type="text"
-          inputMode="numeric"
-          value={amount === 0 ? "" : amount.toLocaleString("th-TH")}
-          onChange={(e) => onUpdateAmount(parseNum(e.target.value))}
-          placeholder="0"
-          className={`flex-1 text-sm font-semibold bg-white rounded-lg px-3 py-1.5 outline-none focus:ring-2 ${accent.ring} transition text-right`}
-        />
-        <span className="text-[10px] text-gray-400 whitespace-nowrap">
-          {kind === "lump" ? "บาท (วันนี้)" : "บาท/ปี (วันนี้)"}
-        </span>
-      </div>
+      <AmountInput
+        amount={amount}
+        kind={kind}
+        onChange={onUpdateAmount}
+        accent={accent}
+      />
 
       {/* Age inputs */}
       {kind === "lump" && onUpdateOccurAge && (
@@ -342,23 +348,12 @@ function InlineCard({
         </div>
       )}
 
-      {/* Inflation chips */}
-      <div className="flex items-center gap-1 flex-wrap">
-        <span className="text-[10px] text-gray-400 mr-1">เงินเฟ้อ:</span>
-        {INFLATION_HINTS.map((h) => (
-          <button
-            key={h.rate}
-            onClick={() => onUpdateInflation(h.rate)}
-            className={`px-2 py-0.5 rounded-full text-[10px] transition ${
-              Math.abs(inflation - h.rate) < 0.001
-                ? `${accent.button} text-white font-bold`
-                : "bg-gray-200 text-gray-500 hover:bg-gray-300"
-            }`}
-          >
-            {h.label}
-          </button>
-        ))}
-      </div>
+      {/* Inflation — typeable input + quick-pick chips */}
+      <InflationInput
+        inflation={inflation}
+        onChange={onUpdateInflation}
+        accent={accent}
+      />
 
       {/* Preview */}
       {amount > 0 && (
@@ -420,6 +415,126 @@ function AgeInput({
       }}
       className={`w-14 text-xs font-semibold bg-white rounded-md px-2 py-1 outline-none focus:ring-2 ${accent.ring} transition text-right`}
     />
+  );
+}
+
+// ---------------------------------------------------------------------------
+// AmountInput — typeable numeric input with locale formatting on blur
+// Uses local draft state so typing is not disrupted by toLocaleString commas.
+// ---------------------------------------------------------------------------
+function AmountInput({
+  amount,
+  kind,
+  onChange,
+  accent,
+}: {
+  amount: number;
+  kind: CashflowKind;
+  onChange: (n: number) => void;
+  accent: AccentTheme;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const display =
+    draft !== null
+      ? draft
+      : amount === 0
+        ? ""
+        : amount.toLocaleString("th-TH");
+
+  return (
+    <div className="flex items-center gap-2">
+      <input
+        type="text"
+        inputMode="decimal"
+        value={display}
+        placeholder="0"
+        onFocus={() => setDraft(amount === 0 ? "" : String(amount))}
+        onChange={(e) => {
+          const cleaned = cleanNumericInput(e.target.value);
+          setDraft(cleaned);
+          onChange(parseNum(cleaned));
+        }}
+        onBlur={() => setDraft(null)}
+        className={`flex-1 text-sm font-semibold bg-white rounded-lg px-3 py-1.5 outline-none focus:ring-2 ${accent.ring} transition text-right`}
+      />
+      <span className="text-[10px] text-gray-400 whitespace-nowrap">
+        {kind === "lump" ? "บาท (วันนี้)" : "บาท/ปี (วันนี้)"}
+      </span>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// InflationInput — typeable % input + quick-pick chips
+// Store keeps rate as decimal (0.03), UI shows percent (3).
+// ---------------------------------------------------------------------------
+function InflationInput({
+  inflation,
+  onChange,
+  accent,
+}: {
+  inflation: number;
+  onChange: (rate: number) => void;
+  accent: AccentTheme;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const percentValue = inflation * 100;
+  const display =
+    draft !== null
+      ? draft
+      : Number.isFinite(percentValue)
+        ? // Trim trailing zeros but keep decimals if any (e.g. 3 not 3.00; 3.5 not 3.50)
+          String(Math.round(percentValue * 1000) / 1000)
+        : "";
+
+  const commitPercent = (str: string) => {
+    const pct = parseNum(str);
+    onChange(pct / 100);
+  };
+
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <span className="text-[10px] text-gray-400">เงินเฟ้อ:</span>
+      <div className="flex items-center gap-1">
+        <input
+          type="text"
+          inputMode="decimal"
+          value={display}
+          placeholder="0"
+          onFocus={() =>
+            setDraft(
+              Number.isFinite(percentValue)
+                ? String(Math.round(percentValue * 1000) / 1000)
+                : "",
+            )
+          }
+          onChange={(e) => {
+            const cleaned = cleanNumericInput(e.target.value);
+            setDraft(cleaned);
+            commitPercent(cleaned);
+          }}
+          onBlur={() => setDraft(null)}
+          className={`w-14 text-xs font-semibold bg-white rounded-md px-2 py-1 outline-none focus:ring-2 ${accent.ring} transition text-right`}
+        />
+        <span className="text-[10px] text-gray-500">%</span>
+      </div>
+      <div className="flex items-center gap-1 flex-wrap">
+        {INFLATION_HINTS.map((h) => (
+          <button
+            key={h.rate}
+            type="button"
+            onClick={() => onChange(h.rate)}
+            className={`px-2 py-0.5 rounded-full text-[10px] transition ${
+              Math.abs(inflation - h.rate) < 0.0001
+                ? `${accent.button} text-white font-bold`
+                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+            }`}
+          >
+            {h.label}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
