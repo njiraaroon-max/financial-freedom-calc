@@ -93,7 +93,7 @@ const calculators = [
     ready: true,
   },
   {
-    name: "Risk Mgmt",
+    name: "Risk Management",
     description: "จัดการความเสี่ยง",
     icon: Shield,
     customIcon: "/circle-icons/risk-management.png",
