@@ -90,13 +90,17 @@ export default function CFProjectionPage() {
     [insurance.policies],
   );
 
-  // Tax estimate (from tax store if calculated)
+  // Tax estimate — prefer the calculated annual tax from the tax module
+  // (variable "annual_tax_after" if the user ran the Tax Planning page),
+  // else fall back to the withholding-tax number they entered, else 0.
   const annualTaxEstimate = useMemo(() => {
-    // If user has set withholding tax or variables, use that
-    // Otherwise fall back to simple estimate
-    const fromStore = tax.withholdingTax || 0;
-    return fromStore;
-  }, [tax.withholdingTax]);
+    const calculated =
+      variables.getVariable("annual_tax_after")?.value ??
+      variables.getVariable("annual_tax_before")?.value ??
+      0;
+    if (calculated > 0) return calculated;
+    return tax.withholdingTax || 0;
+  }, [variables, tax.withholdingTax]);
 
   // Post-retire basic expenses (monthly sum from retirement.basicExpenses)
   const postRetireMonthlyExpense = useMemo(
@@ -254,6 +258,20 @@ export default function CFProjectionPage() {
             accent={summary.depletionYear ? "text-red-600" : "text-emerald-600"}
           />
         </div>
+
+        {/* Balance over time chart */}
+        {rows.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-sm p-4 mx-1">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <LineIcon size={16} className="text-sky-600" />
+                <h3 className="text-sm font-bold text-gray-800">เส้นทางยอดเงิน</h3>
+              </div>
+              <span className="text-[10px] text-gray-400">ค.ศ. {rows[0].year} → {rows[rows.length - 1].year}</span>
+            </div>
+            <BalanceLineChart rows={rows} retireAge={retireAge} />
+          </div>
+        )}
 
         {/* Inputs panel */}
         <div className="bg-white rounded-2xl shadow-sm p-4 mx-1">
@@ -562,5 +580,128 @@ function CondensedSummary({
         })}
       </div>
     </div>
+  );
+}
+
+// ─── Balance line chart (pure SVG) ─────────────────────────────────────────
+function BalanceLineChart({
+  rows,
+  retireAge,
+}: {
+  rows: CFProjectionRow[];
+  retireAge: number;
+}) {
+  const W = 340;
+  const H = 140;
+  const padL = 40;
+  const padR = 8;
+  const padT = 8;
+  const padB = 24;
+
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+
+  const minYear = rows[0].year;
+  const maxYear = rows[rows.length - 1].year;
+  const yearSpan = Math.max(1, maxYear - minYear);
+
+  const balances = rows.map((r) => r.endingBalance);
+  const maxBal = Math.max(...balances, 0);
+  const minBal = Math.min(...balances, 0);
+  const balRange = Math.max(1, maxBal - minBal);
+
+  const x = (year: number) => padL + ((year - minYear) / yearSpan) * chartW;
+  const y = (bal: number) => padT + chartH - ((bal - minBal) / balRange) * chartH;
+  const zeroY = y(0);
+
+  // Build path
+  const path = rows
+    .map((r, i) => `${i === 0 ? "M" : "L"} ${x(r.year).toFixed(1)} ${y(r.endingBalance).toFixed(1)}`)
+    .join(" ");
+
+  // Retire year line
+  const retireRow = rows.find((r) => r.age === retireAge);
+  const retireX = retireRow ? x(retireRow.year) : null;
+
+  // Y ticks
+  const yTicks = [maxBal, maxBal * 0.5, 0, minBal < 0 ? minBal : null].filter(
+    (v): v is number => v !== null,
+  );
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[360px] mx-auto">
+      {/* Grid + Y labels */}
+      {yTicks.map((t, i) => (
+        <g key={i}>
+          <line x1={padL} y1={y(t)} x2={W - padR} y2={y(t)}
+            stroke={t === 0 ? "#d1d5db" : "#f3f4f6"} strokeWidth={t === 0 ? 1 : 0.5} />
+          <text x={padL - 4} y={y(t) + 3} fontSize="8" fill="#9ca3af" textAnchor="end">
+            {fmtShort(t)}
+          </text>
+        </g>
+      ))}
+
+      {/* Retire line */}
+      {retireX !== null && (
+        <g>
+          <line x1={retireX} y1={padT} x2={retireX} y2={H - padB}
+            stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="3 3" />
+          <text x={retireX} y={padT + 8} fontSize="8" fontWeight="700" fill="#d97706" textAnchor="middle">
+            เกษียณ
+          </text>
+        </g>
+      )}
+
+      {/* Balance path — split into positive / negative segments for color */}
+      <path
+        d={path}
+        fill="none"
+        stroke="#0ea5e9"
+        strokeWidth={2}
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+
+      {/* Red overlay on depleted (negative) portion */}
+      {rows.some((r) => r.endingBalance < 0) && (
+        <path
+          d={rows
+            .filter((r) => r.endingBalance < 0)
+            .map((r, i) => `${i === 0 ? "M" : "L"} ${x(r.year).toFixed(1)} ${y(r.endingBalance).toFixed(1)}`)
+            .join(" ")}
+          fill="none"
+          stroke="#ef4444"
+          strokeWidth={2.5}
+          strokeLinejoin="round"
+        />
+      )}
+
+      {/* Fill area under line */}
+      <path
+        d={`${path} L ${x(maxYear).toFixed(1)} ${zeroY} L ${x(minYear).toFixed(1)} ${zeroY} Z`}
+        fill="url(#balanceGradient)"
+        opacity={0.3}
+      />
+
+      <defs>
+        <linearGradient id="balanceGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.6" />
+          <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+
+      {/* X axis labels (first / retire / last) */}
+      <text x={padL} y={H - 8} fontSize="8" fill="#6b7280" textAnchor="start">
+        {minYear}
+      </text>
+      {retireX !== null && retireRow && (
+        <text x={retireX} y={H - 8} fontSize="8" fontWeight="700" fill="#d97706" textAnchor="middle">
+          {retireRow.year}
+        </text>
+      )}
+      <text x={W - padR} y={H - 8} fontSize="8" fill="#6b7280" textAnchor="end">
+        {maxYear}
+      </text>
+    </svg>
   );
 }
