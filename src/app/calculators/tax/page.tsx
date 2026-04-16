@@ -5,6 +5,7 @@ import { Download, Save, ChevronDown, ChevronUp, Receipt, Shield } from "lucide-
 import { useTaxStore } from "@/store/tax-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
+import MoneyInput from "@/components/MoneyInput";
 import { useCashFlowStore } from "@/store/cashflow-store";
 import { useVariableStore } from "@/store/variable-store";
 import { useInsuranceStore } from "@/store/insurance-store";
@@ -24,19 +25,13 @@ function fmt(n: number): string {
   return Math.round(n).toLocaleString("th-TH");
 }
 
-function parseNum(s: string): number {
-  return Number(s.replace(/[^0-9.-]/g, "")) || 0;
-}
-
 function NumberInput({ value, onChange, className }: { value: number; onChange: (v: number) => void; className?: string }) {
   return (
-    <input
-      type="text"
-      inputMode="numeric"
-      value={value === 0 ? "" : value.toLocaleString("th-TH")}
-      onChange={(e) => onChange(parseNum(e.target.value))}
-      placeholder="0"
-      className={`text-sm font-semibold bg-gray-50 rounded-xl px-2 py-1.5 outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition text-right ${className || "w-24"}`}
+    <MoneyInput
+      value={value}
+      onChange={onChange}
+      className={`text-sm font-semibold bg-gray-50 rounded-xl px-2 py-1.5 outline-none focus:ring-2 text-right ${className || "w-24"}`}
+      ringClass="focus:ring-[var(--color-primary)]"
     />
   );
 }

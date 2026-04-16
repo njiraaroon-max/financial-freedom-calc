@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MONTH_NAMES_TH } from "@/types/cashflow";
 import type { IncomeItem, ExpenseItem } from "@/types/cashflow";
 import PieChart, { INCOME_COLORS, EXPENSE_COLORS } from "@/components/PieChart";
+import MoneyInput from "@/components/MoneyInput";
 
 interface AnnualCashFlowTableProps {
   incomes: IncomeItem[];
@@ -23,16 +24,6 @@ function pct(n: number): string {
   return n.toFixed(0) + "%";
 }
 
-function parseNumber(s: string): number {
-  const cleaned = s.replace(/[^0-9.-]/g, "");
-  return Number(cleaned) || 0;
-}
-
-function formatInput(n: number): string {
-  if (n === 0) return "";
-  return n.toLocaleString("th-TH");
-}
-
 export default function AnnualCashFlowTable({
   incomes,
   expenses,
@@ -46,7 +37,7 @@ export default function AnnualCashFlowTable({
     monthIndex: number;
     value: number;
   } | null>(null);
-  const [editValue, setEditValue] = useState("");
+  const [editValue, setEditValue] = useState(0);
   // Group expenses by category
   const fixedExpenses = expenses.filter((e) => e.expenseCategory === "fixed");
   const variableExpenses = expenses.filter((e) => e.expenseCategory === "variable");
@@ -85,7 +76,7 @@ export default function AnnualCashFlowTable({
           onClick={() => {
             if (onUpdateAmount) {
               setEditCell({ itemId: item.id, itemName: item.name, monthIndex: i, value: a });
-              setEditValue(formatInput(a));
+              setEditValue(a);
             }
           }}
         >
@@ -139,7 +130,7 @@ export default function AnnualCashFlowTable({
 
   const handleEditSave = () => {
     if (editCell && onUpdateAmount) {
-      onUpdateAmount(editCell.itemId, editCell.monthIndex, parseNumber(editValue));
+      onUpdateAmount(editCell.itemId, editCell.monthIndex, editValue);
     }
     setEditCell(null);
   };
@@ -327,18 +318,10 @@ export default function AnnualCashFlowTable({
             <div className="text-xs text-gray-400 mb-3">
               {MONTH_NAMES_TH[editCell.monthIndex]}
             </div>
-            <input
-              type="text"
-              inputMode="numeric"
-              autoFocus
+            <MoneyInput
               value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleEditSave();
-                if (e.key === "Escape") setEditCell(null);
-              }}
-              className="w-full text-center text-lg font-bold bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition"
-              placeholder="0"
+              onChange={setEditValue}
+              className="w-full text-center text-lg font-bold bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 transition"
             />
             <div className="flex gap-2 mt-4">
               <button

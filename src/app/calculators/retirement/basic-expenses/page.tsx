@@ -25,6 +25,7 @@ import { useRetirementStore } from "@/store/retirement-store";
 import { useProfileStore } from "@/store/profile-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
+import MoneyInput from "@/components/MoneyInput";
 import RetirementDiagram from "@/components/retirement/RetirementDiagram";
 import { useCashFlowStore } from "@/store/cashflow-store";
 import { futureValue, calcRetirementFund } from "@/types/retirement";
@@ -40,16 +41,12 @@ function NumberInput({
   value: number;
   onChange: (v: number) => void;
 }) {
-  const display = value ? value.toLocaleString("th-TH") : "";
   return (
-    <input
-      type="text"
-      inputMode="numeric"
-      value={display}
-      onChange={(e) =>
-        onChange(Number(e.target.value.replace(/[^0-9.-]/g, "")) || 0)
-      }
-      className="w-full text-xs font-semibold rounded-xl px-2 py-2 outline-none text-right transition bg-gray-50 focus:ring-2 focus:ring-[var(--color-primary)]"
+    <MoneyInput
+      value={value}
+      onChange={onChange}
+      className="w-full text-xs font-semibold rounded-xl px-2 py-2 outline-none text-right bg-gray-50 focus:ring-2 border-0"
+      ringClass="focus:ring-[var(--color-primary)]"
     />
   );
 }

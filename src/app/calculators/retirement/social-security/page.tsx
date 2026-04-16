@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Save, ShieldCheck, Info, X } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import PageHeader from "@/components/PageHeader";
+import MoneyInput from "@/components/MoneyInput";
 import { useVariableStore } from "@/store/variable-store";
 import { useProfileStore } from "@/store/profile-store";
 import { calcSocialSecurityPension } from "@/types/retirement";
@@ -125,12 +126,11 @@ export default function SocialSecurityPage() {
           <div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-600">เพดานฐานค่าจ้างสูงสุด (บาท)</span>
-              <input
-                type="text" inputMode="numeric"
-                value={p.salaryCap === 0 ? "" : p.salaryCap.toLocaleString("th-TH")}
-                onChange={(e) => updateSSParam("salaryCap", Number(e.target.value.replace(/[^0-9]/g, "")) || 0)}
-                className="w-28 text-sm font-semibold bg-gray-50 rounded-xl px-2 py-2 outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-right"
-                placeholder="0"
+              <MoneyInput
+                value={p.salaryCap}
+                onChange={(v) => updateSSParam("salaryCap", v)}
+                compact
+                ringClass="focus:ring-[var(--color-primary)]"
               />
             </div>
             <div className="flex gap-1.5 mt-2 flex-wrap">

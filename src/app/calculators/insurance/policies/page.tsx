@@ -28,6 +28,7 @@ import { useRetirementStore } from "@/store/retirement-store";
 import PageHeader from "@/components/PageHeader";
 import ThaiDatePicker from "@/components/ThaiDatePicker";
 import AgeScrollPicker from "@/components/AgeScrollPicker";
+import MoneyInput from "@/components/MoneyInput";
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 const NAVY = "#1e3a5f";
@@ -69,15 +70,6 @@ function getCoverageEndYear(p: InsurancePolicy, birthYear: number): number {
   return getStartYear(p) + 20;
 }
 
-function commaInput(n: number): string {
-  if (n === 0) return "";
-  return n.toLocaleString("th-TH");
-}
-
-function parseNum(s: string): number {
-  return Number(s.replace(/[^0-9.-]/g, "")) || 0;
-}
-
 // ─── Color by policy type ──────────────────────────────────────────────────────
 const TYPE_COLORS: Record<PolicyType, { premium: string; coverage: string; text: string }> = {
   whole_life: { premium: "#1e3a5f", coverage: "#b8d4f0", text: "#1e3a5f" },
@@ -114,9 +106,9 @@ interface FormState {
   coverageYears: string;
   endDate: string;
   // Values
-  sumInsured: string;
-  premium: string;
-  cashValue: string;
+  sumInsured: number;
+  premium: number;
+  cashValue: number;
   notes: string;
   // Type-specific
   healthDetails: HealthDetails;
@@ -139,9 +131,9 @@ const defaultForm = (): FormState => ({
   coverageEndAge: "90",
   coverageYears: "",
   endDate: "",
-  sumInsured: "",
-  premium: "",
-  cashValue: "",
+  sumInsured: 0,
+  premium: 0,
+  cashValue: 0,
   notes: "",
   healthDetails: { ...DEFAULT_HEALTH_DETAILS },
   annuityDetails: { ...DEFAULT_ANNUITY_DETAILS },
@@ -513,9 +505,9 @@ export default function PortfolioDashboard() {
       coverageEndAge: p.coverageEndAge ? String(p.coverageEndAge) : "",
       coverageYears: p.coverageYears ? String(p.coverageYears) : "",
       endDate: p.endDate || "",
-      sumInsured: p.sumInsured ? commaInput(p.sumInsured) : "",
-      premium: p.premium ? commaInput(p.premium) : "",
-      cashValue: p.cashValue ? commaInput(p.cashValue) : "",
+      sumInsured: p.sumInsured || 0,
+      premium: p.premium || 0,
+      cashValue: p.cashValue || 0,
       notes: p.notes,
       healthDetails: p.healthDetails ? { ...p.healthDetails } : { ...DEFAULT_HEALTH_DETAILS },
       annuityDetails: p.annuityDetails ? { ...p.annuityDetails } : { ...DEFAULT_ANNUITY_DETAILS },
@@ -532,9 +524,9 @@ export default function PortfolioDashboard() {
     const payEndAge = parseInt(form.paymentEndAge) || 0;
     const covEndAge = parseInt(form.coverageEndAge) || 0;
     const covYears = parseInt(form.coverageYears) || 0;
-    const sumIns = parseNum(form.sumInsured);
-    const prem = parseNum(form.premium);
-    const cv = parseNum(form.cashValue);
+    const sumIns = form.sumInsured;
+    const prem = form.premium;
+    const cv = form.cashValue;
 
     const startYear = form.startDate ? new Date(form.startDate).getFullYear() : CURRENT_YEAR;
 
@@ -796,23 +788,35 @@ export default function PortfolioDashboard() {
               <div className={`grid ${form.policyType === "term" ? "grid-cols-2" : "grid-cols-3"} gap-2`}>
                 <div>
                   <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">ทุนประกัน</label>
-                  <input type="text" inputMode="numeric" value={form.sumInsured}
-                    onChange={(e) => { const raw = parseNum(e.target.value); setForm({ ...form, sumInsured: raw > 0 ? commaInput(raw) : e.target.value.replace(/[^0-9]/g, "") }); }}
-                    className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold" placeholder="3,000,000" />
+                  <MoneyInput
+                    value={form.sumInsured}
+                    onChange={(v) => setForm({ ...form, sumInsured: v })}
+                    placeholder="3,000,000"
+                    className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                    ringClass="focus:ring-blue-400"
+                  />
                 </div>
                 {form.policyType !== "term" && (
                   <div>
                     <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">มูลค่าเวนคืน</label>
-                    <input type="text" inputMode="numeric" value={form.cashValue}
-                      onChange={(e) => { const raw = parseNum(e.target.value); setForm({ ...form, cashValue: raw > 0 ? commaInput(raw) : e.target.value.replace(/[^0-9]/g, "") }); }}
-                      className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold" placeholder="0" />
+                    <MoneyInput
+                      value={form.cashValue}
+                      onChange={(v) => setForm({ ...form, cashValue: v })}
+                      placeholder="0"
+                      className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                      ringClass="focus:ring-blue-400"
+                    />
                   </div>
                 )}
                 <div>
                   <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">เบี้ยที่จ่าย/ปี</label>
-                  <input type="text" inputMode="numeric" value={form.premium}
-                    onChange={(e) => { const raw = parseNum(e.target.value); setForm({ ...form, premium: raw > 0 ? commaInput(raw) : e.target.value.replace(/[^0-9]/g, "") }); }}
-                    className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold" placeholder="55,000" />
+                  <MoneyInput
+                    value={form.premium}
+                    onChange={(v) => setForm({ ...form, premium: v })}
+                    placeholder="55,000"
+                    className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                    ringClass="focus:ring-blue-400"
+                  />
                 </div>
               </div>
 
@@ -825,10 +829,13 @@ export default function PortfolioDashboard() {
                   <div className="flex items-center gap-2">
                     <div className="flex-1">
                       <label className="text-[10px] text-gray-500 mb-0.5 block">ค่าห้อง (ต่อวัน)</label>
-                      <input type="text" inputMode="numeric"
-                        value={form.healthDetails.roomRatePerDay ? commaInput(form.healthDetails.roomRatePerDay) : ""}
-                        onChange={(e) => setForm({ ...form, healthDetails: { ...form.healthDetails, roomRatePerDay: parseNum(e.target.value) } })}
-                        className="w-full text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-teal-400 border border-gray-200 text-center font-bold" placeholder="5,000" />
+                      <MoneyInput
+                        value={form.healthDetails.roomRatePerDay}
+                        onChange={(v) => setForm({ ...form, healthDetails: { ...form.healthDetails, roomRatePerDay: v } })}
+                        placeholder="5,000"
+                        className="w-full text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                        ringClass="focus:ring-teal-400"
+                      />
                     </div>
                     <label className="flex items-center gap-1.5 cursor-pointer mt-4">
                       <input type="checkbox" checked={form.healthDetails.isStandardPrivateRoom}
@@ -842,10 +849,13 @@ export default function PortfolioDashboard() {
                   <div>
                     <label className="text-[10px] text-gray-500 mb-0.5 block">ค่ารักษา IPD (ผู้ป่วยใน)</label>
                     <div className="flex items-center gap-2">
-                      <input type="text" inputMode="numeric"
-                        value={form.healthDetails.ipdAmount ? commaInput(form.healthDetails.ipdAmount) : ""}
-                        onChange={(e) => setForm({ ...form, healthDetails: { ...form.healthDetails, ipdAmount: parseNum(e.target.value) } })}
-                        className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-teal-400 border border-gray-200 text-center font-bold" placeholder="1,000,000" />
+                      <MoneyInput
+                        value={form.healthDetails.ipdAmount}
+                        onChange={(v) => setForm({ ...form, healthDetails: { ...form.healthDetails, ipdAmount: v } })}
+                        placeholder="1,000,000"
+                        className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                        ringClass="focus:ring-teal-400"
+                      />
                       <div className="flex bg-gray-100 rounded-full p-0.5 shrink-0">
                         <button type="button" onClick={() => setForm({ ...form, healthDetails: { ...form.healthDetails, ipdMode: "per_year" } })}
                           className={`px-2 py-1 rounded-full text-[10px] font-medium transition ${form.healthDetails.ipdMode === "per_year" ? "bg-teal-600 text-white" : "text-gray-500"}`}>ต่อปี</button>
@@ -859,10 +869,13 @@ export default function PortfolioDashboard() {
                   <div>
                     <label className="text-[10px] text-gray-500 mb-0.5 block">ค่ารักษา OPD (ผู้ป่วยนอก)</label>
                     <div className="flex items-center gap-2">
-                      <input type="text" inputMode="numeric"
-                        value={form.healthDetails.opdAmount ? commaInput(form.healthDetails.opdAmount) : ""}
-                        onChange={(e) => setForm({ ...form, healthDetails: { ...form.healthDetails, opdAmount: parseNum(e.target.value) } })}
-                        className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-teal-400 border border-gray-200 text-center font-bold" placeholder="2,000" />
+                      <MoneyInput
+                        value={form.healthDetails.opdAmount}
+                        onChange={(v) => setForm({ ...form, healthDetails: { ...form.healthDetails, opdAmount: v } })}
+                        placeholder="2,000"
+                        className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                        ringClass="focus:ring-teal-400"
+                      />
                       <div className="flex bg-gray-100 rounded-full p-0.5 shrink-0">
                         <button type="button" onClick={() => setForm({ ...form, healthDetails: { ...form.healthDetails, opdMode: "per_year" } })}
                           className={`px-2 py-1 rounded-full text-[10px] font-medium transition ${form.healthDetails.opdMode === "per_year" ? "bg-teal-600 text-white" : "text-gray-500"}`}>ต่อปี</button>
@@ -875,13 +888,14 @@ export default function PortfolioDashboard() {
                   {/* CI โรคร้ายแรง */}
                   <div>
                     <label className="text-[10px] text-gray-500 mb-0.5 block">CI โรคร้ายแรง (เงินก้อน)</label>
-                    <div className="flex items-center gap-1">
-                      <input type="text" inputMode="numeric"
-                        value={form.healthDetails.ciLumpSum ? commaInput(form.healthDetails.ciLumpSum) : ""}
-                        onChange={(e) => setForm({ ...form, healthDetails: { ...form.healthDetails, ciLumpSum: parseNum(e.target.value) } })}
-                        className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-teal-400 border border-gray-200 text-center font-bold" placeholder="1,000,000" />
-                      <span className="text-[10px] text-gray-500 shrink-0">บาท</span>
-                    </div>
+                    <MoneyInput
+                      value={form.healthDetails.ciLumpSum}
+                      onChange={(v) => setForm({ ...form, healthDetails: { ...form.healthDetails, ciLumpSum: v } })}
+                      unit="บาท"
+                      placeholder="1,000,000"
+                      className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                      ringClass="focus:ring-teal-400"
+                    />
                   </div>
 
                   {/* คุ้มครองอุบัติเหตุ */}
@@ -899,13 +913,14 @@ export default function PortfolioDashboard() {
                         </button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <input type="text" inputMode="numeric"
-                        value={form.healthDetails.accidentCoverage ? commaInput(form.healthDetails.accidentCoverage) : ""}
-                        onChange={(e) => setForm({ ...form, healthDetails: { ...form.healthDetails, accidentCoverage: parseNum(e.target.value) } })}
-                        className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-teal-400 border border-gray-200 text-center font-bold" placeholder="500,000" />
-                      <span className="text-[10px] text-gray-500 shrink-0">บาท</span>
-                    </div>
+                    <MoneyInput
+                      value={form.healthDetails.accidentCoverage}
+                      onChange={(v) => setForm({ ...form, healthDetails: { ...form.healthDetails, accidentCoverage: v } })}
+                      unit="บาท"
+                      placeholder="500,000"
+                      className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                      ringClass="focus:ring-teal-400"
+                    />
                   </div>
                 </div>
               )}
@@ -926,13 +941,14 @@ export default function PortfolioDashboard() {
                     </div>
                     <div>
                       <label className="text-[10px] text-gray-500 mb-0.5 block">บำนาญที่รับ/ปี</label>
-                      <div className="flex items-center gap-1">
-                        <input type="text" inputMode="numeric"
-                          value={form.annuityDetails.payoutPerYear ? commaInput(form.annuityDetails.payoutPerYear) : ""}
-                          onChange={(e) => setForm({ ...form, annuityDetails: { ...form.annuityDetails, payoutPerYear: parseNum(e.target.value) } })}
-                          className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-purple-400 border border-gray-200 text-center font-bold" placeholder="120,000" />
-                        <span className="text-[10px] text-gray-500">บาท</span>
-                      </div>
+                      <MoneyInput
+                        value={form.annuityDetails.payoutPerYear}
+                        onChange={(v) => setForm({ ...form, annuityDetails: { ...form.annuityDetails, payoutPerYear: v } })}
+                        unit="บาท"
+                        placeholder="120,000"
+                        className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                        ringClass="focus:ring-purple-400"
+                      />
                     </div>
                   </div>
                   {/* กรมธรรม์จ่ายถึงอายุ */}
@@ -993,9 +1009,13 @@ export default function PortfolioDashboard() {
                           onChange={(e) => { const arr = [...form.endowmentDetails.dividends]; arr[i] = { ...arr[i], year: parseInt(e.target.value.replace(/[^0-9]/g, "")) || 0 }; setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, dividends: arr } }); }}
                           className="w-14 text-sm bg-white rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-green-400 border border-gray-200 text-center font-bold" />
                         <span className="text-[10px] text-gray-400 shrink-0">จำนวน</span>
-                        <input type="text" inputMode="numeric" value={d.amount ? commaInput(d.amount) : ""}
-                          onChange={(e) => { const arr = [...form.endowmentDetails.dividends]; arr[i] = { ...arr[i], amount: parseNum(e.target.value) }; setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, dividends: arr } }); }}
-                          className="flex-1 text-sm bg-white rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-green-400 border border-gray-200 text-center font-bold" placeholder="50,000" />
+                        <MoneyInput
+                          value={d.amount}
+                          onChange={(v) => { const arr = [...form.endowmentDetails.dividends]; arr[i] = { ...arr[i], amount: v }; setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, dividends: arr } }); }}
+                          placeholder="50,000"
+                          className="flex-1 text-sm bg-white rounded-lg px-2 py-1.5 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                          ringClass="focus:ring-green-400"
+                        />
                         <button type="button" onClick={() => { const arr = form.endowmentDetails.dividends.filter((_, idx) => idx !== i); setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, dividends: arr } }); }}
                           className="text-red-400 hover:text-red-600"><X size={14} /></button>
                       </div>
@@ -1006,10 +1026,13 @@ export default function PortfolioDashboard() {
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="text-[10px] text-gray-500 mb-0.5 block">เงินก้อนจบโครงการ</label>
-                      <input type="text" inputMode="numeric"
-                        value={form.endowmentDetails.maturityPayout ? commaInput(form.endowmentDetails.maturityPayout) : ""}
-                        onChange={(e) => setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, maturityPayout: parseNum(e.target.value) } })}
-                        className="w-full text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-green-400 border border-gray-200 text-center font-bold" placeholder="1,000,000" />
+                      <MoneyInput
+                        value={form.endowmentDetails.maturityPayout}
+                        onChange={(v) => setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, maturityPayout: v } })}
+                        placeholder="1,000,000"
+                        className="w-full text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                        ringClass="focus:ring-green-400"
+                      />
                     </div>
                     <div>
                       <label className="text-[10px] text-gray-500 mb-0.5 block">ปีที่ได้เงินก้อน</label>

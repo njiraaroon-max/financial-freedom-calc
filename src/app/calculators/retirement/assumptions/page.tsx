@@ -5,6 +5,7 @@ import { Save, Download } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
+import MoneyInput from "@/components/MoneyInput";
 import { useProfileStore } from "@/store/profile-store";
 
 function PercentInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
@@ -28,33 +29,14 @@ function PercentInput({ value, onChange }: { value: number; onChange: (v: number
 }
 
 function NumberInput({ value, onChange, unit = "บาท" }: { value: number; onChange: (v: number) => void; unit?: string }) {
-  const [localVal, setLocalVal] = useState(value === 0 ? "" : value.toLocaleString("th-TH"));
-  const [focused, setFocused] = useState(false);
-
-  // Sync from outside when not focused
-  if (!focused && value !== Number(localVal.replace(/[^0-9.-]/g, ""))) {
-    // defer to avoid render loop
-  }
-
-  const display = value === 0 ? "0" : value.toLocaleString("th-TH");
   return (
-    <div className="flex items-center gap-1">
-      <input
-        type="text"
-        inputMode="numeric"
-        value={focused ? localVal : display}
-        onFocus={() => { setFocused(true); setLocalVal(value === 0 ? "0" : value.toLocaleString("th-TH")); }}
-        onBlur={() => { setFocused(false); }}
-        onChange={(e) => {
-          const cleaned = e.target.value.replace(/[^0-9.-]/g, "");
-          const num = Number(cleaned) || 0;
-          setLocalVal(num === 0 ? "0" : num.toLocaleString("th-TH"));
-          onChange(num);
-        }}
-        className="w-28 text-sm font-semibold bg-gray-50 rounded-xl px-2 py-2 outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition text-right"
-      />
-      <span className="text-xs text-gray-400">{unit}</span>
-    </div>
+    <MoneyInput
+      value={value}
+      onChange={onChange}
+      unit={unit}
+      compact
+      ringClass="focus:ring-[var(--color-primary)]"
+    />
   );
 }
 

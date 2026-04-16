@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { Home, Car, ShieldAlert, AlertTriangle, CheckCircle2, Package } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
+import MoneyInput from "@/components/MoneyInput";
 import { useInsuranceStore, VehicleInsuranceType } from "@/store/insurance-store";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -13,13 +14,6 @@ function fmtShort(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${Math.round(n / 1000)}K`;
   return fmt(n);
-}
-function commaInput(n: number): string {
-  if (n === 0) return "";
-  return n.toLocaleString("th-TH");
-}
-function parseNum(s: string): number {
-  return Number(s.replace(/[^0-9.-]/g, "")) || 0;
 }
 
 // ─── Vehicle insurance types ─────────────────────────────────────────────────
@@ -39,24 +33,19 @@ const HOME_TYPES = [
 ];
 
 // ─── Input Components ────────────────────────────────────────────────────────
-function MoneyInput({ label, value, onChange, hint, suffix = "บาท" }: {
+function MoneyField({ label, value, onChange, hint, suffix = "บาท" }: {
   label: string; value: number; onChange: (v: number) => void; hint?: string; suffix?: string;
 }) {
-  const [display, setDisplay] = useState(value > 0 ? commaInput(value) : "");
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = parseNum(e.target.value);
-    setDisplay(raw > 0 ? commaInput(raw) : e.target.value.replace(/[^0-9]/g, ""));
-    onChange(raw);
-  };
   return (
     <div>
       <label className="text-[11px] text-gray-500 font-semibold block mb-1">{label}</label>
-      <div className="flex items-center gap-2">
-        <input type="text" inputMode="numeric" value={display} onChange={handleChange}
-          className="flex-1 text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-amber-400 border border-gray-200 text-right font-bold"
-          placeholder="0" />
-        <span className="text-xs text-gray-400 shrink-0 w-8">{suffix}</span>
-      </div>
+      <MoneyInput
+        value={value}
+        onChange={onChange}
+        unit={suffix}
+        className="flex-1 text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 border border-gray-200 text-right font-bold"
+        ringClass="focus:ring-amber-400"
+      />
       {hint && <div className="text-[9px] text-gray-400 mt-0.5 pl-1">{hint}</div>}
     </div>
   );
@@ -173,14 +162,14 @@ export default function Pillar3Page() {
                 </div>
               </div>
 
-              <MoneyInput
+              <MoneyField
                 label="ต้นทุนสร้างใหม่ (ไม่รวมที่ดิน)"
                 value={p3.homeReplacementCost}
                 onChange={(v) => update({ homeReplacementCost: v })}
                 hint="Replacement Cost = ค่าสร้างใหม่ทั้งหมด ณ ปัจจุบัน"
               />
 
-              <MoneyInput
+              <MoneyField
                 label="ทุนประกันอัคคีภัยปัจจุบัน"
                 value={p3.homeInsuredAmount}
                 onChange={(v) => update({ homeInsuredAmount: v })}
@@ -250,7 +239,7 @@ export default function Pillar3Page() {
 
           {p3.hasVehicle && (
             <>
-              <MoneyInput
+              <MoneyField
                 label="มูลค่ารถปัจจุบัน (ราคาตลาด)"
                 value={p3.vehicleValue}
                 onChange={(v) => update({ vehicleValue: v })}
@@ -279,12 +268,12 @@ export default function Pillar3Page() {
 
               {p3.vehicleInsuranceType !== "none" && (
                 <>
-                  <MoneyInput
+                  <MoneyField
                     label="ทุนประกันรถ (ซ่อม/เปลี่ยน)"
                     value={p3.vehicleInsuredAmount}
                     onChange={(v) => update({ vehicleInsuredAmount: v })}
                   />
-                  <MoneyInput
+                  <MoneyField
                     label="เบี้ยประกันรถ/ปี"
                     value={p3.vehiclePremium}
                     onChange={(v) => update({ vehiclePremium: v })}
@@ -326,14 +315,14 @@ export default function Pillar3Page() {
             ความรับผิดต่อบุคคลภายนอก (Liability)
           </h3>
 
-          <MoneyInput
+          <MoneyField
             label="วงเงินคุ้มครองที่ต้องการ"
             value={p3.desiredThirdPartyLimit}
             onChange={(v) => update({ desiredThirdPartyLimit: v })}
             hint="แนะนำ 1-5 ล้านบาท (กรณีรถชนคน/ทรัพย์สินผู้อื่น)"
           />
 
-          <MoneyInput
+          <MoneyField
             label="วงเงินคุ้มครองปัจจุบัน"
             value={p3.thirdPartyLimit}
             onChange={(v) => update({ thirdPartyLimit: v })}
@@ -355,7 +344,7 @@ export default function Pillar3Page() {
             ทรัพย์สินอื่นๆ (Optional)
           </h3>
 
-          <MoneyInput
+          <MoneyField
             label="มูลค่าทรัพย์สินอื่นๆ"
             value={p3.otherAssetValue}
             onChange={(v) => update({ otherAssetValue: v })}
@@ -363,7 +352,7 @@ export default function Pillar3Page() {
           />
           {p3.otherAssetValue > 0 && (
             <>
-              <MoneyInput
+              <MoneyField
                 label="ทุนประกันทรัพย์สินอื่นๆ"
                 value={p3.otherAssetInsured}
                 onChange={(v) => update({ otherAssetInsured: v })}

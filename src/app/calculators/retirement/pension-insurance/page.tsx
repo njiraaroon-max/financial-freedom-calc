@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { Save, Calculator, Download, Info, X, Plus, Pencil, Trash2, Building2, ChevronDown, ChevronUp } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import PageHeader from "@/components/PageHeader";
+import MoneyInput from "@/components/MoneyInput";
 import { useVariableStore } from "@/store/variable-store";
 import { useProfileStore } from "@/store/profile-store";
 import {
@@ -275,20 +276,14 @@ function AnnuityModal({
             <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">
               เบี้ยที่จ่าย/ปี
             </label>
-            <div className="flex items-center gap-1">
-              <input
-                type="text"
-                inputMode="numeric"
-                value={form.premium}
-                onChange={(e) => {
-                  const raw = parseNum(e.target.value);
-                  setForm({ ...form, premium: raw > 0 ? commaInput(raw) : e.target.value.replace(/[^0-9]/g, "") });
-                }}
-                placeholder="เช่น 100,000"
-                className="flex-1 text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-purple-400 border border-gray-200 text-center font-bold"
-              />
-              <span className="text-xs text-gray-400 shrink-0">บาท</span>
-            </div>
+            <MoneyInput
+              value={parseNum(form.premium)}
+              onChange={(v) => setForm({ ...form, premium: v > 0 ? commaInput(v) : "" })}
+              unit="บาท"
+              placeholder="เช่น 100,000"
+              className="flex-1 text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+              ringClass="focus:ring-purple-400"
+            />
           </div>
 
           {/* ── Annuity Details ── */}
@@ -298,29 +293,22 @@ function AnnuityModal({
             {/* Payout per year */}
             <div>
               <label className="text-[11px] text-gray-500 mb-1 block">บำนาญที่รับ/ปี *</label>
-              <div className="flex items-center gap-1">
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={
-                    form.annuityDetails.payoutPerYear
-                      ? commaInput(form.annuityDetails.payoutPerYear)
-                      : ""
-                  }
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      annuityDetails: {
-                        ...form.annuityDetails,
-                        payoutPerYear: parseNum(e.target.value),
-                      },
-                    })
-                  }
-                  placeholder="เช่น 120,000"
-                  className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-purple-400 border border-gray-200 text-center font-bold"
-                />
-                <span className="text-[11px] text-gray-500 shrink-0">บาท</span>
-              </div>
+              <MoneyInput
+                value={form.annuityDetails.payoutPerYear || 0}
+                onChange={(v) =>
+                  setForm({
+                    ...form,
+                    annuityDetails: {
+                      ...form.annuityDetails,
+                      payoutPerYear: v,
+                    },
+                  })
+                }
+                unit="บาท"
+                placeholder="เช่น 120,000"
+                className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                ringClass="focus:ring-purple-400"
+              />
             </div>
 
             {/* Start age */}

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Trash2, Check, X, Repeat, XCircle, CopyCheck, Tag, CalendarX, CalendarMinus, XSquare } from "lucide-react";
+import MoneyInput from "@/components/MoneyInput";
 
 interface CashFlowItemRowProps {
   name: string;
@@ -33,16 +34,6 @@ interface CashFlowItemRowProps {
   recurringType?: "income" | "expense";
   onRecurringRangeClick?: () => void;
   onOnceMonthClick?: () => void;
-}
-
-function formatNumber(n: number): string {
-  if (n === 0) return "";
-  return n.toLocaleString("th-TH");
-}
-
-function parseNumber(s: string): number {
-  const cleaned = s.replace(/[^0-9.-]/g, "");
-  return Number(cleaned) || 0;
 }
 
 export default function CashFlowItemRow({
@@ -149,15 +140,11 @@ export default function CashFlowItemRow({
           )}
         </div>
 
-        <input
-          type="text"
-          inputMode="numeric"
-          value={formatNumber(amount)}
-          onChange={(e) => onAmountChange(parseNumber(e.target.value))}
+        <MoneyInput
+          value={amount}
+          onChange={onAmountChange}
           onBlur={() => { if (amount > 0) onAmountCommit?.(amount); }}
-          onKeyDown={(e) => { if (e.key === "Enter") { e.currentTarget.blur(); } }}
-          className="w-28 text-right text-sm font-semibold bg-gray-50 rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition"
-          placeholder="0"
+          className="w-28 text-right text-sm font-semibold bg-gray-50 rounded-lg px-3 py-1.5 outline-none focus:ring-2 transition"
         />
 
         <div className="relative" ref={deleteMenuRef}>

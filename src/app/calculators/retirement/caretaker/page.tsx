@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { RotateCcw, Info, X, HeartPulse, ArrowUpFromLine } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
+import MoneyInput from "@/components/MoneyInput";
 import { useRetirementStore } from "@/store/retirement-store";
 import { useProfileStore } from "@/store/profile-store";
 import { useVariableStore } from "@/store/variable-store";
@@ -12,10 +13,6 @@ import { calcCaretakerNPV } from "@/types/retirement";
 
 function fmt(n: number): string {
   return Math.round(n).toLocaleString("th-TH");
-}
-
-function parseNum(s: string): number {
-  return Number(s.replace(/[^0-9.-]/g, "")) || 0;
 }
 
 // Presets อ้างอิงตลาดไทย (2024-2025)
@@ -206,15 +203,14 @@ export default function CaretakerPage() {
 
           <div className="flex items-center gap-2">
             <div className="flex-1 text-xs text-gray-700">ค่าจ้างต่อเดือน</div>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={p.monthlyRate ? p.monthlyRate.toLocaleString("th-TH") : ""}
-              onChange={(e) => store.updateCaretakerParam("monthlyRate", parseNum(e.target.value))}
-              className="w-32 text-sm font-bold bg-gray-50 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-pink-400 transition text-right"
+            <MoneyInput
+              value={p.monthlyRate}
+              onChange={(v) => store.updateCaretakerParam("monthlyRate", v)}
+              unit="บาท/เดือน"
               placeholder="25,000"
+              className="w-32 text-sm font-bold bg-gray-50 rounded-lg px-2 py-1.5 outline-none focus:ring-2 text-right"
+              ringClass="focus:ring-pink-400"
             />
-            <span className="text-[10px] text-gray-400">บาท/เดือน</span>
           </div>
 
           {/* Presets */}

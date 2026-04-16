@@ -6,6 +6,7 @@ import { useVariableStore } from "@/store/variable-store";
 import { useCashFlowStore } from "@/store/cashflow-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
+import MoneyInput from "@/components/MoneyInput";
 
 function fmt(n: number): string {
   return n.toLocaleString("th-TH", { maximumFractionDigits: 0 });
@@ -36,13 +37,13 @@ export default function EmergencyFundPage() {
   const [hasSaved, setHasSaved] = useState(false);
 
   // Manual input fallback
-  const [manualExpense, setManualExpense] = useState("");
-  const [manualLiquid, setManualLiquid] = useState("");
+  const [manualExpense, setManualExpense] = useState(0);
+  const [manualLiquid, setManualLiquid] = useState(0);
   const [targetMonths, setTargetMonths] = useState(6);
   const [monthlySaving, setMonthlySaving] = useState(5000);
 
-  const effectiveExpense = hasCFData ? monthlyEssential : (Number(manualExpense.replace(/[^0-9]/g, "")) || 0);
-  const effectiveLiquid = hasBSData ? liquidAssets : (Number(manualLiquid.replace(/[^0-9]/g, "")) || 0);
+  const effectiveExpense = hasCFData ? monthlyEssential : manualExpense;
+  const effectiveLiquid = hasBSData ? liquidAssets : manualLiquid;
 
   const targetAmount = effectiveExpense * targetMonths;
   const surplus = effectiveLiquid - targetAmount;
@@ -65,7 +66,7 @@ export default function EmergencyFundPage() {
       ? "from-amber-400 to-amber-600"
       : "from-red-400 to-red-600";
 
-  if (!hasData && !manualExpense && !manualLiquid) {
+  if (!hasData && manualExpense === 0 && manualLiquid === 0) {
     return (
       <div className="min-h-screen bg-[var(--color-bg)]">
         <PageHeader
@@ -89,23 +90,17 @@ export default function EmergencyFundPage() {
           <div className="space-y-3 max-w-xs mx-auto text-left">
             <div>
               <label className="text-[11px] text-gray-500 mb-1 block">รายจ่ายจำเป็น/เดือน</label>
-              <input
-                type="text"
-                inputMode="numeric"
+              <MoneyInput
                 value={manualExpense}
-                onChange={(e) => setManualExpense(e.target.value)}
-                className="w-full text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                onChange={setManualExpense}
                 placeholder="เช่น 25,000"
               />
             </div>
             <div>
               <label className="text-[11px] text-gray-500 mb-1 block">สินทรัพย์สภาพคล่องปัจจุบัน</label>
-              <input
-                type="text"
-                inputMode="numeric"
+              <MoneyInput
                 value={manualLiquid}
-                onChange={(e) => setManualLiquid(e.target.value)}
-                className="w-full text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                onChange={setManualLiquid}
                 placeholder="เช่น 100,000"
               />
             </div>

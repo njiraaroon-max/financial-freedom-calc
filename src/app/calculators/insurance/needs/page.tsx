@@ -9,14 +9,11 @@ import {
 import { useVariableStore } from "@/store/variable-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
+import MoneyInput from "@/components/MoneyInput";
 
 function fmt(n: number): string {
   if (n === 0) return "";
   return Math.round(n).toLocaleString("th-TH");
-}
-
-function parseNum(s: string): number {
-  return Number(s.replace(/[^0-9.-]/g, "")) || 0;
 }
 
 // ---------- CFP Calculation Guide Data ----------
@@ -134,9 +131,6 @@ function NumInput({
   guideKey?: string;
   onShowGuide?: (key: string) => void;
 }) {
-  const fmtComma = (n: number) => (n ? n.toLocaleString("th-TH") : "");
-  const [raw, setRaw] = useState(value ? fmtComma(value) : "");
-  const [focused, setFocused] = useState(false);
   return (
     <div className="flex items-center gap-2">
       <div className="flex-1 min-w-0">
@@ -153,30 +147,14 @@ function NumInput({
         </div>
         {hint && <div className="text-[10px] text-gray-400">{hint}</div>}
       </div>
-      <div className="flex items-center gap-1 shrink-0">
-        <input
-          type="text"
-          inputMode="numeric"
-          value={raw}
-          onChange={(e) => {
-            const v = e.target.value;
-            setRaw(v);
-            onChange(parseNum(v));
-          }}
-          onFocus={() => {
-            setFocused(true);
-            const n = parseNum(raw);
-            setRaw(n ? String(n) : "");
-          }}
-          onBlur={() => {
-            setFocused(false);
-            const n = parseNum(raw);
-            setRaw(n ? fmtComma(n) : "");
-          }}
-          className="w-28 text-right text-sm font-semibold bg-gray-50 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400 border border-gray-200"
-          placeholder="0"
+      <div className="shrink-0">
+        <MoneyInput
+          value={value}
+          onChange={onChange}
+          unit={unit}
+          compact
+          ringClass="focus:ring-emerald-400"
         />
-        <span className="text-[10px] text-gray-400 w-6">{unit}</span>
       </div>
     </div>
   );

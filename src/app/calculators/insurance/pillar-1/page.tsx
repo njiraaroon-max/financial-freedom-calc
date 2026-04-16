@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { Shield, AlertTriangle, CheckCircle2, Info, X, ChevronDown } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
+import MoneyInput from "@/components/MoneyInput";
 import { useInsuranceStore } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
 import { GanttChart, StepLineChart } from "@/components/InsuranceCharts";
@@ -17,13 +18,6 @@ function fmtShort(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${Math.round(n / 1000)}K`;
   return fmt(n);
-}
-function commaInput(n: number): string {
-  if (n === 0) return "";
-  return n.toLocaleString("th-TH");
-}
-function parseNum(s: string): number {
-  return Number(s.replace(/[^0-9.-]/g, "")) || 0;
 }
 
 const BE_OFFSET = 543;
@@ -46,29 +40,19 @@ function simpleAnnuity(monthlyPmt: number, years: number): number {
 }
 
 // ─── Money Input Component ────────────────────────────────────────────────────
-function MoneyInput({ label, value, onChange, hint, suffix = "บาท" }: {
+function MoneyField({ label, value, onChange, hint, suffix = "บาท" }: {
   label: string; value: number; onChange: (v: number) => void; hint?: string; suffix?: string;
 }) {
-  const [display, setDisplay] = useState(value > 0 ? commaInput(value) : "");
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = parseNum(e.target.value);
-    setDisplay(raw > 0 ? commaInput(raw) : e.target.value.replace(/[^0-9]/g, ""));
-    onChange(raw);
-  };
-
   return (
     <div>
       {label && <label className="text-xs text-gray-700 font-bold block mb-1">{label}</label>}
-      <div className="flex items-center gap-2">
-        <input
-          type="text" inputMode="numeric" value={display}
-          onChange={handleChange}
-          className="flex-1 text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-right font-bold"
-          placeholder="0"
-        />
-        <span className="text-xs text-gray-400 shrink-0 w-8">{suffix}</span>
-      </div>
+      <MoneyInput
+        value={value}
+        onChange={onChange}
+        unit={suffix}
+        className="flex-1 text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 border border-gray-200 text-right font-bold"
+        ringClass="focus:ring-blue-400"
+      />
       {hint && <div className="text-[9px] text-gray-400 mt-0.5 pl-1">{hint}</div>}
     </div>
   );
@@ -332,7 +316,7 @@ export default function Pillar1Page() {
             <div className="p-3 space-y-3">
               <div>
                 <div className="text-xs font-bold text-gray-700 mb-1">ค่าพิธีฌาปนกิจ</div>
-                <MoneyInput label="" value={p1.funeralCost} onChange={(v) => update({ funeralCost: v })} hint="แนะนำ 200,000-500,000 บาท" />
+                <MoneyField label="" value={p1.funeralCost} onChange={(v) => update({ funeralCost: v })} hint="แนะนำ 200,000-500,000 บาท" />
               </div>
 
               {/* ── Debt Clearance ── */}
@@ -356,20 +340,18 @@ export default function Pillar1Page() {
                         update({ debtItems: items });
                       }}
                     />
-                    <div className="relative flex items-center">
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        className="w-36 text-sm text-right font-bold bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 pr-9 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        value={item.amount === 0 ? "" : item.amount.toLocaleString()}
-                        onChange={(e) => {
+                    <div className="flex items-center">
+                      <MoneyInput
+                        value={item.amount}
+                        onChange={(v) => {
                           const items = [...(p1.debtItems || [])];
-                          items[idx] = { ...items[idx], amount: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 };
+                          items[idx] = { ...items[idx], amount: v };
                           update({ debtItems: items });
                         }}
-                        placeholder="0"
+                        unit="บาท"
+                        className="w-36 text-sm text-right font-bold bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2"
+                        ringClass="focus:ring-blue-400"
                       />
-                      <span className="absolute right-2.5 text-[10px] text-gray-400">บาท</span>
                     </div>
                     <button
                       onClick={() => {
@@ -475,7 +457,7 @@ export default function Pillar1Page() {
                 <div className="bg-orange-50/50 rounded-xl p-3 space-y-2 border border-orange-100">
                   <div className="text-[11px] font-bold text-orange-700">เงินดูแลพ่อ / แม่</div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <MoneyInput label="รายเดือน" value={p1.parentSupportMonthly} onChange={(v) => update({ parentSupportMonthly: v })} />
+                    <MoneyField label="รายเดือน" value={p1.parentSupportMonthly} onChange={(v) => update({ parentSupportMonthly: v })} />
                     <NumberInput label="อีกกี่ปี" value={p1.parentSupportYears} onChange={(v) => update({ parentSupportYears: v })} />
                   </div>
                   {p1.parentSupportMonthly > 0 && (
@@ -492,7 +474,7 @@ export default function Pillar1Page() {
                 <div className="bg-pink-50/50 rounded-xl p-3 space-y-2 border border-pink-100">
                   <div className="text-[11px] font-bold text-pink-700">ค่าปรับตัวครอบครัว</div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <MoneyInput label="รายเดือน" value={p1.familyExpenseMonthlyNew} onChange={(v) => update({ familyExpenseMonthlyNew: v })} />
+                    <MoneyField label="รายเดือน" value={p1.familyExpenseMonthlyNew} onChange={(v) => update({ familyExpenseMonthlyNew: v })} />
                     <NumberInput label="อีกกี่ปี" value={p1.familyAdjustmentYearsNew} onChange={(v) => update({ familyAdjustmentYearsNew: v })} />
                   </div>
                   {p1.familyExpenseMonthlyNew > 0 && (
@@ -546,20 +528,18 @@ export default function Pillar1Page() {
                               </label>
                               <span className="text-[9px] text-gray-400 shrink-0">{lv.years} ปี</span>
                               {lv.enabled && (
-                                <div className="relative flex items-center flex-1 min-w-0">
-                                  <input
-                                    type="text"
-                                    inputMode="numeric"
-                                    className="w-full text-sm text-right font-bold bg-white border border-gray-200 rounded-lg px-2 py-1.5 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                    value={lv.costPerYear === 0 ? "" : lv.costPerYear.toLocaleString()}
-                                    onChange={(e) => {
+                                <div className="flex items-center flex-1 min-w-0">
+                                  <MoneyInput
+                                    value={lv.costPerYear}
+                                    onChange={(v) => {
                                       const levels = [...(p1.educationLevels || [])];
-                                      levels[idx] = { ...levels[idx], costPerYear: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 };
+                                      levels[idx] = { ...levels[idx], costPerYear: v };
                                       update({ educationLevels: levels });
                                     }}
-                                    placeholder="0"
+                                    unit="บาท/ปี"
+                                    className="w-full text-sm text-right font-bold bg-white border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2"
+                                    ringClass="focus:ring-blue-400"
                                   />
-                                  <span className="absolute right-2 text-[9px] text-gray-400">บาท/ปี</span>
                                 </div>
                               )}
                             </div>
@@ -713,20 +693,18 @@ export default function Pillar1Page() {
                           update({ incomeItems: items });
                         }}
                       />
-                      <div className="relative flex items-center">
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          className="w-28 text-sm text-right font-bold bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 pr-9 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                          value={item.monthlyAmount === 0 ? "" : item.monthlyAmount.toLocaleString()}
-                          onChange={(e) => {
+                      <div className="flex items-center">
+                        <MoneyInput
+                          value={item.monthlyAmount}
+                          onChange={(v) => {
                             const items = [...(p1.incomeItems || [])];
-                            items[idx] = { ...items[idx], monthlyAmount: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 };
+                            items[idx] = { ...items[idx], monthlyAmount: v };
                             update({ incomeItems: items });
                           }}
-                          placeholder="0"
+                          unit="/ด."
+                          className="w-28 text-sm text-right font-bold bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2"
+                          ringClass="focus:ring-blue-400"
                         />
-                        <span className="absolute right-2 text-[9px] text-gray-400">/ด.</span>
                       </div>
                       <div className="relative flex items-center">
                         <input
@@ -831,20 +809,20 @@ export default function Pillar1Page() {
             )}
           </div>
 
-          <MoneyInput label="สวัสดิการกรณีเสียชีวิตจากนายจ้าง" value={p1.employerDeathBenefit || 0} onChange={(v) => update({ employerDeathBenefit: v })} hint="เงินชดเชยกรณีเสียชีวิต, สวัสดิการบริษัท" />
+          <MoneyField label="สวัสดิการกรณีเสียชีวิตจากนายจ้าง" value={p1.employerDeathBenefit || 0} onChange={(v) => update({ employerDeathBenefit: v })} hint="เงินชดเชยกรณีเสียชีวิต, สวัสดิการบริษัท" />
 
           {/* Liquid assets — can link from Balance Sheet */}
           <div className="space-y-2">
             {p1.useBalanceSheetLiquid ? (
               <>
-                <MoneyInput
+                <MoneyField
                   label="สินทรัพย์เพิ่มเติม (ที่ไม่ได้อยู่ใน Balance Sheet)"
                   value={p1.additionalSavings}
                   onChange={(v) => update({ additionalSavings: v })}
                 />
               </>
             ) : (
-              <MoneyInput
+              <MoneyField
                 label="เงินออม/สินทรัพย์สภาพคล่องที่เตรียมไว้"
                 value={p1.existingSavings}
                 onChange={(v) => update({ existingSavings: v })}

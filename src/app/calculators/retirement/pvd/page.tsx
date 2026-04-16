@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Save, Landmark, Info, X } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import PageHeader from "@/components/PageHeader";
+import MoneyInput from "@/components/MoneyInput";
 import { useVariableStore } from "@/store/variable-store";
 import { useProfileStore } from "@/store/profile-store";
 import { calcPVDProjection, type PVDYearResult } from "@/types/retirement";
@@ -173,12 +174,11 @@ export default function PVDPage() {
                   </select>
                 </div>
               ) : (
-                <input
-                  type="text" inputMode="numeric"
-                  value={(p[f.key] as number) === 0 ? "" : (p[f.key] as number).toLocaleString("th-TH")}
-                  onChange={(e) => updatePVDParam(f.key, Number(e.target.value.replace(/[^0-9]/g, "")) || 0)}
-                  className="w-28 text-sm font-semibold bg-gray-50 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-right"
-                  placeholder="0"
+                <MoneyInput
+                  value={p[f.key] as number}
+                  onChange={(v) => updatePVDParam(f.key, v)}
+                  compact
+                  ringClass="focus:ring-[var(--color-primary)]"
                 />
               )}
             </div>

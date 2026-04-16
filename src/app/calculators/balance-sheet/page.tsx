@@ -12,6 +12,7 @@ import type { AssetCategory, LiabilityCategory } from "@/types/balance-sheet";
 import BalanceSheetItemRow from "@/components/BalanceSheetItemRow";
 import BalanceSheetTable from "@/components/BalanceSheetTable";
 import CategoryPopup from "@/components/CategoryPopup";
+import MoneyInput from "@/components/MoneyInput";
 
 function formatCurrency(n: number): string {
   return `฿${n.toLocaleString("th-TH")}`;
@@ -52,7 +53,7 @@ export default function BalanceSheetPage() {
   } | null>(null);
   const [addPopup, setAddPopup] = useState<"asset" | "liability" | null>(null);
   const [newItemEdit, setNewItemEdit] = useState<{ id: string; name: string } | null>(null);
-  const [newItemValue, setNewItemValue] = useState("");
+  const [newItemValue, setNewItemValue] = useState(0);
   const [newItemName, setNewItemName] = useState("");
 
   const totalAssets = getTotalAssets();
@@ -298,7 +299,7 @@ export default function BalanceSheetPage() {
             const id = addAsset(name, value as AssetCategory);
             setAddPopup(null);
             setNewItemName(name);
-            setNewItemValue("");
+            setNewItemValue(0);
             setNewItemEdit({ id, name });
           }}
           onClose={() => setAddPopup(null)}
@@ -317,7 +318,7 @@ export default function BalanceSheetPage() {
             const id = addLiability(name, value as LiabilityCategory);
             setAddPopup(null);
             setNewItemName(name);
-            setNewItemValue("");
+            setNewItemValue(0);
             setNewItemEdit({ id, name });
           }}
           onClose={() => setAddPopup(null)}
@@ -347,20 +348,12 @@ export default function BalanceSheetPage() {
               className="w-full text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition mb-3"
               placeholder="ชื่อรายการ"
             />
-            <input
-              type="text"
-              inputMode="numeric"
+            <MoneyInput
               value={newItemValue}
-              onChange={(e) => setNewItemValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  updateName(newItemEdit.id, newItemName);
-                  updateValue(newItemEdit.id, parseNum(newItemValue));
-                  setNewItemEdit(null);
-                }
-              }}
-              className="w-full text-center text-lg font-bold bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition"
+              onChange={setNewItemValue}
               placeholder="มูลค่า"
+              unit="บาท"
+              className="w-full text-center text-lg font-bold bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 transition"
             />
             <div className="flex gap-2 mt-4">
               <button
@@ -372,7 +365,7 @@ export default function BalanceSheetPage() {
               <button
                 onClick={() => {
                   updateName(newItemEdit.id, newItemName);
-                  updateValue(newItemEdit.id, parseNum(newItemValue));
+                  updateValue(newItemEdit.id, newItemValue);
                   setNewItemEdit(null);
                 }}
                 className="flex-1 py-2.5 rounded-xl bg-[var(--color-primary)] text-white text-sm font-bold hover:bg-[var(--color-primary-dark)] transition"

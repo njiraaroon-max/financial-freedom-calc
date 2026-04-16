@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { HeartPulse, Building2, ShieldCheck, AlertTriangle, CheckCircle2, TrendingUp, Info, X, ChevronDown, ChevronRight, Send, ArrowLeft } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
+import MoneyInput from "@/components/MoneyInput";
 import { useInsuranceStore, HospitalTier, PremiumBracket } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
 import { useRetirementStore } from "@/store/retirement-store";
@@ -16,13 +17,6 @@ function fmtShort(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${Math.round(n / 1000)}K`;
   return fmt(n);
-}
-function commaInput(n: number): string {
-  if (n === 0) return "";
-  return n.toLocaleString("th-TH");
-}
-function parseNum(s: string): number {
-  return Number(s.replace(/[^0-9.-]/g, "")) || 0;
 }
 
 const BE_OFFSET = 543;
@@ -183,30 +177,20 @@ const HEALTH_INFO: Record<string, { title: string; description: string; stats: R
 };
 
 // ─── Input Components ────────────────────────────────────────────────────────
-function MoneyInput({ label, value, onChange, hint, suffix = "บาท", disabled = false }: {
+function MoneyField({ label, value, onChange, hint, suffix = "บาท", disabled = false }: {
   label: string; value: number; onChange: (v: number) => void; hint?: string; suffix?: string; disabled?: boolean;
 }) {
-  const [display, setDisplay] = useState(value > 0 ? commaInput(value) : "");
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = parseNum(e.target.value);
-    setDisplay(raw > 0 ? commaInput(raw) : e.target.value.replace(/[^0-9]/g, ""));
-    onChange(raw);
-  };
-
   return (
     <div>
       {label && <label className="text-[11px] text-gray-500 font-semibold block mb-1">{label}</label>}
-      <div className="flex items-center gap-2">
-        <input
-          type="text" inputMode="numeric" value={display}
-          onChange={handleChange}
-          disabled={disabled}
-          className={`flex-1 text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-teal-400 border border-gray-200 text-right font-bold ${disabled ? "opacity-50" : ""}`}
-          placeholder="0"
-        />
-        <span className="text-xs text-gray-400 shrink-0 w-8">{suffix}</span>
-      </div>
+      <MoneyInput
+        value={value}
+        onChange={onChange}
+        unit={suffix}
+        disabled={disabled}
+        className={`flex-1 text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 border border-gray-200 text-right font-bold ${disabled ? "opacity-50" : ""}`}
+        ringClass="focus:ring-teal-400"
+      />
       {hint && <div className="text-[9px] text-gray-400 mt-0.5 pl-1">{hint}</div>}
     </div>
   );
@@ -544,7 +528,7 @@ export default function Pillar2Page() {
               {/* Room Rate */}
               <div className="flex items-start gap-2">
                 <div className="flex-1">
-                  <MoneyInput
+                  <MoneyField
                     label="ค่าห้องและค่าบริการพยาบาล (ต่อวัน)"
                     value={p2.desiredRoomRate}
                     onChange={(v) => update({ desiredRoomRate: v })}
@@ -562,7 +546,7 @@ export default function Pillar2Page() {
               {/* IPD */}
               <div className="flex items-start gap-2">
                 <div className="flex-1">
-                  <MoneyInput
+                  <MoneyField
                     label="ค่ารักษา — ทั่วไป (IPD ต่อปี)"
                     value={p2.desiredIPDPerYear}
                     onChange={(v) => update({ desiredIPDPerYear: v })}
@@ -577,7 +561,7 @@ export default function Pillar2Page() {
               {/* Critical Treatment */}
               <div className="flex items-start gap-2">
                 <div className="flex-1">
-                  <MoneyInput
+                  <MoneyField
                     label="ค่ารักษา — ร้ายแรง (มะเร็ง/หัวใจ/สมอง)"
                     value={p2.desiredCriticalTreatment ?? 500000}
                     onChange={(v) => update({ desiredCriticalTreatment: v })}
@@ -592,7 +576,7 @@ export default function Pillar2Page() {
               {/* CI Lump Sum */}
               <div className="flex items-start gap-2">
                 <div className="flex-1">
-                  <MoneyInput
+                  <MoneyField
                     label="เงินก้อนเพื่อโรคร้ายแรง (CI)"
                     value={p2.desiredCICoverage}
                     onChange={(v) => update({ desiredCICoverage: v })}
@@ -611,14 +595,14 @@ export default function Pillar2Page() {
                   ความคุ้มครองเสริม (OPD + PA)
                 </summary>
                 <div className="mt-2 space-y-3 pl-1">
-                  <MoneyInput
+                  <MoneyField
                     label="OPD ผู้ป่วยนอก (ต่อครั้ง)"
                     value={p2.desiredOPDPerVisit}
                     onChange={(v) => update({ desiredOPDPerVisit: v })}
                     hint={`Benchmark: ${fmt(benchmark.opdPerVisit[0])}-${fmt(benchmark.opdPerVisit[1])} บ./ครั้ง`}
                     suffix="บาท"
                   />
-                  <MoneyInput
+                  <MoneyField
                     label="อุบัติเหตุ (PA)"
                     value={p2.desiredAccidentCoverage}
                     onChange={(v) => update({ desiredAccidentCoverage: v })}
@@ -844,16 +828,16 @@ export default function Pillar2Page() {
             </div>
             <div className="p-3 space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <MoneyInput label="ค่าห้อง/วัน" value={p2.groupRoomRate} onChange={(v) => update({ groupRoomRate: v })} suffix="บาท" />
-                <MoneyInput label="IPD/ปี" value={p2.groupIPDPerYear} onChange={(v) => update({ groupIPDPerYear: v })} />
+                <MoneyField label="ค่าห้อง/วัน" value={p2.groupRoomRate} onChange={(v) => update({ groupRoomRate: v })} suffix="บาท" />
+                <MoneyField label="IPD/ปี" value={p2.groupIPDPerYear} onChange={(v) => update({ groupIPDPerYear: v })} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <MoneyInput label="ค่ารักษาร้ายแรง" value={p2.groupCriticalTreatment ?? 0} onChange={(v) => update({ groupCriticalTreatment: v })} />
-                <MoneyInput label="CI เงินก้อน" value={p2.groupCI} onChange={(v) => update({ groupCI: v })} />
+                <MoneyField label="ค่ารักษาร้ายแรง" value={p2.groupCriticalTreatment ?? 0} onChange={(v) => update({ groupCriticalTreatment: v })} />
+                <MoneyField label="CI เงินก้อน" value={p2.groupCI} onChange={(v) => update({ groupCI: v })} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <MoneyInput label="OPD/ครั้ง" value={p2.groupOPDPerVisit} onChange={(v) => update({ groupOPDPerVisit: v })} suffix="บาท" />
-                <MoneyInput label="PA อุบัติเหตุ" value={p2.groupAccident} onChange={(v) => update({ groupAccident: v })} />
+                <MoneyField label="OPD/ครั้ง" value={p2.groupOPDPerVisit} onChange={(v) => update({ groupOPDPerVisit: v })} suffix="บาท" />
+                <MoneyField label="PA อุบัติเหตุ" value={p2.groupAccident} onChange={(v) => update({ groupAccident: v })} />
               </div>
             </div>
           </div>
@@ -912,16 +896,16 @@ export default function Pillar2Page() {
               ) : (
                 <div className="space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <MoneyInput label="ค่าห้อง/วัน" value={p2.personalRoomRate ?? 0} onChange={(v) => update({ personalRoomRate: v })} suffix="บาท" />
-                    <MoneyInput label="IPD/ปี" value={p2.personalIPD ?? 0} onChange={(v) => update({ personalIPD: v })} />
+                    <MoneyField label="ค่าห้อง/วัน" value={p2.personalRoomRate ?? 0} onChange={(v) => update({ personalRoomRate: v })} suffix="บาท" />
+                    <MoneyField label="IPD/ปี" value={p2.personalIPD ?? 0} onChange={(v) => update({ personalIPD: v })} />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <MoneyInput label="ค่ารักษาร้ายแรง" value={p2.personalCriticalTreatment ?? 0} onChange={(v) => update({ personalCriticalTreatment: v })} />
-                    <MoneyInput label="CI เงินก้อน" value={p2.personalCI ?? 0} onChange={(v) => update({ personalCI: v })} />
+                    <MoneyField label="ค่ารักษาร้ายแรง" value={p2.personalCriticalTreatment ?? 0} onChange={(v) => update({ personalCriticalTreatment: v })} />
+                    <MoneyField label="CI เงินก้อน" value={p2.personalCI ?? 0} onChange={(v) => update({ personalCI: v })} />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <MoneyInput label="OPD/ครั้ง" value={p2.personalOPD ?? 0} onChange={(v) => update({ personalOPD: v })} suffix="บาท" />
-                    <MoneyInput label="PA อุบัติเหตุ" value={p2.personalAccident ?? 0} onChange={(v) => update({ personalAccident: v })} />
+                    <MoneyField label="OPD/ครั้ง" value={p2.personalOPD ?? 0} onChange={(v) => update({ personalOPD: v })} suffix="บาท" />
+                    <MoneyField label="PA อุบัติเหตุ" value={p2.personalAccident ?? 0} onChange={(v) => update({ personalAccident: v })} />
                   </div>
                 </div>
               )}
@@ -1094,19 +1078,18 @@ export default function Pillar2Page() {
                   />
                   <span className="text-[9px] text-gray-400 shrink-0">ปี</span>
                 </div>
-                <div className="relative flex items-center flex-1 min-w-0">
-                  <input
-                    type="text" inputMode="numeric"
-                    className="w-full text-sm text-right font-bold bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 pr-12 focus:outline-none focus:ring-2 focus:ring-teal-400"
-                    value={bracket.annualPremium === 0 ? "" : bracket.annualPremium.toLocaleString()}
-                    onChange={(e) => {
+                <div className="flex items-center flex-1 min-w-0">
+                  <MoneyInput
+                    value={bracket.annualPremium}
+                    onChange={(v) => {
                       const brackets = [...(p2.premiumBrackets || [])];
-                      brackets[idx] = { ...brackets[idx], annualPremium: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 };
+                      brackets[idx] = { ...brackets[idx], annualPremium: v };
                       update({ premiumBrackets: brackets });
                     }}
-                    placeholder="0"
+                    unit="บาท/ปี"
+                    className="w-full text-sm text-right font-bold bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2"
+                    ringClass="focus:ring-teal-400"
                   />
-                  <span className="absolute right-2 text-[9px] text-gray-400">บาท/ปี</span>
                 </div>
                 <button
                   onClick={() => {

@@ -1,6 +1,7 @@
 "use client";
 
 import { Trash2, Tag } from "lucide-react";
+import MoneyInput from "@/components/MoneyInput";
 
 interface BalanceSheetItemRowProps {
   name: string;
@@ -11,16 +12,6 @@ interface BalanceSheetItemRowProps {
   onNameChange: (name: string) => void;
   onRemove: () => void;
   onCategoryClick?: () => void;
-}
-
-function formatNumber(n: number): string {
-  if (n === 0) return "";
-  return n.toLocaleString("th-TH");
-}
-
-function parseNumber(s: string): number {
-  const cleaned = s.replace(/[^0-9.-]/g, "");
-  return Number(cleaned) || 0;
 }
 
 export default function BalanceSheetItemRow({
@@ -67,13 +58,10 @@ export default function BalanceSheetItemRow({
           )}
         </div>
 
-        <input
-          type="text"
-          inputMode="numeric"
-          value={formatNumber(value)}
-          onChange={(e) => onValueChange(parseNumber(e.target.value))}
-          className="w-32 text-right text-sm font-semibold bg-gray-50 rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition"
-          placeholder="0"
+        <MoneyInput
+          value={value}
+          onChange={onValueChange}
+          className="w-32 text-right text-sm font-semibold bg-gray-50 rounded-lg px-3 py-1.5 outline-none focus:ring-2 transition"
         />
 
         <button

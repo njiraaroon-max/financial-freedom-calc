@@ -37,25 +37,6 @@ function fmtM(n: number): string {
   return fmt(n);
 }
 
-function parseNum(s: string): number {
-  return Number(s.replace(/[^0-9.-]/g, "")) || 0;
-}
-
-function NumberInput({ value, onChange, placeholder, className }: {
-  value: number; onChange: (v: number) => void; placeholder?: string; className?: string;
-}) {
-  return (
-    <input
-      type="text"
-      inputMode="numeric"
-      value={value === 0 ? "" : value.toLocaleString("th-TH")}
-      onChange={(e) => onChange(parseNum(e.target.value))}
-      placeholder={placeholder || "0"}
-      className={`text-sm font-semibold bg-gray-50 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition text-right ${className || "w-28"}`}
-    />
-  );
-}
-
 function PercentInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   return (
     <div className="flex items-center gap-1">

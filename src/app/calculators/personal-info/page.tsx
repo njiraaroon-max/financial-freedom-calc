@@ -7,15 +7,12 @@ import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 import ThaiDatePicker from "@/components/ThaiDatePicker";
 import { confirmDialog } from "@/components/ConfirmDialog";
+import MoneyInput from "@/components/MoneyInput";
 import type { OccupationType, MaritalStatus } from "@/store/profile-store";
 
 function fmt(n: number): string {
   if (n === 0) return "";
   return n.toLocaleString("th-TH");
-}
-
-function parseNum(s: string): number {
-  return Number(s.replace(/[^0-9.-]/g, "")) || 0;
 }
 
 interface DraftProfile {
@@ -238,12 +235,9 @@ export default function PersonalInfoPage() {
               <Banknote size={11} className="inline mr-1" />
               เงินเดือน (บาท/เดือน)
             </label>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={fmt(draft.salary)}
-              onChange={(e) => updateDraft("salary", parseNum(e.target.value))}
-              className="w-full text-sm font-semibold bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            <MoneyInput
+              value={draft.salary}
+              onChange={(n) => updateDraft("salary", n)}
               placeholder="เช่น 50,000"
             />
           </div>
@@ -252,12 +246,9 @@ export default function PersonalInfoPage() {
             <label className="text-[11px] text-gray-500 mb-1 block">
               เพดานเงินเดือนสูงสุด (บาท/เดือน)
             </label>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={fmt(draft.salaryCap)}
-              onChange={(e) => updateDraft("salaryCap", parseNum(e.target.value))}
-              className="w-full text-sm font-semibold bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            <MoneyInput
+              value={draft.salaryCap}
+              onChange={(n) => updateDraft("salaryCap", n)}
               placeholder="ไม่มีเพดาน (ว่างไว้)"
             />
             <div className="text-[9px] text-gray-400 mt-1">ถ้าไม่มีเพดาน ไม่ต้องกรอก</div>

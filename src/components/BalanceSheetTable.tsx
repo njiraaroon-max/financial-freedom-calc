@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { AssetItem, LiabilityItem } from "@/types/balance-sheet";
+import MoneyInput from "@/components/MoneyInput";
 
 interface BalanceSheetTableProps {
   assets: AssetItem[];
@@ -27,16 +28,6 @@ function pct(value: number, total: number): string {
   return ((value / total) * 100).toFixed(1) + "%";
 }
 
-function parseNumber(s: string): number {
-  const cleaned = s.replace(/[^0-9.-]/g, "");
-  return Number(cleaned) || 0;
-}
-
-function formatInput(n: number): string {
-  if (n === 0) return "";
-  return n.toLocaleString("th-TH");
-}
-
 export default function BalanceSheetTable({
   assets,
   liabilities,
@@ -55,18 +46,18 @@ export default function BalanceSheetTable({
     name: string;
     value: number;
   } | null>(null);
-  const [editValue, setEditValue] = useState("");
+  const [editValue, setEditValue] = useState(0);
 
   const handleEditSave = () => {
     if (editCell) {
-      onUpdateValue(editCell.id, parseNumber(editValue));
+      onUpdateValue(editCell.id, editValue);
     }
     setEditCell(null);
   };
 
   const openEdit = (id: string, name: string, value: number) => {
     setEditCell({ id, name, value });
-    setEditValue(formatInput(value));
+    setEditValue(value);
   };
 
   const liquidAssets = assets.filter((a) => a.assetType === "liquid");
@@ -260,18 +251,10 @@ export default function BalanceSheetTable({
             <div className="text-sm font-bold text-gray-700 mb-3">
               {editCell.name}
             </div>
-            <input
-              type="text"
-              inputMode="numeric"
-              autoFocus
+            <MoneyInput
               value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleEditSave();
-                if (e.key === "Escape") setEditCell(null);
-              }}
-              className="w-full text-center text-lg font-bold bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition"
-              placeholder="0"
+              onChange={setEditValue}
+              className="w-full text-center text-lg font-bold bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 transition"
             />
             <div className="flex gap-2 mt-4">
               <button

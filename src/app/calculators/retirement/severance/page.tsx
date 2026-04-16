@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Save, Gavel, Info, X } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import PageHeader from "@/components/PageHeader";
+import MoneyInput from "@/components/MoneyInput";
 import { useVariableStore } from "@/store/variable-store";
 import { useProfileStore } from "@/store/profile-store";
 import { calcSeverancePay } from "@/types/retirement";
@@ -123,8 +124,8 @@ export default function SeverancePage() {
         <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
           <div className="text-xs font-bold text-gray-600 mb-2">ข้อมูลการทำงาน</div>
           {[
-            { label: "เงินเดือนปัจจุบัน", key: "currentSalary" as const, type: "number" },
-            { label: "เพดานเงินเดือนสูงสุด", key: "salaryCap" as const, type: "number" },
+            { label: "เงินเดือนปัจจุบัน", key: "currentSalary" as const, type: "money" },
+            { label: "เพดานเงินเดือนสูงสุด", key: "salaryCap" as const, type: "money" },
             { label: "อัตราขึ้นเงินเดือน (%)", key: "salaryIncrease" as const, type: "percent" },
             { label: "ทำงานมาแล้ว (ปี)", key: "yearsWorked" as const, type: "number" },
           ].map((f) => (
@@ -139,12 +140,20 @@ export default function SeverancePage() {
                   />
                   <span className="text-xs text-gray-400">%</span>
                 </div>
+              ) : f.type === "money" ? (
+                <MoneyInput
+                  value={(p[f.key] as number) >= 999999999 ? 0 : (p[f.key] as number)}
+                  onChange={(v) => updateSeveranceParam(f.key, v)}
+                  placeholder={f.key === "salaryCap" ? "ไม่จำกัด" : "0"}
+                  compact
+                  ringClass="focus:ring-[var(--color-primary)]"
+                />
               ) : (
                 <input type="text" inputMode="numeric"
-                  value={(p[f.key] as number) === 0 || (p[f.key] as number) >= 999999999 ? "" : (p[f.key] as number).toLocaleString("th-TH")}
+                  value={(p[f.key] as number) === 0 ? "" : (p[f.key] as number).toLocaleString("th-TH")}
                   onChange={(e) => updateSeveranceParam(f.key, Number(e.target.value.replace(/[^0-9]/g, "")) || 0)}
                   className="w-28 text-sm font-semibold bg-gray-50 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-right"
-                  placeholder={f.key === "salaryCap" ? "ไม่จำกัด" : "0"}
+                  placeholder="0"
                 />
               )}
             </div>

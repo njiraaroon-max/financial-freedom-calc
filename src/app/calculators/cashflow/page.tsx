@@ -15,6 +15,7 @@ import CashFlowItemRow from "@/components/CashFlowItemRow";
 import MonthlySummaryCard from "@/components/MonthlySummaryCard";
 import AnnualCashFlowTable from "@/components/AnnualCashFlowTable";
 import CategoryPopup from "@/components/CategoryPopup";
+import MoneyInput from "@/components/MoneyInput";
 
 export default function CashFlowPage() {
   const {
@@ -102,16 +103,12 @@ export default function CashFlowPage() {
     id: string;
   } | null>(null);
   const [newItemName, setNewItemName] = useState("");
-  const [newItemValue, setNewItemValue] = useState("");
+  const [newItemAmount, setNewItemAmount] = useState(0);
   const [newItemMode, setNewItemMode] = useState<"once" | "range">("range");
   const [newItemOnceMonth, setNewItemOnceMonth] = useState(0);
   const [newItemFromMonth, setNewItemFromMonth] = useState(0);
   const [newItemToMonth, setNewItemToMonth] = useState(11);
   const [rangeSelectStep, setRangeSelectStep] = useState<"from" | "to">("from");
-
-  function parseNum(s: string): number {
-    return Number(s.replace(/[^0-9.-]/g, "")) || 0;
-  }
 
   // Auto-show popup on commit (blur/enter), not on every keystroke
   const handleIncomeAmountCommit = (itemId: string, amount: number) => {
@@ -504,7 +501,7 @@ export default function CashFlowPage() {
             onClick={() => {
               const id = addIncome("รายได้ใหม่");
               setNewItemName("รายได้ใหม่");
-              setNewItemValue("");
+              setNewItemAmount(0);
               setNewItemMode("range");
               setNewItemFromMonth(0);
               setNewItemToMonth(11);
@@ -521,7 +518,7 @@ export default function CashFlowPage() {
             onClick={() => {
               const id = addExpense("รายจ่ายใหม่", true);
               setNewItemName("รายจ่ายใหม่");
-              setNewItemValue("");
+              setNewItemAmount(0);
               setNewItemMode("range");
               setNewItemFromMonth(0);
               setNewItemToMonth(11);
@@ -557,18 +554,14 @@ export default function CashFlowPage() {
               className="w-full text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition mb-3"
               placeholder="ชื่อรายการ"
             />
-            <input
-              type="text"
-              inputMode="numeric"
-              value={newItemValue}
-              onChange={(e) => {
-                const raw = e.target.value.replace(/[^0-9.-]/g, "");
-                const num = Number(raw) || 0;
-                setNewItemValue(num === 0 && raw === "" ? "" : num.toLocaleString("th-TH"));
-              }}
-              className="w-full text-center text-lg font-bold bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition mb-3"
-              placeholder="จำนวนเงิน"
-            />
+            <div className="mb-3">
+              <MoneyInput
+                value={newItemAmount}
+                onChange={setNewItemAmount}
+                className="w-full text-center text-lg font-bold bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 transition"
+                placeholder="จำนวนเงิน"
+              />
+            </div>
 
             {/* Mode selection */}
             <div className="flex gap-2 mb-3">
@@ -703,7 +696,7 @@ export default function CashFlowPage() {
               <button
                 disabled={newItemMode === "range" && rangeSelectStep === "to"}
                 onClick={() => {
-                  const amount = parseNum(newItemValue);
+                  const amount = newItemAmount;
                   updateItemName(newItemPopup.id, newItemName);
                   if (newItemMode === "once") {
                     updateAmount(newItemPopup.id, newItemOnceMonth, amount);

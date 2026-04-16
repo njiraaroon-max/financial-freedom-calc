@@ -20,6 +20,7 @@ import { useVariableStore } from "@/store/variable-store";
 import { useProfileStore } from "@/store/profile-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
+import MoneyInput from "@/components/MoneyInput";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 const CURRENT_YEAR_CE = new Date().getFullYear(); // 2026
@@ -857,13 +858,12 @@ export default function GoalsPage() {
                     </div>
                     {!form.unknownAmount && (
                       <div className="relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-bold">฿</span>
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          value={form.amount}
-                          onChange={(e) => { const raw = parseNum(e.target.value); setForm({ ...form, amount: raw > 0 ? commaInput(raw) : e.target.value.replace(/[^0-9]/g, "") }); }}
-                          className="w-full text-sm bg-gray-50 rounded-xl pl-8 pr-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200"
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-bold z-10">฿</span>
+                        <MoneyInput
+                          value={parseNum(form.amount)}
+                          onChange={(n) => setForm({ ...form, amount: n > 0 ? commaInput(n) : "" })}
+                          className="w-full text-sm bg-gray-50 rounded-xl pl-8 pr-4 py-3 outline-none focus:ring-2 border border-gray-200 text-right"
+                          ringClass="focus:ring-blue-400"
                           placeholder="0"
                         />
                       </div>

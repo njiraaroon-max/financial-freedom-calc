@@ -7,6 +7,7 @@ import { useInsuranceStore } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
+import MoneyInput from "@/components/MoneyInput";
 import { useVariableStore } from "@/store/variable-store";
 import { toast } from "@/store/toast-store";
 import {
@@ -31,10 +32,6 @@ function fmtM(n: number): string {
   if (Math.abs(n) >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
   if (Math.abs(n) >= 1000) return `${(n / 1000).toFixed(0)}K`;
   return fmt(n);
-}
-
-function parseNum(s: string): number {
-  return Number(s.replace(/[^0-9.-]/g, "")) || 0;
 }
 
 export default function InvestmentPlanPage() {
@@ -303,16 +300,13 @@ export default function InvestmentPlanPage() {
                 <div className="mb-3">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[10px] text-gray-500">ออม/เดือน</span>
-                    <div className="flex items-center gap-1">
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={plan.monthlyAmount === 0 ? "" : plan.monthlyAmount.toLocaleString("th-TH")}
-                        onChange={(e) => store.updateInvestmentPlan(plan.id, { monthlyAmount: parseNum(e.target.value) })}
-                        className="w-24 text-xs font-semibold bg-white rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-right border border-gray-200"
-                      />
-                      <span className="text-[10px] text-gray-400">บาท</span>
-                    </div>
+                    <MoneyInput
+                      value={plan.monthlyAmount}
+                      onChange={(v) => store.updateInvestmentPlan(plan.id, { monthlyAmount: v })}
+                      unit="บาท"
+                      className="w-24 text-xs font-semibold bg-white rounded-lg px-2 py-1 outline-none focus:ring-2 text-right border border-gray-200"
+                      ringClass="focus:ring-[var(--color-primary)]"
+                    />
                   </div>
                   <input
                     type="range"
