@@ -464,9 +464,11 @@ function contribPillar2Health(
   if (brackets.length === 0) return null;
   const rows: YearlyFlowRow[] = [];
   const end = ctxEndAge(ctx);
+  // เบี้ยก่อนเกษียณ จ่ายจากเงินเดือน ไม่ใช่ทุนเกษียณ — ดังนั้นคิดเฉพาะ ageFrom ≥ retireAge
+  // เพื่อให้ NPV @ retire สะท้อน "ทุนเกษียณที่ต้องใช้จ่ายเบี้ยหลังเกษียณ" เท่านั้น
   for (const b of brackets) {
     if (b.annualPremium <= 0) continue;
-    const start = Math.max(b.ageFrom, ctx.currentAge);
+    const start = Math.max(b.ageFrom, ctx.retireAge);
     const stop = Math.min(b.ageTo, end);
     for (let age = start; age <= stop; age++) {
       rows.push({ age, amount: b.annualPremium });
