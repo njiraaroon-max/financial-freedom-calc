@@ -1368,7 +1368,10 @@ function CashflowBarChart({
           เลือกข้อมูลอย่างน้อย 1 รายการเพื่อแสดงกราฟ
         </div>
       ) : (
-        <div className="overflow-x-auto -mx-2 px-2 relative">
+        <div
+          className="overflow-x-auto -mx-2 px-2 relative"
+          style={markers.length > 0 ? { paddingBottom: 28 } : undefined}
+        >
           <svg width={svgW} height={svgH} style={{ minWidth: svgW, display: "block" }}>
             {/* ── Y grid + labels (positive) ── */}
             {posTicks.map((v, i) => {
@@ -1546,8 +1549,8 @@ function CashflowBarChart({
               const cx = xPos(age);
               arr.forEach((m, i) => {
                 const Icon = m.icon === "car" ? Car : Wrench;
-                const bg = m.icon === "car" ? "#fef3c7" : "#dbeafe";
-                const fg = m.icon === "car" ? "#92400e" : "#1d4ed8";
+                const bg = "#dbeafe";
+                const fg = "#1d4ed8";
                 const offsetX = (i - (arr.length - 1) / 2) * 22;
                 out.push(
                   <div
@@ -1555,7 +1558,7 @@ function CashflowBarChart({
                     className="absolute flex items-center justify-center rounded-full border shadow-sm"
                     style={{
                       left: cx - 10 + offsetX,
-                      top: 22,
+                      top: svgH + 2,
                       width: 20,
                       height: 20,
                       backgroundColor: bg,
