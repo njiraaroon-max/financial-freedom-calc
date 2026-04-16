@@ -61,13 +61,43 @@ function MoneyField({ label, value, onChange, hint, suffix = "บาท" }: {
 function NumberInput({ label, value, onChange, suffix = "ปี" }: {
   label: string; value: number; onChange: (v: number) => void; suffix?: string;
 }) {
+  // Draft-string pattern — lets user type "4.", "4.5", "." without snap-back,
+  // and supports decimals (was previously integer-only via parseInt).
+  const [draft, setDraft] = useState<string | null>(null);
+  const display =
+    draft !== null
+      ? draft
+      : Number.isFinite(value) && value !== 0
+      ? String(value)
+      : "";
+
   return (
     <div>
       <label className="text-[11px] text-gray-500 font-semibold block mb-1">{label}</label>
       <div className="flex items-center gap-2">
         <input
-          type="text" inputMode="numeric" value={value || ""}
-          onChange={(e) => onChange(parseInt(e.target.value.replace(/[^0-9]/g, "")) || 0)}
+          type="text"
+          inputMode="decimal"
+          value={display}
+          onFocus={(e) => {
+            setDraft(Number.isFinite(value) && value !== 0 ? String(value) : "");
+            e.currentTarget.select();
+          }}
+          onChange={(e) => {
+            // Keep only digits + dot, and at most one dot
+            const raw = e.target.value.replace(/[^\d.]/g, "");
+            const parts = raw.split(".");
+            const cleaned =
+              parts.length > 1 ? parts[0] + "." + parts.slice(1).join("") : raw;
+            setDraft(cleaned);
+            if (cleaned === "" || cleaned === ".") {
+              onChange(0);
+              return;
+            }
+            const n = parseFloat(cleaned);
+            if (Number.isFinite(n)) onChange(n);
+          }}
+          onBlur={() => setDraft(null)}
           className="flex-1 text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center font-bold"
           placeholder="0"
         />
