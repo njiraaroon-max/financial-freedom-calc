@@ -5,13 +5,7 @@ import { Settings, UtensilsCrossed, Sparkles, Landmark, ShieldCheck, Gavel, Awar
 import Link from "next/link";
 import { useRetirementStore } from "@/store/retirement-store";
 import PageHeader from "@/components/PageHeader";
-import RetirementDiagram from "@/components/retirement/RetirementDiagram";
 import { useProfileStore } from "@/store/profile-store";
-import { futureValue, calcRetirementFund } from "@/types/retirement";
-
-function fmt(n: number): string {
-  return Math.round(n).toLocaleString("th-TH");
-}
 
 export default function RetirementHubPage() {
   const store = useRetirementStore();
@@ -19,8 +13,6 @@ export default function RetirementHubPage() {
   const profile = useProfileStore();
 
   const profileAge = profile.getAge?.() ?? 0;
-  const currentAge = profileAge > 0 ? profileAge : (a.currentAge > 0 ? a.currentAge : 35);
-  const retireAge = (profile.retireAge && profile.retireAge > 0) ? profile.retireAge : (a.retireAge > 0 ? a.retireAge : 60);
 
   // Auto-sync age & retireAge to retirement store when profile changes
   useEffect(() => {
@@ -31,20 +23,6 @@ export default function RetirementHubPage() {
       store.updateAssumption("retireAge", profile.retireAge);
     }
   }, [profile.birthDate, profile.retireAge]);
-  const lifeExpectancy = a.lifeExpectancy > 0 ? a.lifeExpectancy : 85;
-  const workYears = Math.max(retireAge - currentAge, 1);
-  const retireYears = Math.max(lifeExpectancy - retireAge, 1);
-
-  // Calculate basic expense totals
-  const totalBasicMonthly = store.basicExpenses.reduce((s, e) => s + e.monthlyAmount, 0);
-  const basicMonthlyFV = futureValue(totalBasicMonthly, a.generalInflation, workYears);
-  const basicRetireFund = calcRetirementFund(basicMonthlyFV, a.postRetireReturn, a.generalInflation, retireYears, a.residualFund);
-  const residualPV = a.residualFund / Math.pow(1 + a.postRetireReturn, retireYears);
-  const expensePV = basicRetireFund - residualPV;
-  const multiplier = totalBasicMonthly > 0 ? basicMonthlyFV / totalBasicMonthly : 0;
-  // พอใช้อีกกี่ปี = เงินคงเหลือ / ค่าใช้จ่ายรายปี ณ สิ้นอายุขัย (FV ของ FV เดือน × 12)
-  const expenseAtLifeEnd = basicMonthlyFV * Math.pow(1 + a.generalInflation, retireYears) * 12;
-  const extraYears = expenseAtLifeEnd > 0 ? a.residualFund / expenseAtLifeEnd : 0;
 
   const isCompleted = (step: string) => completedSteps[step] || false;
 
@@ -85,22 +63,6 @@ export default function RetirementHubPage() {
         subtitle="Retirement Planning"
         characterImg="/character/retirement.png"
       />
-
-      {/* Combined Timeline + Expense Chart */}
-      <div className="px-4 md:px-8 pt-4">
-        <RetirementDiagram
-          currentAge={currentAge}
-          retireAge={retireAge}
-          lifeExpectancy={lifeExpectancy}
-          totalBasicMonthly={totalBasicMonthly}
-          basicMonthlyFV={basicMonthlyFV}
-          basicRetireFund={basicRetireFund}
-          residualFund={a.residualFund}
-          generalInflation={a.generalInflation}
-          postRetireReturn={a.postRetireReturn}
-          showChart={isCompleted("basic_expenses")}
-        />
-      </div>
 
       {/* ─── Step Progress Bar ─────────────────────────────────── */}
       <div className="px-4 md:px-8 pt-4">

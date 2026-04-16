@@ -7,48 +7,49 @@ function fmt(n: number): string {
   return Math.round(n).toLocaleString("th-TH");
 }
 
-// Entry animations — run once on mount. Re-renders don't re-trigger.
+// Entry animations — initial state is hidden; animations fire only when
+// the container gets the .dg-go class (added by IntersectionObserver
+// when the diagram scrolls into view).
 const DIAGRAM_CSS = `
   @keyframes dgGrow {
     from { transform: scaleY(0.02); opacity: 0; }
-    to { transform: scaleY(1); opacity: 1; }
+    to   { transform: scaleY(1);    opacity: 1; }
   }
   @keyframes dgFadeUp {
     from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
+    to   { opacity: 1; transform: translateY(0); }
   }
   @keyframes dgFade {
     from { opacity: 0; }
-    to { opacity: 1; }
+    to   { opacity: 1; }
   }
-  @keyframes dgPulse {
-    0%, 100% { opacity: 0.85; }
-    50% { opacity: 0.35; }
-  }
-  .dg-bar {
-    transform-origin: center bottom;
+
+  /* Hidden baseline state — applied by default */
+  .dg-bar, .dg-red-bar {
     transform-box: fill-box;
+    opacity: 0;
+    transform: scaleY(0.02);
+  }
+  .dg-bar      { transform-origin: center bottom; }
+  .dg-red-bar  { transform-origin: center top; }
+  .dg-pill-anim { opacity: 0; transform: translateY(6px); }
+  .dg-text-delay, .dg-connector, .dg-sum-badge, .dg-x12-hint {
+    opacity: 0;
+  }
+
+  /* .dg-go is added when container enters viewport → animations fire */
+  .dg-go .dg-bar,
+  .dg-go .dg-red-bar {
     animation: dgGrow 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
-  .dg-bar-pv { animation-delay: 0.1s; }
-  .dg-bar-fv { animation-delay: 0.25s; }
-  .dg-bar-res { animation-delay: 0.45s; }
-  .dg-drawdown {
-    animation: dgFade 0.9s 0.55s ease-out both;
-  }
-  .dg-pill {
-    transform-box: fill-box;
-    animation: dgFadeUp 0.6s 0.75s ease-out both;
-  }
-  .dg-text-delay {
-    animation: dgFade 0.5s 0.95s ease-out both;
-  }
-  .dg-connector {
-    animation: dgFade 0.5s 0.6s ease-out both;
-  }
-  .dg-pulse-line {
-    animation: dgFade 0.5s 0.85s ease-out both, dgPulse 2.8s 1.4s ease-in-out infinite;
-  }
+  .dg-go .dg-bar-pv { animation-delay: 0.10s; }
+  .dg-go .dg-bar-fv { animation-delay: 0.25s; }
+  /* .dg-red-bar gets a per-bar delay via inline style */
+  .dg-go .dg-connector { animation: dgFade 0.5s 0.45s ease-out both; }
+  .dg-go .dg-x12-hint  { animation: dgFade 0.5s 0.65s ease-out both; }
+  .dg-go .dg-pill-anim { animation: dgFadeUp 0.6s 0.95s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .dg-go .dg-sum-badge { animation: dgFade 0.5s 1.15s ease-out both; }
+  .dg-go .dg-text-delay { animation: dgFade 0.5s 1.3s ease-out both; }
 `;
 
 export interface RetirementDiagramProps {
@@ -75,10 +76,16 @@ interface TooltipData {
 }
 
 /**
- * Retirement diagram: age timeline (icons + age boxes) + phase labels +
- * bar chart showing FV ramp-up (inflation) → retirement fund pool → drawdown
- * to residual. Includes interactive tooltips on bars/pills and a one-shot
- * entry animation.
+ * Retirement diagram:
+ *   • Age timeline + phase bands (HTML, responsive)
+ *   • Above baseline: monthly PV → FV bars + inflation arrow + × multiplier pill
+ *   • Below baseline: RED yearly-expense bars growing with inflation, one per
+ *     retirement year
+ *   • Top-center of retirement phase: ทุนเกษียณ (A) pill with a dashed
+ *     "Σ NPV รายปี = A" connector down to the red-bar cluster — showing
+ *     the pill IS the NPV sum of all the red bars
+ *   • Entry animation fires once when the diagram scrolls into view
+ *     (IntersectionObserver).
  *
  * SVG x-scale is synced to the HTML age-timeline above via ResizeObserver —
  * every bar sits pixel-perfectly under its corresponding age box on any
@@ -107,12 +114,18 @@ export default function RetirementDiagram({
     basicMonthlyFV * Math.pow(1 + generalInflation, retireYears) * 12;
   const extraYears = expenseAtLifeEnd > 0 ? residualFund / expenseAtLifeEnd : 0;
 
-  // Scale sync: measure card content width (minus p-4 padding) so SVG
-  // pixel coords match the HTML age-timeline above.
+  // Yearly expense for each retirement year (nominal, inflation-adjusted)
+  const yearlyExpenses = Array.from({ length: retireYears }, (_, i) => ({
+    age: retireAge + i,
+    amount: basicMonthlyFV * 12 * Math.pow(1 + generalInflation, i),
+  }));
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [svgW, setSvgW] = useState(600);
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
+  const [isInView, setIsInView] = useState(false);
 
+  // Measure card width for SVG/HTML scale sync
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -124,6 +137,28 @@ export default function RetirementDiagram({
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
+  }, []);
+
+  // Scroll-triggered entry: add .dg-go class when 15%+ of diagram is visible.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    // If IntersectionObserver isn't supported, just reveal immediately.
+    if (typeof IntersectionObserver === "undefined") {
+      setIsInView(true);
+      return;
+    }
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setIsInView(true);
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -40px 0px" },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
   }, []);
 
   const showTip = (
@@ -149,14 +184,14 @@ export default function RetirementDiagram({
   };
   const hideTip = () => setTooltip(null);
 
-  // HTML age boxes use 44px fixed width + proportional flex gaps.
-  // SVG mirrors this exactly via the same formula.
   const BOX_W = 44;
 
   return (
     <div
       ref={containerRef}
-      className="bg-white rounded-2xl border border-gray-200 p-4 relative"
+      className={`bg-white rounded-2xl border border-gray-200 p-4 relative ${
+        isInView ? "dg-go" : ""
+      }`}
       style={{ overflow: "visible" }}
     >
       <style dangerouslySetInnerHTML={{ __html: DIAGRAM_CSS }} />
@@ -171,7 +206,7 @@ export default function RetirementDiagram({
         </button>
       )}
 
-      {/* Icons — aligned with age boxes below via same flex layout */}
+      {/* Icons */}
       <div className="flex items-end mb-1" style={{ height: "40px" }}>
         <div
           className="flex flex-col items-center"
@@ -259,7 +294,7 @@ export default function RetirementDiagram({
         </div>
       </div>
 
-      {/* Phase labels — accumulation vs drawdown bands */}
+      {/* Phase labels */}
       <div className="flex items-center mb-3">
         <div style={{ width: `${BOX_W}px`, flexShrink: 0 }} />
         <div
@@ -282,67 +317,56 @@ export default function RetirementDiagram({
         <div style={{ width: `${BOX_W}px`, flexShrink: 0 }} />
       </div>
 
-      {/* Bar chart — SVG coords match HTML pixel layout above */}
+      {/* Bar chart */}
       {showChart &&
         totalBasicMonthly > 0 &&
         (() => {
-          const svgH = 260;
-          const baseline = svgH - 40;
+          const svgH = 330;
+          const baseline = 160;
+          const upperMaxH = 90;
+          const lowerMaxH = 125;
           const barW = 40;
 
           const freeSpace = svgW - 3 * BOX_W;
           const workFrac = workYears / (workYears + retireYears);
 
-          // Bar centers — aligned with HTML age-box centers
           const pvX = BOX_W / 2;
           const fvX = BOX_W + freeSpace * workFrac + BOX_W / 2;
           const resX = svgW - BOX_W / 2;
 
-          // Heights
-          const maxH = 140;
-          const scaleDivisor = 100;
-          const scaleValues = [
-            totalBasicMonthly,
-            basicMonthlyFV,
-            basicRetireFund / scaleDivisor,
-            residualPV / scaleDivisor,
-          ];
-          const maxVal = Math.max(...scaleValues);
-
+          // Upper bars (monthly) — scale to largest monthly
+          const upperMax = Math.max(totalBasicMonthly, basicMonthlyFV);
           const pvH = Math.max(
-            Math.round(maxH * (totalBasicMonthly / maxVal)),
+            Math.round((upperMaxH * totalBasicMonthly) / upperMax),
             14,
           );
           const fvH = Math.max(
-            Math.round(maxH * (basicMonthlyFV / maxVal)),
+            Math.round((upperMaxH * basicMonthlyFV) / upperMax),
             18,
           );
-          const dotBoxH = Math.max(
-            Math.round(maxH * (basicRetireFund / scaleDivisor / maxVal)),
-            24,
-          );
-          const resH = Math.max(
-            Math.round(maxH * (residualPV / scaleDivisor / maxVal)),
-            8,
-          );
 
-          // Drawdown smooth curve
-          const dStartX = fvX + barW / 2;
-          const dStartY = baseline - dotBoxH;
-          const dEndX = resX - barW / 2;
-          const dEndY = baseline - resH;
-          const dSpan = Math.max(dEndX - dStartX, 1);
-          const ctrl1X = dStartX + dSpan * 0.35;
-          const ctrl1Y = dStartY;
-          const ctrl2X = dStartX + dSpan * 0.7;
-          const ctrl2Y = dEndY;
-          const drawdownPath = `M ${dStartX} ${dStartY} C ${ctrl1X} ${ctrl1Y}, ${ctrl2X} ${ctrl2Y}, ${dEndX} ${dEndY} L ${dEndX} ${baseline} L ${dStartX} ${baseline} Z`;
+          // Red bars (yearly) — scale to largest yearly (last year)
+          const lowerMax = yearlyExpenses.length > 0
+            ? yearlyExpenses[yearlyExpenses.length - 1].amount
+            : 1;
+          const redSpan = Math.max(resX - fvX, 1);
+          const barSlot = redSpan / Math.max(retireYears, 1);
+          const redBarW = Math.max(barSlot * 0.82, 2);
 
-          // Callout / connector geometry
-          const calloutY = Math.max(dStartY - 52, 30);
-          const connY1 = dStartY - 2;
-          const connY2 = calloutY + 16;
-          const connMid = (connY1 + connY2) / 2;
+          // A pill — centered above the retirement phase
+          const retireMidX = (fvX + resX) / 2;
+          const pillY = 24;
+          const pillBottomY = pillY + 18;
+          const sumBadgeY = (pillBottomY + baseline) / 2;
+
+          // Multiplier pill position — above the inflation arrow
+          const arrowStartY = baseline - pvH + 4;
+          const arrowEndY = baseline - fvH + 8;
+          const arrowMidY = (arrowStartY + arrowEndY) / 2;
+          const multPillY = Math.max(arrowMidY - 18, 42);
+
+          // Hide sum badge if retirement span too narrow (would overlap FV bar)
+          const showSumBadge = retireMidX - 58 > fvX + barW / 2 + 4;
 
           return (
             <>
@@ -361,23 +385,9 @@ export default function RetirementDiagram({
                     <stop offset="0" stopColor="#c5cae9" />
                     <stop offset="1" stopColor="#e0e7ff" />
                   </linearGradient>
-                  <linearGradient id="drawdownGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stopColor="#1e3a5f" stopOpacity="0.5" />
-                    <stop offset="1" stopColor="#3b6fa0" stopOpacity="0.08" />
-                  </linearGradient>
-                  <linearGradient
-                    id="connectorGrad"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop offset="0" stopColor="#0891b2" />
-                    <stop offset="1" stopColor="#1e3a5f" />
-                  </linearGradient>
-                  <linearGradient id="resGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stopColor="#9ca3af" />
-                    <stop offset="1" stopColor="#d1d5db" />
+                  <linearGradient id="redBarGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stopColor="#fca5a5" />
+                    <stop offset="1" stopColor="#dc2626" />
                   </linearGradient>
                   <marker
                     id="arrowUpDiag"
@@ -389,29 +399,140 @@ export default function RetirementDiagram({
                   >
                     <polygon points="0 0, 8 3, 0 6" fill="#1e3a5f" />
                   </marker>
-                  <marker
-                    id="arrowUpCyan"
-                    markerWidth="8"
-                    markerHeight="6"
-                    refX="7"
-                    refY="3"
-                    orient="auto"
-                  >
-                    <polygon points="0 0, 8 3, 0 6" fill="#0891b2" />
-                  </marker>
                 </defs>
 
-                {/* Baseline */}
+                {/* X-axis baseline */}
                 <line
                   x1={0}
                   y1={baseline}
                   x2={svgW}
                   y2={baseline}
-                  stroke="#e5e7eb"
-                  strokeWidth={1}
+                  stroke="#cbd5e1"
+                  strokeWidth={1.5}
                 />
 
-                {/* ── PV bar (ปัจจุบัน — muted) ─────────────── */}
+                {/* ── A pill (top, centered over retirement phase) ── */}
+                {/* outer <g> holds SVG transform attr (position);
+                    inner <g> handles CSS animation (avoid conflict) */}
+                <g transform={`translate(${retireMidX}, ${pillY})`}>
+                  <g
+                    className="dg-pill-anim"
+                    onMouseEnter={(e) =>
+                      showTip(e, {
+                        title: "ทุนเกษียณที่ต้องมี (A)",
+                        lines: [
+                          {
+                            label: "รวมทั้งหมด (NPV)",
+                            value: `฿${fmt(basicRetireFund)}`,
+                            color: "#0891b2",
+                          },
+                          {
+                            label: "ปีแรก/ปี",
+                            value: `฿${fmt(basicMonthlyFV * 12)}`,
+                          },
+                          { label: "เป็นเวลา", value: `${retireYears} ปี` },
+                          ...(residualFund > 0
+                            ? [
+                                {
+                                  label: "เหลือไว้",
+                                  value: `฿${fmt(residualFund)}`,
+                                  color: "#6b7280",
+                                },
+                              ]
+                            : []),
+                        ],
+                      })
+                    }
+                    onMouseMove={moveTip}
+                    onMouseLeave={hideTip}
+                    style={{ cursor: "help" }}
+                  >
+                    <rect
+                      x={-96}
+                      y={-18}
+                      width={192}
+                      height={36}
+                      rx={18}
+                      fill="#cffafe"
+                      opacity="0.55"
+                    />
+                    <rect
+                      x={-92}
+                      y={-16}
+                      width={184}
+                      height={32}
+                      rx={16}
+                      fill="#ecfeff"
+                      stroke="#22d3ee"
+                      strokeWidth={1}
+                    />
+                    <text
+                      x={0}
+                      y={-3}
+                      textAnchor="middle"
+                      fontSize="9"
+                      fontWeight="700"
+                      fill="#0891b2"
+                      pointerEvents="none"
+                    >
+                      ทุนเกษียณ (A) — รวม NPV รายปี
+                    </text>
+                    <text
+                      x={0}
+                      y={12}
+                      textAnchor="middle"
+                      fontSize="13"
+                      fontWeight="800"
+                      fill="#0e7490"
+                      pointerEvents="none"
+                    >
+                      ฿{fmt(basicRetireFund)}
+                    </text>
+                  </g>
+                </g>
+
+                {/* Vertical dashed connector from A pill down to red bars */}
+                <line
+                  className="dg-connector"
+                  x1={retireMidX}
+                  y1={pillBottomY}
+                  x2={retireMidX}
+                  y2={baseline + 2}
+                  stroke="#22d3ee"
+                  strokeWidth={1.3}
+                  strokeDasharray="4 3"
+                  opacity={0.75}
+                />
+
+                {/* Σ NPV badge on the connector */}
+                {showSumBadge && (
+                  <g transform={`translate(${retireMidX}, ${sumBadgeY})`}>
+                    <g className="dg-sum-badge">
+                      <rect
+                        x={-58}
+                        y={-10}
+                        width={116}
+                        height={20}
+                        rx={10}
+                        fill="white"
+                        stroke="#22d3ee"
+                        strokeWidth={1}
+                      />
+                      <text
+                        x={0}
+                        y={3.5}
+                        textAnchor="middle"
+                        fontSize="9"
+                        fontWeight="700"
+                        fill="#0891b2"
+                      >
+                        Σ NPV รายปี = A
+                      </text>
+                    </g>
+                  </g>
+                )}
+
+                {/* ── PV bar (monthly, today) ── */}
                 <g
                   onMouseEnter={(e) =>
                     showTip(e, {
@@ -452,81 +573,73 @@ export default function RetirementDiagram({
                     ฿{fmt(totalBasicMonthly)}
                   </text>
                 </g>
-                <text
-                  x={pvX}
-                  y={baseline + 14}
-                  textAnchor="middle"
-                  fontSize="9"
-                  fill="#9ca3af"
-                  className="dg-text-delay"
-                  pointerEvents="none"
-                >
-                  ปัจจุบัน
-                </text>
 
-                {/* Inflation ramp arrow */}
+                {/* Inflation arrow */}
                 <line
                   className="dg-connector"
                   x1={pvX + barW / 2 + 3}
-                  y1={baseline - pvH + 4}
+                  y1={arrowStartY}
                   x2={fvX - barW / 2 - 5}
-                  y2={baseline - fvH + 8}
+                  y2={arrowEndY}
                   stroke="#1e3a5f"
                   strokeWidth={1.5}
                   strokeDasharray="4 3"
                   markerEnd="url(#arrowUpDiag)"
                 />
 
-                {/* Multiplier pill */}
+                {/* Multiplier pill — above inflation arrow */}
                 <g
-                  className="dg-connector"
-                  transform={`translate(${(pvX + fvX) / 2}, ${baseline + 32})`}
-                  onMouseEnter={(e) =>
-                    showTip(e, {
-                      title: "ผลกระทบเงินเฟ้อ",
-                      lines: [
-                        {
-                          label: "อัตราเงินเฟ้อ",
-                          value: `${(generalInflation * 100).toFixed(1)}% /ปี`,
-                          color: "#b45309",
-                        },
-                        { label: "ระยะเวลา", value: `${workYears} ปี` },
-                        {
-                          label: "ทวีคูณ",
-                          value: `× ${multiplier.toFixed(2)}`,
-                          color: "#b45309",
-                        },
-                      ],
-                    })
-                  }
-                  onMouseMove={moveTip}
-                  onMouseLeave={hideTip}
-                  style={{ cursor: "help" }}
+                  transform={`translate(${(pvX + fvX) / 2}, ${multPillY})`}
                 >
-                  <rect
-                    x={-54}
-                    y={-10}
-                    width={108}
-                    height={20}
-                    rx={10}
-                    fill="#fef3c7"
-                    stroke="#fbbf24"
-                    strokeWidth={0.8}
-                  />
-                  <text
-                    x={0}
-                    y={4}
-                    textAnchor="middle"
-                    fontSize="10"
-                    fontWeight="700"
-                    fill="#b45309"
-                    pointerEvents="none"
+                  <g
+                    className="dg-connector"
+                    onMouseEnter={(e) =>
+                      showTip(e, {
+                        title: "ผลกระทบเงินเฟ้อ",
+                        lines: [
+                          {
+                            label: "อัตราเงินเฟ้อ",
+                            value: `${(generalInflation * 100).toFixed(1)}% /ปี`,
+                            color: "#b45309",
+                          },
+                          { label: "ระยะเวลา", value: `${workYears} ปี` },
+                          {
+                            label: "ทวีคูณ",
+                            value: `× ${multiplier.toFixed(2)}`,
+                            color: "#b45309",
+                          },
+                        ],
+                      })
+                    }
+                    onMouseMove={moveTip}
+                    onMouseLeave={hideTip}
+                    style={{ cursor: "help" }}
                   >
-                    🔥 เงินเฟ้อ × {multiplier.toFixed(2)}
-                  </text>
+                    <rect
+                      x={-54}
+                      y={-10}
+                      width={108}
+                      height={20}
+                      rx={10}
+                      fill="#fef3c7"
+                      stroke="#fbbf24"
+                      strokeWidth={0.8}
+                    />
+                    <text
+                      x={0}
+                      y={4}
+                      textAnchor="middle"
+                      fontSize="10"
+                      fontWeight="700"
+                      fill="#b45309"
+                      pointerEvents="none"
+                    >
+                      🔥 เงินเฟ้อ × {multiplier.toFixed(2)}
+                    </text>
+                  </g>
                 </g>
 
-                {/* ── FV bar (อนาคต — gradient navy) ─────────── */}
+                {/* ── FV bar (monthly, at retirement) ── */}
                 <g
                   onMouseEnter={(e) =>
                     showTip(e, {
@@ -572,235 +685,105 @@ export default function RetirementDiagram({
                     ฿{fmt(basicMonthlyFV)}
                   </text>
                 </g>
+
+                {/* "× 12 เดือน" hint — links FV monthly to first red (yearly) bar */}
                 <text
-                  x={fvX}
-                  y={baseline + 14}
-                  textAnchor="middle"
-                  fontSize="9"
+                  x={fvX + barW / 2 + 4}
+                  y={baseline - 3}
+                  fontSize="8"
                   fontWeight="700"
-                  fill="#1e3a5f"
-                  className="dg-text-delay"
+                  fill="#dc2626"
+                  className="dg-x12-hint"
                   pointerEvents="none"
                 >
-                  อนาคต
+                  × 12 เดือน ↓
                 </text>
 
-                {/* ── Drawdown smooth area (FV bar → residual) ── */}
-                <path
-                  d={drawdownPath}
-                  fill="url(#drawdownGrad)"
-                  stroke="#1e3a5f"
-                  strokeWidth={1.2}
-                  strokeOpacity="0.45"
-                  strokeDasharray="4 3"
-                  className="dg-drawdown"
-                />
-
-                {/* ── FV bar → A pill: strong connector + formula badge ── */}
-                <g className="dg-connector">
-                  {/* Thick vertical line with gradient (navy → cyan upward) */}
-                  <line
-                    x1={fvX}
-                    y1={connY1}
-                    x2={fvX}
-                    y2={connY2}
-                    stroke="url(#connectorGrad)"
-                    strokeWidth={2.2}
-                    strokeDasharray="5 3"
-                    markerEnd="url(#arrowUpCyan)"
-                  />
-                  {/* Formula badge sitting ON the line, showing the math */}
-                  <g transform={`translate(${fvX}, ${connMid})`}>
-                    <rect
-                      x={-64}
-                      y={-10}
-                      width={128}
-                      height={20}
-                      rx={10}
-                      fill="white"
-                      stroke="#22d3ee"
-                      strokeWidth={1}
-                    />
-                    <text
-                      x={0}
-                      y={3.5}
-                      textAnchor="middle"
-                      fontSize="9"
-                      fontWeight="700"
-                      fill="#0891b2"
-                      pointerEvents="none"
+                {/* ── Red yearly-expense bars (below baseline) ── */}
+                {yearlyExpenses.map((yr, i) => {
+                  const barCx = fvX + (i + 0.5) * barSlot;
+                  const barH = Math.max(
+                    Math.round((lowerMaxH * yr.amount) / lowerMax),
+                    2,
+                  );
+                  return (
+                    <g
+                      key={i}
+                      onMouseEnter={(e) =>
+                        showTip(e, {
+                          title: `ค่าใช้จ่ายรายปี (อายุ ${yr.age})`,
+                          lines: [
+                            {
+                              label: "ปีนี้",
+                              value: `฿${fmt(yr.amount)}`,
+                              color: "#b91c1c",
+                            },
+                            {
+                              label: "เฉลี่ย/เดือน",
+                              value: `฿${fmt(yr.amount / 12)}`,
+                            },
+                            {
+                              label: "จากปีแรก",
+                              value: `× ${Math.pow(
+                                1 + generalInflation,
+                                i,
+                              ).toFixed(3)}`,
+                            },
+                          ],
+                        })
+                      }
+                      onMouseMove={moveTip}
+                      onMouseLeave={hideTip}
+                      style={{ cursor: "help" }}
                     >
-                      × 12 เดือน × {retireYears} ปี (NPV)
-                    </text>
-                  </g>
-                </g>
+                      <rect
+                        className="dg-red-bar"
+                        x={barCx - redBarW / 2}
+                        y={baseline}
+                        width={redBarW}
+                        height={barH}
+                        rx={Math.min(redBarW / 3, 2)}
+                        fill="url(#redBarGrad)"
+                        style={{
+                          animationDelay: `${0.5 + i * 0.02}s`,
+                        }}
+                      />
+                    </g>
+                  );
+                })}
 
-                {/* ── Retirement fund (A) callout pill ─────────── */}
-                <g
-                  className="dg-pill"
-                  transform={`translate(${fvX}, ${calloutY})`}
-                  onMouseEnter={(e) =>
-                    showTip(e, {
-                      title: "ทุนเกษียณที่ต้องมี (A)",
-                      lines: [
-                        {
-                          label: "รวมทั้งหมด",
-                          value: `฿${fmt(basicRetireFund)}`,
-                          color: "#0891b2",
-                        },
-                        {
-                          label: "จ่าย/เดือน",
-                          value: `฿${fmt(basicMonthlyFV)}`,
-                        },
-                        { label: "เป็นเวลา", value: `${retireYears} ปี` },
-                        ...(residualFund > 0
-                          ? [
-                              {
-                                label: "เหลือไว้",
-                                value: `฿${fmt(residualFund)}`,
-                                color: "#6b7280",
-                              },
-                            ]
-                          : []),
-                      ],
-                    })
-                  }
-                  onMouseMove={moveTip}
-                  onMouseLeave={hideTip}
-                  style={{ cursor: "help" }}
-                >
-                  {/* Soft outer glow */}
-                  <rect
-                    x={-86}
-                    y={-16}
-                    width={172}
-                    height={34}
-                    rx={17}
-                    fill="#cffafe"
-                    opacity="0.55"
-                  />
-                  {/* Inner filled pill */}
-                  <rect
-                    x={-82}
-                    y={-14}
-                    width={164}
-                    height={30}
-                    rx={15}
-                    fill="#ecfeff"
-                    stroke="#22d3ee"
-                    strokeWidth={1}
-                  />
-                  <text
-                    x={0}
-                    y={-2}
-                    textAnchor="middle"
-                    fontSize="9"
-                    fontWeight="700"
-                    fill="#0891b2"
-                    pointerEvents="none"
-                  >
-                    ทุนเกษียณ (A)
-                  </text>
-                  <text
-                    x={0}
-                    y={12}
-                    textAnchor="middle"
-                    fontSize="13"
-                    fontWeight="800"
-                    fill="#0e7490"
-                    pointerEvents="none"
-                  >
-                    ฿{fmt(basicRetireFund)}
-                  </text>
-                </g>
-
-                {/* Pulsing hint line from A pill into drawdown top
-                    (gives a subtle "money flowing out" visual) */}
-                <line
-                  className="dg-pulse-line"
-                  x1={fvX + 10}
-                  y1={dStartY}
-                  x2={Math.min(fvX + 70, dEndX - 10)}
-                  y2={dStartY + 4}
-                  stroke="#0891b2"
-                  strokeWidth={1}
-                  strokeDasharray="2 3"
-                  opacity="0.4"
-                />
-
-                {/* ── Residual bar (right — soft gray) ─────────── */}
-                <g
-                  onMouseEnter={(e) =>
-                    showTip(e, {
-                      title: "เงินคงเหลือ ณ สิ้นอายุขัย",
-                      lines: [
-                        { label: "ที่อายุ", value: `${lifeExpectancy} ปี` },
-                        {
-                          label: "มูลค่า",
-                          value: `฿${fmt(residualFund)}`,
-                          color: "#6b7280",
-                        },
-                        {
-                          label: "NPV ณ วันเกษียณ",
-                          value: `฿${fmt(residualPV)}`,
-                        },
-                        ...(residualFund > 0 && extraYears > 0
-                          ? [
-                              {
-                                label: "จ่ายต่อได้อีก",
-                                value: `${extraYears.toFixed(1)} ปี`,
-                                color: "#10b981",
-                              },
-                            ]
-                          : []),
-                      ],
-                    })
-                  }
-                  onMouseMove={moveTip}
-                  onMouseLeave={hideTip}
-                  style={{ cursor: "help" }}
-                >
-                  <rect
-                    className="dg-bar dg-bar-res"
-                    x={resX - barW / 2}
-                    y={baseline - resH}
-                    width={barW}
-                    height={resH}
-                    rx={3}
-                    fill="url(#resGrad)"
-                  />
-                  <text
-                    x={resX + barW / 2}
-                    y={baseline - resH - 6}
-                    textAnchor="end"
-                    fontSize="9"
-                    fontWeight="700"
-                    fill="#6b7280"
-                    className="dg-text-delay"
-                    pointerEvents="none"
-                  >
-                    ฿{fmt(residualFund)}
-                  </text>
-                </g>
+                {/* Bottom labels */}
                 <text
-                  x={resX + barW / 2}
-                  y={baseline + 14}
-                  textAnchor="end"
+                  x={pvX}
+                  y={baseline + lowerMaxH + 20}
+                  textAnchor="middle"
                   fontSize="9"
                   fill="#9ca3af"
                   className="dg-text-delay"
                   pointerEvents="none"
                 >
-                  เงินคงเหลือ
+                  รายเดือน วันนี้
+                </text>
+                <text
+                  x={retireMidX}
+                  y={baseline + lowerMaxH + 20}
+                  textAnchor="middle"
+                  fontSize="9"
+                  fontWeight="700"
+                  fill="#b91c1c"
+                  className="dg-text-delay"
+                  pointerEvents="none"
+                >
+                  รายจ่ายรายปี × เงินเฟ้อ {retireYears} ปี
                 </text>
               </svg>
 
-              {/* Floating tooltip — positioned over the container */}
+              {/* Floating tooltip */}
               {tooltip &&
                 (() => {
                   const cw = containerRef.current?.clientWidth ?? 600;
                   const ch = containerRef.current?.clientHeight ?? 300;
-                  const ttW = 200;
+                  const ttW = 210;
                   const ttH = 110;
                   const left =
                     tooltip.x + 14 + ttW > cw
@@ -813,7 +796,7 @@ export default function RetirementDiagram({
                   return (
                     <div
                       className="absolute pointer-events-none bg-white shadow-xl rounded-lg border border-gray-200 px-3 py-2 text-xs z-20"
-                      style={{ left, top, minWidth: 180, maxWidth: 220 }}
+                      style={{ left, top, minWidth: 180, maxWidth: 230 }}
                     >
                       <div className="font-bold text-[#1e3a5f] mb-1 text-[11px]">
                         {tooltip.title}
