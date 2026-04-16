@@ -422,7 +422,7 @@ export const useRetirementStore = create<RetirementState>()(
     }),
     {
       name: "ffc-retirement",
-      version: 12,
+      version: 13,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       migrate: (persisted: any, version: number) => {
         if (persisted?.savingFunds) {
@@ -713,6 +713,105 @@ export const useRetirementStore = create<RetirementState>()(
                 !b.pullFromCf
               ),
           );
+        }
+        // v13: Users who clicked the old "ดึงรายจ่ายจำเป็นจาก Cash Flow" bulk
+        // button (now removed) ended up with basicExpenses full of CF
+        // essentials like ผ่อนรถ/บัตรเครดิต/ประกัน — items that don't belong
+        // in a retirement-basics list. Previous migrations only touched
+        // canonical re1..re8 ids, so these generated-id items slipped through.
+        // Detect that state and rebuild the list with canonical defaults,
+        // preserving amounts by name-match so user-entered numbers aren't lost.
+        if (persisted?.basicExpenses && Array.isArray(persisted.basicExpenses)) {
+          const canonicalIds = new Set([
+            "re1",
+            "re2",
+            "re3",
+            "re4",
+            "re5",
+            "re6",
+            "re7",
+            "re8",
+          ]);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const items = persisted.basicExpenses as any[];
+          const allNonCanonical =
+            items.length > 0 &&
+            items.every((b) => b && !canonicalIds.has(b.id));
+          const isLegacyBulkName = (name: unknown): boolean => {
+            if (typeof name !== "string") return false;
+            return (
+              name.includes("ประกัน") ||
+              name.includes("ผ่อน") ||
+              name.includes("บัตร") ||
+              name.includes("สินเชื่อ") ||
+              name.includes("PVD") ||
+              name.includes("DCA") ||
+              name.includes("ภาษี") ||
+              name.includes("ค่าส่วนกลาง")
+            );
+          };
+          const hasBulkSignature = items.some(
+            (b) => b && isLegacyBulkName(b.name),
+          );
+          if (allNonCanonical && hasBulkSignature) {
+            const amountByName: Record<string, number> = {};
+            for (const b of items) {
+              if (b && typeof b.name === "string") {
+                amountByName[b.name] =
+                  typeof b.monthlyAmount === "number" ? b.monthlyAmount : 0;
+              }
+            }
+            const pick = (...names: string[]): number => {
+              for (const n of names) {
+                if (amountByName[n] !== undefined) return amountByName[n];
+              }
+              return 0;
+            };
+            persisted.basicExpenses = [
+              {
+                id: "re1",
+                name: "ค่าอาหาร",
+                monthlyAmount: pick("ค่าอาหาร"),
+                cfSourceName: "ค่าอาหาร",
+              },
+              {
+                id: "re2",
+                name: "ค่าเดินทาง",
+                monthlyAmount: pick("ค่าเดินทาง"),
+                cfSourceName: "ค่าเดินทาง",
+              },
+              {
+                id: "re3",
+                name: "ค่าน้ำ ค่าไฟ",
+                monthlyAmount: pick("ค่าน้ำ ค่าไฟ"),
+                cfSourceName: "ค่าน้ำ ค่าไฟ",
+              },
+              {
+                id: "re4",
+                name: "ค่าโทรศัพท์ อินเทอร์เน็ต",
+                monthlyAmount: pick(
+                  "ค่าโทรศัพท์ อินเทอร์เน็ต",
+                  "ค่าโทรศัพท์ อินเตอร์เน็ต",
+                ),
+                cfSourceName: "ค่าโทรศัพท์ อินเทอร์เน็ต",
+              },
+              {
+                id: "re6",
+                name: "ค่าของใช้ส่วนตัว",
+                monthlyAmount: pick("ค่าของใช้ส่วนตัว"),
+              },
+              {
+                id: "re7",
+                name: "ค่าสันทนาการและความบันเทิง",
+                monthlyAmount: pick("ค่าสันทนาการและความบันเทิง"),
+              },
+              {
+                id: "re8",
+                name: "ค่าใช้จ่ายอื่นๆ",
+                monthlyAmount: pick("ค่าใช้จ่ายอื่นๆ", "ค่าช้อปปิ้ง"),
+              },
+            ];
+          }
         }
         return persisted;
       },
