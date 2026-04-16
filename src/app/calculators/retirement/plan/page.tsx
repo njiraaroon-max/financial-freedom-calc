@@ -18,10 +18,10 @@ import {
   calcInvestmentPlan,
 } from "@/types/retirement";
 import {
-  getCashflowContribution,
-  npvItemAtRetire,
+  savingFundNpvAtRetire,
+  sumSavingFundsNpv,
+  sumSpecialExpensesNpv,
   type AnnuityStreamLite,
-  type CalcSourceKey,
   type CashflowContext,
   type CashflowRegistryContext,
   type PremiumBracketLite,
@@ -76,7 +76,7 @@ export default function RetirementPlanPage() {
   const store = useRetirementStore();
   const insurance = useInsuranceStore();
   const { markStepCompleted } = store;
-  const { variables, setVariable } = useVariableStore();
+  const { setVariable } = useVariableStore();
   const profile = useProfileStore();
   const [openSteps, setOpenSteps] = useState<Set<number>>(new Set([1]));
   const hasAutoFilled = useRef(false);
@@ -142,36 +142,8 @@ export default function RetirementPlanPage() {
     travelItems: store.travelPlanItems,
   };
 
-  // NPV helper — registry for calc-link, direct expansion for inline
-  const specialNPV = (item: (typeof store.specialExpenses)[number]): number => {
-    const srcKind = item.sourceKind ?? "inline";
-    if ((srcKind === "calc-link" || srcKind === "sub-calc") && item.calcSourceKey) {
-      const contrib = getCashflowContribution(
-        item.calcSourceKey as CalcSourceKey,
-        registryCtx,
-      );
-      return contrib?.npvAtRetire ?? 0;
-    }
-    return npvItemAtRetire(item, ctx);
-  };
-  const fundNPV = (item: (typeof store.savingFunds)[number]): number => {
-    const srcKind =
-      item.sourceKind ?? (item.source === "calculator" ? "calc-link" : "inline");
-    if (srcKind === "calc-link" && item.calcSourceKey) {
-      const contrib = getCashflowContribution(
-        item.calcSourceKey as CalcSourceKey,
-        registryCtx,
-      );
-      return contrib?.npvAtRetire ?? 0;
-    }
-    // Inline — prefer new amount/kind fields; else fall back to legacy cached value
-    if (item.amount !== undefined || item.kind !== undefined) {
-      return npvItemAtRetire(item, ctx);
-    }
-    return item.value || 0;
-  };
-
-  const totalSavingFund = store.savingFunds.reduce((sum, f) => sum + fundNPV(f), 0);
+  // NPV totals — dual-purpose cashflow model via shared helpers
+  const totalSavingFund = sumSavingFundsNpv(store.savingFunds, ctx, registryCtx);
 
   const savedSteps = new Set<number>();
   // Step 1: สมมติฐาน — saved if age is set (not default 35)
@@ -240,17 +212,15 @@ export default function RetirementPlanPage() {
   const yearsToRetire = a.retireAge - a.currentAge;
   const yearsAfterRetire = a.lifeExpectancy - a.retireAge;
 
-  // Load CF data
-  const cfMonthlyEssential = variables.monthly_essential_expense?.value || 0;
-
   // Step 2: Basic expense calculations
   const basicMonthlyFV = futureValue(totalBasicMonthly, a.generalInflation, yearsToRetire);
   const basicRetireFund = calcRetirementFund(basicMonthlyFV, a.postRetireReturn, a.generalInflation, yearsAfterRetire, a.residualFund);
 
   // Step 3: Special expense — NPV ณ วันเกษียณ (respects kind, occurAge, startAge/endAge)
-  const totalSpecialFV = store.specialExpenses.reduce(
-    (sum, e) => sum + specialNPV(e),
-    0,
+  const totalSpecialFV = sumSpecialExpensesNpv(
+    store.specialExpenses,
+    ctx,
+    registryCtx,
   );
 
   // Total retirement fund needed
@@ -388,7 +358,7 @@ export default function RetirementPlanPage() {
             {/* Show each saving fund item (fresh NPV via registry) */}
             <div className="mt-3 space-y-1">
               {store.savingFunds
-                .map((f) => ({ ...f, npv: fundNPV(f) }))
+                .map((f) => ({ ...f, npv: savingFundNpvAtRetire(f, ctx, registryCtx) }))
                 .filter((f) => f.npv > 0)
                 .map((f) => (
                   <div key={f.id} className="flex justify-between text-[10px]">

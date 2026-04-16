@@ -12,10 +12,9 @@ import { toast } from "@/store/toast-store";
 import type { SavingFundItem, CashflowKind } from "@/types/retirement";
 import {
   getCashflowContribution,
-  npvItemAtRetire,
+  savingFundNpvAtRetire,
   type CashflowContext,
   type CashflowRegistryContext,
-  type CalcSourceKey,
 } from "@/lib/cashflow";
 
 function fmt(n: number): string {
@@ -78,21 +77,9 @@ export default function SavingFundsPage() {
     ],
   );
 
-  // Per-item NPV computation
-  const itemNPV = (item: SavingFundItem): number => {
-    const srcKind = item.sourceKind ?? (item.source === "calculator" ? "calc-link" : "inline");
-    if (srcKind === "inline") {
-      // Prefer new `amount` field if present; else fall back to cached `value`
-      if (item.amount !== undefined || item.kind !== undefined) {
-        return npvItemAtRetire(item, ctx);
-      }
-      return item.value || 0;
-    }
-    const key = item.calcSourceKey as CalcSourceKey | undefined;
-    if (!key) return item.value || 0;
-    const contrib = getCashflowContribution(key, registryCtx);
-    return contrib?.npvAtRetire ?? 0;
-  };
+  // Per-item NPV computation — shared helper (same as plan/investment-plan/summary)
+  const itemNPV = (item: SavingFundItem): number =>
+    savingFundNpvAtRetire(item, ctx, registryCtx);
 
   const totalSavingFund = store.savingFunds.reduce(
     (sum, f) => sum + itemNPV(f),
@@ -171,10 +158,7 @@ export default function SavingFundsPage() {
 
               if (srcKind === "calc-link") {
                 const contrib = item.calcSourceKey
-                  ? getCashflowContribution(
-                      item.calcSourceKey as CalcSourceKey,
-                      registryCtx,
-                    )
+                  ? getCashflowContribution(item.calcSourceKey, registryCtx)
                   : null;
                 const editHref =
                   (item.calcSourceKey && EDIT_HREF[item.calcSourceKey]) ||

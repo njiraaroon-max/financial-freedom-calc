@@ -20,6 +20,7 @@
  */
 
 import type {
+  CalcSourceKey,
   CashflowItem,
   CaretakerParams,
   PVDParams,
@@ -34,6 +35,9 @@ import {
   calcSeverancePay,
   calcSocialSecurityPension,
 } from "@/types/retirement";
+
+// Re-export for backward compat with existing page imports
+export type { CalcSourceKey };
 
 // ---------------------------------------------------------------------------
 // Context
@@ -211,6 +215,69 @@ export function npvItemAtRetire(
 }
 
 // ---------------------------------------------------------------------------
+// Aggregate helpers — ใช้ร่วมกันระหว่างหน้า plan / investment-plan / summary
+// (NPV @ retire ของ hub items ทั้งหมด, respects kind/occurAge/calc-link)
+// ---------------------------------------------------------------------------
+
+/** NPV @ retire ของ 1 special expense — registry → inline → 0 */
+export function specialExpenseNpvAtRetire(
+  item: SpecialExpenseItem,
+  ctx: CashflowContext,
+  registryCtx?: CashflowRegistryContext,
+): number {
+  const srcKind = item.sourceKind ?? "inline";
+  if ((srcKind === "calc-link" || srcKind === "sub-calc") && item.calcSourceKey) {
+    if (!registryCtx) return 0;
+    const contrib = getCashflowContribution(item.calcSourceKey, registryCtx);
+    return contrib?.npvAtRetire ?? 0;
+  }
+  return npvItemAtRetire(item, ctx);
+}
+
+/** NPV @ retire ของ 1 saving fund — registry → inline(new) → legacy value */
+export function savingFundNpvAtRetire(
+  item: SavingFundItem,
+  ctx: CashflowContext,
+  registryCtx?: CashflowRegistryContext,
+): number {
+  const srcKind =
+    item.sourceKind ?? (item.source === "calculator" ? "calc-link" : "inline");
+  if (srcKind === "calc-link" && item.calcSourceKey) {
+    if (!registryCtx) return item.value || 0;
+    const contrib = getCashflowContribution(item.calcSourceKey, registryCtx);
+    return contrib?.npvAtRetire ?? 0;
+  }
+  if (item.amount !== undefined || item.kind !== undefined) {
+    return npvItemAtRetire(item, ctx);
+  }
+  return item.value || 0;
+}
+
+/** Σ NPV ของ special expenses ทั้งลิสต์ */
+export function sumSpecialExpensesNpv(
+  items: SpecialExpenseItem[],
+  ctx: CashflowContext,
+  registryCtx?: CashflowRegistryContext,
+): number {
+  return items.reduce(
+    (sum, e) => sum + specialExpenseNpvAtRetire(e, ctx, registryCtx),
+    0,
+  );
+}
+
+/** Σ NPV ของ saving funds ทั้งลิสต์ */
+export function sumSavingFundsNpv(
+  items: SavingFundItem[],
+  ctx: CashflowContext,
+  registryCtx?: CashflowRegistryContext,
+): number {
+  return items.reduce(
+    (sum, f) => sum + savingFundNpvAtRetire(f, ctx, registryCtx),
+    0,
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Cashflow contribution registry — read-only helpers
 // ---------------------------------------------------------------------------
 
@@ -221,16 +288,6 @@ export interface CashflowContribution {
   /** free-form display meta (monthly, lump, etc.) — UI only */
   meta?: Record<string, unknown>;
 }
-
-/** Known keys — type-safe dispatch */
-export type CalcSourceKey =
-  | "ss_pension"
-  | "pvd_at_retire"
-  | "severance_pay"
-  | "pension_insurance"
-  | "pillar2_health"
-  | "caretaker"
-  | "travel_detail";
 
 /**
  * Registry context — ขยายจาก CashflowContext เพื่อถือข้อมูล raw จาก stores

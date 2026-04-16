@@ -39,7 +39,6 @@ import {
   expandToYearly,
   getCashflowContribution,
   type AnnuityStreamLite,
-  type CalcSourceKey,
   type CashflowContext,
   type CashflowRegistryContext,
   type PremiumBracketLite,
@@ -203,10 +202,7 @@ export default function WealthJourneyPage() {
         (srcKind === "calc-link" || srcKind === "sub-calc") &&
         item.calcSourceKey
       ) {
-        const contrib = getCashflowContribution(
-          item.calcSourceKey as CalcSourceKey,
-          registryCtx,
-        );
+        const contrib = getCashflowContribution(item.calcSourceKey, registryCtx);
         yearlyRows = contrib?.yearlyStream ?? [];
       } else {
         if (item.amount <= 0) continue;

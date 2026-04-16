@@ -34,6 +34,20 @@ export type CashflowDirection = "income" | "expense";
 export type CashflowSourceKind = "inline" | "calc-link" | "sub-calc";
 
 /**
+ * Known calc-source keys — dispatch จาก getCashflowContribution().
+ * Keep ที่ type-level เพื่อให้ defaults ใน store/types ตรงกับ registry
+ * (cashflow.ts re-exports นี้เพื่อ backward compat)
+ */
+export type CalcSourceKey =
+  | "ss_pension"
+  | "pvd_at_retire"
+  | "severance_pay"
+  | "pension_insurance"
+  | "pillar2_health"
+  | "caretaker"
+  | "travel_detail";
+
+/**
  * CashflowItem — generic item ที่รองรับทั้งรายรับ/รายจ่าย
  * (ใช้สำหรับ travelPlanItems และ custom items ใน hub pages)
  */
@@ -53,7 +67,7 @@ export interface CashflowItem {
 
   /** Source metadata — สำหรับ hub items; custom items ให้ใช้ "inline" */
   sourceKind?: CashflowSourceKind;
-  calcSourceKey?: string;                 // e.g. "ss_pension", "travel_detail"
+  calcSourceKey?: CalcSourceKey;          // e.g. "ss_pension", "travel_detail"
 }
 
 /**
@@ -80,7 +94,7 @@ export interface SpecialExpenseItem {
   // --- Cashflow model extension (v10) ---
   occurAge?: number;              // อายุที่ใช้จริง (kind="lump"; default = retireAge)
   sourceKind?: CashflowSourceKind; // default "inline"
-  calcSourceKey?: string;          // e.g. "pillar2_health", "caretaker", "travel_detail"
+  calcSourceKey?: CalcSourceKey;   // e.g. "pillar2_health", "caretaker", "travel_detail"
 }
 
 // ===== Saving Fund Source =====
@@ -100,7 +114,7 @@ export interface SavingFundItem {
   startAge?: number;               // อายุเริ่มรับ (kind="recurring")
   endAge?: number;                 // อายุสิ้นสุดรับ (kind="recurring")
   sourceKind?: CashflowSourceKind; // default "inline" for custom, "calc-link" for sf1-sf5
-  calcSourceKey?: string;          // e.g. "ss_pension", "pvd_at_retire"
+  calcSourceKey?: CalcSourceKey;   // e.g. "ss_pension", "pvd_at_retire"
 }
 
 // ===== Investment Plan =====

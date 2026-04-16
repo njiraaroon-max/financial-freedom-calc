@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Save, Plus, Trash2, TrendingUp } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
+import { useInsuranceStore } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
@@ -13,6 +14,14 @@ import {
   calcRetirementFund,
   calcInvestmentPlan,
 } from "@/types/retirement";
+import {
+  sumSavingFundsNpv,
+  sumSpecialExpensesNpv,
+  type AnnuityStreamLite,
+  type CashflowContext,
+  type CashflowRegistryContext,
+  type PremiumBracketLite,
+} from "@/lib/cashflow";
 
 function fmt(n: number): string {
   return Math.round(n).toLocaleString("th-TH");
@@ -30,6 +39,7 @@ function parseNum(s: string): number {
 
 export default function InvestmentPlanPage() {
   const store = useRetirementStore();
+  const insurance = useInsuranceStore();
   const profile = useProfileStore();
   const { markStepCompleted } = store;
   const { setVariable } = useVariableStore();
@@ -48,18 +58,49 @@ export default function InvestmentPlanPage() {
   const yearsToRetire = a.retireAge - a.currentAge;
   const yearsAfterRetire = a.lifeExpectancy - a.retireAge;
 
-  // ---- Derived calculations ----
+  // ---- Cashflow registry ctx (shared with plan page) ----
+  const ctx: CashflowContext = {
+    currentAge: a.currentAge,
+    retireAge: a.retireAge,
+    lifeExpectancy: a.lifeExpectancy,
+    extraYearsBeyondLife: store.caretakerParams.extraYearsBeyondLife ?? 5,
+    generalInflation: a.generalInflation,
+    postRetireReturn: a.postRetireReturn,
+  };
+  const pillar2Brackets: PremiumBracketLite[] = (
+    insurance.riskManagement.pillar2.premiumBrackets || []
+  ).map((b) => ({
+    ageFrom: b.ageFrom,
+    ageTo: b.ageTo,
+    annualPremium: b.annualPremium,
+  }));
+  const annuityStreams: AnnuityStreamLite[] = insurance.policies
+    .filter((p) => p.policyType === "annuity" && p.annuityDetails)
+    .map((p) => ({
+      label: p.planName,
+      payoutStartAge: p.annuityDetails!.payoutStartAge,
+      payoutPerYear: p.annuityDetails!.payoutPerYear,
+      payoutEndAge: p.annuityDetails!.payoutEndAge,
+    }));
+  const registryCtx: CashflowRegistryContext = {
+    ...ctx,
+    ssParams: store.ssParams,
+    pvdParams: store.pvdParams,
+    severanceParams: store.severanceParams,
+    caretakerParams: store.caretakerParams,
+    pillar2Brackets,
+    annuityStreams,
+    travelItems: store.travelPlanItems,
+  };
+
+  // ---- Derived calculations (dual-purpose cashflow) ----
   const totalBasicMonthly = store.basicExpenses.reduce((sum, e) => sum + e.monthlyAmount, 0);
   const basicMonthlyFV = futureValue(totalBasicMonthly, a.generalInflation, yearsToRetire);
   const basicRetireFund = calcRetirementFund(basicMonthlyFV, a.postRetireReturn, a.generalInflation, yearsAfterRetire, a.residualFund);
 
-  const totalSpecialFV = store.specialExpenses.reduce((sum, e) => {
-    const rate = e.inflationRate ?? a.generalInflation;
-    return sum + futureValue(e.amount, rate, yearsToRetire);
-  }, 0);
-
+  const totalSpecialFV = sumSpecialExpensesNpv(store.specialExpenses, ctx, registryCtx);
   const totalRetireFund = basicRetireFund + totalSpecialFV;
-  const totalSavingFund = store.savingFunds.reduce((sum, f) => sum + f.value, 0);
+  const totalSavingFund = sumSavingFundsNpv(store.savingFunds, ctx, registryCtx);
   const shortage = totalRetireFund - totalSavingFund;
 
   // ---- Investment plan projection ----
