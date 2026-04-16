@@ -49,8 +49,10 @@ export default function TaxOptimizationPage() {
 
   // ─── Tax Deduction Analysis ───────────────────────────────────────────
   const taxAnalysis = useMemo(() => {
+    // Life: whole-life, endowment, term — chassis products that pay a death benefit
     const lifePolicies    = policies.filter((p) => ["whole_life", "endowment", "term"].includes(p.policyType));
-    const healthPolicies  = policies.filter((p) => p.policyType === "health");
+    // Health deduction (25k) per Thai tax law includes health, CI, and accident
+    const healthPolicies  = policies.filter((p) => ["health", "critical_illness", "accident"].includes(p.policyType));
     const pensionPolicies = policies.filter((p) => p.policyType === "annuity");
 
     const lifePremiumTotal    = lifePolicies.reduce((s, p) => s + p.premium, 0);
@@ -72,14 +74,35 @@ export default function TaxOptimizationPage() {
     const unusedPension    = pensionCap - pensionDeductible;
     const unusedParent     = TAX_LIMITS.parentHealth - parentHealthDeductible;
 
+    // Empty-state signal: there are relevant policies but every premium is 0
+    const relevantPolicies = [...lifePolicies, ...healthPolicies, ...pensionPolicies];
+    const hasRelevantPolicies = relevantPolicies.length > 0;
+    const allPremiumsZero = hasRelevantPolicies && relevantPolicies.every((p) => (p.premium ?? 0) === 0);
+
     return {
+      lifePolicies, healthPolicies, pensionPolicies,
       lifePremiumTotal, healthPremiumTotal, pensionPremiumTotal,
       lifeDeductible, healthDeductible, lifeHealthCombined,
       pensionDeductible, parentHealthDeductible,
       totalDeductible, estimatedTaxRate, estimatedTaxSaving,
       unusedLifeHealth, unusedPension, unusedParent,
+      hasRelevantPolicies, allPremiumsZero,
     };
   }, [policies, annualIncome, p4.parentHealthDeduction]);
+
+  // Helper: list of policies for a source-line under each deduction row
+  const renderSource = (list: typeof policies) => {
+    const contributing = list.filter((p) => (p.premium ?? 0) > 0);
+    if (contributing.length === 0) return null;
+    return (
+      <div className="text-[9px] text-gray-400 mt-1 leading-relaxed">
+        จาก:{" "}
+        {contributing
+          .map((p) => `${p.planName || "กรมธรรม์"} (${fmt(p.premium)})`)
+          .join(" + ")}
+      </div>
+    );
+  };
 
   const handlePushToTax = () => {
     const taxS = useTaxStore.getState();
@@ -131,6 +154,20 @@ export default function TaxOptimizationPage() {
             </button>
           </div>
 
+          {/* Empty-state hint — when user has policies but zero premiums */}
+          {taxAnalysis.allPremiumsZero && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 flex items-start gap-2">
+              <span className="text-base leading-none">⚠️</span>
+              <div className="text-[10px] text-amber-800 leading-relaxed">
+                กรมธรรม์ที่เพิ่มไว้ยังไม่ได้ระบุเบี้ยประกัน ({taxAnalysis.lifePolicies.length + taxAnalysis.healthPolicies.length + taxAnalysis.pensionPolicies.length} เล่ม ที่เกี่ยวข้องกับสิทธิลดหย่อน) —
+                เพิ่ม "เบี้ยที่จ่าย/ปี" ได้ที่{" "}
+                <a href="/calculators/insurance/policies" className="underline font-bold">
+                  หน้าสรุปกรมธรรม์
+                </a>
+              </div>
+            </div>
+          )}
+
           <div className="border border-gray-100 rounded-xl overflow-hidden">
             {/* Life */}
             <div className="px-3 py-2.5 border-b border-gray-50">
@@ -145,6 +182,7 @@ export default function TaxOptimizationPage() {
               {taxAnalysis.lifePremiumTotal > 0 && (
                 <div className="text-[9px] text-gray-400 mt-0.5">เบี้ยจริง {fmt(taxAnalysis.lifePremiumTotal)} บาท</div>
               )}
+              {renderSource(taxAnalysis.lifePolicies)}
             </div>
 
             {/* Health */}
@@ -157,6 +195,8 @@ export default function TaxOptimizationPage() {
                 <div className="h-full rounded-full bg-teal-400 transition-all"
                   style={{ width: `${Math.min((taxAnalysis.healthDeductible / TAX_LIMITS.healthPremium) * 100, 100)}%` }} />
               </div>
+              <div className="text-[9px] text-gray-400 mt-0.5">รวมเบี้ยสุขภาพ + โรคร้าย (CI) + อุบัติเหตุ (PA)</div>
+              {renderSource(taxAnalysis.healthPolicies)}
             </div>
 
             {/* Life + Health combined */}
@@ -178,6 +218,7 @@ export default function TaxOptimizationPage() {
                   style={{ width: `${TAX_LIMITS.pensionPremium > 0 ? Math.min((taxAnalysis.pensionDeductible / TAX_LIMITS.pensionPremium) * 100, 100) : 0}%` }} />
               </div>
               <div className="text-[9px] text-gray-400 mt-0.5">เพดาน 15% ของรายได้ (รวม RMF/SSF ไม่เกิน 500,000)</div>
+              {renderSource(taxAnalysis.pensionPolicies)}
             </div>
 
             {/* Parent health */}
