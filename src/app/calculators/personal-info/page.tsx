@@ -379,6 +379,7 @@ export default function PersonalInfoPage() {
                 "ffc-goals",
                 "ffc-insurance",
                 "ffc-tax",
+                "ffc-education",
               ];
               storeKeys.forEach((key) => localStorage.removeItem(key));
               window.location.reload();

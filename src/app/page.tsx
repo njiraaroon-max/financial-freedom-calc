@@ -130,7 +130,7 @@ const calculators = [
     href: "/calculators/education",
     color: "bg-blue-500",
     colorHex: "#3b82f6",
-    ready: false,
+    ready: true,
   },
   {
     name: "CF Projection",
