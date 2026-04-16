@@ -19,11 +19,14 @@ export interface Deduction {
   multiplier?: number; // เงินบริจาค 2 เท่า = 2
 }
 
-// คำนวณค่าลดหย่อนที่ใช้ได้จริง (รวม multiplier)
+// คำนวณค่าลดหย่อนที่ใช้ได้จริง (รวม multiplier และเพดาน maxLimit)
+// หากมี maxLimit กำหนดไว้ ค่าที่คืนจะไม่เกินเพดานนั้น เพื่อป้องกันกรณีข้อมูล
+// ถูกป้อนเกินเพดานโดยไม่ได้ตั้งใจ
 export function calcEffectiveDeduction(d: Deduction, field: "beforeAmount" | "afterAmount"): number {
   const amount = d[field];
   const mult = d.multiplier || 1;
-  return amount * mult;
+  const effective = amount * mult;
+  return d.maxLimit !== undefined ? Math.min(effective, d.maxLimit) : effective;
 }
 
 // ขั้นภาษี

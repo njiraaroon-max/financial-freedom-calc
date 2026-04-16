@@ -436,12 +436,24 @@ export default function TaxPage() {
                           </div>
                           <NumberInput
                             value={d.beforeAmount}
-                            onChange={(v) => store.updateDeduction(d.id, "beforeAmount", v)}
+                            onChange={(v) => {
+                              const capped = d.maxLimit !== undefined ? Math.min(v, d.maxLimit) : v;
+                              if (v > (d.maxLimit ?? Infinity)) {
+                                toast.warning(`${d.name} ลดหย่อนได้สูงสุด ${d.maxLimit?.toLocaleString("th-TH")} บาท`);
+                              }
+                              store.updateDeduction(d.id, "beforeAmount", capped);
+                            }}
                             className="w-32"
                           />
                           <NumberInput
                             value={d.afterAmount}
-                            onChange={(v) => store.updateDeduction(d.id, "afterAmount", v)}
+                            onChange={(v) => {
+                              const capped = d.maxLimit !== undefined ? Math.min(v, d.maxLimit) : v;
+                              if (v > (d.maxLimit ?? Infinity)) {
+                                toast.warning(`${d.name} ลดหย่อนได้สูงสุด ${d.maxLimit?.toLocaleString("th-TH")} บาท`);
+                              }
+                              store.updateDeduction(d.id, "afterAmount", capped);
+                            }}
                             className="w-32"
                           />
                           <button onClick={() => store.removeDeduction(d.id)} className="text-gray-300 hover:text-red-500 shrink-0">
