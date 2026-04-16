@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Download, Save, ChevronDown, ChevronUp, Receipt, Shield, Info } from "lucide-react";
 import { useTaxStore } from "@/store/tax-store";
 import PageHeader from "@/components/PageHeader";
@@ -43,41 +44,68 @@ function NumberInput({ value, onChange, className }: { value: number; onChange: 
 
 // Small (i) icon that toggles a popover with detailed hint text.
 // Click-based (not hover) so it works on touch devices.
+// Uses a React portal so the popover escapes any ancestor `overflow: hidden`
+// (the deduction section wraps its rounded corners with overflow-hidden,
+// which would otherwise clip the popover).
 function HintIcon({ text }: { text: string }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const popRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (
+        btnRef.current && !btnRef.current.contains(t) &&
+        popRef.current && !popRef.current.contains(t)
+      ) {
+        setOpen(false);
+      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
+  const openPopover = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!btnRef.current) return;
+    const rect = btnRef.current.getBoundingClientRect();
+    const POP_W = 256;
+    // Keep popover on-screen on small viewports
+    const desiredLeft = rect.left;
+    const maxLeft = window.innerWidth - POP_W - 8;
+    const left = Math.min(Math.max(desiredLeft, 8), maxLeft);
+    setPos({ left, top: rect.bottom + 6 });
+    setOpen((o) => !o);
+  };
+
   if (!text) return null;
 
   return (
-    <div className="relative inline-block" ref={ref}>
+    <>
       <button
+        ref={btnRef}
         type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpen((o) => !o);
-        }}
-        className="p-0.5 text-gray-300 hover:text-violet-500 transition"
+        onClick={openPopover}
+        className="p-0.5 text-gray-400 hover:text-violet-500 transition shrink-0"
         aria-label="ดูรายละเอียด"
       >
         <Info size={12} />
       </button>
-      {open && (
-        <div className="absolute left-0 top-full mt-1 z-50 bg-slate-800 text-white text-[10px] leading-relaxed rounded-lg shadow-xl p-2.5 w-64 whitespace-pre-line">
-          {text}
-          <div className="absolute -top-1 left-2 w-2 h-2 bg-slate-800 rotate-45" />
-        </div>
-      )}
-    </div>
+      {open && pos && typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={popRef}
+            className="fixed z-[1000] bg-slate-800 text-white text-[10px] leading-relaxed rounded-lg shadow-xl p-2.5 w-64 whitespace-pre-line"
+            style={{ left: pos.left, top: pos.top }}
+          >
+            {text}
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }
 
@@ -532,10 +560,10 @@ export default function TaxPage() {
                         return (
                           <div key={d.id} className="flex items-center gap-1.5">
                             <div className="flex-1 min-w-0">
-                              <div className="text-sm text-gray-700 truncate flex items-center gap-1">
+                              <div className="text-sm text-gray-700 flex items-center gap-1">
                                 <span className="truncate">{d.name}</span>
                                 {d.multiplier && d.multiplier > 1 && (
-                                  <span className="text-[10px] text-violet-500">×{d.multiplier}</span>
+                                  <span className="text-[10px] text-violet-500 shrink-0">×{d.multiplier}</span>
                                 )}
                                 {hintText && <HintIcon text={hintText} />}
                               </div>
