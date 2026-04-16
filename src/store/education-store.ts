@@ -307,8 +307,18 @@ export function projectChildEducation(
   let calendarYear: number;
 
   if (child.notEnrolled) {
-    const planned = child.plannedStartLevel ?? enabledSeq[0]?.key ?? "nursery";
-    startLevelKey = planned;
+    // Prefer the explicit plannedStartLevel; if it's disabled, walk the
+    // canonical sequence forward until we hit the next enabled level.
+    const preferred = child.plannedStartLevel ?? "nursery";
+    const preferredIdxInCanonical = Math.max(0, LEVEL_SEQUENCE.indexOf(preferred));
+    let resolvedKey: EducationLevelKey | null = null;
+    for (let i = preferredIdxInCanonical; i < LEVEL_SEQUENCE.length; i++) {
+      if (enabledSeq.some((l) => l.key === LEVEL_SEQUENCE[i])) {
+        resolvedKey = LEVEL_SEQUENCE[i];
+        break;
+      }
+    }
+    startLevelKey = resolvedKey ?? enabledSeq[0]?.key ?? "nursery";
     startYearInLevel = 1;
     // Fallback to startYear if user hasn't set plannedStartYear
     calendarYear = child.plannedStartYear && child.plannedStartYear > 0
