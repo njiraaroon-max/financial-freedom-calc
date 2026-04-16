@@ -1180,10 +1180,11 @@ function MonteCarloTooltip({
 }
 
 // ---------- Cashflow Breakdown Bar Chart (SVG dual-axis) ----------
-type CfSeriesKey = "inflow" | "outflow" | "balance" | "returns" | "net";
+type CfSeriesKey = "contribution" | "inflow" | "outflow" | "balance" | "returns" | "net";
 
 const CF_SERIES: { key: CfSeriesKey; label: string; color: string; hoverColor: string }[] = [
-  { key: "inflow", label: "ออมเข้า", color: "#EAB308", hoverColor: "#CA8A04" },
+  { key: "contribution", label: "ออมเข้า", color: "#EAB308", hoverColor: "#CA8A04" },
+  { key: "inflow", label: "เงินเข้า", color: "#F97316", hoverColor: "#EA580C" },
   { key: "outflow", label: "ถอนออก", color: "#EF4444", hoverColor: "#DC2626" },
   { key: "balance", label: "ยอดต้นปี", color: "#9CA3AF", hoverColor: "#6B7280" },
   { key: "returns", label: "ผลตอบแทน", color: "#22C55E", hoverColor: "#16A34A" },
@@ -1192,7 +1193,8 @@ const CF_SERIES: { key: CfSeriesKey; label: string; color: string; hoverColor: s
 
 function cfValue(row: { contribution: number; inflow: number; outflow: number; returnAmount: number }, key: CfSeriesKey): number {
   switch (key) {
-    case "inflow": return row.contribution + row.inflow;
+    case "contribution": return row.contribution;
+    case "inflow": return row.inflow;
     case "outflow": return -row.outflow;
     case "balance": return 0; // handled separately
     case "returns": return row.returnAmount;
@@ -1211,7 +1213,7 @@ function CashflowBarChart({
   retireAge: number;
   lifeExpectancy: number;
 }) {
-  const [visible, setVisible] = useState<Set<CfSeriesKey>>(new Set(["inflow", "outflow", "returns"]));
+  const [visible, setVisible] = useState<Set<CfSeriesKey>>(new Set(["contribution", "inflow", "outflow", "returns"]));
   const [hoverAge, setHoverAge] = useState<number | null>(null);
 
   const toggle = (key: CfSeriesKey) => {
@@ -1472,8 +1474,11 @@ function CashflowBarChart({
                 {visible.has("returns") && (
                   <div className="flex justify-between"><span className="text-gray-500">ผลตอบแทน</span><span className="font-bold text-emerald-600">+{fmt(hoveredRow.returnAmount)}</span></div>
                 )}
+                {visible.has("contribution") && (
+                  <div className="flex justify-between"><span className="text-gray-500">ออมเข้า</span><span className="font-bold text-yellow-600">{hoveredRow.contribution > 0 ? `+${fmt(hoveredRow.contribution)}` : "—"}</span></div>
+                )}
                 {visible.has("inflow") && (
-                  <div className="flex justify-between"><span className="text-gray-500">ออมเข้า</span><span className="font-bold text-yellow-600">+{fmt(hoveredRow.contribution + hoveredRow.inflow)}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500">เงินเข้า</span><span className="font-bold text-orange-600">{hoveredRow.inflow > 0 ? `+${fmt(hoveredRow.inflow)}` : "—"}</span></div>
                 )}
                 {visible.has("outflow") && (
                   <div className="flex justify-between"><span className="text-gray-500">ถอนออก</span><span className="font-bold text-red-500">{hoveredRow.outflow > 0 ? `−${fmt(hoveredRow.outflow)}` : "—"}</span></div>
