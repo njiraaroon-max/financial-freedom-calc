@@ -403,16 +403,37 @@ function AgeInput({
   onChange: (v: number | undefined) => void;
   accent: AccentTheme;
 }) {
+  // Local draft so user can erase digits without the prop-default snapping back.
+  // We keep the last committed value in the parent store and only emit valid
+  // numbers during typing — never undefined mid-edit (that's what was causing
+  // the "can't clear" bug).
+  const [draft, setDraft] = useState<string | null>(null);
+  const display =
+    draft !== null
+      ? draft
+      : Number.isFinite(value)
+        ? String(value)
+        : "";
+
   return (
     <input
-      type="number"
-      value={Number.isFinite(value) ? value : ""}
-      onChange={(e) => {
-        const raw = e.target.value;
-        if (raw === "") return onChange(undefined);
-        const n = Number(raw);
-        onChange(Number.isFinite(n) ? n : undefined);
+      type="text"
+      inputMode="numeric"
+      value={display}
+      onFocus={(e) => {
+        setDraft(Number.isFinite(value) ? String(value) : "");
+        // Select all so typing replaces the default immediately.
+        e.currentTarget.select();
       }}
+      onChange={(e) => {
+        // Digits only, max 3 chars (ages 0-999)
+        const cleaned = e.target.value.replace(/[^\d]/g, "").slice(0, 3);
+        setDraft(cleaned);
+        if (cleaned === "") return; // let the field stay empty; keep prior committed value
+        const n = Number(cleaned);
+        if (Number.isFinite(n)) onChange(n);
+      }}
+      onBlur={() => setDraft(null)}
       className={`w-14 text-xs font-semibold bg-white rounded-md px-2 py-1 outline-none focus:ring-2 ${accent.ring} transition text-right`}
     />
   );
