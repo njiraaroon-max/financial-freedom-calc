@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Download, Save, ChevronDown, ChevronUp, Receipt, Shield } from "lucide-react";
+import { Download, Save, ChevronDown, ChevronUp, Receipt, Shield, Info } from "lucide-react";
 import { useTaxStore } from "@/store/tax-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
@@ -16,6 +16,10 @@ import {
   calcTaxFromNetIncome,
   calcTotalTax,
   calcEffectiveDeduction,
+  getEffectiveCap,
+  getDeductionHintDetail,
+  RETIREMENT_SAVINGS_IDS,
+  RETIREMENT_SAVINGS_CAP,
   TAX_BRACKETS,
   DEDUCTION_GROUP_LABELS,
 } from "@/types/tax";
@@ -34,6 +38,46 @@ function NumberInput({ value, onChange, className }: { value: number; onChange: 
       className={`text-sm font-semibold bg-gray-50 rounded-xl px-2 py-1.5 outline-none focus:ring-2 text-right ${className || "w-24"}`}
       ringClass="focus:ring-[var(--color-primary)]"
     />
+  );
+}
+
+// Small (i) icon that toggles a popover with detailed hint text.
+// Click-based (not hover) so it works on touch devices.
+function HintIcon({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  if (!text) return null;
+
+  return (
+    <div className="relative inline-block" ref={ref}>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((o) => !o);
+        }}
+        className="p-0.5 text-gray-300 hover:text-violet-500 transition"
+        aria-label="ดูรายละเอียด"
+      >
+        <Info size={12} />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full mt-1 z-50 bg-slate-800 text-white text-[10px] leading-relaxed rounded-lg shadow-xl p-2.5 w-64 whitespace-pre-line">
+          {text}
+          <div className="absolute -top-1 left-2 w-2 h-2 bg-slate-800 rotate-45" />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -418,49 +462,100 @@ export default function TaxPage() {
               {[1, 2, 3, 4].map((group) => {
                 const items = store.deductions.filter(d => d.group === group);
                 if (items.length === 0) return null;
+
+                // Live totals for the retirement-savings sub-group inside group 2
+                const retireItems = items.filter((d) => RETIREMENT_SAVINGS_IDS.includes(d.id));
+                const retireBefore = retireItems.reduce((s, d) => s + d.beforeAmount, 0);
+                const retireAfter = retireItems.reduce((s, d) => s + d.afterAmount, 0);
+                const retireMax = Math.max(retireBefore, retireAfter);
+                const retirePct = Math.min((retireMax / RETIREMENT_SAVINGS_CAP) * 100, 100);
+                const retireOver = retireMax > RETIREMENT_SAVINGS_CAP;
+
+                // Handler: cap value against both dynamic cap and retirement group cap
+                const handleDeductionChange = (d: typeof items[number], field: "beforeAmount" | "afterAmount", v: number) => {
+                  // 1. Individual cap (static or income-based)
+                  const individualCap = getEffectiveCap(d, totalIncome);
+                  let capped = individualCap !== undefined ? Math.min(v, individualCap) : v;
+
+                  if (individualCap !== undefined && v > individualCap) {
+                    toast.warning(`${d.name} ลดหย่อนได้สูงสุด ${Math.round(individualCap).toLocaleString("th-TH")} บาท`);
+                  }
+
+                  // 2. Retirement group cap (500,000 shared across d14-d18)
+                  if (RETIREMENT_SAVINGS_IDS.includes(d.id)) {
+                    const otherInGroup = items
+                      .filter((x) => RETIREMENT_SAVINGS_IDS.includes(x.id) && x.id !== d.id)
+                      .reduce((s, x) => s + x[field], 0);
+                    const remaining = Math.max(RETIREMENT_SAVINGS_CAP - otherInGroup, 0);
+                    if (capped > remaining) {
+                      toast.warning(`รวมกลุ่มออมเพื่อเกษียณเกิน 500,000 — เหลือที่ใช้ได้ ${remaining.toLocaleString("th-TH")} บาท`);
+                      capped = remaining;
+                    }
+                  }
+
+                  store.updateDeduction(d.id, field, capped);
+                };
+
                 return (
                   <div key={group} className="mb-4">
-                    <div className="text-xs font-bold text-violet-600 mb-2 bg-violet-50 px-2 py-1 rounded">
+                    <div className="text-xs font-bold text-violet-600 mb-2 bg-violet-50 px-2 py-1 rounded flex items-center gap-1">
                       {DEDUCTION_GROUP_LABELS[group]}
-                      {group === 2 && <span className="text-[9px] text-violet-400 ml-1">(กลุ่มออมรวมไม่เกิน 500,000)</span>}
+                      {group === 2 && (
+                        <HintIcon text="กลุ่ม 2 มีกลุ่มย่อย 'การออมเพื่อเกษียณ' (ประกันบำนาญ + SSF + RMF + PVD + กอช.) รวมกันไม่เกิน 500,000 บาท/ปี" />
+                      )}
                     </div>
-                    <div className="space-y-1.5">
-                      {items.map((d) => (
-                        <div key={d.id} className="flex items-center gap-1.5">
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm text-gray-700 truncate">
-                              {d.name}
-                              {d.multiplier && d.multiplier > 1 && <span className="text-[10px] text-violet-500 ml-1">×{d.multiplier}</span>}
-                            </div>
-                            {d.hint && <div className="text-[10px] text-gray-400">{d.hint}</div>}
-                          </div>
-                          <NumberInput
-                            value={d.beforeAmount}
-                            onChange={(v) => {
-                              const capped = d.maxLimit !== undefined ? Math.min(v, d.maxLimit) : v;
-                              if (v > (d.maxLimit ?? Infinity)) {
-                                toast.warning(`${d.name} ลดหย่อนได้สูงสุด ${d.maxLimit?.toLocaleString("th-TH")} บาท`);
-                              }
-                              store.updateDeduction(d.id, "beforeAmount", capped);
-                            }}
-                            className="w-32"
-                          />
-                          <NumberInput
-                            value={d.afterAmount}
-                            onChange={(v) => {
-                              const capped = d.maxLimit !== undefined ? Math.min(v, d.maxLimit) : v;
-                              if (v > (d.maxLimit ?? Infinity)) {
-                                toast.warning(`${d.name} ลดหย่อนได้สูงสุด ${d.maxLimit?.toLocaleString("th-TH")} บาท`);
-                              }
-                              store.updateDeduction(d.id, "afterAmount", capped);
-                            }}
-                            className="w-32"
-                          />
-                          <button onClick={() => store.removeDeduction(d.id)} className="text-gray-300 hover:text-red-500 shrink-0">
-                            <Trash2 size={12} />
-                          </button>
+
+                    {/* Retirement group progress — only for group 2 */}
+                    {group === 2 && retireItems.length > 0 && (
+                      <div className="mb-3 bg-indigo-50 rounded-lg p-2.5 border border-indigo-100">
+                        <div className="flex items-center justify-between text-[10px] mb-1">
+                          <span className="font-semibold text-indigo-700">การออมเพื่อเกษียณ (รวม)</span>
+                          <span className={`font-bold ${retireOver ? "text-red-600" : "text-indigo-700"}`}>
+                            {fmt(retireMax)} / {fmt(RETIREMENT_SAVINGS_CAP)}
+                          </span>
                         </div>
-                      ))}
+                        <div className="h-2 bg-indigo-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${retireOver ? "bg-red-500" : "bg-indigo-500"}`}
+                            style={{ width: `${retirePct}%` }}
+                          />
+                        </div>
+                        {retireOver && (
+                          <div className="text-[10px] text-red-600 mt-1">⚠️ เกินเพดานกลุ่ม 500,000 บาท</div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="space-y-1.5">
+                      {items.map((d) => {
+                        const hintText = getDeductionHintDetail(d.id, totalIncome) || d.hint || "";
+                        return (
+                          <div key={d.id} className="flex items-center gap-1.5">
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm text-gray-700 truncate flex items-center gap-1">
+                                <span className="truncate">{d.name}</span>
+                                {d.multiplier && d.multiplier > 1 && (
+                                  <span className="text-[10px] text-violet-500">×{d.multiplier}</span>
+                                )}
+                                {hintText && <HintIcon text={hintText} />}
+                              </div>
+                            </div>
+                            <NumberInput
+                              value={d.beforeAmount}
+                              onChange={(v) => handleDeductionChange(d, "beforeAmount", v)}
+                              className="w-32"
+                            />
+                            <NumberInput
+                              value={d.afterAmount}
+                              onChange={(v) => handleDeductionChange(d, "afterAmount", v)}
+                              className="w-32"
+                            />
+                            <button onClick={() => store.removeDeduction(d.id)} className="text-gray-300 hover:text-red-500 shrink-0">
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        );
+                      })}
                       <button
                         onClick={() => store.addDeduction(group, "ค่าลดหย่อนใหม่")}
                         className="flex items-center gap-1 text-xs text-violet-600 font-medium mt-1"

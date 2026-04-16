@@ -29,6 +29,65 @@ export function calcEffectiveDeduction(d: Deduction, field: "beforeAmount" | "af
   return d.maxLimit !== undefined ? Math.min(effective, d.maxLimit) : effective;
 }
 
+// ============ กลุ่มออมเพื่อเกษียณ (รวมไม่เกิน 500,000) ============
+// ประกอบด้วย: ประกันบำนาญ / SSF / RMF / PVD-กบข. / กอช.
+// (TESG แยกจากเพดาน 500,000)
+export const RETIREMENT_SAVINGS_IDS = ["d14", "d15", "d16", "d17", "d18"];
+export const RETIREMENT_SAVINGS_CAP = 500_000;
+
+// เพดานรายตัว (บางรายการขึ้นกับรายได้ — ต้องคำนวณแบบ dynamic)
+// คืนเพดานปัจจุบันของ deduction id ตามรายได้ หรือ undefined ถ้าไม่มี
+export function getDynamicCap(id: string, totalIncome: number): number | undefined {
+  switch (id) {
+    case "d14": // ประกันบำนาญ — 15% รายได้ แต่ไม่เกิน 200,000
+      return Math.min(totalIncome * 0.15, 200_000);
+    case "d15": // SSF — 30% รายได้ แต่ไม่เกิน 200,000
+      return Math.min(totalIncome * 0.30, 200_000);
+    case "d16": // RMF — 30% รายได้ แต่ไม่เกิน 500,000
+      return Math.min(totalIncome * 0.30, 500_000);
+    case "d17": // PVD/กบข. — 15% รายได้ (ไม่มีเพดานรายตัว ยกเว้นเพดานกลุ่ม 500,000)
+      return Math.min(totalIncome * 0.15, 500_000);
+    default:
+      return undefined;
+  }
+}
+
+// รวมเพดาน static (maxLimit) + dynamic (income-based) ได้เพดานใช้จริงของ field
+export function getEffectiveCap(
+  d: Deduction,
+  totalIncome: number,
+): number | undefined {
+  const dyn = getDynamicCap(d.id, totalIncome);
+  if (dyn !== undefined && d.maxLimit !== undefined) return Math.min(dyn, d.maxLimit);
+  return dyn ?? d.maxLimit;
+}
+
+// Hint แบบละเอียดต่อ deduction id — ใช้ใน popover (i)
+export function getDeductionHintDetail(id: string, totalIncome: number): string {
+  const fmt = (n: number) => Math.round(n).toLocaleString("th-TH");
+  switch (id) {
+    case "d1":  return "ลดหย่อนส่วนตัว 60,000 บาท (ใช้ได้ทุกคน)";
+    case "d2":  return "ลดหย่อนคู่สมรส 60,000 บาท (เฉพาะคู่สมรสที่ไม่มีเงินได้)";
+    case "d3":  return "ลดหย่อนบุตร คนละ 30,000 บาท\nคนที่ 2 เกิดหลัง 1 ม.ค. 2561 = 60,000 บาท";
+    case "d4":  return "ค่าฝากครรภ์ + คลอดบุตร รวมกันไม่เกิน 60,000 บาท";
+    case "d5":  return "ลดหย่อนบิดา 30,000 บาท\n(บิดาอายุ 60+ และรายได้ ≤ 30,000/ปี)";
+    case "d6":  return "ลดหย่อนมารดา 30,000 บาท\n(มารดาอายุ 60+ และรายได้ ≤ 30,000/ปี)";
+    case "d7":  return "ผู้พิการหรือทุพพลภาพ 60,000 บาท/คน";
+    case "d10": return "ประกันสังคม ลดหย่อนตามที่จ่ายจริง ไม่เกิน 10,500 บาท";
+    case "d11": return "เบี้ยประกันชีวิต (สัญญา 10 ปีขึ้นไป)\n• สูงสุด 100,000 บาท\n• เมื่อรวมเบี้ยสุขภาพ ไม่เกิน 100,000 บาท";
+    case "d12": return "เบี้ยประกันสุขภาพตนเอง\n• ไม่เกิน 25,000 บาท\n• เมื่อรวมกับเบี้ยชีวิต ไม่เกิน 100,000 บาท\n• รวมเบี้ยสุขภาพ + CI + PA";
+    case "d13": return "เบี้ยประกันสุขภาพพ่อ/แม่ 15,000 บาท/ปี\n(พ่อแม่รายได้ ≤ 30,000/ปี)";
+    case "d14": return `ประกันชีวิตแบบบำนาญ\n• ไม่เกิน 15% ของรายได้\n• ไม่เกิน 200,000 บาท\n• รวมกลุ่มออมไม่เกิน 500,000\n— เพดานปัจจุบัน: ${fmt(Math.min(totalIncome * 0.15, 200_000))} บาท`;
+    case "d15": return `กองทุน SSF\n• ไม่เกิน 30% ของรายได้\n• ไม่เกิน 200,000 บาท\n• รวมกลุ่มออมไม่เกิน 500,000\n— เพดานปัจจุบัน: ${fmt(Math.min(totalIncome * 0.30, 200_000))} บาท`;
+    case "d16": return `กองทุน RMF\n• ไม่เกิน 30% ของรายได้\n• ไม่เกิน 500,000 บาท\n• รวมกลุ่มออมไม่เกิน 500,000\n— เพดานปัจจุบัน: ${fmt(Math.min(totalIncome * 0.30, 500_000))} บาท`;
+    case "d17": return `กองทุนสำรองเลี้ยงชีพ (PVD) / กบข.\n• ไม่เกิน 15% ของรายได้\n• รวมกลุ่มออมไม่เกิน 500,000\n— เพดานปัจจุบัน: ${fmt(Math.min(totalIncome * 0.15, 500_000))} บาท`;
+    case "d18": return "กองทุนการออมแห่งชาติ (กอช.)\n• ไม่เกิน 30,000 บาท\n• รวมกลุ่มออมไม่เกิน 500,000";
+    case "d19": return "กองทุน TESG (Thai ESG)\n• ไม่เกิน 300,000 บาท\n• แยกจากเพดานกลุ่มออม 500,000";
+    case "d20": return "ดอกเบี้ยเงินกู้ซื้อบ้าน ไม่เกิน 100,000 บาท/ปี";
+    default:    return "";
+  }
+}
+
 // ขั้นภาษี
 export const TAX_BRACKETS = [
   { min: 0, max: 150000, rate: 0, label: "0 – 150,000" },
