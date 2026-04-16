@@ -37,6 +37,13 @@ interface RetirementState {
   /** Travel sub-calc items (used by se3 detail page) */
   travelPlanItems: CashflowItem[];
 
+  /**
+   * Master toggle สำหรับหน้า basic-expenses — เปิดเพื่อเทียบกับค่าปัจจุบันใน
+   * Cash Flow (ไม่ใช่ auto-sync — แค่ reference preview ให้ user เห็นว่า
+   * ตอนเกษียณวางแผนไว้เท่าไร เทียบกับที่ใช้จริงในปัจจุบัน)
+   */
+  showCfReference: boolean;
+
   // Sub-calculator params
   pvdParams: PVDParams;
   ssParams: SocialSecurityParams;
@@ -53,11 +60,10 @@ interface RetirementState {
   removeBasicExpense: (id: string) => void;
   loadBasicExpensesFromCF: (monthlyEssential: number, items?: { name: string; amount: number }[]) => void;
   /**
-   * เปิด/ปิด การแสดงค่าอ้างอิงจาก Cash Flow (ไม่ใช่ auto-sync —
-   * ใช้ดูเป็น reference ว่าปัจจุบันใช้จ่ายเดือนละเท่าไหร่ เพื่อเทียบกับ
-   * ค่าใช้จ่ายที่วางแผนไว้ตอนเกษียณ user ยังกรอกค่าเองได้ตลอด)
+   * Master toggle — เปิด/ปิดการแสดงค่าอ้างอิงจาก Cash Flow ทั้งหน้า
+   * (ไม่ใช่ auto-sync — แค่ reference preview)
    */
-  toggleBasicExpensePullFromCf: (id: string) => void;
+  toggleShowCfReference: () => void;
 
   // Actions — Special Expenses
   addSpecialExpense: (name: string) => void;
@@ -147,6 +153,7 @@ export const useRetirementStore = create<RetirementState>()(
       savingFunds: [...DEFAULT_SAVING_FUNDS],
       investmentPlans: [],
       travelPlanItems: [],
+      showCfReference: false,
       pvdParams: { ...DEFAULT_PVD },
       ssParams: { ...DEFAULT_SS },
       severanceParams: { ...DEFAULT_SEVERANCE },
@@ -182,12 +189,8 @@ export const useRetirementStore = create<RetirementState>()(
           });
         }
       },
-      toggleBasicExpensePullFromCf: (id) =>
-        set((s) => ({
-          basicExpenses: s.basicExpenses.map((e) =>
-            e.id === id ? { ...e, pullFromCf: !e.pullFromCf } : e,
-          ),
-        })),
+      toggleShowCfReference: () =>
+        set((s) => ({ showCfReference: !s.showCfReference })),
 
       // Special Expenses
       addSpecialExpense: (name) =>
@@ -413,6 +416,7 @@ export const useRetirementStore = create<RetirementState>()(
           savingFunds: [...DEFAULT_SAVING_FUNDS],
           investmentPlans: [],
           travelPlanItems: [],
+          showCfReference: false,
           pvdParams: { ...DEFAULT_PVD },
           ssParams: { ...DEFAULT_SS },
           severanceParams: { ...DEFAULT_SEVERANCE },
@@ -422,7 +426,7 @@ export const useRetirementStore = create<RetirementState>()(
     }),
     {
       name: "ffc-retirement",
-      version: 13,
+      version: 14,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       migrate: (persisted: any, version: number) => {
         if (persisted?.savingFunds) {
@@ -713,6 +717,38 @@ export const useRetirementStore = create<RetirementState>()(
                 !b.pullFromCf
               ),
           );
+        }
+        // v14: Master CF-reference toggle — moved from per-item `pullFromCf`
+        // to a single global `showCfReference` on the store. Also inject
+        // cfSourceName for canonical re6/re7/re8 (were missing), so that the
+        // master toggle surfaces references for every default item.
+        if (typeof persisted?.showCfReference !== "boolean") {
+          // Preserve intent: if ANY existing item had pullFromCf=true, start
+          // global toggle ON. Otherwise default OFF (old manual-only mode).
+          const anyPulled =
+            Array.isArray(persisted?.basicExpenses) &&
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            persisted.basicExpenses.some((b: any) => b && b.pullFromCf === true);
+          persisted.showCfReference = !!anyPulled;
+        }
+        if (persisted?.basicExpenses && Array.isArray(persisted.basicExpenses)) {
+          const cfNameByCanonicalId: Record<string, string> = {
+            re1: "ค่าอาหาร",
+            re2: "ค่าเดินทาง",
+            re3: "ค่าน้ำ ค่าไฟ",
+            re4: "ค่าโทรศัพท์ อินเทอร์เน็ต",
+            re6: "ค่าของใช้ส่วนตัว",
+            re7: "ค่าสันทนาการและความบันเทิง",
+            re8: "ค่าใช้จ่ายอื่นๆ",
+          };
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          persisted.basicExpenses.forEach((b: any) => {
+            if (!b) return;
+            const canonicalCfName = cfNameByCanonicalId[b.id];
+            if (canonicalCfName && b.cfSourceName === undefined) {
+              b.cfSourceName = canonicalCfName;
+            }
+          });
         }
         // v13: Users who clicked the old "ดึงรายจ่ายจำเป็นจาก Cash Flow" bulk
         // button (now removed) ended up with basicExpenses full of CF

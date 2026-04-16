@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Save, Plus, Trash2, Info, X, ArrowUp, ArrowDown } from "lucide-react";
+import { Save, Plus, Trash2, Info, X, ArrowUp, ArrowDown, Lightbulb } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import { useProfileStore } from "@/store/profile-store";
 import PageHeader from "@/components/PageHeader";
@@ -17,11 +17,9 @@ function fmt(n: number): string {
 function NumberInput({
   value,
   onChange,
-  disabled,
 }: {
   value: number;
   onChange: (v: number) => void;
-  disabled?: boolean;
 }) {
   const display = value ? value.toLocaleString("th-TH") : "";
   return (
@@ -29,15 +27,10 @@ function NumberInput({
       type="text"
       inputMode="numeric"
       value={display}
-      disabled={disabled}
       onChange={(e) =>
         onChange(Number(e.target.value.replace(/[^0-9.-]/g, "")) || 0)
       }
-      className={`w-24 text-xs font-semibold rounded-xl px-2 py-2 outline-none text-right transition ${
-        disabled
-          ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-          : "bg-gray-50 focus:ring-2 focus:ring-[var(--color-primary)]"
-      }`}
+      className="w-full text-xs font-semibold rounded-xl px-2 py-2 outline-none text-right transition bg-gray-50 focus:ring-2 focus:ring-[var(--color-primary)]"
     />
   );
 }
@@ -83,13 +76,13 @@ export default function BasicExpensesPage() {
     return map;
   }, [store.basicExpenses, cfStore.expenses]);
 
-  // Arrow preview — แสดงเฉพาะเมื่อ toggle ON และผู้ใช้กรอกค่าต่างจาก CF baseline
+  // Arrow preview — แสดงเมื่อ master toggle ON + ผู้ใช้กรอกค่าต่างจาก baseline
   // (เพื่อตอบคำถาม "ตอนเกษียณจะใช้มากขึ้นหรือน้อยลง?")
   const renderArrow = (
     item: (typeof store.basicExpenses)[number],
     baseline: number,
   ) => {
-    if (!item.pullFromCf || !item.cfSourceName) return null;
+    if (!item.cfSourceName) return null;
     if (!baseline || baseline <= 0) return null;
     if (Math.abs(item.monthlyAmount - baseline) < 1) return null;
     return item.monthlyAmount > baseline ? (
@@ -143,60 +136,116 @@ export default function BasicExpensesPage() {
           </div>
         </div>
 
+        {/* Master toggle — OUTSIDE the box, controls CF reference display
+            for the whole list. Default OFF = pure input mode (legacy).
+            ON = show ปัจจุบัน (CF baseline) + arrow for every item. */}
+        <div className="flex items-center justify-between gap-2 px-1 mb-2">
+          <div className="text-[11px] text-gray-500 flex items-center gap-1.5 leading-tight">
+            <Lightbulb size={12} className="text-amber-400 shrink-0" />
+            <span>
+              {store.showCfReference
+                ? "กำลังเทียบกับค่าปัจจุบันใน Cash Flow"
+                : "เปิดเพื่อเทียบกับค่าปัจจุบันใน Cash Flow"}
+            </span>
+          </div>
+          <button
+            onClick={() => store.toggleShowCfReference()}
+            className={`relative w-10 h-5 rounded-full transition shrink-0 ${
+              store.showCfReference ? "bg-emerald-400" : "bg-gray-300"
+            }`}
+            aria-label="เทียบกับ Cash Flow"
+            title={
+              store.showCfReference
+                ? "ปิดการเทียบ Cash Flow"
+                : "เปิดการเทียบกับ Cash Flow"
+            }
+          >
+            <span
+              className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${
+                store.showCfReference ? "left-[22px]" : "left-0.5"
+              }`}
+            />
+          </button>
+        </div>
+
         {/* Items */}
         <div className="bg-white rounded-2xl border border-gray-200 p-4">
-          <div className="flex items-start justify-between gap-2 mb-3">
-            <div className="text-xs font-bold text-gray-500">รายจ่ายพื้นฐาน (ราคาปัจจุบัน)</div>
-            <div className="text-[9px] text-gray-400 leading-tight text-right max-w-[58%]">
-              💡 เปิด <span className="inline-block w-5 h-2.5 rounded-full bg-emerald-400 align-middle relative top-[-1px]"></span> เพื่อเทียบกับค่าปัจจุบันใน Cash Flow
-            </div>
+          <div className="text-xs font-bold text-gray-500 mb-3">
+            รายจ่ายพื้นฐาน (ราคาปัจจุบัน)
           </div>
 
-          {/* Header row */}
-          <div className="grid grid-cols-[28px_1fr_60px_96px_20px_18px] gap-2 items-center px-1 mb-2 text-[9px] font-bold text-gray-400 uppercase tracking-wide">
-            <div className="text-center">CF</div>
-            <div>รายการ</div>
-            <div className="text-right">ปัจจุบัน</div>
-            <div className="text-right pr-1">วางแผน</div>
-            <div className="text-center">เทียบ</div>
-            <div></div>
-          </div>
+          {/* Header row — grid columns differ based on master toggle */}
+          {store.showCfReference ? (
+            <div className="grid grid-cols-[1fr_64px_84px_18px_18px] gap-1.5 items-center px-1 mb-2 text-[9px] font-bold text-gray-400 uppercase tracking-wide">
+              <div>รายการ</div>
+              <div className="text-right">ปัจจุบัน</div>
+              <div className="text-right pr-1">วางแผน</div>
+              <div className="text-center">เทียบ</div>
+              <div></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-[1fr_96px_18px] gap-2 items-center px-1 mb-2 text-[9px] font-bold text-gray-400 uppercase tracking-wide">
+              <div>รายการ</div>
+              <div className="text-right pr-1">จำนวน/เดือน</div>
+              <div></div>
+            </div>
+          )}
 
           <div className="space-y-2">
             {store.basicExpenses.map((item) => {
               const baseline = cfBaselineByItem[item.id] ?? 0;
-              const canToggle = Boolean(item.cfSourceName);
-              const showReference = Boolean(item.pullFromCf && item.cfSourceName);
+              if (store.showCfReference) {
+                return (
+                  <div
+                    key={item.id}
+                    className="grid grid-cols-[1fr_64px_84px_18px_18px] gap-1.5 items-center"
+                  >
+                    {/* Name */}
+                    <input
+                      type="text"
+                      value={item.name}
+                      onChange={(e) =>
+                        store.updateBasicExpenseName(item.id, e.target.value)
+                      }
+                      className="text-xs bg-transparent outline-none truncate min-w-0"
+                    />
+
+                    {/* CF Baseline — 0 shows "—" */}
+                    <div className="text-right text-xs font-medium tabular-nums text-indigo-400">
+                      {item.cfSourceName
+                        ? baseline > 0
+                          ? fmt(baseline)
+                          : "—"
+                        : ""}
+                    </div>
+
+                    {/* Input — editable ตลอดเวลา */}
+                    <NumberInput
+                      value={item.monthlyAmount}
+                      onChange={(v) => store.updateBasicExpense(item.id, v)}
+                    />
+
+                    {/* Arrow — แสดงเฉพาะเมื่อมี baseline + ค่าต่าง */}
+                    <div className="flex justify-center">
+                      {renderArrow(item, baseline)}
+                    </div>
+
+                    {/* Trash */}
+                    <button
+                      onClick={() => store.removeBasicExpense(item.id)}
+                      className="text-gray-300 hover:text-red-500"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                );
+              }
+              // OFF mode — classic 3-column layout: name | input | trash
               return (
                 <div
                   key={item.id}
-                  className="grid grid-cols-[28px_1fr_60px_96px_20px_18px] gap-2 items-center"
+                  className="grid grid-cols-[1fr_96px_18px] gap-2 items-center"
                 >
-                  {/* Toggle */}
-                  <div className="flex justify-center">
-                    {canToggle ? (
-                      <button
-                        onClick={() => store.toggleBasicExpensePullFromCf(item.id)}
-                        className={`relative w-8 h-4 rounded-full transition shrink-0 ${
-                          item.pullFromCf ? "bg-emerald-400" : "bg-gray-300"
-                        }`}
-                        aria-label="เทียบกับ Cash Flow"
-                        title={
-                          item.pullFromCf
-                            ? "ปิด reference"
-                            : "เปิดเพื่อเทียบกับค่าปัจจุบันใน Cash Flow"
-                        }
-                      >
-                        <span
-                          className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all ${
-                            item.pullFromCf ? "left-[18px]" : "left-0.5"
-                          }`}
-                        />
-                      </button>
-                    ) : null}
-                  </div>
-
-                  {/* Name */}
                   <input
                     type="text"
                     value={item.name}
@@ -205,24 +254,10 @@ export default function BasicExpensesPage() {
                     }
                     className="text-xs bg-transparent outline-none truncate min-w-0"
                   />
-
-                  {/* CF Baseline — แสดงเฉพาะเมื่อ toggle ON */}
-                  <div className="text-right text-xs font-medium tabular-nums text-indigo-400">
-                    {showReference ? (baseline > 0 ? fmt(baseline) : "—") : ""}
-                  </div>
-
-                  {/* Input — editable ตลอดเวลา (toggle ไม่ lock input) */}
                   <NumberInput
                     value={item.monthlyAmount}
                     onChange={(v) => store.updateBasicExpense(item.id, v)}
                   />
-
-                  {/* Arrow — แสดงเฉพาะเมื่อ toggle ON + ค่าต่าง */}
-                  <div className="flex justify-center">
-                    {renderArrow(item, baseline)}
-                  </div>
-
-                  {/* Trash */}
                   <button
                     onClick={() => store.removeBasicExpense(item.id)}
                     className="text-gray-300 hover:text-red-500"
