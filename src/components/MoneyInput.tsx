@@ -51,6 +51,10 @@ export interface MoneyInputProps {
   onFocus?: () => void;
   /** called when input loses focus */
   onBlur?: () => void;
+  /** key down handler — Enter / Escape etc. Use for save-on-enter patterns. */
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  /** autofocus on mount — for modals / inline-edit popups */
+  autoFocus?: boolean;
   /** optional id / name attributes for form labelling */
   id?: string;
   name?: string;
@@ -67,6 +71,8 @@ export default function MoneyInput({
   disabled,
   onFocus,
   onBlur,
+  onKeyDown,
+  autoFocus,
   id,
   name,
 }: MoneyInputProps) {
@@ -92,6 +98,7 @@ export default function MoneyInput({
         value={display}
         placeholder={placeholder}
         disabled={disabled}
+        autoFocus={autoFocus}
         onFocus={() => {
           setDraft(value === 0 ? "" : String(value));
           onFocus?.();
@@ -105,6 +112,7 @@ export default function MoneyInput({
           setDraft(null);
           onBlur?.();
         }}
+        onKeyDown={onKeyDown}
         className={`${className ?? baseClass} ${ringClass} transition`}
       />
       {unit && (

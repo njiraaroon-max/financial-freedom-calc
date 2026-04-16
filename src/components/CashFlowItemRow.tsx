@@ -144,6 +144,7 @@ export default function CashFlowItemRow({
           value={amount}
           onChange={onAmountChange}
           onBlur={() => { if (amount > 0) onAmountCommit?.(amount); }}
+          onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
           className="w-28 text-right text-sm font-semibold bg-gray-50 rounded-lg px-3 py-1.5 outline-none focus:ring-2 transition"
         />
 

@@ -254,6 +254,11 @@ export default function BalanceSheetTable({
             <MoneyInput
               value={editValue}
               onChange={setEditValue}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleEditSave();
+                if (e.key === "Escape") setEditCell(null);
+              }}
               className="w-full text-center text-lg font-bold bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 transition"
             />
             <div className="flex gap-2 mt-4">
