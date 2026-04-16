@@ -9,6 +9,7 @@ import MoneyInput from "@/components/MoneyInput";
 import { useCashFlowStore } from "@/store/cashflow-store";
 import { useVariableStore } from "@/store/variable-store";
 import { useInsuranceStore } from "@/store/insurance-store";
+import { useRetirementStore } from "@/store/retirement-store";
 import { toast } from "@/store/toast-store";
 import {
   calcExpenseDeductions,
@@ -123,10 +124,18 @@ export default function TaxPage() {
       }
     }
 
-    // PVD
-    const pvdAnnual = cf.expenses
+    // PVD — pull from the retirement module's PVD calculator (source of truth).
+    // Fallback to CashFlow name-match only if the PVD calculator is empty.
+    const pvd = useRetirementStore.getState().pvdParams;
+    const pvdMonthlyBase = Math.min(pvd.currentSalary || 0, pvd.salaryCap || Infinity);
+    const pvdMonthsToCount = pvd.remainingMonths ?? 12;
+    const pvdAnnualFromCalc = pvdMonthlyBase * (pvd.employeeRate || 0) * pvdMonthsToCount;
+
+    const pvdAnnualFromCF = cf.expenses
       .filter(e => e.name.includes("PVD") || e.name.includes("กองทุนสำรอง"))
       .reduce((s, e) => s + e.amounts.reduce((a, b) => a + b, 0), 0);
+
+    const pvdAnnual = pvdAnnualFromCalc > 0 ? pvdAnnualFromCalc : pvdAnnualFromCF;
     if (pvdAnnual > 0) {
       const d = latestStore.deductions.find(d => d.id === "d17");
       if (d && d.beforeAmount === 0) {
@@ -208,16 +217,20 @@ export default function TaxPage() {
   };
 
   const pullFromInsurance = () => {
-    const policies = useInsuranceStore.getState().policies;
+    const insState = useInsuranceStore.getState();
+    const policies = insState.policies;
 
     // Life / Endowment / Term → d11 (max 100,000)
     const lifeTotal = policies
       .filter((p) => ["whole_life", "endowment", "term"].includes(p.policyType))
       .reduce((s, p) => s + p.premium, 0);
 
-    // Health (life & non-life) → d12 (max 25,000)
+    // Health deduction (Thai tax law 25k cap) covers health + CI + PA.
+    // Kept in sync with the Pillar 4 page so both screens agree.
     const healthTotal = policies
-      .filter((p) => p.policyType === "health" || p.policyType === "nonlife_health")
+      .filter((p) =>
+        ["health", "nonlife_health", "critical_illness", "accident"].includes(p.policyType),
+      )
       .reduce((s, p) => s + p.premium, 0);
 
     // Annuity → d14 (15% of income, max 200,000)
@@ -225,8 +238,11 @@ export default function TaxPage() {
       .filter((p) => p.policyType === "annuity")
       .reduce((s, p) => s + p.premium, 0);
 
-    if (lifeTotal + healthTotal + annuityTotal === 0) {
-      toast.warning("ยังไม่มีกรมธรรม์ในแผนประกัน กรุณาเพิ่มกรมธรรม์ก่อน");
+    // Parent health deduction (d13 / max 15,000) sourced from Pillar 4 input
+    const parentHealthTotal = insState.riskManagement.pillar4.parentHealthDeduction || 0;
+
+    if (lifeTotal + healthTotal + annuityTotal + parentHealthTotal === 0) {
+      toast.warning("ยังไม่มีเบี้ยประกันในแผน — เพิ่มเบี้ยในหน้าสรุปกรมธรรม์ก่อน");
       return;
     }
 
@@ -235,15 +251,18 @@ export default function TaxPage() {
     const healthDeductible = Math.min(healthTotal, 25000);
     const annuityCap = income > 0 ? Math.min(income * 0.15, 200000) : 200000;
     const annuityDeductible = Math.min(annuityTotal, annuityCap);
+    const parentHealthDeductible = Math.min(parentHealthTotal, 15000);
 
     store.updateDeduction("d11", "beforeAmount", lifeDeductible);
     store.updateDeduction("d11", "afterAmount", lifeDeductible);
     store.updateDeduction("d12", "beforeAmount", healthDeductible);
     store.updateDeduction("d12", "afterAmount", healthDeductible);
+    store.updateDeduction("d13", "beforeAmount", parentHealthDeductible);
+    store.updateDeduction("d13", "afterAmount", parentHealthDeductible);
     store.updateDeduction("d14", "beforeAmount", annuityDeductible);
     store.updateDeduction("d14", "afterAmount", annuityDeductible);
 
-    toast.success("ดึงค่าลดหย่อนจากแผนประกันแล้ว");
+    toast.success("ดึงค่าลดหย่อนจากแผนประกันแล้ว (ชีวิต/สุขภาพ/พ่อแม่/บำนาญ)");
   };
 
   const handleSave = () => {
