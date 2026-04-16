@@ -21,9 +21,18 @@
 
 import type {
   CashflowItem,
+  CaretakerParams,
+  PVDParams,
   SavingFundItem,
+  SeveranceParams,
+  SocialSecurityParams,
   SpecialExpenseItem,
   YearlyFlowRow,
+} from "@/types/retirement";
+import {
+  calcPVDProjection,
+  calcSeverancePay,
+  calcSocialSecurityPension,
 } from "@/types/retirement";
 
 // ---------------------------------------------------------------------------
@@ -224,14 +233,247 @@ export type CalcSourceKey =
   | "travel_detail";
 
 /**
- * Dispatch — อ่านค่าจาก source ที่ลงทะเบียนไว้
- * Phase 3 จะ implement เต็มทุก case; ตอนนี้วาง stub เพื่อให้ build ผ่าน
- * และ Phase 4+ เริ่มใช้ผ่าน contribution ได้
+ * Registry context — ขยายจาก CashflowContext เพื่อถือข้อมูล raw จาก stores
+ * ผู้เรียก (page/component) ใส่เฉพาะ field ที่ key ใช้จริง ให้ optional ทั้งหมด
+ */
+export interface PremiumBracketLite {
+  ageFrom: number;
+  ageTo: number;
+  annualPremium: number;
+}
+export interface AnnuityStreamLite {
+  /** ชื่อกรมธรรม์ (ถ้ามี) */
+  label?: string;
+  payoutStartAge: number;
+  payoutPerYear: number;
+  /** 0 | undefined = ตลอดชีพ → ใช้ lifeExpectancy+extra */
+  payoutEndAge?: number;
+}
+
+export interface CashflowRegistryContext extends CashflowContext {
+  ssParams?: SocialSecurityParams;
+  pvdParams?: PVDParams;
+  severanceParams?: SeveranceParams;
+  caretakerParams?: CaretakerParams;
+  pillar2Brackets?: PremiumBracketLite[];
+  annuityStreams?: AnnuityStreamLite[];
+  travelItems?: CashflowItem[];
+}
+
+/**
+ * Dispatch — คืน NPV + yearly stream จากแหล่งข้อมูลอื่น
+ * คืน null หาก:
+ *   - key ไม่ถูกต้อง / ไม่ known
+ *   - data ยังไม่ถูกส่งเข้ามา (ผู้เรียกต้องแนบเอง)
+ *   - data มีแต่ว่าว่างเปล่า (เช่น all 0)
  */
 export function getCashflowContribution(
-  _key: CalcSourceKey,
-  _ctx: CashflowContext,
+  key: CalcSourceKey,
+  ctx: CashflowRegistryContext,
 ): CashflowContribution | null {
-  // Phase 3 — implement full dispatch
-  return null;
+  switch (key) {
+    case "ss_pension":
+      return contribSsPension(ctx);
+    case "pvd_at_retire":
+      return contribPvd(ctx);
+    case "severance_pay":
+      return contribSeverance(ctx);
+    case "pension_insurance":
+      return contribPensionInsurance(ctx);
+    case "pillar2_health":
+      return contribPillar2Health(ctx);
+    case "caretaker":
+      return contribCaretaker(ctx);
+    case "travel_detail":
+      return contribTravelDetail(ctx);
+    default:
+      return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Individual sources
+// ---------------------------------------------------------------------------
+
+function contribSsPension(
+  ctx: CashflowRegistryContext,
+): CashflowContribution | null {
+  if (!ctx.ssParams) return null;
+  const ss = calcSocialSecurityPension(
+    ctx.ssParams,
+    ctx.retireAge,
+    ctx.currentAge,
+    ctx.lifeExpectancy,
+    ctx.postRetireReturn,
+  );
+  if (ss.monthlyPension <= 0) return null;
+  const end = ctxEndAge(ctx);
+  const rows: YearlyFlowRow[] = [];
+  for (let age = ctx.retireAge; age <= end; age++) {
+    rows.push({ age, amount: ss.annualPension });
+  }
+  return {
+    npvAtRetire: npvAtRetire(rows, ctx.postRetireReturn, ctx.retireAge),
+    yearlyStream: rows,
+    label: "บำนาญประกันสังคม",
+    meta: {
+      monthlyPension: ss.monthlyPension,
+      annualPension: ss.annualPension,
+      startAge: ctx.retireAge,
+      endAge: end,
+    },
+  };
+}
+
+function contribPvd(
+  ctx: CashflowRegistryContext,
+): CashflowContribution | null {
+  if (!ctx.pvdParams) return null;
+  const rows = calcPVDProjection(ctx.pvdParams, ctx.retireAge, ctx.currentAge);
+  const lump = rows.length > 0 ? rows[rows.length - 1].total : 0;
+  if (lump <= 0) return null;
+  const yearly: YearlyFlowRow[] = [{ age: ctx.retireAge, amount: lump }];
+  return {
+    npvAtRetire: lump, // discount @ retireAge = 1
+    yearlyStream: yearly,
+    label: "กองทุนสำรองเลี้ยงชีพ (PVD)",
+    meta: { lump, occurAge: ctx.retireAge },
+  };
+}
+
+function contribSeverance(
+  ctx: CashflowRegistryContext,
+): CashflowContribution | null {
+  if (!ctx.severanceParams) return null;
+  const lump = calcSeverancePay(
+    ctx.severanceParams,
+    ctx.retireAge,
+    ctx.currentAge,
+  );
+  if (lump <= 0) return null;
+  const yearly: YearlyFlowRow[] = [{ age: ctx.retireAge, amount: lump }];
+  return {
+    npvAtRetire: lump,
+    yearlyStream: yearly,
+    label: "เงินชดเชยตามกฎหมายแรงงาน",
+    meta: { lump, occurAge: ctx.retireAge },
+  };
+}
+
+function contribPensionInsurance(
+  ctx: CashflowRegistryContext,
+): CashflowContribution | null {
+  const streams = ctx.annuityStreams ?? [];
+  if (streams.length === 0) return null;
+  // Aggregate across policies; each policy active [payoutStartAge .. payoutEndAge||endAge]
+  const defaultEnd = ctxEndAge(ctx);
+  const rows: YearlyFlowRow[] = [];
+  const byAge = new Map<number, number>();
+  let hasPayout = false;
+  for (const s of streams) {
+    if (s.payoutPerYear <= 0) continue;
+    hasPayout = true;
+    const end = s.payoutEndAge && s.payoutEndAge > 0 ? s.payoutEndAge : defaultEnd;
+    for (let age = s.payoutStartAge; age <= end; age++) {
+      byAge.set(age, (byAge.get(age) ?? 0) + s.payoutPerYear);
+    }
+  }
+  if (!hasPayout) return null;
+  const ages = [...byAge.keys()].sort((a, b) => a - b);
+  for (const age of ages) {
+    rows.push({ age, amount: byAge.get(age) ?? 0 });
+  }
+  return {
+    npvAtRetire: npvAtRetire(rows, ctx.postRetireReturn, ctx.retireAge),
+    yearlyStream: rows,
+    label: "ประกันบำนาญ",
+    meta: {
+      policyCount: streams.length,
+      firstAge: ages[0],
+      lastAge: ages[ages.length - 1],
+    },
+  };
+}
+
+function contribPillar2Health(
+  ctx: CashflowRegistryContext,
+): CashflowContribution | null {
+  const brackets = ctx.pillar2Brackets ?? [];
+  if (brackets.length === 0) return null;
+  const rows: YearlyFlowRow[] = [];
+  const end = ctxEndAge(ctx);
+  for (const b of brackets) {
+    if (b.annualPremium <= 0) continue;
+    const start = Math.max(b.ageFrom, ctx.currentAge);
+    const stop = Math.min(b.ageTo, end);
+    for (let age = start; age <= stop; age++) {
+      rows.push({ age, amount: b.annualPremium });
+    }
+  }
+  if (rows.length === 0) return null;
+  rows.sort((a, b) => a.age - b.age);
+  return {
+    npvAtRetire: npvAtRetire(rows, ctx.postRetireReturn, ctx.retireAge),
+    yearlyStream: rows,
+    label: "เบี้ยประกันสุขภาพหลังเกษียณ",
+    meta: { bracketCount: brackets.length },
+  };
+}
+
+function contribCaretaker(
+  ctx: CashflowRegistryContext,
+): CashflowContribution | null {
+  const p = ctx.caretakerParams;
+  if (!p) return null;
+  if (p.monthlyRate <= 0) return null;
+  const startAge = Math.max(p.caretakerStartAge, ctx.retireAge);
+  const endAge = p.lifeExpectancy + (p.extraYearsBeyondLife ?? 0);
+  const rows: YearlyFlowRow[] = [];
+  const prob = p.probability ?? 1;
+  for (let age = startAge; age <= endAge; age++) {
+    const yearsFromNow = Math.max(age - p.currentAge, 0);
+    const monthlyAtAge =
+      p.monthlyRate * Math.pow(1 + p.inflationRate, yearsFromNow);
+    const annualAtAge = monthlyAtAge * 12 * prob;
+    rows.push({ age, amount: annualAtAge });
+  }
+  if (rows.length === 0) return null;
+  return {
+    npvAtRetire: npvAtRetire(rows, p.postRetireReturn, ctx.retireAge),
+    yearlyStream: rows,
+    label: "ค่าคนดูแลยามเกษียณ",
+    meta: {
+      probability: prob,
+      startAge,
+      endAge,
+      monthlyRate: p.monthlyRate,
+    },
+  };
+}
+
+function contribTravelDetail(
+  ctx: CashflowRegistryContext,
+): CashflowContribution | null {
+  const items = ctx.travelItems ?? [];
+  if (items.length === 0) return null;
+  const byAge = new Map<number, number>();
+  for (const it of items) {
+    if (it.amount <= 0) continue;
+    const rows = expandToYearly(it, ctx, it.name);
+    for (const r of rows) {
+      byAge.set(r.age, (byAge.get(r.age) ?? 0) + r.amount);
+    }
+  }
+  if (byAge.size === 0) return null;
+  const ages = [...byAge.keys()].sort((a, b) => a - b);
+  const rows: YearlyFlowRow[] = ages.map((age) => ({
+    age,
+    amount: byAge.get(age) ?? 0,
+  }));
+  return {
+    npvAtRetire: npvAtRetire(rows, ctx.postRetireReturn, ctx.retireAge),
+    yearlyStream: rows,
+    label: "ท่องเที่ยวและสันทนาการ",
+    meta: { itemCount: items.length },
+  };
 }
