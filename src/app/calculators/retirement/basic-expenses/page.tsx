@@ -1,7 +1,26 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Save, Plus, Trash2, Info, X, ArrowUp, ArrowDown, Lightbulb } from "lucide-react";
+import { Save, Plus, Trash2, Info, X, Lightbulb } from "lucide-react";
+
+/** Filled triangle — up (▲) / down (▼) — colored via `currentColor`. */
+function Triangle({ dir }: { dir: "up" | "down" }) {
+  return (
+    <svg
+      width="10"
+      height="10"
+      viewBox="0 0 10 10"
+      className="shrink-0"
+      aria-hidden="true"
+    >
+      {dir === "up" ? (
+        <path d="M 5 1.2 L 9.2 8.5 L 0.8 8.5 Z" fill="currentColor" />
+      ) : (
+        <path d="M 5 8.8 L 9.2 1.5 L 0.8 1.5 Z" fill="currentColor" />
+      )}
+    </svg>
+  );
+}
 import { useRetirementStore } from "@/store/retirement-store";
 import { useProfileStore } from "@/store/profile-store";
 import PageHeader from "@/components/PageHeader";
@@ -76,7 +95,7 @@ export default function BasicExpensesPage() {
     return map;
   }, [store.basicExpenses, cfStore.expenses]);
 
-  // Arrow preview — แสดงเมื่อ master toggle ON + ผู้ใช้กรอกค่าต่างจาก baseline
+  // Triangle preview — แสดงเมื่อ master toggle ON + ผู้ใช้กรอกค่าต่างจาก baseline
   // (เพื่อตอบคำถาม "ตอนเกษียณจะใช้มากขึ้นหรือน้อยลง?")
   const renderArrow = (
     item: (typeof store.basicExpenses)[number],
@@ -86,9 +105,13 @@ export default function BasicExpensesPage() {
     if (!baseline || baseline <= 0) return null;
     if (Math.abs(item.monthlyAmount - baseline) < 1) return null;
     return item.monthlyAmount > baseline ? (
-      <ArrowUp size={14} className="text-emerald-500" strokeWidth={2.5} />
+      <span className="text-emerald-500">
+        <Triangle dir="up" />
+      </span>
     ) : (
-      <ArrowDown size={14} className="text-red-500" strokeWidth={2.5} />
+      <span className="text-red-500">
+        <Triangle dir="down" />
+      </span>
     );
   };
 
@@ -174,9 +197,10 @@ export default function BasicExpensesPage() {
             รายจ่ายพื้นฐาน (ราคาปัจจุบัน)
           </div>
 
-          {/* Header row — grid columns differ based on master toggle */}
+          {/* Header row — grid columns differ based on master toggle.
+              Table-style: bottom border separates header from rows. */}
           {store.showCfReference ? (
-            <div className="grid grid-cols-[1fr_64px_84px_18px_18px] gap-1.5 items-center px-1 mb-2 text-[9px] font-bold text-gray-400 uppercase tracking-wide">
+            <div className="grid grid-cols-[1fr_64px_84px_18px_18px] gap-1.5 items-center px-1 pb-1.5 mb-0 text-[9px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-200">
               <div>รายการ</div>
               <div className="text-right">ปัจจุบัน</div>
               <div className="text-right pr-1">วางแผน</div>
@@ -184,21 +208,23 @@ export default function BasicExpensesPage() {
               <div></div>
             </div>
           ) : (
-            <div className="grid grid-cols-[1fr_96px_18px] gap-2 items-center px-1 mb-2 text-[9px] font-bold text-gray-400 uppercase tracking-wide">
+            <div className="grid grid-cols-[1fr_96px_18px] gap-2 items-center px-1 pb-1.5 mb-0 text-[9px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-200">
               <div>รายการ</div>
               <div className="text-right pr-1">จำนวน/เดือน</div>
               <div></div>
             </div>
           )}
 
-          <div className="space-y-2">
-            {store.basicExpenses.map((item) => {
+          <div>
+            {store.basicExpenses.map((item, idx) => {
               const baseline = cfBaselineByItem[item.id] ?? 0;
+              const isLast = idx === store.basicExpenses.length - 1;
+              const rowBorder = isLast ? "" : "border-b border-gray-100";
               if (store.showCfReference) {
                 return (
                   <div
                     key={item.id}
-                    className="grid grid-cols-[1fr_64px_84px_18px_18px] gap-1.5 items-center"
+                    className={`grid grid-cols-[1fr_64px_84px_18px_18px] gap-1.5 items-center py-1.5 ${rowBorder}`}
                   >
                     {/* Name */}
                     <input
@@ -225,7 +251,7 @@ export default function BasicExpensesPage() {
                       onChange={(v) => store.updateBasicExpense(item.id, v)}
                     />
 
-                    {/* Arrow — แสดงเฉพาะเมื่อมี baseline + ค่าต่าง */}
+                    {/* Triangle — แสดงเฉพาะเมื่อมี baseline + ค่าต่าง */}
                     <div className="flex justify-center">
                       {renderArrow(item, baseline)}
                     </div>
@@ -244,7 +270,7 @@ export default function BasicExpensesPage() {
               return (
                 <div
                   key={item.id}
-                  className="grid grid-cols-[1fr_96px_18px] gap-2 items-center"
+                  className={`grid grid-cols-[1fr_96px_18px] gap-2 items-center py-1.5 ${rowBorder}`}
                 >
                   <input
                     type="text"
