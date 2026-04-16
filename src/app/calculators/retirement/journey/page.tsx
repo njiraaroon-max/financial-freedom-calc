@@ -1338,7 +1338,7 @@ function CashflowBarChart({
           เลือกข้อมูลอย่างน้อย 1 รายการเพื่อแสดงกราฟ
         </div>
       ) : (
-        <div className="overflow-x-auto -mx-2 px-2">
+        <div className="overflow-x-auto -mx-2 px-2 relative">
           <svg width={svgW} height={svgH} style={{ minWidth: svgW, display: "block" }}>
             {/* ── Y grid + labels (positive) ── */}
             {posTicks.map((v, i) => {
@@ -1370,13 +1370,22 @@ function CashflowBarChart({
             <line x1={padL} y1={zeroY} x2={padL + chartW} y2={zeroY}
               stroke="#6b7280" strokeWidth={1} />
 
-            {/* ── Retire + lifeExpectancy reference lines ── */}
-            {[retireAge, lifeExpectancy].map((refAge, i) => {
-              if (refAge < minAge || refAge > maxAge) return null;
-              const cx = xPos(refAge);
+            {/* ── Retire + lifeExpectancy reference lines with labels ── */}
+            {[
+              { age: retireAge, stroke: "#F59E0B", textFill: "#B45309", label: "เกษียณ" },
+              { age: lifeExpectancy, stroke: "#64748B", textFill: "#475569", label: "อายุขัย" },
+            ].map((ref, i) => {
+              if (ref.age < minAge || ref.age > maxAge) return null;
+              const cx = xPos(ref.age);
               return (
-                <line key={`ref-${i}`} x1={cx} y1={0} x2={cx} y2={chartH}
-                  stroke={i === 0 ? "#F59E0B" : "#64748B"} strokeWidth={1.5} strokeDasharray="4 4" />
+                <g key={`ref-${i}`}>
+                  <line x1={cx} y1={14} x2={cx} y2={chartH}
+                    stroke={ref.stroke} strokeWidth={1.5} strokeDasharray="4 4" />
+                  <text x={cx} y={10} fontSize={10} fontWeight={700}
+                    fill={ref.textFill} textAnchor="middle">
+                    {ref.label}
+                  </text>
+                </g>
               );
             })}
 
@@ -1452,8 +1461,10 @@ function CashflowBarChart({
                   <rect
                     x={cx - yearColW / 2} y={0} width={yearColW} height={chartH}
                     fill="transparent"
+                    style={{ cursor: "pointer" }}
                     onMouseEnter={() => setHoverAge(d.age)}
                     onMouseLeave={() => setHoverAge(null)}
+                    onClick={() => setHoverAge((prev) => (prev === d.age ? null : d.age))}
                   />
                 </g>
               );
@@ -1490,46 +1501,58 @@ function CashflowBarChart({
             )}
           </svg>
 
-          {/* ── Tooltip ── */}
-          {hoveredRow && hoveredData && (
-            <div className="mt-2 bg-white/95 backdrop-blur border border-gray-200 rounded-xl shadow-lg p-3 text-[11px] mx-auto max-w-[300px]">
-              <div className="font-bold text-[#0B1E3F] text-[12px] mb-1.5 flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full ${hoveredRow.phase === "accumulation" ? "bg-blue-500" : "bg-pink-500"}`} />
-                อายุ {hoveredRow.age} ปี
-                <span className="text-[9px] text-slate-400">
-                  · พ.ศ. {birthYear + hoveredRow.age + BE_OFFSET}
-                </span>
-              </div>
-              <div className="space-y-0.5">
-                {visible.has("balance") && (
-                  <div className="flex justify-between"><span className="text-gray-500">ยอดต้นปี</span><span className="font-bold text-gray-600">{fmt(hoveredRow.balanceStart)}</span></div>
-                )}
-                {visible.has("returns") && (
-                  <div className="flex justify-between"><span className="text-gray-500">ผลตอบแทน</span><span className="font-bold text-emerald-600">+{fmt(hoveredRow.returnAmount)}</span></div>
-                )}
-                {visible.has("contribution") && (
-                  <div className="flex justify-between"><span className="text-gray-500">ออมเข้า</span><span className="font-bold text-yellow-600">{hoveredRow.contribution > 0 ? `+${fmt(hoveredRow.contribution)}` : "—"}</span></div>
-                )}
-                {visible.has("inflow") && (
-                  <div className="flex justify-between"><span className="text-gray-500">เงินเข้า</span><span className="font-bold text-orange-600">{hoveredRow.inflow > 0 ? `+${fmt(hoveredRow.inflow)}` : "—"}</span></div>
-                )}
-                {visible.has("outflow") && (
-                  <div className="flex justify-between"><span className="text-gray-500">ถอนออก</span><span className="font-bold text-red-500">{hoveredRow.outflow > 0 ? `−${fmt(hoveredRow.outflow)}` : "—"}</span></div>
-                )}
-                {visible.has("net") && (() => {
-                  const net = hoveredRow.contribution + hoveredRow.inflow + hoveredRow.returnAmount - hoveredRow.outflow;
-                  return (
-                    <div className="flex justify-between border-t border-gray-100 pt-1 mt-1">
+          {/* ── Floating tooltip next to hovered bar ── */}
+          {hoveredRow && hoveredData && (() => {
+            const cx = xPos(hoveredRow.age);
+            const TIP_W = 180;
+            // Flip to the left of the bar when it's close to the right edge
+            const flip = cx + 14 + TIP_W > svgW;
+            const left = flip ? cx - 14 - TIP_W : cx + 14;
+            const net =
+              hoveredRow.contribution +
+              hoveredRow.inflow +
+              hoveredRow.returnAmount -
+              hoveredRow.outflow;
+            return (
+              <div
+                className="absolute pointer-events-none bg-white/95 backdrop-blur border border-gray-200 rounded-xl shadow-lg p-2.5 text-[10px]"
+                style={{ left, top: 4, width: TIP_W, zIndex: 20 }}
+              >
+                <div className="font-bold text-[#0B1E3F] text-[11px] mb-1.5 flex items-center gap-1.5">
+                  <span className={`w-2 h-2 rounded-full ${hoveredRow.phase === "accumulation" ? "bg-blue-500" : "bg-pink-500"}`} />
+                  อายุ {hoveredRow.age} ปี
+                  <span className="text-[9px] text-slate-400">
+                    · พ.ศ. {birthYear + hoveredRow.age + BE_OFFSET}
+                  </span>
+                </div>
+                <div className="space-y-0.5">
+                  {visible.has("balance") && (
+                    <div className="flex justify-between gap-3"><span className="text-gray-500">ยอดต้นปี</span><span className="font-bold text-gray-700">{fmt(hoveredRow.balanceStart)}</span></div>
+                  )}
+                  {visible.has("returns") && (
+                    <div className="flex justify-between gap-3"><span className="text-gray-500">ผลตอบแทน</span><span className="font-bold text-emerald-600">+{fmt(hoveredRow.returnAmount)}</span></div>
+                  )}
+                  {visible.has("contribution") && (
+                    <div className="flex justify-between gap-3"><span className="text-gray-500">ออมเข้า</span><span className="font-bold text-yellow-600">{hoveredRow.contribution > 0 ? `+${fmt(hoveredRow.contribution)}` : "—"}</span></div>
+                  )}
+                  {visible.has("inflow") && (
+                    <div className="flex justify-between gap-3"><span className="text-gray-500">เงินเข้า</span><span className="font-bold text-orange-600">{hoveredRow.inflow > 0 ? `+${fmt(hoveredRow.inflow)}` : "—"}</span></div>
+                  )}
+                  {visible.has("outflow") && (
+                    <div className="flex justify-between gap-3"><span className="text-gray-500">ถอนออก</span><span className="font-bold text-red-500">{hoveredRow.outflow > 0 ? `−${fmt(hoveredRow.outflow)}` : "—"}</span></div>
+                  )}
+                  {visible.has("net") && (
+                    <div className="flex justify-between gap-3 border-t border-gray-100 pt-1 mt-1">
                       <span className="text-gray-500 font-bold">สุทธิ</span>
                       <span className={`font-black ${net >= 0 ? "text-blue-600" : "text-red-600"}`}>
                         {net >= 0 ? "+" : ""}{fmt(net)}
                       </span>
                     </div>
-                  );
-                })()}
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
       )}
     </div>
