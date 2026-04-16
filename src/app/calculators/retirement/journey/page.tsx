@@ -1368,10 +1368,7 @@ function CashflowBarChart({
           เลือกข้อมูลอย่างน้อย 1 รายการเพื่อแสดงกราฟ
         </div>
       ) : (
-        <div
-          className="overflow-x-auto -mx-2 px-2 relative"
-          style={markers.length > 0 ? { paddingBottom: 28 } : undefined}
-        >
+        <div className="overflow-x-auto -mx-2 px-2 relative">
           <svg width={svgW} height={svgH} style={{ minWidth: svgW, display: "block" }}>
             {/* ── Y grid + labels (positive) ── */}
             {posTicks.map((v, i) => {
@@ -1558,7 +1555,7 @@ function CashflowBarChart({
                     className="absolute flex items-center justify-center rounded-full border shadow-sm"
                     style={{
                       left: cx - 10 + offsetX,
-                      top: svgH + 2,
+                      top: chartH + 60,
                       width: 20,
                       height: 20,
                       backgroundColor: bg,
