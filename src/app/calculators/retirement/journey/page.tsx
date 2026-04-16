@@ -34,14 +34,18 @@ import {
 import PageHeader from "@/components/PageHeader";
 import { useRetirementStore } from "@/store/retirement-store";
 import { useInsuranceStore } from "@/store/insurance-store";
-import {
-  calcPVDProjection,
-  calcSeverancePay,
-  calcSocialSecurityPension,
-} from "@/types/retirement";
 import { calcWealthProjection, runMonteCarloProjection } from "@/lib/wealthProjection";
+import {
+  expandToYearly,
+  getCashflowContribution,
+  type AnnuityStreamLite,
+  type CalcSourceKey,
+  type CashflowContext,
+  type CashflowRegistryContext,
+  type PremiumBracketLite,
+} from "@/lib/cashflow";
+import type { YearlyFlowRow } from "@/types/retirement";
 import type {
-  AnnuityStream,
   JourneyScenario,
   MonteCarloResult,
   WealthProjectionInputs,
@@ -121,100 +125,113 @@ export default function WealthJourneyPage() {
   const inputs: WealthProjectionInputs = useMemo(() => {
     if (isEmpty) return DEMO_INPUTS;
 
-    // PVD lump at retirement
-    const pvdRows = calcPVDProjection(retire.pvdParams, a.retireAge, a.currentAge);
-    const pvdLump = pvdRows.length > 0 ? pvdRows[pvdRows.length - 1].total : 0;
+    // Build cashflow context — shared across expansion + registry
+    const baseCtx: CashflowContext = {
+      currentAge: a.currentAge,
+      retireAge: a.retireAge,
+      lifeExpectancy: a.lifeExpectancy,
+      extraYearsBeyondLife: retire.caretakerParams.extraYearsBeyondLife ?? 5,
+      generalInflation: a.generalInflation,
+      postRetireReturn: a.postRetireReturn,
+    };
 
-    // Severance lump
-    const sevLump = calcSeverancePay(retire.severanceParams, a.retireAge, a.currentAge);
+    const pillar2 = insurance.riskManagement.pillar2;
+    const pillar2Brackets: PremiumBracketLite[] = (pillar2.premiumBrackets || [])
+      .map((b) => ({
+        ageFrom: b.ageFrom,
+        ageTo: b.ageTo,
+        annualPremium: b.annualPremium,
+      }));
 
-    // SS monthly pension
-    const ss = calcSocialSecurityPension(
-      retire.ssParams,
-      a.retireAge,
-      a.currentAge,
-      a.lifeExpectancy,
-      a.postRetireReturn,
-    );
-
-    // Annuity streams from insurance policies
-    const annuityStreams: AnnuityStream[] = policies
+    const annuityStreamsMeta: AnnuityStreamLite[] = policies
       .filter((p) => p.policyType === "annuity" && p.annuityDetails)
       .map((p) => ({
+        label: p.planName,
         payoutStartAge: p.annuityDetails!.payoutStartAge,
         payoutPerYear: p.annuityDetails!.payoutPerYear,
+        payoutEndAge: p.annuityDetails!.payoutEndAge,
       }));
+
+    const registryCtx: CashflowRegistryContext = {
+      ...baseCtx,
+      ssParams: retire.ssParams,
+      pvdParams: retire.pvdParams,
+      severanceParams: retire.severanceParams,
+      caretakerParams: retire.caretakerParams,
+      pillar2Brackets,
+      annuityStreams: annuityStreamsMeta,
+      travelItems: retire.travelPlanItems,
+    };
+
+    // ─── Income: calc-linked sources via registry (no duplicate risk) ───
+    const ssContrib = getCashflowContribution("ss_pension", registryCtx);
+    const pvdContrib = getCashflowContribution("pvd_at_retire", registryCtx);
+    const sevContrib = getCashflowContribution("severance_pay", registryCtx);
+    const pensionContrib = getCashflowContribution("pension_insurance", registryCtx);
+
+    const customLumpInflows: { age: number; amount: number }[] = [];
+    const customAnnualInflows: { age: number; amount: number }[] = [];
+
+    // Pension insurance streams respect payoutEndAge per policy
+    if (pensionContrib) {
+      for (const r of pensionContrib.yearlyStream) {
+        customAnnualInflows.push({ age: r.age, amount: r.amount });
+      }
+    }
+
+    // Inline saving funds (sf4 RMF, sf6 กบข., sf7, sf8, custom) — expand by kind
+    for (const fund of retire.savingFunds) {
+      const srcKind =
+        fund.sourceKind ?? (fund.source === "calculator" ? "calc-link" : "inline");
+      if (srcKind !== "inline") continue;
+      const rows = expandToYearly(fund, baseCtx);
+      if (rows.length === 0) continue;
+      const isLump = (fund.kind ?? "lump") === "lump";
+      for (const r of rows) {
+        if (r.amount <= 0) continue;
+        if (isLump) customLumpInflows.push({ age: r.age, amount: r.amount });
+        else customAnnualInflows.push({ age: r.age, amount: r.amount });
+      }
+    }
+
+    // ─── Expenses: expand every special expense (calc-link + sub-calc + inline) ───
+    const specialExpensesExpanded: WealthProjectionInputs["specialExpenses"] = [];
+    for (const item of retire.specialExpenses) {
+      const srcKind = item.sourceKind ?? "inline";
+      let yearlyRows: YearlyFlowRow[] = [];
+      if (
+        (srcKind === "calc-link" || srcKind === "sub-calc") &&
+        item.calcSourceKey
+      ) {
+        const contrib = getCashflowContribution(
+          item.calcSourceKey as CalcSourceKey,
+          registryCtx,
+        );
+        yearlyRows = contrib?.yearlyStream ?? [];
+      } else {
+        if (item.amount <= 0) continue;
+        yearlyRows = expandToYearly(item, baseCtx);
+      }
+      for (const r of yearlyRows) {
+        if (r.amount <= 0) continue;
+        specialExpensesExpanded.push({
+          amount: r.amount,
+          inflationRate: 0, // amount is pre-inflated by expandToYearly/registry
+          kind: "annual",
+          startAge: r.age,
+          endAge: r.age,
+        });
+      }
+    }
 
     const basicMonthlyToday = retire.basicExpenses.reduce(
       (s, e) => s + e.monthlyAmount,
       0,
     );
 
-    // Saving funds lump at retirement — exclude duplicates already counted elsewhere
-    // (SS pension NPV, PVD, severance, pension insurance NPV are aggregated separately
-    //  via ssMonthlyPension/pvdLumpAtRetire/severanceLumpAtRetire/annuityStreams)
-    const DUPLICATE_CALC_KEYS = new Set([
-      "ss_pension_npv",
-      "pvd_at_retire",
-      "severance_pay",
-      "pension_insurance_npv",
-    ]);
-    const savingFundsLump = retire.savingFunds.reduce((sum, f) => {
-      const key = (f as { calculatorKey?: string }).calculatorKey;
-      if (key && DUPLICATE_CALC_KEYS.has(key)) return sum;
-      return sum + (f.value || 0);
-    }, 0);
-
-    // ─── Special expenses for Wealth Journey ───
-    // se1 (health) → ดึงจาก pillar-2 premium brackets (annual stream)
-    // se2 (caretaker) → ดึงจาก caretakerParams (annual stream)
-    // อื่นๆ (se3/se4/se5/custom) → lump ณ วันเกษียณ
-    const pillar2 = insurance.riskManagement.pillar2;
-    const brackets = pillar2.premiumBrackets || [];
-    const hasBrackets = brackets.some((b) => b.annualPremium > 0);
-    const caretaker = retire.caretakerParams;
-    const hasCaretakerSource = (caretaker.monthlyRate || 0) > 0;
-
-    const specialExpensesDerived: WealthProjectionInputs["specialExpenses"] = [];
-
-    // se3/se4/se5/custom → lump at retireAge (ใช้ inflationRate ของรายการนั้น)
-    for (const s of retire.specialExpenses) {
-      if (s.id === "se1" || s.id === "se2") continue;
-      if (s.amount <= 0) continue;
-      specialExpensesDerived.push({
-        amount: s.amount,
-        inflationRate: s.inflationRate ?? a.generalInflation,
-        kind: "lump",
-      });
-    }
-
-    // Health (se1) — ใช้ brackets จาก Pillar 2 ถ้ามี (annual stream per bracket)
-    if (hasBrackets) {
-      for (const b of brackets) {
-        if (b.annualPremium <= 0) continue;
-        specialExpensesDerived.push({
-          amount: b.annualPremium,
-          inflationRate: 0, // brackets already absolute per-age
-          kind: "annual",
-          startAge: b.ageFrom,
-          endAge: b.ageTo,
-        });
-      }
-    }
-
-    // Caretaker (se2) — annual stream จาก caretakerParams
-    if (hasCaretakerSource) {
-      const annualCaretaker =
-        (caretaker.monthlyRate || 0) * 12 * (caretaker.probability ?? 1);
-      if (annualCaretaker > 0) {
-        specialExpensesDerived.push({
-          amount: annualCaretaker,
-          inflationRate: caretaker.inflationRate ?? 0.05,
-          kind: "annual",
-          startAge: caretaker.caretakerStartAge ?? 75,
-        });
-      }
-    }
+    const ssMonthly = (ssContrib?.meta?.monthlyPension as number | undefined) ?? 0;
+    const pvdLump = (pvdContrib?.meta?.lump as number | undefined) ?? 0;
+    const sevLump = (sevContrib?.meta?.lump as number | undefined) ?? 0;
 
     return {
       currentAge: a.currentAge,
@@ -232,13 +249,15 @@ export default function WealthJourneyPage() {
       postRetireReturn: a.postRetireReturn,
       generalInflation: a.generalInflation,
       basicMonthlyToday,
-      specialExpenses: specialExpensesDerived,
-      ssMonthlyPension: ss.monthlyPension,
+      specialExpenses: specialExpensesExpanded,
+      ssMonthlyPension: ssMonthly,
       ssStartAge: a.retireAge,
       pvdLumpAtRetire: pvdLump,
       severanceLumpAtRetire: sevLump,
-      savingFundsLump,
-      annuityStreams,
+      savingFundsLump: 0, // handled via customLumpInflows
+      annuityStreams: [], // handled via customAnnualInflows (respects payoutEndAge)
+      customLumpInflows,
+      customAnnualInflows,
       badOffset: -0.01,
       goodOffset: 0.01,
     };

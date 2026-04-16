@@ -8,10 +8,12 @@
  *   inflows  = ssMonthly × 12 (if t ≥ ssStartAge)
  *            + Σ annuity.payoutPerYear (if t ≥ payoutStartAge)
  *            + pvdLump + severanceLump + savingFundsLump   (one-time at retireAge)
+ *            + Σ customLumpInflows[age=t].amount           (one-time at occurAge)
+ *            + Σ customAnnualInflows[age=t].amount         (recurring pre-inflated)
  *
  *   outflows = basicMonthlyToday × 12 × (1+genInfl)^(t−currentAge)
  *            + Σ special(kind=annual).amount × (1+itemInfl)^(t−currentAge)
- *            + Σ special(kind=lump).amount × (1+itemInfl)^(retireAge−currentAge)   (one-time at retireAge)
+ *            + Σ special(kind=lump).amount × (1+itemInfl)^(occurAge−currentAge)   (one-time at occurAge; default retireAge)
  *
  *   balance(t+1) = max(0, balance(t) × (1+r_post) + inflows − outflows)
  */
@@ -85,6 +87,8 @@ function buildRows(
     severanceLumpAtRetire,
     savingFundsLump,
     annuityStreams,
+    customLumpInflows,
+    customAnnualInflows,
     badOffset,
     goodOffset,
   } = inputs;
@@ -133,6 +137,18 @@ function buildRows(
       // Annuity streams
       inflow += annuityInflowAtAge(annuityStreams, age);
 
+      // Pre-resolved custom inflows (pre-inflated — used by hub integration)
+      if (customLumpInflows && customLumpInflows.length > 0) {
+        for (const c of customLumpInflows) {
+          if (c.age === age) inflow += c.amount;
+        }
+      }
+      if (customAnnualInflows && customAnnualInflows.length > 0) {
+        for (const c of customAnnualInflows) {
+          if (c.age === age) inflow += c.amount;
+        }
+      }
+
       // Outflows (inflate from currentAge baseline)
       const yearsFromNow = age - currentAge;
       const basicAnnual =
@@ -148,17 +164,18 @@ function buildRows(
             sum + s.amount * Math.pow(1 + (s.inflationRate || generalInflation), yearsFromNow),
           0,
         );
-      let specialLump = 0;
-      if (isRetireAge) {
-        const yearsToRetire = retireAge - currentAge;
-        specialLump = specialExpenses
-          .filter((s) => s.kind === "lump")
-          .reduce(
-            (sum, s) =>
-              sum + s.amount * Math.pow(1 + (s.inflationRate || generalInflation), yearsToRetire),
-            0,
+      const specialLump = specialExpenses
+        .filter((s) => s.kind === "lump")
+        .filter((s) => age === (s.occurAge ?? retireAge))
+        .reduce((sum, s) => {
+          const target = s.occurAge ?? retireAge;
+          const yearsToTarget = Math.max(target - currentAge, 0);
+          return (
+            sum +
+            s.amount *
+              Math.pow(1 + (s.inflationRate || generalInflation), yearsToTarget)
           );
-      }
+        }, 0);
       outflow = basicAnnual + specialAnnual + specialLump;
     }
 
@@ -315,6 +332,17 @@ export function runMonteCarloProjection(
         }
         inflow += annuityInflowAtAge(inputs.annuityStreams, age);
 
+        if (inputs.customLumpInflows && inputs.customLumpInflows.length > 0) {
+          for (const c of inputs.customLumpInflows) {
+            if (c.age === age) inflow += c.amount;
+          }
+        }
+        if (inputs.customAnnualInflows && inputs.customAnnualInflows.length > 0) {
+          for (const c of inputs.customAnnualInflows) {
+            if (c.age === age) inflow += c.amount;
+          }
+        }
+
         const yearsFromNow = age - inputs.currentAge;
         const basicAnnual =
           inputs.basicMonthlyToday * 12 * Math.pow(1 + inputs.generalInflation, yearsFromNow);
@@ -329,19 +357,18 @@ export function runMonteCarloProjection(
                 Math.pow(1 + (s.inflationRate || inputs.generalInflation), yearsFromNow),
             0,
           );
-        let specialLump = 0;
-        if (isRetireAge) {
-          const yearsToRetire = inputs.retireAge - inputs.currentAge;
-          specialLump = inputs.specialExpenses
-            .filter((s) => s.kind === "lump")
-            .reduce(
-              (sum, s) =>
-                sum +
-                s.amount *
-                  Math.pow(1 + (s.inflationRate || inputs.generalInflation), yearsToRetire),
-              0,
+        const specialLump = inputs.specialExpenses
+          .filter((s) => s.kind === "lump")
+          .filter((s) => age === (s.occurAge ?? inputs.retireAge))
+          .reduce((sum, s) => {
+            const target = s.occurAge ?? inputs.retireAge;
+            const yearsToTarget = Math.max(target - inputs.currentAge, 0);
+            return (
+              sum +
+              s.amount *
+                Math.pow(1 + (s.inflationRate || inputs.generalInflation), yearsToTarget)
             );
-        }
+          }, 0);
         outflow = basicAnnual + specialAnnual + specialLump;
       }
 

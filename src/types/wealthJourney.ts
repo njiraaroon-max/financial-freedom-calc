@@ -56,9 +56,10 @@ export interface WealthProjectionInputs {
   specialExpenses: {
     amount: number;                // PV
     inflationRate: number;         // per-item inflation
-    kind: "annual" | "lump";       // annual = recurring yearly post-retire; lump = one-time at retireAge
+    kind: "annual" | "lump";       // annual = recurring yearly post-retire; lump = one-time at occurAge
     startAge?: number;             // for kind="annual": first age to apply outflow (default = retireAge)
     endAge?: number;               // for kind="annual": last age to apply outflow (default = lifeExpectancy + extraYears)
+    occurAge?: number;             // for kind="lump": age to execute (default = retireAge)
   }[];
 
   // post-retire inflows
@@ -72,6 +73,13 @@ export interface WealthProjectionInputs {
 
   // annuity streams (from insurance policies)
   annuityStreams: AnnuityStream[];
+
+  // Phase 7+ generic pre-resolved streams — used by journey page hub integration.
+  // Allows items at non-retireAge lumps (e.g. sell asset at 70) and custom recurring
+  // income (business/part-time) without baking into the legacy fields above.
+  // Amounts are already inflated to their target year (pass as-is to the projection).
+  customLumpInflows?: { age: number; amount: number }[];
+  customAnnualInflows?: { age: number; amount: number }[];
 
   // offsets for bad/good
   badOffset: number;               // -0.01

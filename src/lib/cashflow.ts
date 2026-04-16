@@ -307,10 +307,15 @@ function contribSsPension(
     ctx.postRetireReturn,
   );
   if (ss.monthlyPension <= 0) return null;
-  const end = ctxEndAge(ctx);
+  // ตรงกับ calcSocialSecurityPension: จ่ายเป็น `yearsReceiving` ปีนับจาก retireAge
+  //   yearsReceiving = lifeExp - retireAge + extraYearsBeyondLife
+  //   → ages [retireAge .. retireAge + yearsReceiving - 1]
+  // (รักษา CFP invariance — อย่าใช้ ctxEndAge inclusive ซึ่งทำให้เกิน 1 ปี)
+  const extra = ctx.ssParams.extraYearsBeyondLife ?? ctx.extraYearsBeyondLife ?? 5;
+  const yearsReceiving = ctx.lifeExpectancy - ctx.retireAge + extra;
   const rows: YearlyFlowRow[] = [];
-  for (let age = ctx.retireAge; age <= end; age++) {
-    rows.push({ age, amount: ss.annualPension });
+  for (let y = 0; y < yearsReceiving; y++) {
+    rows.push({ age: ctx.retireAge + y, amount: ss.annualPension });
   }
   return {
     npvAtRetire: npvAtRetire(rows, ctx.postRetireReturn, ctx.retireAge),
@@ -320,7 +325,7 @@ function contribSsPension(
       monthlyPension: ss.monthlyPension,
       annualPension: ss.annualPension,
       startAge: ctx.retireAge,
-      endAge: end,
+      endAge: ctx.retireAge + yearsReceiving - 1,
     },
   };
 }

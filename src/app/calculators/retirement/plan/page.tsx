@@ -6,6 +6,7 @@ import { Save, Plus, Trash2, Download, ChevronDown, ChevronUp, TrendingUp, Alert
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { useRetirementStore } from "@/store/retirement-store";
+import { useInsuranceStore } from "@/store/insurance-store";
 import PageHeader from "@/components/PageHeader";
 import { useVariableStore } from "@/store/variable-store";
 import { useProfileStore } from "@/store/profile-store";
@@ -16,6 +17,15 @@ import {
   calcRetirementFund,
   calcInvestmentPlan,
 } from "@/types/retirement";
+import {
+  getCashflowContribution,
+  npvItemAtRetire,
+  type AnnuityStreamLite,
+  type CalcSourceKey,
+  type CashflowContext,
+  type CashflowRegistryContext,
+  type PremiumBracketLite,
+} from "@/lib/cashflow";
 
 function fmt(n: number): string {
   return Math.round(n).toLocaleString("th-TH");
@@ -64,6 +74,7 @@ function PercentInput({ value, onChange }: { value: number; onChange: (v: number
 
 export default function RetirementPlanPage() {
   const store = useRetirementStore();
+  const insurance = useInsuranceStore();
   const { markStepCompleted } = store;
   const { variables, setVariable } = useVariableStore();
   const profile = useProfileStore();
@@ -95,7 +106,72 @@ export default function RetirementPlanPage() {
   const a = store.assumptions;
   const totalBasicMonthly = store.basicExpenses.reduce((sum, e) => sum + e.monthlyAmount, 0);
   const totalSpecialAmount = store.specialExpenses.reduce((sum, e) => sum + e.amount, 0);
-  const totalSavingFund = store.savingFunds.reduce((sum, f) => sum + f.value, 0);
+
+  // Cashflow context — shared with registry for calc-linked items
+  const ctx: CashflowContext = {
+    currentAge: a.currentAge,
+    retireAge: a.retireAge,
+    lifeExpectancy: a.lifeExpectancy,
+    extraYearsBeyondLife: store.caretakerParams.extraYearsBeyondLife ?? 5,
+    generalInflation: a.generalInflation,
+    postRetireReturn: a.postRetireReturn,
+  };
+  const pillar2Brackets: PremiumBracketLite[] = (
+    insurance.riskManagement.pillar2.premiumBrackets || []
+  ).map((b) => ({
+    ageFrom: b.ageFrom,
+    ageTo: b.ageTo,
+    annualPremium: b.annualPremium,
+  }));
+  const annuityStreams: AnnuityStreamLite[] = insurance.policies
+    .filter((p) => p.policyType === "annuity" && p.annuityDetails)
+    .map((p) => ({
+      label: p.planName,
+      payoutStartAge: p.annuityDetails!.payoutStartAge,
+      payoutPerYear: p.annuityDetails!.payoutPerYear,
+      payoutEndAge: p.annuityDetails!.payoutEndAge,
+    }));
+  const registryCtx: CashflowRegistryContext = {
+    ...ctx,
+    ssParams: store.ssParams,
+    pvdParams: store.pvdParams,
+    severanceParams: store.severanceParams,
+    caretakerParams: store.caretakerParams,
+    pillar2Brackets,
+    annuityStreams,
+    travelItems: store.travelPlanItems,
+  };
+
+  // NPV helper — registry for calc-link, direct expansion for inline
+  const specialNPV = (item: (typeof store.specialExpenses)[number]): number => {
+    const srcKind = item.sourceKind ?? "inline";
+    if ((srcKind === "calc-link" || srcKind === "sub-calc") && item.calcSourceKey) {
+      const contrib = getCashflowContribution(
+        item.calcSourceKey as CalcSourceKey,
+        registryCtx,
+      );
+      return contrib?.npvAtRetire ?? 0;
+    }
+    return npvItemAtRetire(item, ctx);
+  };
+  const fundNPV = (item: (typeof store.savingFunds)[number]): number => {
+    const srcKind =
+      item.sourceKind ?? (item.source === "calculator" ? "calc-link" : "inline");
+    if (srcKind === "calc-link" && item.calcSourceKey) {
+      const contrib = getCashflowContribution(
+        item.calcSourceKey as CalcSourceKey,
+        registryCtx,
+      );
+      return contrib?.npvAtRetire ?? 0;
+    }
+    // Inline — prefer new amount/kind fields; else fall back to legacy cached value
+    if (item.amount !== undefined || item.kind !== undefined) {
+      return npvItemAtRetire(item, ctx);
+    }
+    return item.value || 0;
+  };
+
+  const totalSavingFund = store.savingFunds.reduce((sum, f) => sum + fundNPV(f), 0);
 
   const savedSteps = new Set<number>();
   // Step 1: สมมติฐาน — saved if age is set (not default 35)
@@ -171,11 +247,11 @@ export default function RetirementPlanPage() {
   const basicMonthlyFV = futureValue(totalBasicMonthly, a.generalInflation, yearsToRetire);
   const basicRetireFund = calcRetirementFund(basicMonthlyFV, a.postRetireReturn, a.generalInflation, yearsAfterRetire, a.residualFund);
 
-  // Step 3: Special expense — เงินก้อน ปรับ FV ด้วยเงินเฟ้อแต่ละรายการ
-  const totalSpecialFV = store.specialExpenses.reduce((sum, e) => {
-    const rate = e.inflationRate ?? a.generalInflation;
-    return sum + futureValue(e.amount, rate, yearsToRetire);
-  }, 0);
+  // Step 3: Special expense — NPV ณ วันเกษียณ (respects kind, occurAge, startAge/endAge)
+  const totalSpecialFV = store.specialExpenses.reduce(
+    (sum, e) => sum + specialNPV(e),
+    0,
+  );
 
   // Total retirement fund needed
   const totalRetireFund = basicRetireFund + totalSpecialFV;
@@ -309,14 +385,17 @@ export default function RetirementPlanPage() {
               <div className="text-[9px] text-emerald-500 flex items-center gap-0.5">✅ ดึง NPV จากเครื่องคิดเลข</div>
             </div>
             <div className="text-2xl font-extrabold text-emerald-700">฿{fmt(totalSavingFund)}</div>
-            {/* Show each saving fund item */}
+            {/* Show each saving fund item (fresh NPV via registry) */}
             <div className="mt-3 space-y-1">
-              {store.savingFunds.filter(f => f.value > 0).map((f) => (
-                <div key={f.id} className="flex justify-between text-[10px]">
-                  <span className="text-gray-500">{f.name}</span>
-                  <span className="font-medium text-emerald-600">฿{fmt(f.value)}</span>
-                </div>
-              ))}
+              {store.savingFunds
+                .map((f) => ({ ...f, npv: fundNPV(f) }))
+                .filter((f) => f.npv > 0)
+                .map((f) => (
+                  <div key={f.id} className="flex justify-between text-[10px]">
+                    <span className="text-gray-500">{f.name}</span>
+                    <span className="font-medium text-emerald-600">฿{fmt(f.npv)}</span>
+                  </div>
+                ))}
             </div>
             <div className="text-[10px] text-gray-400 mt-2">กดเพื่อดูรายละเอียด / ปรับแก้ →</div>
           </div>
