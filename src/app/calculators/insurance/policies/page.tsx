@@ -785,9 +785,32 @@ export default function PortfolioDashboard() {
               </div>}
 
               {/* Sum Insured, Cash Value & Premium */}
+              {(() => {
+                const sumInsuredLabel = (() => {
+                  switch (form.policyType) {
+                    case "whole_life":
+                    case "endowment":
+                    case "term":
+                      return "ทุนประกันชีวิต (Death Benefit)";
+                    case "annuity":
+                      return "ทุนชีวิตก่อนบำนาญ";
+                    case "health":
+                    case "nonlife_health":
+                    case "critical_illness":
+                    case "accident":
+                      return "ทุนชีวิตหัวขบวน (ถ้ามี)";
+                    default:
+                      return "ทุนประกัน";
+                  }
+                })();
+                const sumInsuredHint =
+                  ["health", "nonlife_health", "critical_illness", "accident"].includes(form.policyType)
+                    ? "กรมธรรม์ rider ของไทยส่วนใหญ่มีหัวขบวนเป็นประกันชีวิต — ใส่ทุนของหัวขบวนที่นี่ (เว้นว่างได้ถ้าไม่มี)"
+                    : undefined;
+                return (
               <div className={`grid ${form.policyType === "term" ? "grid-cols-2" : "grid-cols-3"} gap-2`}>
                 <div>
-                  <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">ทุนประกัน</label>
+                  <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">{sumInsuredLabel}</label>
                   <MoneyInput
                     value={form.sumInsured}
                     onChange={(v) => setForm({ ...form, sumInsured: v })}
@@ -795,6 +818,9 @@ export default function PortfolioDashboard() {
                     className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
                     ringClass="focus:ring-blue-400"
                   />
+                  {sumInsuredHint && (
+                    <div className="text-[9px] text-gray-400 mt-1 leading-relaxed">{sumInsuredHint}</div>
+                  )}
                 </div>
                 {form.policyType !== "term" && (
                   <div>
@@ -819,6 +845,8 @@ export default function PortfolioDashboard() {
                   />
                 </div>
               </div>
+                );
+              })()}
 
               {/* Health Details */}
               {["health", "nonlife_health", "critical_illness"].includes(form.policyType) && (

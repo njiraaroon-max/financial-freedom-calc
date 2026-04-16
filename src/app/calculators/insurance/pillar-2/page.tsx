@@ -259,7 +259,9 @@ export default function Pillar2Page() {
     const personal: Record<CatKey, number> = p2.usePersonalFromPolicies ? {
       roomRate: policyRoom,
       ipd: policyIPD,
-      criticalTreatment: 0, // no separate critical from policies
+      // Thai health policies typically cover critical-illness treatment inside
+      // the IPD limit, so reuse the IPD number here instead of hard-coding 0.
+      criticalTreatment: policyIPD,
       ciLumpSum: policyCI,
       opd: policyOPD,
       accident: policyAccident,
@@ -986,7 +988,14 @@ export default function Pillar2Page() {
                           เจ็บป่วย
                         </td>
                       )}
-                      <td className="py-2.5 px-2 text-gray-700 font-medium bg-red-50/30 border-r border-gray-100">{cat.labelShort}</td>
+                      <td className="py-2.5 px-2 text-gray-700 font-medium bg-red-50/30 border-r border-gray-100">
+                        {cat.labelShort}
+                        {cat.key === "criticalTreatment" && (
+                          <div className="text-[9px] text-gray-400 font-normal mt-0.5 leading-tight">
+                            ปกติใช้วงเงินเดียวกับ IPD — แผนทั่วไปไม่แยกวงเงินโรคร้าย
+                          </div>
+                        )}
+                      </td>
                       <td className="py-2.5 px-2 text-right font-bold text-gray-700 bg-red-50/30 border-r border-gray-200">{fmt(analysis.need[cat.key])}</td>
                       <td className="py-2.5 px-2 text-right text-gray-600 bg-green-100/25 border-r border-gray-100">{fmt(analysis.employer[cat.key])}</td>
                       <td className="py-2.5 px-2 text-right text-gray-600 bg-green-50/40 border-r border-gray-200">{fmt(analysis.personal[cat.key])}</td>

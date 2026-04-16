@@ -4,7 +4,7 @@ import React, { useState, useMemo } from "react";
 import { Shield, AlertTriangle, CheckCircle2, Info, X, ChevronDown } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import MoneyInput from "@/components/MoneyInput";
-import { useInsuranceStore } from "@/store/insurance-store";
+import { useInsuranceStore, POLICY_TYPE_OPTIONS } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
 import { GanttChart, StepLineChart } from "@/components/InsuranceCharts";
 import { useBalanceSheetStore } from "@/store/balance-sheet-store";
@@ -129,8 +129,13 @@ export default function Pillar1Page() {
   // ─── Linked data: Balance Sheet liquid assets ──────────────────────────
   const liquidAssetsFromBS = balanceSheet.getTotalByAssetType("liquid");
 
-  // ─── Life policies from store (include Term) ──────────────────────────
-  const lifePolicies = store.policies.filter((p) => ["whole_life", "endowment", "term"].includes(p.policyType));
+  // ─── Life policies from store ─────────────────────────────────────────
+  // Any policy under the "life" category that carries a sumInsured counts as
+  // a death benefit — Thai health/CI/accident products are commonly written
+  // as riders on a life-chassis policy that pays out on death.
+  const lifePolicies = store.policies.filter(
+    (p) => p.category === "life" && (p.sumInsured ?? 0) > 0,
+  );
   const totalLifeCoverage = lifePolicies.reduce((s, p) => s + p.sumInsured, 0);
 
   // ─── Education plan link ─────────────────────────────────────────────────
@@ -827,15 +832,24 @@ export default function Pillar1Page() {
             </div>
             {lifePolicies.length > 0 ? (
               <div className="space-y-1">
-                {lifePolicies.map((p) => (
-                  <div key={p.id} className="flex items-center justify-between text-[10px]">
-                    <span className="text-blue-700">{p.planName} <span className="text-blue-400">({p.company || "-"})</span></span>
-                    <span className="font-bold text-blue-600">{fmt(p.sumInsured)}</span>
-                  </div>
-                ))}
+                {lifePolicies.map((p) => {
+                  const typeLabel =
+                    POLICY_TYPE_OPTIONS.find((o) => o.value === p.policyType)?.label ?? p.policyType;
+                  return (
+                    <div key={p.id} className="flex items-center justify-between text-[10px]">
+                      <span className="text-blue-700">
+                        {p.planName}{" "}
+                        <span className="text-blue-400">
+                          ({typeLabel}{p.company ? ` • ${p.company}` : ""})
+                        </span>
+                      </span>
+                      <span className="font-bold text-blue-600">{fmt(p.sumInsured)}</span>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
-              <div className="text-[10px] text-blue-400">ยังไม่มีกรมธรรม์ประกันชีวิต — เพิ่มได้ที่หน้าสรุปกรมธรรม์</div>
+              <div className="text-[10px] text-blue-400">ยังไม่มีกรมธรรม์ที่ระบุทุนชีวิต — เพิ่มได้ที่หน้าสรุปกรมธรรม์ (รวมถึงกรมธรรม์สุขภาพ/CI/PA ที่มีหัวขบวนชีวิต)</div>
             )}
           </div>
 
