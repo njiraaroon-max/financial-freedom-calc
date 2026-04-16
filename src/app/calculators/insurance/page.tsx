@@ -62,17 +62,27 @@ function RadarChart({ data }: {
     return `${px(i, r)},${py(i, r)}`;
   }).join(" ");
 
-  const labelOffset = 30;
+  const labelOffset = 40;
   type Anchor = "middle" | "start" | "end";
   const labelPositions = data.map((_, i) => ({
     x: px(i, maxR + labelOffset),
     y: py(i, maxR + labelOffset),
     anchor: (i === 0 ? "middle" : i < n / 2 ? "start" : i === n / 2 ? "middle" : "end") as Anchor,
-    dy: i === 0 ? -4 : i === n / 2 ? 14 : 4,
+    // Push top (i=0) and bottom (i=n/2) axis labels a bit further from the
+    // chart body so "Life Protection / 278%" doesn't crash into the ring
+    // scale labels.
+    dy: i === 0 ? -10 : i === n / 2 ? 20 : 4,
   }));
 
+  // Ring scale labels (0% / 25% / 50% / 75% / 100%) are placed on the
+  // diagonal between axis 0 and axis 1 so they never sit underneath a
+  // data-axis label.
+  const ringLabelAngle = -Math.PI / 2 + Math.PI / n; // between axis 0 and 1
+  const ringLabelX = (pct: number) => cx + Math.cos(ringLabelAngle) * ((pct / 100) * maxR) + 4;
+  const ringLabelY = (pct: number) => cy + Math.sin(ringLabelAngle) * ((pct / 100) * maxR) + 3;
+
   return (
-    <svg viewBox={`-50 -10 ${size + 100} ${size + 20}`} className="w-full max-w-[340px] mx-auto">
+    <svg viewBox={`-60 -30 ${size + 120} ${size + 60}`} className="w-full max-w-[360px] mx-auto">
       {rings.map((pct) => (
         <polygon key={pct} points={ringPoly(pct)} fill="none" stroke="#e5e7eb" strokeWidth="0.8" />
       ))}
@@ -80,11 +90,11 @@ function RadarChart({ data }: {
         <line key={i} x1={cx} y1={cy} x2={px(i, maxR)} y2={py(i, maxR)} stroke="#d1d5db" strokeWidth="0.5" />
       ))}
       {rings.map((pct) => (
-        <text key={pct} x={cx - 4} y={cy - (pct / 100) * maxR + 3} fontSize="7" fill="#9ca3af" textAnchor="end">
+        <text key={pct} x={ringLabelX(pct)} y={ringLabelY(pct)} fontSize="7" fill="#9ca3af" textAnchor="start">
           {pct}%
         </text>
       ))}
-      <text x={cx - 4} y={cy + 3} fontSize="7" fill="#9ca3af" textAnchor="end">0%</text>
+      <text x={cx + 4} y={cy + 3} fontSize="7" fill="#9ca3af" textAnchor="start">0%</text>
       <polygon points={dataPoly} fill="rgba(30, 58, 95, 0.12)" stroke="#1e3a5f" strokeWidth="2" />
       {data.map((d, i) => {
         const r = (Math.min(d.value, 130) / 100) * maxR;
@@ -96,13 +106,17 @@ function RadarChart({ data }: {
       {data.map((d, i) => {
         const lp = labelPositions[i];
         const statusColor = d.status === "adequate" ? "#10b981" : d.status === "warning" ? "#f59e0b" : d.status === "critical" ? "#ef4444" : "#9ca3af";
+        // Cap the displayed percentage so numbers like 278% don't bleed into
+        // neighbouring labels; actual status colour is still driven by the
+        // raw value.
+        const displayPct = d.value > 0 ? (d.value > 999 ? "999%+" : `${d.value}%`) : "—";
         return (
           <g key={i}>
             <text x={lp.x} y={lp.y + (lp.dy || 0) - 7} fontSize="11" fontWeight="bold" fill="#374151" textAnchor={lp.anchor}>
               {d.label}
             </text>
             <text x={lp.x} y={lp.y + (lp.dy || 0) + 6} fontSize="11" fontWeight="bold" fill={statusColor} textAnchor={lp.anchor}>
-              {d.value > 0 ? `${d.value}%` : "—"}
+              {displayPct}
             </text>
           </g>
         );
