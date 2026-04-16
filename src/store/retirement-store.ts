@@ -53,10 +53,11 @@ interface RetirementState {
   removeBasicExpense: (id: string) => void;
   loadBasicExpensesFromCF: (monthlyEssential: number, items?: { name: string; amount: number }[]) => void;
   /**
-   * เปิด/ปิด auto-sync จาก Cash Flow baseline
-   * ถ้าผ่าน cfBaseline มา → ใช้ค่านั้น overwrite monthlyAmount เมื่อ toggle ON
+   * เปิด/ปิด การแสดงค่าอ้างอิงจาก Cash Flow (ไม่ใช่ auto-sync —
+   * ใช้ดูเป็น reference ว่าปัจจุบันใช้จ่ายเดือนละเท่าไหร่ เพื่อเทียบกับ
+   * ค่าใช้จ่ายที่วางแผนไว้ตอนเกษียณ user ยังกรอกค่าเองได้ตลอด)
    */
-  toggleBasicExpensePullFromCf: (id: string, cfBaseline?: number) => void;
+  toggleBasicExpensePullFromCf: (id: string) => void;
 
   // Actions — Special Expenses
   addSpecialExpense: (name: string) => void;
@@ -181,18 +182,11 @@ export const useRetirementStore = create<RetirementState>()(
           });
         }
       },
-      toggleBasicExpensePullFromCf: (id, cfBaseline) =>
+      toggleBasicExpensePullFromCf: (id) =>
         set((s) => ({
-          basicExpenses: s.basicExpenses.map((e) => {
-            if (e.id !== id) return e;
-            const nextPull = !e.pullFromCf;
-            // เมื่อ toggle ON → overwrite monthlyAmount ด้วย CF baseline (ถ้ามี)
-            const nextAmount =
-              nextPull && cfBaseline !== undefined
-                ? cfBaseline
-                : e.monthlyAmount;
-            return { ...e, pullFromCf: nextPull, monthlyAmount: nextAmount };
-          }),
+          basicExpenses: s.basicExpenses.map((e) =>
+            e.id === id ? { ...e, pullFromCf: !e.pullFromCf } : e,
+          ),
         })),
 
       // Special Expenses
@@ -428,7 +422,7 @@ export const useRetirementStore = create<RetirementState>()(
     }),
     {
       name: "ffc-retirement",
-      version: 11,
+      version: 12,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       migrate: (persisted: any, version: number) => {
         if (persisted?.savingFunds) {
@@ -704,6 +698,21 @@ export const useRetirementStore = create<RetirementState>()(
               persisted.basicExpenses.push(subEntry);
             }
           }
+        }
+        // v12: Remove untouched "ค่า Subscription" (v11 injected it, but we
+        // decided it doesn't fit a retirement-basics list). Only remove if
+        // user hasn't entered an amount or enabled the CF-reference toggle.
+        if (persisted?.basicExpenses && Array.isArray(persisted.basicExpenses)) {
+          persisted.basicExpenses = persisted.basicExpenses.filter(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (b: any) =>
+              !(
+                b &&
+                b.name === "ค่า Subscription" &&
+                (b.monthlyAmount ?? 0) === 0 &&
+                !b.pullFromCf
+              ),
+          );
         }
         return persisted;
       },

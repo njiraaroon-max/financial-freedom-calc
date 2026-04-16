@@ -67,7 +67,8 @@ export default function BasicExpensesPage() {
   const basicMonthlyFV = futureValue(totalBasicMonthly, a.generalInflation, yearsToRetire);
   const basicRetireFund = calcRetirementFund(basicMonthlyFV, a.postRetireReturn, a.generalInflation, yearsAfterRetire, a.residualFund);
 
-  // Map id → CF baseline monthly (รวม 12 เดือน ÷ 12)
+  // Map id → CF baseline monthly (รวม 12 เดือน ÷ 12) — ใช้เป็น reference เทียบ
+  // เท่านั้น ไม่เขียนทับ monthlyAmount ของผู้ใช้
   const cfBaselineByItem = useMemo(() => {
     const map: Record<string, number> = {};
     for (const item of store.basicExpenses) {
@@ -82,29 +83,13 @@ export default function BasicExpensesPage() {
     return map;
   }, [store.basicExpenses, cfStore.expenses]);
 
-  // ถ้ามี item ที่ pullFromCf=true → auto-sync monthlyAmount ตาม CF baseline
-  useEffect(() => {
-    for (const item of store.basicExpenses) {
-      if (!item.pullFromCf || !item.cfSourceName) continue;
-      const baseline = cfBaselineByItem[item.id] ?? 0;
-      if (Math.abs(item.monthlyAmount - baseline) > 0.5) {
-        store.updateBasicExpense(item.id, baseline);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cfBaselineByItem]);
-
-  const handleToggle = (id: string) => {
-    const baseline = cfBaselineByItem[id];
-    store.toggleBasicExpensePullFromCf(id, baseline);
-  };
-
+  // Arrow preview — แสดงเฉพาะเมื่อ toggle ON และผู้ใช้กรอกค่าต่างจาก CF baseline
+  // (เพื่อตอบคำถาม "ตอนเกษียณจะใช้มากขึ้นหรือน้อยลง?")
   const renderArrow = (
     item: (typeof store.basicExpenses)[number],
     baseline: number,
   ) => {
-    // custom item (ไม่มี cfSourceName) หรือ ดึงจาก CF → ไม่มีลูกศร
-    if (!item.cfSourceName || item.pullFromCf) return null;
+    if (!item.pullFromCf || !item.cfSourceName) return null;
     if (!baseline || baseline <= 0) return null;
     if (Math.abs(item.monthlyAmount - baseline) < 1) return null;
     return item.monthlyAmount > baseline ? (
@@ -160,18 +145,18 @@ export default function BasicExpensesPage() {
 
         {/* Items */}
         <div className="bg-white rounded-2xl border border-gray-200 p-4">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-start justify-between gap-2 mb-3">
             <div className="text-xs font-bold text-gray-500">รายจ่ายพื้นฐาน (ราคาปัจจุบัน)</div>
-            <div className="text-[9px] text-gray-400">
-              💡 เปิด <span className="inline-block w-5 h-2.5 rounded-full bg-emerald-400 align-middle relative top-[-1px]"></span> เพื่อดึงจาก Cash Flow
+            <div className="text-[9px] text-gray-400 leading-tight text-right max-w-[58%]">
+              💡 เปิด <span className="inline-block w-5 h-2.5 rounded-full bg-emerald-400 align-middle relative top-[-1px]"></span> เพื่อเทียบกับค่าปัจจุบันใน Cash Flow
             </div>
           </div>
 
           {/* Header row */}
           <div className="grid grid-cols-[28px_1fr_60px_96px_20px_18px] gap-2 items-center px-1 mb-2 text-[9px] font-bold text-gray-400 uppercase tracking-wide">
-            <div className="text-center">ดึง</div>
+            <div className="text-center">CF</div>
             <div>รายการ</div>
-            <div className="text-right">จาก CF</div>
+            <div className="text-right">ปัจจุบัน</div>
             <div className="text-right pr-1">วางแผน</div>
             <div className="text-center">เทียบ</div>
             <div></div>
@@ -181,6 +166,7 @@ export default function BasicExpensesPage() {
             {store.basicExpenses.map((item) => {
               const baseline = cfBaselineByItem[item.id] ?? 0;
               const canToggle = Boolean(item.cfSourceName);
+              const showReference = Boolean(item.pullFromCf && item.cfSourceName);
               return (
                 <div
                   key={item.id}
@@ -190,15 +176,15 @@ export default function BasicExpensesPage() {
                   <div className="flex justify-center">
                     {canToggle ? (
                       <button
-                        onClick={() => handleToggle(item.id)}
+                        onClick={() => store.toggleBasicExpensePullFromCf(item.id)}
                         className={`relative w-8 h-4 rounded-full transition shrink-0 ${
                           item.pullFromCf ? "bg-emerald-400" : "bg-gray-300"
                         }`}
-                        aria-label="ดึงจาก Cash Flow"
+                        aria-label="เทียบกับ Cash Flow"
                         title={
                           item.pullFromCf
-                            ? "ปิดเพื่อกรอกเอง"
-                            : "เปิดเพื่อดึงจาก Cash Flow"
+                            ? "ปิด reference"
+                            : "เปิดเพื่อเทียบกับค่าปัจจุบันใน Cash Flow"
                         }
                       >
                         <span
@@ -220,23 +206,18 @@ export default function BasicExpensesPage() {
                     className="text-xs bg-transparent outline-none truncate min-w-0"
                   />
 
-                  {/* CF Baseline */}
-                  <div
-                    className={`text-right text-xs font-medium tabular-nums ${
-                      baseline > 0 ? "text-indigo-500" : "text-gray-300"
-                    }`}
-                  >
-                    {item.cfSourceName && baseline > 0 ? fmt(baseline) : "—"}
+                  {/* CF Baseline — แสดงเฉพาะเมื่อ toggle ON */}
+                  <div className="text-right text-xs font-medium tabular-nums text-indigo-400">
+                    {showReference ? (baseline > 0 ? fmt(baseline) : "—") : ""}
                   </div>
 
-                  {/* Input */}
+                  {/* Input — editable ตลอดเวลา (toggle ไม่ lock input) */}
                   <NumberInput
                     value={item.monthlyAmount}
                     onChange={(v) => store.updateBasicExpense(item.id, v)}
-                    disabled={item.pullFromCf}
                   />
 
-                  {/* Arrow */}
+                  {/* Arrow — แสดงเฉพาะเมื่อ toggle ON + ค่าต่าง */}
                   <div className="flex justify-center">
                     {renderArrow(item, baseline)}
                   </div>

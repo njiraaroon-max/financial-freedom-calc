@@ -190,7 +190,6 @@ export const DEFAULT_BASIC_EXPENSES: RetirementExpenseItem[] = [
   { id: "re2", name: "ค่าเดินทาง", monthlyAmount: 0, cfSourceName: "ค่าเดินทาง" },
   { id: "re3", name: "ค่าน้ำ ค่าไฟ", monthlyAmount: 0, cfSourceName: "ค่าน้ำ ค่าไฟ" },
   { id: "re4", name: "ค่าโทรศัพท์ อินเทอร์เน็ต", monthlyAmount: 0, cfSourceName: "ค่าโทรศัพท์ อินเทอร์เน็ต" },
-  { id: "re5", name: "ค่า Subscription", monthlyAmount: 0, cfSourceName: "ค่า Subscription" },
   { id: "re6", name: "ค่าของใช้ส่วนตัว", monthlyAmount: 0 },
   { id: "re7", name: "ค่าสันทนาการและความบันเทิง", monthlyAmount: 0 },
   { id: "re8", name: "ค่าใช้จ่ายอื่นๆ", monthlyAmount: 0 },
