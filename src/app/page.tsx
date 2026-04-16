@@ -140,7 +140,7 @@ const calculators = [
     href: "/calculators/cf-projection",
     color: "bg-sky-500",
     colorHex: "#0ea5e9",
-    ready: false,
+    ready: true,
   },
 ];
 
