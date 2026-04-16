@@ -20,6 +20,13 @@ import type { SpecialExpenseItem } from "@/types/retirement";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
+export interface AnnuityStream {
+  startAge: number;
+  endAge: number;     // 0 or >= lifeExpectancy means "for life"
+  annualPayout: number; // PV today
+  label: string;
+}
+
 export interface CFProjectionInputs {
   // Timeline
   currentAge: number;
@@ -36,9 +43,15 @@ export interface CFProjectionInputs {
   annualInsurancePremiums: number;// total policy premiums
   annualTaxEstimate: number;      // estimated income tax per year
 
-  // Post-retirement
-  postRetireMonthlyExpense: number; // basic living expenses monthly (PV)
-  postRetireAnnualIncome: number;   // SS pension + PVD annuitised + pension insurance (PV, total per year)
+  // Post-retirement living expense (PV monthly, scaled × 12 in the helper)
+  postRetireMonthlyExpense: number;
+
+  // Retirement income streams
+  ssMonthlyPension: number;       // PV monthly SS pension
+  ssStartAge: number;             // age SS starts paying
+  pvdAtRetireLump: number;        // PVD lump sum at retire
+  severanceLump: number;          // Severance at retire
+  annuityStreams: AnnuityStream[]; // from pension insurance policies
 
   // Special one-off / recurring expenses tied to specific ages
   specialExpenses: SpecialExpenseItem[];
@@ -51,7 +64,7 @@ export interface CFProjectionInputs {
   salaryGrowth: number;           // % per year — used for pre-retire income growth
   investmentReturn: number;       // % per year — applied to running balance
 
-  // Policies (for insurance premium growth — for now, treat as constant unless we decide to inflate)
+  // Policies (kept for future use; e.g. premium growth rules)
   policies: InsurancePolicy[];
 }
 
@@ -63,7 +76,9 @@ export interface CFProjectionRow {
 
   // Income breakdown
   salaryIncome: number;           // pre-retire salary/CF income
-  retirementIncome: number;       // post-retire pension streams
+  ssIncome: number;               // SS pension × 12 (inflated)
+  annuityIncome: number;          // pension insurance payouts
+  lumpIncome: number;             // PVD + severance at retire age (one-off)
   totalIncome: number;
 
   // Expense breakdown
@@ -111,7 +126,11 @@ export function projectCashflow(inputs: CFProjectionInputs): CFProjectionResult 
     annualInsurancePremiums,
     annualTaxEstimate,
     postRetireMonthlyExpense,
-    postRetireAnnualIncome,
+    ssMonthlyPension,
+    ssStartAge,
+    pvdAtRetireLump,
+    severanceLump,
+    annuityStreams,
     specialExpenses,
     educationRows,
     inflationRate,
@@ -125,6 +144,7 @@ export function projectCashflow(inputs: CFProjectionInputs): CFProjectionResult 
 
   const totalYears = Math.max(0, lifeExpectancy - currentAge);
   const postRetireAnnualExpensePV = postRetireMonthlyExpense * 12;
+  const ssAnnualPV = ssMonthlyPension * 12;
 
   // Index education rows by calendar year for quick lookup
   const eduByYear = new Map<number, number>();
@@ -184,13 +204,37 @@ export function projectCashflow(inputs: CFProjectionInputs): CFProjectionResult 
 
     // ── Income ──
     let salaryIncome = 0;
-    let retirementIncome = 0;
+    let ssIncome = 0;
+    let annuityIncome = 0;
+    let lumpIncome = 0;
+
     if (age < retireAge) {
       salaryIncome = annualIncomeNow * Math.pow(sal, yi);
-    } else {
-      retirementIncome = postRetireAnnualIncome * Math.pow(infl, yi);
     }
-    const totalIncome = salaryIncome + retirementIncome;
+
+    // SS pension starts at ssStartAge (typically 55 or 60)
+    if (age >= ssStartAge && ssAnnualPV > 0) {
+      ssIncome = ssAnnualPV * Math.pow(infl, yi);
+    }
+
+    // Annuity streams (pension insurance) — user-provided start/end ages.
+    // End age 0 or >= lifeExpectancy is treated as "for life".
+    for (const stream of annuityStreams) {
+      const effectiveEnd = stream.endAge <= 0 ? lifeExpectancy : stream.endAge;
+      if (age >= stream.startAge && age <= effectiveEnd && stream.annualPayout > 0) {
+        // Annuity payouts are usually fixed (nominal) — do NOT inflate
+        annuityIncome += stream.annualPayout;
+      }
+    }
+
+    // Lump sums at retire year: PVD + severance (inflated to retire year)
+    if (age === retireAge) {
+      const yrsToRetire = Math.max(0, retireAge - currentAge);
+      const inflFactor = Math.pow(infl, yrsToRetire);
+      lumpIncome = (pvdAtRetireLump + severanceLump) * inflFactor;
+    }
+
+    const totalIncome = salaryIncome + ssIncome + annuityIncome + lumpIncome;
 
     // ── Expense breakdown ──
     let livingExpense: number;
@@ -237,7 +281,9 @@ export function projectCashflow(inputs: CFProjectionInputs): CFProjectionResult 
       age,
       phase,
       salaryIncome,
-      retirementIncome,
+      ssIncome,
+      annuityIncome,
+      lumpIncome,
       totalIncome,
       livingExpense,
       insurancePremium,

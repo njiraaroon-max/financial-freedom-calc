@@ -23,7 +23,8 @@ import { useBalanceSheetStore } from "@/store/balance-sheet-store";
 import { useInsuranceStore } from "@/store/insurance-store";
 import { useEducationStore, aggregateProjection } from "@/store/education-store";
 import { useTaxStore } from "@/store/tax-store";
-import { projectCashflow, type CFProjectionRow } from "@/lib/cfProjection";
+import { useVariableStore } from "@/store/variable-store";
+import { projectCashflow, type CFProjectionRow, type AnnuityStream } from "@/lib/cfProjection";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(n: number): string {
@@ -52,6 +53,7 @@ export default function CFProjectionPage() {
   const insurance = useInsuranceStore();
   const education = useEducationStore();
   const tax = useTaxStore();
+  const variables = useVariableStore();
 
   const currentAge = profile.getAge?.() || 35;
   const retireAge = profile.retireAge || 60;
@@ -103,12 +105,24 @@ export default function CFProjectionPage() {
     [retire.basicExpenses],
   );
 
-  // Post-retire income (calc-links: SS pension + pension insurance + PVD annuitised)
-  // For MVP — use variable store values if present; else 0. User can tweak later.
-  const postRetireAnnualIncome = useMemo(() => {
-    // Placeholder — MVP: user can edit directly or we pull from variables later
-    return 0;
-  }, []);
+  // Post-retire income streams — pulled from the retirement sub-calculators
+  // via variable-store + annuity policies in insurance-store.
+  const ssMonthlyPension = variables.getVariable("ss_pension_monthly")?.value ?? 0;
+  const ssStartAge = retire.ssParams?.startAge || 60;
+  const pvdAtRetireLump = variables.getVariable("pvd_at_retire")?.value ?? 0;
+  const severanceLump = variables.getVariable("severance_pay")?.value ?? 0;
+
+  const annuityStreams = useMemo<AnnuityStream[]>(() => {
+    const policies = insurance.policies.filter(
+      (p) => p.policyType === "annuity" && p.annuityDetails,
+    );
+    return policies.map((p) => ({
+      startAge: p.annuityDetails?.payoutStartAge || retireAge,
+      endAge: p.annuityDetails?.payoutEndAge || 0,
+      annualPayout: p.annuityDetails?.payoutPerYear || 0,
+      label: p.planName || "ประกันบำนาญ",
+    }));
+  }, [insurance.policies, retireAge]);
 
   // Starting balance — use balance sheet liquid assets
   const startingBalance = useMemo(
@@ -142,7 +156,11 @@ export default function CFProjectionPage() {
         annualInsurancePremiums,
         annualTaxEstimate,
         postRetireMonthlyExpense,
-        postRetireAnnualIncome,
+        ssMonthlyPension,
+        ssStartAge,
+        pvdAtRetireLump,
+        severanceLump,
+        annuityStreams,
         specialExpenses: retire.specialExpenses || [],
         educationRows: educationAgg.rows,
         inflationRate,
@@ -160,7 +178,11 @@ export default function CFProjectionPage() {
       annualInsurancePremiums,
       annualTaxEstimate,
       postRetireMonthlyExpense,
-      postRetireAnnualIncome,
+      ssMonthlyPension,
+      ssStartAge,
+      pvdAtRetireLump,
+      severanceLump,
+      annuityStreams,
       retire.specialExpenses,
       educationAgg.rows,
       inflationRate,
@@ -259,15 +281,26 @@ export default function CFProjectionPage() {
         </div>
 
         {/* Data sources indicator */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 mx-1">
-          <h3 className="text-sm font-bold text-gray-800 mb-2">ข้อมูลที่นำมาคำนวณ</h3>
-          <div className="grid grid-cols-2 gap-2 text-[11px]">
-            <DataSource icon={<Wallet size={12} className="text-indigo-600" />} label="รายรับ/ปี" value={fmt(annualIncome)} />
-            <DataSource icon={<TrendingDown size={12} className="text-red-500" />} label="รายจ่าย/ปี" value={fmt(annualExpense)} />
-            <DataSource icon={<Shield size={12} className="text-emerald-600" />} label="เบี้ยประกัน/ปี" value={fmt(annualInsurancePremiums)} />
-            <DataSource icon={<Receipt size={12} className="text-violet-600" />} label="ภาษีประมาณ" value={fmt(annualTaxEstimate)} />
-            <DataSource icon={<GraduationCap size={12} className="text-blue-600" />} label="ค่าการศึกษารวม" value={fmt(educationAgg.grandTotal)} />
-            <DataSource icon={<Landmark size={12} className="text-cyan-600" />} label="ยอดเริ่มต้น" value={fmt(startingBalance)} />
+        <div className="bg-white rounded-2xl shadow-sm p-4 mx-1 space-y-3">
+          <div>
+            <h3 className="text-sm font-bold text-gray-800 mb-2">ปัจจุบัน (ก่อนเกษียณ)</h3>
+            <div className="grid grid-cols-2 gap-2 text-[11px]">
+              <DataSource icon={<Wallet size={12} className="text-indigo-600" />} label="รายรับ/ปี" value={fmt(annualIncome)} />
+              <DataSource icon={<TrendingDown size={12} className="text-red-500" />} label="รายจ่าย/ปี" value={fmt(annualExpense)} />
+              <DataSource icon={<Shield size={12} className="text-emerald-600" />} label="เบี้ยประกัน/ปี" value={fmt(annualInsurancePremiums)} />
+              <DataSource icon={<Receipt size={12} className="text-violet-600" />} label="ภาษีประมาณ" value={fmt(annualTaxEstimate)} />
+              <DataSource icon={<GraduationCap size={12} className="text-blue-600" />} label="ค่าการศึกษารวม" value={fmt(educationAgg.grandTotal)} />
+              <DataSource icon={<Landmark size={12} className="text-cyan-600" />} label="ยอดเริ่มต้น" value={fmt(startingBalance)} />
+            </div>
+          </div>
+          <div className="border-t border-gray-100 pt-3">
+            <h3 className="text-sm font-bold text-gray-800 mb-2">หลังเกษียณ (รายได้)</h3>
+            <div className="grid grid-cols-2 gap-2 text-[11px]">
+              <DataSource icon={<Landmark size={12} className="text-cyan-600" />} label="บำนาญ ปสก./เดือน" value={fmt(ssMonthlyPension)} />
+              <DataSource icon={<Landmark size={12} className="text-teal-600" />} label="PVD ก้อน@เกษียณ" value={fmt(pvdAtRetireLump)} />
+              <DataSource icon={<Landmark size={12} className="text-orange-600" />} label="เงินชดเชย" value={fmt(severanceLump)} />
+              <DataSource icon={<Shield size={12} className="text-purple-600" />} label={`บำนาญประกัน (${annuityStreams.length} เล่ม)`} value={fmt(annuityStreams.reduce((s, a) => s + a.annualPayout, 0))} />
+            </div>
           </div>
         </div>
 
