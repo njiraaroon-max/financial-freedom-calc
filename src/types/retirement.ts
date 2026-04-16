@@ -15,6 +15,10 @@ export interface RetirementExpenseItem {
   id: string;
   name: string;
   monthlyAmount: number; // มูลค่าปัจจุบัน
+  /** ชื่อรายการใน cashflow-store ที่ใช้จับคู่ (ถ้ามี) — เปิดให้เทียบ/ดึงจาก CF ได้ */
+  cfSourceName?: string;
+  /** ถ้า true → monthlyAmount auto-sync จาก CF baseline และ input ถูก lock */
+  pullFromCf?: boolean;
 }
 
 // ===== Cashflow Model (dual-purpose: NPV @ retire + yearly stream) =====
@@ -182,11 +186,11 @@ export const DEFAULT_ASSUMPTIONS: RetirementAssumptions = {
 };
 
 export const DEFAULT_BASIC_EXPENSES: RetirementExpenseItem[] = [
-  { id: "re1", name: "ค่าอาหาร", monthlyAmount: 0 },
-  { id: "re2", name: "ค่าเดินทาง", monthlyAmount: 0 },
-  { id: "re3", name: "ค่าน้ำ ค่าไฟ", monthlyAmount: 0 },
-  { id: "re4", name: "ค่าโทรศัพท์ อินเตอร์เน็ต", monthlyAmount: 0 },
-  { id: "re5", name: "ค่าเบี้ยประกัน", monthlyAmount: 0 },
+  { id: "re1", name: "ค่าอาหาร", monthlyAmount: 0, cfSourceName: "ค่าอาหาร" },
+  { id: "re2", name: "ค่าเดินทาง", monthlyAmount: 0, cfSourceName: "ค่าเดินทาง" },
+  { id: "re3", name: "ค่าน้ำ ค่าไฟ", monthlyAmount: 0, cfSourceName: "ค่าน้ำ ค่าไฟ" },
+  { id: "re4", name: "ค่าโทรศัพท์ อินเทอร์เน็ต", monthlyAmount: 0, cfSourceName: "ค่าโทรศัพท์ อินเทอร์เน็ต" },
+  { id: "re5", name: "ค่า Subscription", monthlyAmount: 0, cfSourceName: "ค่า Subscription" },
   { id: "re6", name: "ค่าของใช้ส่วนตัว", monthlyAmount: 0 },
   { id: "re7", name: "ค่าสันทนาการและความบันเทิง", monthlyAmount: 0 },
   { id: "re8", name: "ค่าใช้จ่ายอื่นๆ", monthlyAmount: 0 },

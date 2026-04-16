@@ -1,29 +1,43 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Save, Download, Plus, Trash2, Info, X } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Save, Plus, Trash2, Info, X, ArrowUp, ArrowDown } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import { useProfileStore } from "@/store/profile-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 import RetirementDiagram from "@/components/retirement/RetirementDiagram";
 import { useCashFlowStore } from "@/store/cashflow-store";
-import { toast } from "@/store/toast-store";
 import { futureValue, calcRetirementFund } from "@/types/retirement";
 
 function fmt(n: number): string {
   return Math.round(n).toLocaleString("th-TH");
 }
 
-function NumberInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+function NumberInput({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  disabled?: boolean;
+}) {
   const display = value ? value.toLocaleString("th-TH") : "";
   return (
     <input
       type="text"
       inputMode="numeric"
       value={display}
-      onChange={(e) => onChange(Number(e.target.value.replace(/[^0-9.-]/g, "")) || 0)}
-      className="w-28 text-sm font-semibold bg-gray-50 rounded-xl px-2 py-2 outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition text-right"
+      disabled={disabled}
+      onChange={(e) =>
+        onChange(Number(e.target.value.replace(/[^0-9.-]/g, "")) || 0)
+      }
+      className={`w-24 text-xs font-semibold rounded-xl px-2 py-2 outline-none text-right transition ${
+        disabled
+          ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+          : "bg-gray-50 focus:ring-2 focus:ring-[var(--color-primary)]"
+      }`}
     />
   );
 }
@@ -53,19 +67,51 @@ export default function BasicExpensesPage() {
   const basicMonthlyFV = futureValue(totalBasicMonthly, a.generalInflation, yearsToRetire);
   const basicRetireFund = calcRetirementFund(basicMonthlyFV, a.postRetireReturn, a.generalInflation, yearsAfterRetire, a.residualFund);
 
-  const handlePullFromCF = () => {
-    const essentialItems = cfStore.expenses
-      .filter((e) => e.isEssential)
-      .map((e) => ({
-        name: e.name,
-        amount: Math.round(e.amounts.reduce((sum, a) => sum + a, 0) / 12),
-      }))
-      .filter((e) => e.amount > 0);
-    if (essentialItems.length > 0) {
-      store.loadBasicExpensesFromCF(0, essentialItems);
-    } else {
-      toast.warning("ยังไม่มีรายจ่ายจำเป็นใน Cash Flow กรุณากรอกและบันทึกก่อน");
+  // Map id → CF baseline monthly (รวม 12 เดือน ÷ 12)
+  const cfBaselineByItem = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const item of store.basicExpenses) {
+      if (!item.cfSourceName) {
+        map[item.id] = 0;
+        continue;
+      }
+      const cf = cfStore.expenses.find((x) => x.name === item.cfSourceName);
+      const annual = cf ? cf.amounts.reduce((s, v) => s + v, 0) : 0;
+      map[item.id] = Math.round(annual / 12);
     }
+    return map;
+  }, [store.basicExpenses, cfStore.expenses]);
+
+  // ถ้ามี item ที่ pullFromCf=true → auto-sync monthlyAmount ตาม CF baseline
+  useEffect(() => {
+    for (const item of store.basicExpenses) {
+      if (!item.pullFromCf || !item.cfSourceName) continue;
+      const baseline = cfBaselineByItem[item.id] ?? 0;
+      if (Math.abs(item.monthlyAmount - baseline) > 0.5) {
+        store.updateBasicExpense(item.id, baseline);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cfBaselineByItem]);
+
+  const handleToggle = (id: string) => {
+    const baseline = cfBaselineByItem[id];
+    store.toggleBasicExpensePullFromCf(id, baseline);
+  };
+
+  const renderArrow = (
+    item: (typeof store.basicExpenses)[number],
+    baseline: number,
+  ) => {
+    // custom item (ไม่มี cfSourceName) หรือ ดึงจาก CF → ไม่มีลูกศร
+    if (!item.cfSourceName || item.pullFromCf) return null;
+    if (!baseline || baseline <= 0) return null;
+    if (Math.abs(item.monthlyAmount - baseline) < 1) return null;
+    return item.monthlyAmount > baseline ? (
+      <ArrowUp size={14} className="text-emerald-500" strokeWidth={2.5} />
+    ) : (
+      <ArrowDown size={14} className="text-red-500" strokeWidth={2.5} />
+    );
   };
 
   const handleSave = () => {
@@ -112,34 +158,99 @@ export default function BasicExpensesPage() {
           </div>
         </div>
 
-        {/* Pull from CF */}
-        <button
-          onClick={handlePullFromCF}
-          className="w-full py-2.5 rounded-xl bg-indigo-50 text-indigo-600 text-xs font-medium hover:bg-indigo-100 transition mb-4"
-        >
-          <Download size={12} className="inline mr-1" />
-          ดึงรายจ่ายจำเป็นจาก Cash Flow
-        </button>
-
         {/* Items */}
         <div className="bg-white rounded-2xl border border-gray-200 p-4">
-          <div className="text-xs font-bold text-gray-500 mb-3">รายจ่ายพื้นฐาน (ราคาปัจจุบัน)</div>
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-xs font-bold text-gray-500">รายจ่ายพื้นฐาน (ราคาปัจจุบัน)</div>
+            <div className="text-[9px] text-gray-400">
+              💡 เปิด <span className="inline-block w-5 h-2.5 rounded-full bg-emerald-400 align-middle relative top-[-1px]"></span> เพื่อดึงจาก Cash Flow
+            </div>
+          </div>
+
+          {/* Header row */}
+          <div className="grid grid-cols-[28px_1fr_60px_96px_20px_18px] gap-2 items-center px-1 mb-2 text-[9px] font-bold text-gray-400 uppercase tracking-wide">
+            <div className="text-center">ดึง</div>
+            <div>รายการ</div>
+            <div className="text-right">จาก CF</div>
+            <div className="text-right pr-1">วางแผน</div>
+            <div className="text-center">เทียบ</div>
+            <div></div>
+          </div>
+
           <div className="space-y-2">
-            {store.basicExpenses.map((item) => (
-              <div key={item.id} className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={item.name}
-                  onChange={(e) => store.updateBasicExpenseName(item.id, e.target.value)}
-                  className="flex-1 text-xs bg-transparent outline-none truncate"
-                />
-                <NumberInput value={item.monthlyAmount} onChange={(v) => store.updateBasicExpense(item.id, v)} />
-                <span className="text-[10px] text-gray-400">บาท</span>
-                <button onClick={() => store.removeBasicExpense(item.id)} className="text-gray-300 hover:text-red-500">
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            ))}
+            {store.basicExpenses.map((item) => {
+              const baseline = cfBaselineByItem[item.id] ?? 0;
+              const canToggle = Boolean(item.cfSourceName);
+              return (
+                <div
+                  key={item.id}
+                  className="grid grid-cols-[28px_1fr_60px_96px_20px_18px] gap-2 items-center"
+                >
+                  {/* Toggle */}
+                  <div className="flex justify-center">
+                    {canToggle ? (
+                      <button
+                        onClick={() => handleToggle(item.id)}
+                        className={`relative w-8 h-4 rounded-full transition shrink-0 ${
+                          item.pullFromCf ? "bg-emerald-400" : "bg-gray-300"
+                        }`}
+                        aria-label="ดึงจาก Cash Flow"
+                        title={
+                          item.pullFromCf
+                            ? "ปิดเพื่อกรอกเอง"
+                            : "เปิดเพื่อดึงจาก Cash Flow"
+                        }
+                      >
+                        <span
+                          className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all ${
+                            item.pullFromCf ? "left-[18px]" : "left-0.5"
+                          }`}
+                        />
+                      </button>
+                    ) : null}
+                  </div>
+
+                  {/* Name */}
+                  <input
+                    type="text"
+                    value={item.name}
+                    onChange={(e) =>
+                      store.updateBasicExpenseName(item.id, e.target.value)
+                    }
+                    className="text-xs bg-transparent outline-none truncate min-w-0"
+                  />
+
+                  {/* CF Baseline */}
+                  <div
+                    className={`text-right text-xs font-medium tabular-nums ${
+                      baseline > 0 ? "text-indigo-500" : "text-gray-300"
+                    }`}
+                  >
+                    {item.cfSourceName && baseline > 0 ? fmt(baseline) : "—"}
+                  </div>
+
+                  {/* Input */}
+                  <NumberInput
+                    value={item.monthlyAmount}
+                    onChange={(v) => store.updateBasicExpense(item.id, v)}
+                    disabled={item.pullFromCf}
+                  />
+
+                  {/* Arrow */}
+                  <div className="flex justify-center">
+                    {renderArrow(item, baseline)}
+                  </div>
+
+                  {/* Trash */}
+                  <button
+                    onClick={() => store.removeBasicExpense(item.id)}
+                    className="text-gray-300 hover:text-red-500"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              );
+            })}
           </div>
           <button
             onClick={() => store.addBasicExpense("รายจ่ายใหม่")}

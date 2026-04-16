@@ -52,6 +52,11 @@ interface RetirementState {
   updateBasicExpenseName: (id: string, name: string) => void;
   removeBasicExpense: (id: string) => void;
   loadBasicExpensesFromCF: (monthlyEssential: number, items?: { name: string; amount: number }[]) => void;
+  /**
+   * เปิด/ปิด auto-sync จาก Cash Flow baseline
+   * ถ้าผ่าน cfBaseline มา → ใช้ค่านั้น overwrite monthlyAmount เมื่อ toggle ON
+   */
+  toggleBasicExpensePullFromCf: (id: string, cfBaseline?: number) => void;
 
   // Actions — Special Expenses
   addSpecialExpense: (name: string) => void;
@@ -176,6 +181,19 @@ export const useRetirementStore = create<RetirementState>()(
           });
         }
       },
+      toggleBasicExpensePullFromCf: (id, cfBaseline) =>
+        set((s) => ({
+          basicExpenses: s.basicExpenses.map((e) => {
+            if (e.id !== id) return e;
+            const nextPull = !e.pullFromCf;
+            // เมื่อ toggle ON → overwrite monthlyAmount ด้วย CF baseline (ถ้ามี)
+            const nextAmount =
+              nextPull && cfBaseline !== undefined
+                ? cfBaseline
+                : e.monthlyAmount;
+            return { ...e, pullFromCf: nextPull, monthlyAmount: nextAmount };
+          }),
+        })),
 
       // Special Expenses
       addSpecialExpense: (name) =>
@@ -410,7 +428,7 @@ export const useRetirementStore = create<RetirementState>()(
     }),
     {
       name: "ffc-retirement",
-      version: 10,
+      version: 11,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       migrate: (persisted: any, version: number) => {
         if (persisted?.savingFunds) {
@@ -614,6 +632,78 @@ export const useRetirementStore = create<RetirementState>()(
         }
         if (!Array.isArray(persisted?.travelPlanItems)) {
           persisted.travelPlanItems = [];
+        }
+        // v11: Basic expenses — link to CF baseline via cfSourceName + remove
+        // "ค่าเบี้ยประกัน" (now handled in special expenses) + fix typo
+        // "อินเตอร์เน็ต" → "อินเทอร์เน็ต" + add "ค่า Subscription" default.
+        if (persisted?.basicExpenses && Array.isArray(persisted.basicExpenses)) {
+          // Inject cfSourceName for still-default names on re1..re4
+          const cfLinkDefaults: Record<
+            string,
+            { oldNames: string[]; newName: string; cfSourceName: string }
+          > = {
+            re1: {
+              oldNames: ["ค่าอาหาร"],
+              newName: "ค่าอาหาร",
+              cfSourceName: "ค่าอาหาร",
+            },
+            re2: {
+              oldNames: ["ค่าเดินทาง"],
+              newName: "ค่าเดินทาง",
+              cfSourceName: "ค่าเดินทาง",
+            },
+            re3: {
+              oldNames: ["ค่าน้ำ ค่าไฟ"],
+              newName: "ค่าน้ำ ค่าไฟ",
+              cfSourceName: "ค่าน้ำ ค่าไฟ",
+            },
+            re4: {
+              oldNames: [
+                "ค่าโทรศัพท์ อินเตอร์เน็ต",
+                "ค่าโทรศัพท์ อินเทอร์เน็ต",
+              ],
+              newName: "ค่าโทรศัพท์ อินเทอร์เน็ต",
+              cfSourceName: "ค่าโทรศัพท์ อินเทอร์เน็ต",
+            },
+          };
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          persisted.basicExpenses.forEach((b: any) => {
+            if (!b) return;
+            const def = cfLinkDefaults[b.id];
+            if (def && def.oldNames.includes(b.name)) {
+              if (b.cfSourceName === undefined) b.cfSourceName = def.cfSourceName;
+              b.name = def.newName; // ensure canonical spelling
+            }
+          });
+          // Remove legacy re5 "ค่าเบี้ยประกัน" (insurance premium no longer tracked
+          // as basic expense — now covered in special expenses se1)
+          persisted.basicExpenses = persisted.basicExpenses.filter(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (b: any) => !(b && b.id === "re5" && b.name === "ค่าเบี้ยประกัน"),
+          );
+          // Insert new default "ค่า Subscription" if no item already links to it
+          const hasSubscription = persisted.basicExpenses.some(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (b: any) => b && b.cfSourceName === "ค่า Subscription",
+          );
+          if (!hasSubscription) {
+            const subEntry = {
+              id: "re5",
+              name: "ค่า Subscription",
+              monthlyAmount: 0,
+              cfSourceName: "ค่า Subscription",
+            };
+            // Insert after re4 if found, else at end
+            const re4Idx = persisted.basicExpenses.findIndex(
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (b: any) => b && b.id === "re4",
+            );
+            if (re4Idx >= 0) {
+              persisted.basicExpenses.splice(re4Idx + 1, 0, subEntry);
+            } else {
+              persisted.basicExpenses.push(subEntry);
+            }
+          }
         }
         return persisted;
       },
