@@ -357,7 +357,6 @@ export default function RetirementDiagram({
           const retireMidX = (fvX + resX) / 2;
           const pillY = 24;
           const pillBottomY = pillY + 18;
-          const sumBadgeY = (pillBottomY + baseline) / 2;
 
           // Multiplier pill position — above the inflation arrow
           const arrowStartY = baseline - pvH + 4;
@@ -365,8 +364,19 @@ export default function RetirementDiagram({
           const arrowMidY = (arrowStartY + arrowEndY) / 2;
           const multPillY = Math.max(arrowMidY - 18, 42);
 
-          // Hide sum badge if retirement span too narrow (would overlap FV bar)
-          const showSumBadge = retireMidX - 58 > fvX + barW / 2 + 4;
+          // Curly brace spanning red bars (tips down on bars, peak up toward pill)
+          const braceLeft = fvX + 0.5 * barSlot - redBarW / 2;
+          const braceRight =
+            fvX + (retireYears - 0.5) * barSlot + redBarW / 2;
+          const braceCenter = (braceLeft + braceRight) / 2;
+          const braceTipY = baseline - 2;            // tips land just above red bar tops
+          const braceDepth = 5;
+          const bracePeakY = braceTipY - 2 * braceDepth; // peak pointing up
+          const sigmaR = 13;                          // Σ badge radius
+          const sigmaCy = bracePeakY - sigmaR - 2;   // Σ badge just above brace peak
+          // Short connector from Σ badge up to A pill bottom
+          const sigmaToPillY1 = sigmaCy - sigmaR;
+          const sigmaToPillY2 = pillBottomY + 1;
 
           return (
             <>
@@ -475,7 +485,7 @@ export default function RetirementDiagram({
                       fill="#0891b2"
                       pointerEvents="none"
                     >
-                      ทุนเกษียณ (A) — รวม NPV รายปี
+                      ทุนเกษียณรวม (A) · ณ วันเกษียณ
                     </text>
                     <text
                       x={0}
@@ -491,45 +501,92 @@ export default function RetirementDiagram({
                   </g>
                 </g>
 
-                {/* Vertical dashed connector from A pill down to red bars */}
-                <line
-                  className="dg-connector"
-                  x1={retireMidX}
-                  y1={pillBottomY}
-                  x2={retireMidX}
-                  y2={baseline + 2}
-                  stroke="#22d3ee"
-                  strokeWidth={1.3}
-                  strokeDasharray="4 3"
-                  opacity={0.75}
-                />
+                {/* ── Sum-from-below visual ──
+                    Curly brace spans all red bars (tips land on first/last bar
+                    tops, peak up toward A pill), Σ circle badge sits just above
+                    the brace peak, and a short solid connector links Σ → A pill.
+                    Conveys "sum of all yearly red bars = A" without a dashed
+                    vertical line across the chart. */}
+                {retireYears >= 2 && (
+                  <>
+                    <path
+                      className="dg-connector"
+                      d={`M ${braceLeft},${braceTipY}
+                        Q ${braceLeft},${braceTipY - braceDepth} ${braceLeft + braceDepth},${braceTipY - braceDepth}
+                        L ${braceCenter - braceDepth},${braceTipY - braceDepth}
+                        Q ${braceCenter},${braceTipY - braceDepth} ${braceCenter},${bracePeakY}
+                        Q ${braceCenter},${braceTipY - braceDepth} ${braceCenter + braceDepth},${braceTipY - braceDepth}
+                        L ${braceRight - braceDepth},${braceTipY - braceDepth}
+                        Q ${braceRight},${braceTipY - braceDepth} ${braceRight},${braceTipY}`}
+                      stroke="#22d3ee"
+                      fill="none"
+                      strokeWidth={1.5}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
 
-                {/* Σ NPV badge on the connector */}
-                {showSumBadge && (
-                  <g transform={`translate(${retireMidX}, ${sumBadgeY})`}>
-                    <g className="dg-sum-badge">
-                      <rect
-                        x={-58}
-                        y={-10}
-                        width={116}
-                        height={20}
-                        rx={10}
-                        fill="white"
-                        stroke="#22d3ee"
-                        strokeWidth={1}
-                      />
-                      <text
-                        x={0}
-                        y={3.5}
-                        textAnchor="middle"
-                        fontSize="9"
-                        fontWeight="700"
-                        fill="#0891b2"
+                    {/* Σ circle badge just above brace peak */}
+                    <g transform={`translate(${braceCenter}, ${sigmaCy})`}>
+                      <g
+                        className="dg-sum-badge"
+                        onMouseEnter={(e) =>
+                          showTip(e, {
+                            title: "Σ — รวมทุกปี (NPV)",
+                            lines: [
+                              {
+                                label: "รวมทุนเกษียณ",
+                                value: `฿${fmt(basicRetireFund)}`,
+                                color: "#0891b2",
+                              },
+                              {
+                                label: "ที่มา",
+                                value: `${retireYears} แท่งรายปี`,
+                              },
+                            ],
+                          })
+                        }
+                        onMouseMove={moveTip}
+                        onMouseLeave={hideTip}
+                        style={{ cursor: "help" }}
                       >
-                        Σ NPV รายปี = A
-                      </text>
+                        <circle
+                          r={sigmaR + 2}
+                          fill="#cffafe"
+                          opacity={0.6}
+                        />
+                        <circle
+                          r={sigmaR}
+                          fill="#ecfeff"
+                          stroke="#22d3ee"
+                          strokeWidth={1.5}
+                        />
+                        <text
+                          x={0}
+                          y={5}
+                          textAnchor="middle"
+                          fontSize="16"
+                          fontWeight="800"
+                          fill="#0891b2"
+                          fontFamily="Georgia, serif"
+                          pointerEvents="none"
+                        >
+                          Σ
+                        </text>
+                      </g>
                     </g>
-                  </g>
+
+                    {/* Short solid connector: Σ top → A pill bottom */}
+                    <line
+                      className="dg-connector"
+                      x1={braceCenter}
+                      y1={sigmaToPillY1}
+                      x2={retireMidX}
+                      y2={sigmaToPillY2}
+                      stroke="#22d3ee"
+                      strokeWidth={1.3}
+                      strokeLinecap="round"
+                    />
+                  </>
                 )}
 
                 {/* ── PV bar (monthly, today) ── */}
@@ -551,6 +608,18 @@ export default function RetirementDiagram({
                   onMouseLeave={hideTip}
                   style={{ cursor: "help" }}
                 >
+                  <text
+                    x={pvX}
+                    y={baseline - pvH - 6}
+                    textAnchor="middle"
+                    fontSize="8"
+                    fontWeight="600"
+                    fill="#64748b"
+                    className="dg-text-delay"
+                    pointerEvents="none"
+                  >
+                    /เดือน · วันนี้
+                  </text>
                   <rect
                     className="dg-bar dg-bar-pv"
                     x={pvX - barW / 2}
@@ -663,6 +732,18 @@ export default function RetirementDiagram({
                   onMouseLeave={hideTip}
                   style={{ cursor: "help" }}
                 >
+                  <text
+                    x={fvX}
+                    y={baseline - fvH - 6}
+                    textAnchor="middle"
+                    fontSize="8"
+                    fontWeight="600"
+                    fill="#1e3a5f"
+                    className="dg-text-delay"
+                    pointerEvents="none"
+                  >
+                    /เดือน · ณ วันเกษียณ
+                  </text>
                   <rect
                     className="dg-bar dg-bar-fv"
                     x={fvX - barW / 2}
@@ -752,18 +833,7 @@ export default function RetirementDiagram({
                   );
                 })}
 
-                {/* Bottom labels */}
-                <text
-                  x={pvX}
-                  y={baseline + lowerMaxH + 20}
-                  textAnchor="middle"
-                  fontSize="9"
-                  fill="#9ca3af"
-                  className="dg-text-delay"
-                  pointerEvents="none"
-                >
-                  รายเดือน วันนี้
-                </text>
+                {/* Bottom label (red bars cluster) */}
                 <text
                   x={retireMidX}
                   y={baseline + lowerMaxH + 20}
