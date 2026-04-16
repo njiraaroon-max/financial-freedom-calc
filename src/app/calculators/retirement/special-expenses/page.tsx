@@ -45,6 +45,62 @@ const ITEM_META: Record<string, { icon: React.ElementType; desc: string }> = {
   se5: { icon: Car, desc: "ยานพาหนะ/ค่าบำรุงรักษา" },
 };
 
+// ---------- Per-item calculation hints ----------
+const HINT_CONTENT: Record<string, React.ReactNode> = {
+  se4: (
+    <>
+      <div className="font-bold">วิธีคิด — ซ่อมแซม/ต่อเติมบ้าน</div>
+      <div>
+        ใส่ <b>ราคาวันนี้</b> ของการซ่อมครั้งนั้น ๆ และอายุที่คาดว่าจะเกิด
+        (ถ้ามีหลายครั้ง กด &ldquo;+ เพิ่มรายการ&rdquo;)
+      </div>
+      <div className="pt-1">
+        <div className="font-bold">ช่วงราคาอ้างอิง</div>
+        <ul className="list-disc pl-4 space-y-0.5">
+          <li>ทาสี / เปลี่ยนหลังคา / ปูพื้นใหม่: 100,000 - 300,000</li>
+          <li>ปรับปรุงห้องน้ำ / ครัว / ต่อเติม: 300,000 - 1,000,000</li>
+          <li>Renovation ใหญ่: 1,000,000 - 3,000,000+</li>
+        </ul>
+      </div>
+      <div className="pt-1">
+        <div className="font-bold">สูตรที่ระบบใช้</div>
+        <div>
+          1. <b>FV</b> ณ ปีใช้จริง = PV × (1 + เงินเฟ้อ)<sup>ปีที่เกิด − ปีปัจจุบัน</sup>
+        </div>
+        <div>
+          2. <b>NPV</b> ณ วันเกษียณ = FV ÷ (1 + postRetireReturn)<sup>ปีที่เกิด − ปีเกษียณ</sup>
+        </div>
+      </div>
+    </>
+  ),
+  se5: (
+    <>
+      <div className="font-bold">วิธีคิด — รถยนต์</div>
+      <div>
+        ใส่ <b>ราคาวันนี้</b> ของรถที่จะเปลี่ยนและอายุที่คาดจะเปลี่ยน
+        (ถ้าจะเปลี่ยนหลายครั้ง กด &ldquo;+ เพิ่มรายการ&rdquo; — ตั้งอายุต่างกัน)
+      </div>
+      <div className="pt-1">
+        <div className="font-bold">ช่วงราคาอ้างอิง (รถใหม่)</div>
+        <ul className="list-disc pl-4 space-y-0.5">
+          <li>อีโคคาร์ / City car: 500,000 - 900,000</li>
+          <li>Sedan / Hatchback: 900,000 - 1,500,000</li>
+          <li>SUV / Pickup / EV: 1,200,000 - 3,000,000+</li>
+        </ul>
+      </div>
+      <div className="pt-1">
+        <div className="font-bold">สูตรที่ระบบใช้</div>
+        <div>
+          1. <b>FV</b> ณ ปีใช้จริง = PV × (1 + เงินเฟ้อ)<sup>ปีที่เกิด − ปีปัจจุบัน</sup>
+        </div>
+        <div>
+          2. <b>NPV</b> ณ วันเกษียณ = FV ÷ (1 + postRetireReturn)<sup>ปีที่เกิด − ปีเกษียณ</sup>
+        </div>
+      </div>
+    </>
+  ),
+};
+
 export default function SpecialExpensesPage() {
   const store = useRetirementStore();
   const profile = useProfileStore();
@@ -328,6 +384,7 @@ export default function SpecialExpensesPage() {
                     direction="expense"
                     item={item}
                     ctx={ctx}
+                    hintContent={HINT_CONTENT[item.id]}
                     onUpdateName={(name) =>
                       store.updateSpecialExpenseName(item.id, name)
                     }
@@ -374,7 +431,7 @@ export default function SpecialExpensesPage() {
               ตารางสรุป ค่าใช้จ่ายพิเศษหลังเกษียณ
             </span>
             <span className="text-[10px] text-white/80 font-medium">
-              NPV ณ วันเกษียณ
+              มูลค่าที่ต้องเตรียม ณ วันเกษียณ
             </span>
           </div>
           <div className="divide-y divide-gray-100">
@@ -421,7 +478,7 @@ export default function SpecialExpensesPage() {
                 ทุนเกษียณ (B)
               </div>
               <div className="text-[10px] text-gray-500">
-                รวม NPV ค่าใช้จ่ายพิเศษ ณ วันเกษียณ
+                รวมมูลค่าที่ต้องเตรียม ณ วันเกษียณ
               </div>
             </div>
             <span className="text-lg font-extrabold text-pink-700">

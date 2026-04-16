@@ -21,6 +21,7 @@ import {
   ChevronRight,
   Settings2,
   ExternalLink,
+  Info,
 } from "lucide-react";
 import type {
   CashflowItem,
@@ -109,6 +110,8 @@ interface InlineProps extends BaseProps {
   onUpdateOccurAge?: (age: number | undefined) => void;
   onUpdateStartAge?: (age: number | undefined) => void;
   onUpdateEndAge?: (age: number | undefined) => void;
+  /** optional hint content — (i) button appears next to name when provided */
+  hintContent?: React.ReactNode;
 }
 
 interface LinkedProps extends BaseProps {
@@ -189,34 +192,58 @@ function Header({
   onUpdateName,
   onRemove,
   canRemove,
+  hintContent,
 }: {
   name: string;
   onUpdateName?: (name: string) => void;
   onRemove?: () => void;
   canRemove?: boolean;
+  hintContent?: React.ReactNode;
 }) {
+  const [showHint, setShowHint] = useState(false);
   return (
-    <div className="flex items-center gap-2">
-      {onUpdateName ? (
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => onUpdateName(e.target.value)}
-          className="flex-1 text-xs font-medium bg-transparent outline-none truncate"
-        />
-      ) : (
-        <div className="flex-1 text-xs font-medium truncate">{name}</div>
+    <>
+      <div className="flex items-center gap-2">
+        {onUpdateName ? (
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => onUpdateName(e.target.value)}
+            className="flex-1 text-xs font-medium bg-transparent outline-none truncate"
+          />
+        ) : (
+          <div className="flex-1 text-xs font-medium truncate">{name}</div>
+        )}
+        {hintContent && (
+          <button
+            type="button"
+            onClick={() => setShowHint((v) => !v)}
+            className={`w-5 h-5 rounded-full flex items-center justify-center transition ${
+              showHint
+                ? "bg-blue-500 text-white"
+                : "bg-blue-100 text-blue-500 hover:bg-blue-200"
+            }`}
+            aria-label="วิธีคำนวณ"
+          >
+            <Info size={11} />
+          </button>
+        )}
+        {canRemove && onRemove && (
+          <button
+            onClick={onRemove}
+            className="text-gray-300 hover:text-red-500 transition"
+            aria-label="ลบรายการ"
+          >
+            <Trash2 size={14} />
+          </button>
+        )}
+      </div>
+      {showHint && hintContent && (
+        <div className="bg-blue-50 border border-blue-100 rounded-lg p-2.5 text-[11px] text-blue-900 leading-relaxed space-y-1.5">
+          {hintContent}
+        </div>
       )}
-      {canRemove && onRemove && (
-        <button
-          onClick={onRemove}
-          className="text-gray-300 hover:text-red-500 transition"
-          aria-label="ลบรายการ"
-        >
-          <Trash2 size={14} />
-        </button>
-      )}
-    </div>
+    </>
   );
 }
 
@@ -264,6 +291,7 @@ function InlineCard({
   onUpdateEndAge,
   onRemove,
   canRemove,
+  hintContent,
 }: InlineProps & { accent: AccentTheme }) {
   // Derive normalized props to render
   const amount = readAmount(item);
@@ -290,6 +318,7 @@ function InlineCard({
         onUpdateName={onUpdateName}
         onRemove={onRemove}
         canRemove={canRemove}
+        hintContent={hintContent}
       />
 
       {/* Kind toggle */}
@@ -360,7 +389,7 @@ function InlineCard({
         <PreviewBox
           occurLabel={kind === "lump" ? "ณ วันใช้จริง" : "รายปีเฉลี่ย"}
           occurValue={`฿${fmtM(occurPreview)}`}
-          npvLabel="มูลค่า ณ วันเกษียณ (NPV)"
+          npvLabel="มูลค่าที่ต้องเตรียม ณ วันเกษียณ"
           npvValue={`฿${fmtM(npv)}`}
           accent={accent}
         />
@@ -606,7 +635,7 @@ function LinkedCard({
         <PreviewBox
           occurLabel="รายปีเฉลี่ย"
           occurValue={`฿${fmtM(avg)}`}
-          npvLabel="มูลค่า ณ วันเกษียณ (NPV)"
+          npvLabel="มูลค่าที่ต้องเตรียม ณ วันเกษียณ"
           npvValue={`฿${fmtM(npv)}`}
           accent={accent}
         />
@@ -677,7 +706,7 @@ function SubCalcCard({
         <PreviewBox
           occurLabel="รายปีเฉลี่ย"
           occurValue={`฿${fmtM(avg)}`}
-          npvLabel="มูลค่า ณ วันเกษียณ (NPV)"
+          npvLabel="มูลค่าที่ต้องเตรียม ณ วันเกษียณ"
           npvValue={`฿${fmtM(npv)}`}
           accent={accent}
         />
