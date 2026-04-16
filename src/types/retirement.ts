@@ -17,6 +17,54 @@ export interface RetirementExpenseItem {
   monthlyAmount: number; // มูลค่าปัจจุบัน
 }
 
+// ===== Cashflow Model (dual-purpose: NPV @ retire + yearly stream) =====
+
+/** recurring = รายปีต่อเนื่อง (ปรับตามเงินเฟ้อ), lump = ก้อนเดียว ณ อายุที่กำหนด */
+export type CashflowKind = "recurring" | "lump";
+
+/** ทิศทางของกระแสเงินสด (income = รายรับ, expense = รายจ่าย) */
+export type CashflowDirection = "income" | "expense";
+
+/**
+ * แหล่งที่มาของค่า:
+ * - inline: ผู้ใช้กรอกเอง
+ * - calc-link: ดึงอัตโนมัติจาก calculator อื่น (e.g. ss_pension จาก SS page)
+ * - sub-calc: ไปใช้ sub-calculator แยก (e.g. travel detail page)
+ */
+export type CashflowSourceKind = "inline" | "calc-link" | "sub-calc";
+
+/**
+ * CashflowItem — generic item ที่รองรับทั้งรายรับ/รายจ่าย
+ * (ใช้สำหรับ travelPlanItems และ custom items ใน hub pages)
+ */
+export interface CashflowItem {
+  id: string;
+  name: string;
+  direction: CashflowDirection;
+
+  /** มูลค่าวันนี้ (PV) — ค่าก้อน (ถ้า lump) หรือค่ารายปี (ถ้า recurring) */
+  amount: number;
+  inflationRate?: number;                 // default = generalInflation
+
+  kind: CashflowKind;                     // lump | recurring
+  occurAge?: number;                      // อายุที่ใช้จริง (ใช้กับ kind="lump")
+  startAge?: number;                      // อายุเริ่ม (ใช้กับ kind="recurring"; default = retireAge)
+  endAge?: number;                        // อายุสิ้นสุด (ใช้กับ kind="recurring"; default = lifeExpectancy + extra)
+
+  /** Source metadata — สำหรับ hub items; custom items ให้ใช้ "inline" */
+  sourceKind?: CashflowSourceKind;
+  calcSourceKey?: string;                 // e.g. "ss_pension", "travel_detail"
+}
+
+/**
+ * YearlyFlowRow — แผ่ CashflowItem ออกเป็น per-year value (nominal/inflated)
+ */
+export interface YearlyFlowRow {
+  age: number;
+  amount: number;        // nominal (inflated) ณ ปีที่ใช้จริง
+  label?: string;        // optional — ชื่อ sub-item (เช่น "ยุโรป")
+}
+
 // ===== Special Expenses =====
 export type SpecialExpenseKind = "annual" | "lump";
 
@@ -25,19 +73,34 @@ export interface SpecialExpenseItem {
   name: string;
   amount: number;                 // มูลค่าปัจจุบัน (PV)
   inflationRate?: number;         // ใช้เงินเฟ้อตัวไหน (default = general)
-  kind?: SpecialExpenseKind;      // "annual" = จ่ายทุกปี, "lump" = จ่ายครั้งเดียวตอนเกษียณ
-  startAge?: number;              // อายุที่เริ่มจ่าย (ใช้กับ kind="annual" เท่านั้น; default = retireAge)
-  endAge?: number;                // อายุที่หยุดจ่าย (ใช้กับ kind="annual" เท่านั้น; default = lifeExpectancy + extraYears)
+  kind?: SpecialExpenseKind;      // "annual" = จ่ายทุกปี, "lump" = จ่ายครั้งเดียว
+  startAge?: number;              // อายุเริ่มจ่าย (kind="annual"; default = retireAge)
+  endAge?: number;                // อายุหยุดจ่าย (kind="annual"; default = lifeExpectancy + extra)
+
+  // --- Cashflow model extension (v10) ---
+  occurAge?: number;              // อายุที่ใช้จริง (kind="lump"; default = retireAge)
+  sourceKind?: CashflowSourceKind; // default "inline"
+  calcSourceKey?: string;          // e.g. "pillar2_health", "caretaker", "travel_detail"
 }
 
 // ===== Saving Fund Source =====
 export interface SavingFundItem {
   id: string;
   name: string;
-  value: number;           // มูลค่า ณ วันเกษียณ
+  value: number;                   // มูลค่า ณ วันเกษียณ (cached NPV)
   source: "manual" | "calculator"; // กรอกเอง หรือ ดึงจาก calculator
-  calculatorKey?: string;  // key ของ variable ที่ดึง
+  calculatorKey?: string;          // key ของ variable ที่ดึง
   note?: string;
+
+  // --- Cashflow model extension (v10) ---
+  amount?: number;                 // มูลค่าวันนี้ (PV) — สำหรับ inline items เช่น sf4 RMF
+  inflationRate?: number;          // default = generalInflation (สำหรับ inline)
+  kind?: CashflowKind;             // lump | recurring
+  occurAge?: number;               // อายุที่รับเงิน (kind="lump"; default = retireAge)
+  startAge?: number;               // อายุเริ่มรับ (kind="recurring")
+  endAge?: number;                 // อายุสิ้นสุดรับ (kind="recurring")
+  sourceKind?: CashflowSourceKind; // default "inline" for custom, "calc-link" for sf1-sf5
+  calcSourceKey?: string;          // e.g. "ss_pension", "pvd_at_retire"
 }
 
 // ===== Investment Plan =====
@@ -116,22 +179,122 @@ export const DEFAULT_BASIC_EXPENSES: RetirementExpenseItem[] = [
 ];
 
 export const DEFAULT_SPECIAL_EXPENSES: SpecialExpenseItem[] = [
-  { id: "se1", name: "เบี้ยประกันสุขภาพหลังเกษียณ", amount: 0, inflationRate: 0.07, kind: "annual" },
-  { id: "se2", name: "ค่าคนดูแลยามเกษียณ", amount: 0, inflationRate: 0.05, kind: "annual", startAge: 75 },
-  { id: "se3", name: "ท่องเที่ยวและสันทนาการ", amount: 0, kind: "annual" },
-  { id: "se4", name: "ซ่อมแซมที่อยู่อาศัย", amount: 0, kind: "lump" },
-  { id: "se5", name: "รถยนต์", amount: 0, kind: "lump" },
+  {
+    id: "se1",
+    name: "เบี้ยประกันสุขภาพหลังเกษียณ",
+    amount: 0,
+    inflationRate: 0.07,
+    kind: "annual",
+    sourceKind: "calc-link",
+    calcSourceKey: "pillar2_health",
+  },
+  {
+    id: "se2",
+    name: "ค่าคนดูแลยามเกษียณ",
+    amount: 0,
+    inflationRate: 0.05,
+    kind: "annual",
+    startAge: 75,
+    sourceKind: "calc-link",
+    calcSourceKey: "caretaker",
+  },
+  {
+    id: "se3",
+    name: "ท่องเที่ยวและสันทนาการ",
+    amount: 0,
+    kind: "annual",
+    sourceKind: "sub-calc",
+    calcSourceKey: "travel_detail",
+  },
+  {
+    id: "se4",
+    name: "ซ่อมแซมที่อยู่อาศัย",
+    amount: 0,
+    kind: "lump",
+    sourceKind: "inline",
+  },
+  {
+    id: "se5",
+    name: "รถยนต์",
+    amount: 0,
+    kind: "lump",
+    sourceKind: "inline",
+  },
 ];
 
 export const DEFAULT_SAVING_FUNDS: SavingFundItem[] = [
-  { id: "sf1", name: "บำนาญประกันสังคม", value: 0, source: "calculator", calculatorKey: "ss_pension_npv" },
-  { id: "sf2", name: "กองทุนสำรองเลี้ยงชีพ (PVD)", value: 0, source: "calculator", calculatorKey: "pvd_at_retire" },
-  { id: "sf3", name: "เงินชดเชยตามกฎหมายแรงงาน", value: 0, source: "calculator", calculatorKey: "severance_pay" },
-  { id: "sf4", name: "กองทุน RMF", value: 0, source: "manual" },
-  { id: "sf5", name: "ประกันบำนาญ", value: 0, source: "calculator", calculatorKey: "pension_insurance_npv" },
-  { id: "sf6", name: "กบข.", value: 0, source: "manual" },
-  { id: "sf7", name: "เงินครบกำหนดประกันชีวิต", value: 0, source: "manual" },
-  { id: "sf8", name: "แหล่งเงินออมอื่นๆ", value: 0, source: "manual" },
+  {
+    id: "sf1",
+    name: "บำนาญประกันสังคม",
+    value: 0,
+    source: "calculator",
+    calculatorKey: "ss_pension_npv",
+    sourceKind: "calc-link",
+    calcSourceKey: "ss_pension",
+    kind: "recurring",
+  },
+  {
+    id: "sf2",
+    name: "กองทุนสำรองเลี้ยงชีพ (PVD)",
+    value: 0,
+    source: "calculator",
+    calculatorKey: "pvd_at_retire",
+    sourceKind: "calc-link",
+    calcSourceKey: "pvd_at_retire",
+    kind: "lump",
+  },
+  {
+    id: "sf3",
+    name: "เงินชดเชยตามกฎหมายแรงงาน",
+    value: 0,
+    source: "calculator",
+    calculatorKey: "severance_pay",
+    sourceKind: "calc-link",
+    calcSourceKey: "severance_pay",
+    kind: "lump",
+  },
+  {
+    id: "sf4",
+    name: "กองทุน RMF",
+    value: 0,
+    source: "manual",
+    sourceKind: "inline",
+    kind: "lump",
+  },
+  {
+    id: "sf5",
+    name: "ประกันบำนาญ",
+    value: 0,
+    source: "calculator",
+    calculatorKey: "pension_insurance_npv",
+    sourceKind: "calc-link",
+    calcSourceKey: "pension_insurance",
+    kind: "recurring",
+  },
+  {
+    id: "sf6",
+    name: "กบข.",
+    value: 0,
+    source: "manual",
+    sourceKind: "inline",
+    kind: "lump",
+  },
+  {
+    id: "sf7",
+    name: "เงินครบกำหนดประกันชีวิต",
+    value: 0,
+    source: "manual",
+    sourceKind: "inline",
+    kind: "lump",
+  },
+  {
+    id: "sf8",
+    name: "แหล่งเงินออมอื่นๆ",
+    value: 0,
+    source: "manual",
+    sourceKind: "inline",
+    kind: "lump",
+  },
 ];
 
 export const DEFAULT_CARETAKER: CaretakerParams = {

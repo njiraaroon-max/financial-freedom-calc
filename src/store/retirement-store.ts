@@ -13,6 +13,8 @@ import type {
   SocialSecurityParams,
   SeveranceParams,
   CaretakerParams,
+  CashflowItem,
+  CashflowKind,
 } from "@/types/retirement";
 import {
   DEFAULT_ASSUMPTIONS,
@@ -32,6 +34,8 @@ interface RetirementState {
   specialExpenses: SpecialExpenseItem[];
   savingFunds: SavingFundItem[];
   investmentPlans: InvestmentPlanItem[];
+  /** Travel sub-calc items (used by se3 detail page) */
+  travelPlanItems: CashflowItem[];
 
   // Sub-calculator params
   pvdParams: PVDParams;
@@ -56,6 +60,8 @@ interface RetirementState {
   updateSpecialExpenseInflation: (id: string, rate: number) => void;
   updateSpecialExpenseKind: (id: string, kind: SpecialExpenseKind) => void;
   updateSpecialExpenseStartAge: (id: string, startAge: number | undefined) => void;
+  updateSpecialExpenseEndAge: (id: string, endAge: number | undefined) => void;
+  updateSpecialExpenseOccurAge: (id: string, occurAge: number | undefined) => void;
   removeSpecialExpense: (id: string) => void;
   restoreSpecialExpense: (item: SpecialExpenseItem, index?: number) => void;
   restoreDefaultSpecialExpenses: () => void;
@@ -64,8 +70,19 @@ interface RetirementState {
   addSavingFund: (name: string) => void;
   updateSavingFund: (id: string, value: number) => void;
   updateSavingFundName: (id: string, name: string) => void;
+  updateSavingFundAmount: (id: string, amount: number) => void;
+  updateSavingFundInflation: (id: string, rate: number) => void;
+  updateSavingFundKind: (id: string, kind: CashflowKind) => void;
+  updateSavingFundOccurAge: (id: string, occurAge: number | undefined) => void;
+  updateSavingFundStartAge: (id: string, startAge: number | undefined) => void;
+  updateSavingFundEndAge: (id: string, endAge: number | undefined) => void;
   removeSavingFund: (id: string) => void;
   pullFromCalculator: (id: string, value: number) => void;
+
+  // Actions — Travel Plan (se3 sub-calc)
+  addTravelPlanItem: (item?: Partial<CashflowItem>) => void;
+  updateTravelPlanItem: (id: string, updates: Partial<CashflowItem>) => void;
+  removeTravelPlanItem: (id: string) => void;
 
   // Actions — Investment Plans
   addInvestmentPlan: () => void;
@@ -123,6 +140,7 @@ export const useRetirementStore = create<RetirementState>()(
       specialExpenses: [...DEFAULT_SPECIAL_EXPENSES],
       savingFunds: [...DEFAULT_SAVING_FUNDS],
       investmentPlans: [],
+      travelPlanItems: [],
       pvdParams: { ...DEFAULT_PVD },
       ssParams: { ...DEFAULT_SS },
       severanceParams: { ...DEFAULT_SEVERANCE },
@@ -162,7 +180,16 @@ export const useRetirementStore = create<RetirementState>()(
       // Special Expenses
       addSpecialExpense: (name) =>
         set((s) => ({
-          specialExpenses: [...s.specialExpenses, { id: generateId(), name, amount: 0, kind: "annual" }],
+          specialExpenses: [
+            ...s.specialExpenses,
+            {
+              id: generateId(),
+              name,
+              amount: 0,
+              kind: "lump",
+              sourceKind: "inline",
+            },
+          ],
         })),
       updateSpecialExpense: (id, amount) =>
         set((s) => ({
@@ -184,6 +211,18 @@ export const useRetirementStore = create<RetirementState>()(
         set((s) => ({
           specialExpenses: s.specialExpenses.map((e) =>
             e.id === id ? { ...e, startAge } : e,
+          ),
+        })),
+      updateSpecialExpenseEndAge: (id, endAge) =>
+        set((s) => ({
+          specialExpenses: s.specialExpenses.map((e) =>
+            e.id === id ? { ...e, endAge } : e,
+          ),
+        })),
+      updateSpecialExpenseOccurAge: (id, occurAge) =>
+        set((s) => ({
+          specialExpenses: s.specialExpenses.map((e) =>
+            e.id === id ? { ...e, occurAge } : e,
           ),
         })),
       removeSpecialExpense: (id) =>
@@ -213,7 +252,17 @@ export const useRetirementStore = create<RetirementState>()(
       // Saving Funds
       addSavingFund: (name) =>
         set((s) => ({
-          savingFunds: [...s.savingFunds, { id: generateId(), name, value: 0, source: "manual" }],
+          savingFunds: [
+            ...s.savingFunds,
+            {
+              id: generateId(),
+              name,
+              value: 0,
+              source: "manual",
+              sourceKind: "inline",
+              kind: "lump",
+            },
+          ],
         })),
       updateSavingFund: (id, value) =>
         set((s) => ({
@@ -223,6 +272,38 @@ export const useRetirementStore = create<RetirementState>()(
         set((s) => ({
           savingFunds: s.savingFunds.map((f) => (f.id === id ? { ...f, name } : f)),
         })),
+      updateSavingFundAmount: (id, amount) =>
+        set((s) => ({
+          savingFunds: s.savingFunds.map((f) => (f.id === id ? { ...f, amount } : f)),
+        })),
+      updateSavingFundInflation: (id, rate) =>
+        set((s) => ({
+          savingFunds: s.savingFunds.map((f) =>
+            f.id === id ? { ...f, inflationRate: rate } : f,
+          ),
+        })),
+      updateSavingFundKind: (id, kind) =>
+        set((s) => ({
+          savingFunds: s.savingFunds.map((f) => (f.id === id ? { ...f, kind } : f)),
+        })),
+      updateSavingFundOccurAge: (id, occurAge) =>
+        set((s) => ({
+          savingFunds: s.savingFunds.map((f) =>
+            f.id === id ? { ...f, occurAge } : f,
+          ),
+        })),
+      updateSavingFundStartAge: (id, startAge) =>
+        set((s) => ({
+          savingFunds: s.savingFunds.map((f) =>
+            f.id === id ? { ...f, startAge } : f,
+          ),
+        })),
+      updateSavingFundEndAge: (id, endAge) =>
+        set((s) => ({
+          savingFunds: s.savingFunds.map((f) =>
+            f.id === id ? { ...f, endAge } : f,
+          ),
+        })),
       removeSavingFund: (id) =>
         set((s) => ({ savingFunds: s.savingFunds.filter((f) => f.id !== id) })),
       pullFromCalculator: (id, value) =>
@@ -230,6 +311,36 @@ export const useRetirementStore = create<RetirementState>()(
           savingFunds: s.savingFunds.map((f) =>
             f.id === id ? { ...f, value, source: "calculator" as const } : f
           ),
+        })),
+
+      // Travel Plan (se3 sub-calc)
+      addTravelPlanItem: (partial) =>
+        set((s) => ({
+          travelPlanItems: [
+            ...s.travelPlanItems,
+            {
+              id: generateId(),
+              name: partial?.name ?? "รายการใหม่",
+              direction: "expense",
+              amount: partial?.amount ?? 0,
+              inflationRate: partial?.inflationRate ?? 0.04,
+              kind: partial?.kind ?? "recurring",
+              occurAge: partial?.occurAge,
+              startAge: partial?.startAge,
+              endAge: partial?.endAge,
+              sourceKind: "inline",
+            },
+          ],
+        })),
+      updateTravelPlanItem: (id, updates) =>
+        set((s) => ({
+          travelPlanItems: s.travelPlanItems.map((t) =>
+            t.id === id ? { ...t, ...updates } : t,
+          ),
+        })),
+      removeTravelPlanItem: (id) =>
+        set((s) => ({
+          travelPlanItems: s.travelPlanItems.filter((t) => t.id !== id),
         })),
 
       // Investment Plans
@@ -289,6 +400,7 @@ export const useRetirementStore = create<RetirementState>()(
           specialExpenses: [...DEFAULT_SPECIAL_EXPENSES],
           savingFunds: [...DEFAULT_SAVING_FUNDS],
           investmentPlans: [],
+          travelPlanItems: [],
           pvdParams: { ...DEFAULT_PVD },
           ssParams: { ...DEFAULT_SS },
           severanceParams: { ...DEFAULT_SEVERANCE },
@@ -298,7 +410,7 @@ export const useRetirementStore = create<RetirementState>()(
     }),
     {
       name: "ffc-retirement",
-      version: 9,
+      version: 10,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       migrate: (persisted: any, version: number) => {
         if (persisted?.savingFunds) {
@@ -408,6 +520,100 @@ export const useRetirementStore = create<RetirementState>()(
               e.startAge = 75;
             }
           });
+        }
+        // v10: Cashflow model (dual-purpose NPV + yearly stream)
+        //   - specialExpenses: inject sourceKind + calcSourceKey for se1..se5
+        //   - savingFunds: inject sourceKind + calcSourceKey + kind for sf1..sf5
+        //   - travelPlanItems: add empty array if missing
+        const specialDefaults: Record<
+          string,
+          {
+            sourceKind: "inline" | "calc-link" | "sub-calc";
+            calcSourceKey?: string;
+          }
+        > = {
+          se1: { sourceKind: "calc-link", calcSourceKey: "pillar2_health" },
+          se2: { sourceKind: "calc-link", calcSourceKey: "caretaker" },
+          se3: { sourceKind: "sub-calc", calcSourceKey: "travel_detail" },
+          se4: { sourceKind: "inline" },
+          se5: { sourceKind: "inline" },
+        };
+        if (persisted?.specialExpenses && Array.isArray(persisted.specialExpenses)) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          persisted.specialExpenses.forEach((e: any) => {
+            if (!e) return;
+            const def = specialDefaults[e.id];
+            if (def) {
+              if (e.sourceKind === undefined) e.sourceKind = def.sourceKind;
+              if (e.calcSourceKey === undefined && def.calcSourceKey !== undefined) {
+                e.calcSourceKey = def.calcSourceKey;
+              }
+            } else if (e.sourceKind === undefined) {
+              e.sourceKind = "inline"; // custom items
+            }
+            // For lump items: set occurAge default = retireAge (if missing)
+            const retAge = persisted.assumptions?.retireAge ?? 60;
+            if (e.kind === "lump" && e.occurAge === undefined) {
+              e.occurAge = retAge;
+            }
+          });
+        }
+        const fundDefaults: Record<
+          string,
+          {
+            sourceKind: "inline" | "calc-link" | "sub-calc";
+            calcSourceKey?: string;
+            kind: "lump" | "recurring";
+          }
+        > = {
+          sf1: {
+            sourceKind: "calc-link",
+            calcSourceKey: "ss_pension",
+            kind: "recurring",
+          },
+          sf2: {
+            sourceKind: "calc-link",
+            calcSourceKey: "pvd_at_retire",
+            kind: "lump",
+          },
+          sf3: {
+            sourceKind: "calc-link",
+            calcSourceKey: "severance_pay",
+            kind: "lump",
+          },
+          sf4: { sourceKind: "inline", kind: "lump" },
+          sf5: {
+            sourceKind: "calc-link",
+            calcSourceKey: "pension_insurance",
+            kind: "recurring",
+          },
+          sf6: { sourceKind: "inline", kind: "lump" },
+          sf7: { sourceKind: "inline", kind: "lump" },
+          sf8: { sourceKind: "inline", kind: "lump" },
+        };
+        if (persisted?.savingFunds && Array.isArray(persisted.savingFunds)) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          persisted.savingFunds.forEach((f: any) => {
+            if (!f) return;
+            const def = fundDefaults[f.id];
+            const retAge = persisted.assumptions?.retireAge ?? 60;
+            if (def) {
+              if (f.sourceKind === undefined) f.sourceKind = def.sourceKind;
+              if (f.calcSourceKey === undefined && def.calcSourceKey !== undefined) {
+                f.calcSourceKey = def.calcSourceKey;
+              }
+              if (f.kind === undefined) f.kind = def.kind;
+            } else {
+              if (f.sourceKind === undefined) f.sourceKind = "inline";
+              if (f.kind === undefined) f.kind = "lump";
+            }
+            if (f.kind === "lump" && f.occurAge === undefined) {
+              f.occurAge = retAge;
+            }
+          });
+        }
+        if (!Array.isArray(persisted?.travelPlanItems)) {
+          persisted.travelPlanItems = [];
         }
         return persisted;
       },
