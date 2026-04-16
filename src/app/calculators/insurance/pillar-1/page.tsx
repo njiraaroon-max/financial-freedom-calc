@@ -9,6 +9,12 @@ import { useProfileStore } from "@/store/profile-store";
 import { GanttChart, StepLineChart } from "@/components/InsuranceCharts";
 import { useBalanceSheetStore } from "@/store/balance-sheet-store";
 import { useGoalsStore } from "@/store/goals-store";
+import {
+  pvAnnuity,
+  simpleAnnuity,
+  filterLifePolicies,
+  computePillar1Analysis,
+} from "@/lib/pillar1Analysis";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(n: number): string {
@@ -22,22 +28,6 @@ function fmtShort(n: number): string {
 
 const BE_OFFSET = 543;
 const CURRENT_YEAR = new Date().getFullYear();
-
-// TVM: Present Value of Annuity adjusted for inflation
-// annualPmt = monthly * 12, n = years
-// realRate = (1 + investReturn) / (1 + inflation) - 1
-// PV = annualPmt * [(1 - (1+r)^(-n)) / r]  (if r ≈ 0 → PV = annualPmt * n)
-function pvAnnuity(monthlyPmt: number, years: number, inflationPct: number, returnPct: number): number {
-  if (years <= 0 || monthlyPmt <= 0) return 0;
-  const annual = monthlyPmt * 12;
-  const r = (1 + returnPct / 100) / (1 + inflationPct / 100) - 1;
-  if (Math.abs(r) < 0.0001) return annual * years; // near-zero real rate
-  return annual * (1 - Math.pow(1 + r, -years)) / r;
-}
-// Simple (no TVM): monthly * 12 * years
-function simpleAnnuity(monthlyPmt: number, years: number): number {
-  return monthlyPmt * 12 * years;
-}
 
 // ─── Money Input Component ────────────────────────────────────────────────────
 function MoneyField({ label, value, onChange, hint, suffix = "บาท" }: {
@@ -129,119 +119,26 @@ export default function Pillar1Page() {
   // ─── Linked data: Balance Sheet liquid assets ──────────────────────────
   const liquidAssetsFromBS = balanceSheet.getTotalByAssetType("liquid");
 
-  // ─── Life policies from store ─────────────────────────────────────────
-  // Any policy under the "life" category that carries a sumInsured counts as
-  // a death benefit — Thai health/CI/accident products are commonly written
-  // as riders on a life-chassis policy that pays out on death.
-  const lifePolicies = store.policies.filter(
-    (p) => p.category === "life" && (p.sumInsured ?? 0) > 0,
-  );
+  // ─── Life policies from store (shared filter from pillar1Analysis) ──────
+  const lifePolicies = filterLifePolicies(store.policies);
   const totalLifeCoverage = lifePolicies.reduce((s, p) => s + p.sumInsured, 0);
 
   // ─── Education plan link ─────────────────────────────────────────────────
   const educationGoals = goalsStore.goals.filter((g) => g.category === "education");
   const totalEducationFromPlan = educationGoals.reduce((s, g) => s + (g.amount || 0), 0);
 
-  // ─── Calculation ────────────────────────────────────────────────────────
-  const analysis = useMemo(() => {
-    const inf = p1.inflationRate ?? 3;
-    const ret = p1.investmentReturn ?? 5;
-
-    // Debts
-    const debtItemsTotal = (p1.debtItems || []).reduce((s: number, d: { amount: number }) => s + d.amount, 0);
-    const debts = debtItemsTotal + (p1.useBalanceSheetDebts ? totalDebtsFromBS : 0);
-
-    // Dependents-based income needs (both simple & TVM)
-    const deps = p1.dependents || { parents: false, family: false, children: false };
-
-    const parentSimple = deps.parents ? simpleAnnuity(p1.parentSupportMonthly, p1.parentSupportYears) : 0;
-    const parentTVM    = deps.parents ? pvAnnuity(p1.parentSupportMonthly, p1.parentSupportYears, inf, ret) : 0;
-
-    const familySimple = deps.family ? simpleAnnuity(p1.familyExpenseMonthlyNew, p1.familyAdjustmentYearsNew) : 0;
-    const familyTVM    = deps.family ? pvAnnuity(p1.familyExpenseMonthlyNew, p1.familyAdjustmentYearsNew, inf, ret) : 0;
-
-    // Education: per-child remaining levels → TVM, or Goals plan
-    const allLevels = p1.educationLevels || [];
-    const levelKeys = allLevels.map((lv: { key: string }) => lv.key);
-    const children = (p1.educationChildren || []) as { id: string; name: string; currentLevelKey: string; currentYearInLevel: number }[];
-
-    // Per-child education calculation (accounts for year within current level)
-    const perChildEdu = children.map((child) => {
-      const currentIdx = levelKeys.indexOf(child.currentLevelKey);
-      const yearInLevel = child.currentYearInLevel || 1;
-      if (currentIdx < 0) return { id: child.id, name: child.name, currentLevelKey: child.currentLevelKey, remaining: [], totalYears: 0, simpleTotal: 0, tvmTotal: 0 };
-
-      // Build remaining levels with adjusted years for current level
-      const remainingLevels: { key: string; label: string; years: number; costPerYear: number; enabled: boolean; adjustedYears: number }[] = [];
-      for (let i = currentIdx; i < allLevels.length; i++) {
-        const lv = allLevels[i] as { key: string; label: string; years: number; costPerYear: number; enabled: boolean };
-        if (!lv.enabled) continue;
-        // Current level: remaining years = total - (yearInLevel - 1)  (กำลังเรียนปีที่ X → เหลือรวมปีนี้)
-        const adjustedYears = i === currentIdx ? Math.max(lv.years - (yearInLevel - 1), 0) : lv.years;
-        if (adjustedYears > 0) {
-          remainingLevels.push({ ...lv, adjustedYears });
-        }
-      }
-
-      const totalYears = remainingLevels.reduce((s, lv) => s + lv.adjustedYears, 0);
-      const simpleTotal = remainingLevels.reduce((s, lv) => s + lv.adjustedYears * lv.costPerYear, 0);
-      // TVM: weighted-average annual cost → PV of Annuity
-      const avgAnnual = totalYears > 0 ? simpleTotal / totalYears : 0;
-      const tvmTotal = totalYears > 0 ? pvAnnuity(avgAnnual / 12, totalYears, inf, ret) : 0;
-      return { id: child.id, name: child.name, currentLevelKey: child.currentLevelKey, remaining: remainingLevels, totalYears, simpleTotal, tvmTotal };
-    });
-    const eduFromChildren = perChildEdu.reduce((s, c) => s + c.tvmTotal, 0);
-    const eduFromChildrenSimple = perChildEdu.reduce((s, c) => s + c.simpleTotal, 0);
-    // Fallback: if no children added, use flat level calc (backward compat)
-    const eduFromLevelsFlat = allLevels
-      .filter((lv: { enabled: boolean }) => lv.enabled)
-      .reduce((s: number, lv: { years: number; costPerYear: number }) => s + lv.years * lv.costPerYear, 0);
-    const eduFundSimple = children.length > 0 ? eduFromChildrenSimple : eduFromLevelsFlat;
-    const eduFundTVM = children.length > 0 ? eduFromChildren : eduFromLevelsFlat;
-    const eduFund = deps.children ? (p1.useEducationPlan ? totalEducationFromPlan : eduFundTVM) : 0;
-
-    // Custom income items (each has monthlyAmount + years)
-    const incItems = (p1.incomeItems || []) as { name: string; monthlyAmount: number; years: number }[];
-    const customSimple = incItems.reduce((s, it) => s + simpleAnnuity(it.monthlyAmount, it.years), 0);
-    const customTVM    = incItems.reduce((s, it) => s + pvAnnuity(it.monthlyAmount, it.years, inf, ret), 0);
-
-    const totalIncomeSimple = parentSimple + familySimple + eduFund + customSimple;
-    const totalIncomeTVM    = parentTVM + familyTVM + eduFund + customTVM;
-
-    // Total needs (Needs Analysis Approach) — use TVM values
-    const immediateNeeds = [
-      { label: "ค่าพิธีฌาปนกิจ", value: p1.funeralCost },
-      { label: "ค่าปิดยอดหนี้สินคงค้าง", value: debts },
-    ];
-    const incomeNeeds: { label: string; value: number; simple: number }[] = [];
-    if (deps.parents) incomeNeeds.push({ label: `เงินดูแลพ่อ/แม่ (${p1.parentSupportYears} ปี)`, value: parentTVM, simple: parentSimple });
-    if (deps.family) incomeNeeds.push({ label: `ค่าปรับตัวครอบครัว (${p1.familyAdjustmentYearsNew} ปี)`, value: familyTVM, simple: familySimple });
-    if (deps.children) incomeNeeds.push({ label: `ทุนการศึกษาบุตร${children.length > 0 ? ` (${children.length} คน)` : ""}`, value: eduFund, simple: deps.children ? (p1.useEducationPlan ? totalEducationFromPlan : eduFundSimple) : 0 });
-    incItems.forEach((it) => {
-      if (it.monthlyAmount > 0) {
-        incomeNeeds.push({ label: `${it.name || "รายการเพิ่มเติม"} (${it.years} ปี)`, value: pvAnnuity(it.monthlyAmount, it.years, inf, ret), simple: simpleAnnuity(it.monthlyAmount, it.years) });
-      }
-    });
-    const breakdown = [...immediateNeeds.map((i) => ({ ...i, simple: i.value })), ...incomeNeeds];
-    const totalImmediate = immediateNeeds.reduce((s, b) => s + b.value, 0);
-    const totalIncome = totalIncomeTVM;
-    const totalNeed = totalImmediate + totalIncome;
-
-    // What we have
-    const savings = p1.useBalanceSheetLiquid ? liquidAssetsFromBS + p1.additionalSavings : p1.existingSavings;
-    const haveBreakdown = [
-      { label: "ทุนประกันชีวิตรวม (Death Benefit)", value: totalLifeCoverage },
-      { label: "สวัสดิการกรณีเสียชีวิตจากนายจ้าง", value: p1.employerDeathBenefit || 0 },
-      { label: "เงินออม/สินทรัพย์สภาพคล่อง", value: savings },
-    ];
-    const totalHave = haveBreakdown.reduce((s, b) => s + b.value, 0);
-
-    const gap = totalNeed - totalHave;
-    const gapPct = totalNeed > 0 ? (gap / totalNeed) * 100 : 0;
-    const coveragePct = totalNeed > 0 ? Math.min((totalHave / totalNeed) * 100, 100) : 0;
-
-    return { debts, immediateNeeds, incomeNeeds, breakdown, totalNeed, totalImmediate, totalIncome, totalIncomeSimple, totalIncomeTVM, haveBreakdown, totalHave, gap, gapPct, coveragePct, perChildEdu, eduFundSimple, eduFundTVM };
-  }, [p1, totalDebtsFromBS, totalLifeCoverage, liquidAssetsFromBS, totalEducationFromPlan]);
+  // ─── Calculation (shared with the Risk Management overview page) ────────
+  const analysis = useMemo(
+    () =>
+      computePillar1Analysis({
+        pillar1: p1,
+        policies: store.policies,
+        balanceSheetDebts: totalDebtsFromBS,
+        balanceSheetLiquid: liquidAssetsFromBS,
+        educationGoalsTotal: totalEducationFromPlan,
+      }),
+    [p1, store.policies, totalDebtsFromBS, liquidAssetsFromBS, totalEducationFromPlan],
+  );
 
   // ─── Info modal ─────────────────────────────────────────────────────────
   const [showInfo, setShowInfo] = useState(false);

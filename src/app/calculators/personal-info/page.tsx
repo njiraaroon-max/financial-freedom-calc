@@ -364,13 +364,22 @@ export default function PersonalInfoPage() {
             const ok = await confirmDialog({
               title: "ล้างข้อมูลทั้งหมดของลูกค้านี้?",
               message:
-                "ข้อมูลที่จะถูกล้าง:\n• ข้อมูลส่วนตัว\n• งบกระแสเงินสด\n• งบดุล\n• แผนเกษียณ\n• ตัวแปรที่บันทึกไว้\n\nข้อมูลจะกลับเป็นค่าเริ่มต้นทั้งหมด และไม่สามารถย้อนกลับได้",
+                "ข้อมูลที่จะถูกล้าง:\n• ข้อมูลส่วนตัว\n• งบกระแสเงินสด\n• งบดุล\n• แผนเกษียณ\n• ตัวแปรที่บันทึกไว้\n• กรมธรรม์และแผนประกัน\n• ข้อมูลภาษี\n\nข้อมูลจะกลับเป็นค่าเริ่มต้นทั้งหมด และไม่สามารถย้อนกลับได้",
               confirmText: "ล้างข้อมูล",
               cancelText: "ยกเลิก",
               variant: "danger",
             });
             if (ok) {
-              const storeKeys = ["ffc-profile", "ffc-cashflow", "ffc-balance-sheet", "ffc-retirement", "ffc-variables", "ffc-goals"];
+              const storeKeys = [
+                "ffc-profile",
+                "ffc-cashflow",
+                "ffc-balance-sheet",
+                "ffc-retirement",
+                "ffc-variables",
+                "ffc-goals",
+                "ffc-insurance",
+                "ffc-tax",
+              ];
               storeKeys.forEach((key) => localStorage.removeItem(key));
               window.location.reload();
             }

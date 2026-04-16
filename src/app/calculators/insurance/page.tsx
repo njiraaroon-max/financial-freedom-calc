@@ -11,6 +11,8 @@ import { useInsuranceStore } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
 import { useBalanceSheetStore } from "@/store/balance-sheet-store";
 import { useVariableStore } from "@/store/variable-store";
+import { useGoalsStore } from "@/store/goals-store";
+import { computePillar1Analysis } from "@/lib/pillar1Analysis";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(n: number): string {
@@ -116,6 +118,7 @@ export default function InsuranceHubPage() {
   const profile = useProfileStore();
   const balanceSheet = useBalanceSheetStore();
   const variableStore = useVariableStore();
+  const goalsStore = useGoalsStore();
   const policies = store.policies;
   const rm = store.riskManagement;
 
@@ -130,29 +133,40 @@ export default function InsuranceHubPage() {
     groups.includes(p.group || "") || types.includes(p.policyType || "");
 
   // ─── Pillar 1: Income & Life Protection ────────────────────────────────
+  // Uses the shared helper (src/lib/pillar1Analysis.ts) so the numbers here
+  // stay identical to the Pillar 1 planning page.
   const pillar1 = useMemo(() => {
-    const lifePolicies = policies.filter((p) => matchPolicy(p, ["life", "saving"], ["whole_life", "endowment"]));
-    const totalLifeCoverage = lifePolicies.reduce((s, p) => s + p.sumInsured, 0);
-    const p1 = rm.pillar1;
-    const totalDebts = p1.useBalanceSheetDebts
-      ? balanceSheet.liabilities.reduce((s, l) => s + l.value, 0) + p1.additionalDebts
-      : p1.additionalDebts;
-    const familyNeeds = p1.familyExpenseMonthly * 12 * p1.familyAdjustmentYears;
-    const parentNeeds = p1.parentSupportMonthly * 12 * p1.parentSupportYears;
-    const totalNeed = p1.funeralCost + totalDebts + familyNeeds + p1.educationFund + parentNeeds + p1.otherNeeds;
-    const totalHave = totalLifeCoverage + p1.existingSavings;
-    const gap = totalNeed - totalHave;
-    const pct = totalNeed > 0 ? Math.round((totalHave / totalNeed) * 100) : 0;
+    const totalDebtsFromBS = balanceSheet.liabilities.reduce((s, l) => s + l.value, 0);
+    const liquidAssetsFromBS = balanceSheet.getTotalByAssetType?.("liquid") ?? 0;
+    const educationGoalsTotal = goalsStore.goals
+      .filter((g) => g.category === "education")
+      .reduce((s, g) => s + (g.amount || 0), 0);
 
+    const a = computePillar1Analysis({
+      pillar1: rm.pillar1,
+      policies,
+      balanceSheetDebts: totalDebtsFromBS,
+      balanceSheetLiquid: liquidAssetsFromBS,
+      educationGoalsTotal,
+    });
+
+    const pct = a.totalNeed > 0 ? Math.round((a.totalHave / a.totalNeed) * 100) : 0;
     const completed = rm.completedPillars["pillar1"];
     let status: PillarStatus = "not_started";
     if (completed) {
-      if (gap <= 0) status = "adequate";
-      else if (gap < totalNeed * 0.3) status = "warning";
+      if (a.gap <= 0) status = "adequate";
+      else if (a.gap < a.totalNeed * 0.3) status = "warning";
       else status = "critical";
     }
-    return { totalNeed, totalHave, gap, pct, status, lifePolicies: lifePolicies.length };
-  }, [policies, rm, balanceSheet.liabilities]);
+    return {
+      totalNeed: a.totalNeed,
+      totalHave: a.totalHave,
+      gap: a.gap,
+      pct,
+      status,
+      lifePolicies: a.lifePolicies.length,
+    };
+  }, [policies, rm, balanceSheet, goalsStore.goals]);
 
   // ─── Pillar 2: Health & Accident ───────────────────────────────────────
   const pillar2 = useMemo(() => {
