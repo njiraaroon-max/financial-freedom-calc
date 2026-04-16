@@ -239,27 +239,54 @@ export default function InsuranceHubPage() {
     return { gap, pct, status, totalHave, fundNeeded };
   }, [policies, rm, variableStore]);
 
-  // ─── Foundation: Tax & Cash Flow ───────────────────────────────────────
-  const foundation = useMemo(() => {
+  // ─── Pillar 4 (swapped): Tax & Cash Flow Optimization ─────────────────
+  // Evaluates two financial-efficiency dimensions that are directly related
+  // to insurance planning:
+  //   • Premium-to-income ratio (burden)
+  //   • Utilisation of insurance-related tax deductions
+  const efficiency = useMemo(() => {
     const premiumRatio = annualIncome > 0 ? totalPremium / annualIncome : 0;
-    const status = premiumRatio <= 0.10 ? "adequate" : premiumRatio <= 0.15 ? "warning" : "critical";
 
-    const lifePolicies = policies.filter((p) => matchPolicy(p, ["life", "saving"], ["whole_life", "endowment"]));
+    // Tax deduction (rough — all life/health premiums, capped at 100k combined)
+    const lifePolicies = policies.filter((p) =>
+      matchPolicy(p, ["life", "saving"], ["whole_life", "endowment", "term"]),
+    );
     const healthPolicies = policies.filter((p) => matchPolicy(p, ["health"], ["health"]));
     const lifePremium = Math.min(lifePolicies.reduce((s, p) => s + p.premium, 0), 100000);
     const healthPremium = Math.min(healthPolicies.reduce((s, p) => s + p.premium, 0), 25000);
     const taxUsed = Math.min(lifePremium + healthPremium, 100000);
     const taxMax = 100000;
 
-    return { premiumRatio, status: status as PillarStatus, taxUsed, taxMax };
-  }, [policies, annualIncome, totalPremium]);
+    // Score each dimension 0-100
+    const taxPct = taxMax > 0 ? (taxUsed / taxMax) * 100 : 0;
+    // Premium burden: 0%→100, 10%→100, 15%→60, 20%→0 (linear past 10%)
+    const premiumPct =
+      premiumRatio <= 0.10
+        ? 100
+        : Math.max(0, 100 - ((premiumRatio - 0.10) / 0.10) * 100);
+
+    const pct = Math.round((taxPct + premiumPct) / 2);
+
+    const completed = rm.completedPillars["pillar4"];
+    let status: PillarStatus = "not_started";
+    if (completed || totalPolicies > 0) {
+      if (premiumRatio > 0.15) status = "critical";
+      else if (premiumRatio > 0.10 || taxUsed / taxMax < 0.5) status = "warning";
+      else status = "adequate";
+    }
+
+    return { premiumRatio, status, taxUsed, taxMax, pct };
+  }, [policies, annualIncome, totalPremium, rm, totalPolicies]);
 
   // ─── Radar chart data ──────────────────────────────────────────────────
+  // 4 axes = Life / Health / Asset / Efficiency. Long Live is tracked in the
+  // temple foundation (below) and deliberately excluded here so the radar
+  // reflects insurance-specific coverage & efficiency only.
   const radarData = [
     { label: "Life Protection", labelEn: "Life", value: pillar1.pct, color: "#1e3a5f", status: pillar1.status },
     { label: "Health Cover", labelEn: "IPD/OPD/CI", value: pillar2.pct, color: "#0891b2", status: pillar2.status },
     { label: "Asset Protection", labelEn: "Property", value: pillar3.pct, color: "#d97706", status: pillar3.status },
-    { label: "Live too long", labelEn: "Retirement", value: pillar4LongLive.pct, color: "#7c3aed", status: pillar4LongLive.status },
+    { label: "Efficiency", labelEn: "Tax & Cash Flow", value: efficiency.pct, color: "#7c3aed", status: efficiency.status },
   ];
 
   // ─── Recommended Next Steps ────────────────────────────────────────────
@@ -269,21 +296,24 @@ export default function InsuranceHubPage() {
     if (pillar1.status === "critical") items.push({ priority: "critical", text: `เพิ่มทุนประกันชีวิตอีก ${fmtShort(pillar1.gap)} บาท`, href: "/calculators/insurance/pillar-1" });
     if (pillar2.status === "critical") items.push({ priority: "critical", text: "วงเงินค่ารักษาพยาบาลไม่เพียงพอ — ควรเพิ่มความคุ้มครอง", href: "/calculators/insurance/pillar-2" });
     if (pillar3.status === "critical") items.push({ priority: "critical", text: "ทรัพย์สินยังไม่มีความคุ้มครองเพียงพอ", href: "/calculators/insurance/pillar-3" });
+    if (efficiency.premiumRatio > 0.15) items.push({ priority: "critical", text: `เบี้ยประกัน ${(efficiency.premiumRatio * 100).toFixed(0)}% ของรายได้ — สูงเกินไป`, href: "/calculators/insurance/pillar-4" });
     if (pillar4LongLive.status === "critical") items.push({ priority: "critical", text: `ทุนเกษียณขาดอีก ${fmtShort(pillar4LongLive.gap)}`, href: "/calculators/insurance/long-live" });
 
     if (pillar1.status === "warning") items.push({ priority: "warning", text: "ทุนประกันชีวิตใกล้เพียงพอ — ควรเพิ่มอีกเล็กน้อย", href: "/calculators/insurance/pillar-1" });
     if (pillar2.status === "warning") items.push({ priority: "warning", text: "ความคุ้มครองสุขภาพยังขาดบางส่วน", href: "/calculators/insurance/pillar-2" });
-    if (foundation.premiumRatio > 0.15) items.push({ priority: "warning", text: `เบี้ยประกัน ${(foundation.premiumRatio * 100).toFixed(0)}% ของรายได้ — สูงเกินไป`, href: "/calculators/insurance/pillar-4" });
+    if (efficiency.status === "warning" && efficiency.premiumRatio <= 0.15)
+      items.push({ priority: "warning", text: "ยังใช้สิทธิลดหย่อนไม่เต็มที่ — ตรวจสอบ Pillar 4", href: "/calculators/insurance/pillar-4" });
 
     if (pillar1.status === "not_started") items.push({ priority: "info", text: "ยังไม่ได้ประเมิน Income & Life Protection", href: "/calculators/insurance/pillar-1" });
     if (pillar2.status === "not_started") items.push({ priority: "info", text: "ยังไม่ได้ประเมิน Health & Accident", href: "/calculators/insurance/pillar-2" });
     if (pillar3.status === "not_started") items.push({ priority: "info", text: "ยังไม่ได้ประเมิน Asset Protection", href: "/calculators/insurance/pillar-3" });
-    if (pillar4LongLive.status === "not_started") items.push({ priority: "info", text: "ยังไม่ได้ประเมิน Long Live Protection", href: "/calculators/insurance/long-live" });
+    if (efficiency.status === "not_started") items.push({ priority: "info", text: "ยังไม่ได้ประเมิน Tax & Cash Flow", href: "/calculators/insurance/pillar-4" });
+    if (pillar4LongLive.status === "not_started") items.push({ priority: "info", text: "ยังไม่ได้ประเมิน Long Live (ฐานวัดเกษียณ)", href: "/calculators/insurance/long-live" });
 
     if (totalPolicies === 0) items.push({ priority: "info", text: "เพิ่มกรมธรรม์เพื่อเริ่มวิเคราะห์", href: "/calculators/insurance/policies" });
 
     return items.slice(0, 5);
-  }, [pillar1, pillar2, pillar3, pillar4LongLive, foundation, totalPolicies]);
+  }, [pillar1, pillar2, pillar3, pillar4LongLive, efficiency, totalPolicies]);
 
   // ─── Pillar accent colors (icon only) + gray shaft tones ────────────────
   const pillarAccents = [
@@ -320,14 +350,17 @@ export default function InsuranceHubPage() {
       metric: pillar3.status !== "not_started" ? `${pillar3.pct}% คุ้มครอง` : "ยังไม่ประเมิน",
     },
     {
-      key: "p4", href: "/calculators/insurance/long-live",
-      icon: Landmark, title: "Long Live", subtitle: "เกษียณไปใครเลี้ยง", subtitleEn: "Live too long",
-      status: pillar4LongLive.status, pct: pillar4LongLive.pct,
-      metric: pillar4LongLive.status !== "not_started" ? (pillar4LongLive.gap > 0 ? `Gap -${fmtShort(pillar4LongLive.gap)}` : "OK") : "ยังไม่ประเมิน",
+      key: "p4", href: "/calculators/insurance/pillar-4",
+      icon: Wallet, title: "Tax & Cash Flow", subtitle: "ใช้สิทธิ์คุ้มมั้ย", subtitleEn: "Optimization",
+      status: efficiency.status, pct: efficiency.pct,
+      metric:
+        efficiency.status !== "not_started"
+          ? `${annualIncome > 0 ? (efficiency.premiumRatio * 100).toFixed(0) : "—"}% เบี้ย`
+          : "ยังไม่ประเมิน",
     },
   ];
 
-  const allStatuses = [pillar1.status, pillar2.status, pillar3.status, pillar4LongLive.status];
+  const allStatuses = [pillar1.status, pillar2.status, pillar3.status, efficiency.status];
   const completedCount = allStatuses.filter((s) => s !== "not_started").length;
   const adequateCount = allStatuses.filter((s) => s === "adequate").length;
 
@@ -522,49 +555,57 @@ export default function InsuranceHubPage() {
             <div className="h-2.5" style={{ background: "linear-gradient(180deg, #aaa 0%, #888 50%, #555 100%)" }} />
           </div>
 
-          {/* ── FOUNDATION — Tax & Cash Flow ──────────── */}
-          <Link href="/calculators/insurance/pillar-4">
+          {/* ── FOUNDATION — Long Live Protection ────────────
+              (linked to the main retirement module — acts as the base of the
+              temple because the pension-insurance calculator feeds retirement
+              planning) */}
+          <Link href="/calculators/insurance/long-live">
             <div className="group cursor-pointer transition-all hover:brightness-110 active:scale-[0.99]">
               {/* Golden cornice above foundation */}
               <div className="h-1" style={{ background: "linear-gradient(90deg, #b8860b, #daa520, #ffd700, #daa520, #b8860b)" }} />
 
               <div className="rounded-b-2xl p-4 shadow-lg" style={{ background: "linear-gradient(180deg, #3d3d3d 0%, #2a2a2a 100%)" }}>
                 <div className="flex items-center gap-2 mb-3">
-                  <Wallet size={16} className="text-stone-300" />
-                  <span className="text-xs font-bold text-stone-200">Tax & Cash Flow Optimization</span>
+                  <Landmark size={16} className="text-stone-300" />
+                  <span className="text-xs font-bold text-stone-200">Long Live Protection</span>
+                  <span className="text-[9px] text-stone-500 italic">— เชื่อมกับแผนเกษียณ</span>
                   <ChevronRight size={14} className="text-stone-400 ml-auto group-hover:translate-x-0.5 group-hover:text-stone-200 transition-all" />
                 </div>
 
                 <div className="flex items-center gap-4">
-                  {/* Premium ratio */}
+                  {/* Coverage progress */}
                   <div className="flex-1">
                     <div className="flex items-center justify-between text-[10px] mb-1">
-                      <span className="text-stone-400">Premium Ratio</span>
-                      <span className={`font-bold ${foundation.status === "adequate" ? "text-emerald-400" : foundation.status === "warning" ? "text-amber-400" : "text-red-400"}`}>
-                        {annualIncome > 0 ? `${(foundation.premiumRatio * 100).toFixed(1)}%` : "—"}
+                      <span className="text-stone-400">ความพร้อมเกษียณ</span>
+                      <span className={`font-bold ${pillar4LongLive.status === "adequate" ? "text-emerald-400" : pillar4LongLive.status === "warning" ? "text-amber-400" : pillar4LongLive.status === "critical" ? "text-red-400" : "text-stone-400"}`}>
+                        {pillar4LongLive.status !== "not_started" ? `${pillar4LongLive.pct}%` : "—"}
                       </span>
                     </div>
                     <div className="h-2.5 bg-stone-600/50 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${foundation.status === "adequate" ? "bg-emerald-400" : foundation.status === "warning" ? "bg-amber-400" : "bg-red-400"}`}
-                        style={{ width: `${Math.min(foundation.premiumRatio * 100 / 20 * 100, 100)}%` }} />
+                      <div className={`h-full rounded-full ${pillar4LongLive.status === "adequate" ? "bg-emerald-400" : pillar4LongLive.status === "warning" ? "bg-amber-400" : pillar4LongLive.status === "critical" ? "bg-red-400" : "bg-stone-500"}`}
+                        style={{ width: `${Math.min(pillar4LongLive.pct, 100)}%` }} />
                     </div>
-                    <div className="flex justify-between text-[8px] text-stone-500 mt-0.5">
-                      <span>0%</span><span>10%</span><span>15%</span><span>20%</span>
+                    <div className="text-[8px] text-stone-500 mt-0.5">
+                      {pillar4LongLive.status !== "not_started"
+                        ? `มี ${fmtShort(pillar4LongLive.totalHave)} / ต้องการ ${fmtShort(pillar4LongLive.fundNeeded)}`
+                        : "ยังไม่ประเมิน — กดเพื่อเริ่ม"}
                     </div>
                   </div>
 
-                  {/* Tax deduction */}
+                  {/* Gap summary */}
                   <div className="flex-1">
                     <div className="flex items-center justify-between text-[10px] mb-1">
-                      <span className="text-stone-400">สิทธิลดหย่อน</span>
-                      <span className="font-bold text-stone-200">{fmtShort(foundation.taxUsed)}/{fmtShort(foundation.taxMax)}</span>
+                      <span className="text-stone-400">ส่วนขาด (Gap)</span>
+                      <span className={`font-bold ${pillar4LongLive.gap > 0 ? "text-red-400" : "text-emerald-400"}`}>
+                        {pillar4LongLive.status !== "not_started"
+                          ? pillar4LongLive.gap > 0
+                            ? `-${fmtShort(pillar4LongLive.gap)}`
+                            : "OK"
+                          : "—"}
+                      </span>
                     </div>
-                    <div className="h-2.5 bg-stone-600/50 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full bg-indigo-400"
-                        style={{ width: `${foundation.taxMax > 0 ? (foundation.taxUsed / foundation.taxMax) * 100 : 0}%` }} />
-                    </div>
-                    <div className="text-[8px] text-stone-500 mt-0.5 text-right">
-                      เหลือ {fmtShort(foundation.taxMax - foundation.taxUsed)}
+                    <div className="text-[9px] text-stone-400 leading-relaxed">
+                      ใช้ข้อมูลจากหน้าแผนเกษียณใหญ่เป็นหลัก + sum ของประกันบำนาญและเงินออมประกัน
                     </div>
                   </div>
                 </div>
