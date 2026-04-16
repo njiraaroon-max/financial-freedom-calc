@@ -113,6 +113,11 @@ interface RetirementState {
   markStepCompleted: (step: string) => void;
   isStepCompleted: (step: string) => boolean;
 
+  // UI state (persisted) — expand/collapse state for retirement hub steps
+  expandedSteps: Record<number, boolean>;
+  toggleExpandedStep: (step: number) => void;
+  setExpandedStep: (step: number, open: boolean) => void;
+
   // Reset
   clearAll: () => void;
 }
@@ -159,6 +164,7 @@ export const useRetirementStore = create<RetirementState>()(
       severanceParams: { ...DEFAULT_SEVERANCE },
       caretakerParams: { ...DEFAULT_CARETAKER },
       completedSteps: {},
+      expandedSteps: {},
 
       updateAssumption: (key, value) =>
         set((s) => ({ assumptions: { ...s.assumptions, [key]: value } })),
@@ -408,6 +414,15 @@ export const useRetirementStore = create<RetirementState>()(
         return get().completedSteps[step] || false;
       },
 
+      toggleExpandedStep: (step) =>
+        set((s) => ({
+          expandedSteps: { ...s.expandedSteps, [step]: !s.expandedSteps[step] },
+        })),
+      setExpandedStep: (step, open) =>
+        set((s) => ({
+          expandedSteps: { ...s.expandedSteps, [step]: open },
+        })),
+
       clearAll: () =>
         set({
           assumptions: { ...DEFAULT_ASSUMPTIONS },
@@ -422,6 +437,7 @@ export const useRetirementStore = create<RetirementState>()(
           severanceParams: { ...DEFAULT_SEVERANCE },
           caretakerParams: { ...DEFAULT_CARETAKER },
           completedSteps: {},
+          expandedSteps: {},
         }),
     }),
     {

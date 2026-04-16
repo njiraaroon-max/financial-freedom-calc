@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Settings, UtensilsCrossed, Sparkles, Landmark, ShieldCheck, Gavel, Award, Calculator, Building, TrendingUp, ChevronRight, ChevronDown, Check, Lock, LineChart } from "lucide-react";
 import Link from "next/link";
 import { useRetirementStore } from "@/store/retirement-store";
@@ -9,7 +9,7 @@ import { useProfileStore } from "@/store/profile-store";
 
 export default function RetirementHubPage() {
   const store = useRetirementStore();
-  const { completedSteps, assumptions: a } = store;
+  const { completedSteps, assumptions: a, expandedSteps, toggleExpandedStep } = store;
   const profile = useProfileStore();
 
   const profileAge = profile.getAge?.() ?? 0;
@@ -52,9 +52,15 @@ export default function RetirementHubPage() {
   const step3Done = planDone && isCompleted("investment_plan");
   const assumptionsDone = isCompleted("assumptions");
 
-  // Collapsible step sections (default collapsed for minimal big-picture view)
-  const [openSteps, setOpenSteps] = useState<Record<number, boolean>>({ 1: false, 2: false, 3: false });
-  const toggleStep = (n: number) => setOpenSteps((prev) => ({ ...prev, [n]: !prev[n] }));
+  // Collapsible step sections — persisted across navigation via store.
+  // Default collapsed (undefined → falsy) for minimal big-picture view.
+  const openSteps: Record<number, boolean> = {
+    1: !!expandedSteps[1],
+    2: !!expandedSteps[2],
+    3: !!expandedSteps[3],
+    4: !!expandedSteps[4],
+  };
+  const toggleStep = (n: number) => toggleExpandedStep(n);
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
@@ -316,31 +322,48 @@ export default function RetirementHubPage() {
         </div>
       </div>
 
-      {/* Step 4: Wealth Journey (summary visualization) */}
+      {/* บทสรุป Cashflow หลังวางแผนเกษียณ (Wealth Journey) */}
       <div className="px-4 md:px-8 pt-3 pb-8">
-        <Link
-          href="/calculators/retirement/journey"
-          className="group block bg-gradient-to-br from-[#0B1E3F] via-[#1E3A5F] to-[#3B82F6] rounded-2xl shadow-md hover:shadow-xl active:scale-[0.99] transition-all overflow-hidden relative"
-        >
-          <div className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center shrink-0">
-              <LineChart size={22} className="text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[11px] font-bold text-amber-300 uppercase tracking-wider">Step 4 • สรุปผล</span>
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
+          <button onClick={() => toggleStep(4)} className="w-full p-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full flex items-center justify-center bg-[#1e3a5f] text-white">
+                <LineChart size={14} />
+              </div>
+              <div className="flex items-baseline gap-2 flex-wrap text-left">
+                <span className="text-sm font-bold text-gray-700">บทสรุป Cashflow หลังวางแผนเกษียณ</span>
                 <span className="text-[9px] bg-amber-400 text-[#0B1E3F] font-bold px-1.5 py-0.5 rounded-full">NEW</span>
               </div>
-              <div className="text-base font-bold text-white mt-0.5">เส้นทางสินทรัพย์ตลอดชีวิต</div>
-              <div className="text-[11px] text-blue-100/80 mt-0.5 leading-tight">ดูกราฟสินทรัพย์ก่อน-หลังเกษียณ • Base/Bad/Good • Monte Carlo</div>
             </div>
-            <ChevronRight size={22} className="text-white/70 group-hover:translate-x-0.5 transition" />
-          </div>
-          {/* Decorative wave */}
-          <svg className="absolute bottom-0 right-0 opacity-20 pointer-events-none" width="200" height="60" viewBox="0 0 200 60" fill="none">
-            <path d="M0 50 Q 30 20 60 35 T 120 25 T 200 15 L 200 60 L 0 60 Z" fill="white" />
-          </svg>
-        </Link>
+            <div className="flex items-center gap-1 shrink-0">
+              {!openSteps[4] && <span className="text-[10px] font-bold text-gray-400">ดูรายละเอียด</span>}
+              <ChevronDown size={16} className={`text-gray-400 transition-transform ${openSteps[4] ? "rotate-180" : ""}`} />
+            </div>
+          </button>
+          {openSteps[4] && (
+            <div className="px-3 pb-3">
+              <Link
+                href="/calculators/retirement/journey"
+                className="group block bg-gradient-to-br from-[#0B1E3F] via-[#1E3A5F] to-[#3B82F6] rounded-xl shadow-sm hover:shadow-md active:scale-[0.99] transition-all overflow-hidden relative"
+              >
+                <div className="p-3 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center shrink-0">
+                    <LineChart size={18} className="text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold text-white">เส้นทางสินทรัพย์ตลอดชีวิต</div>
+                    <div className="text-[10px] text-blue-100/80 mt-0.5 leading-tight">ดูกราฟสินทรัพย์ก่อน-หลังเกษียณ • Base/Bad/Good • Monte Carlo</div>
+                  </div>
+                  <ChevronRight size={18} className="text-white/70 group-hover:translate-x-0.5 transition" />
+                </div>
+                {/* Decorative wave */}
+                <svg className="absolute bottom-0 right-0 opacity-20 pointer-events-none" width="160" height="48" viewBox="0 0 200 60" fill="none">
+                  <path d="M0 50 Q 30 20 60 35 T 120 25 T 200 15 L 200 60 L 0 60 Z" fill="white" />
+                </svg>
+              </Link>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
