@@ -7,8 +7,8 @@ import { Save, Plus, Trash2, Info, X, Lightbulb } from "lucide-react";
 function Triangle({ dir }: { dir: "up" | "down" }) {
   return (
     <svg
-      width="10"
-      height="10"
+      width="16"
+      height="16"
       viewBox="0 0 10 10"
       className="shrink-0"
       aria-hidden="true"
@@ -198,19 +198,21 @@ export default function BasicExpensesPage() {
           </div>
 
           {/* Header row — grid columns differ based on master toggle.
-              Table-style: bottom border separates header from rows. */}
+              Table-style: bottom border separates header from rows +
+              vertical dividers between columns (right border on each
+              cell except the last). */}
           {store.showCfReference ? (
-            <div className="grid grid-cols-[1fr_64px_84px_18px_18px] gap-1.5 items-center px-1 pb-1.5 mb-0 text-[9px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-200">
-              <div>รายการ</div>
-              <div className="text-right">ปัจจุบัน</div>
-              <div className="text-right pr-1">วางแผน</div>
-              <div className="text-center">เทียบ</div>
+            <div className="grid grid-cols-[1fr_72px_96px_32px_28px] items-stretch text-[9px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-200">
+              <div className="px-2 py-1.5 border-r border-gray-100">รายการ</div>
+              <div className="px-2 py-1.5 text-right border-r border-gray-100">ปัจจุบัน</div>
+              <div className="px-2 py-1.5 text-right border-r border-gray-100">วางแผน</div>
+              <div className="px-1 py-1.5 text-center border-r border-gray-100">เทียบ</div>
               <div></div>
             </div>
           ) : (
-            <div className="grid grid-cols-[1fr_96px_18px] gap-2 items-center px-1 pb-1.5 mb-0 text-[9px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-200">
-              <div>รายการ</div>
-              <div className="text-right pr-1">จำนวน/เดือน</div>
+            <div className="grid grid-cols-[1fr_104px_28px] items-stretch text-[9px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-200">
+              <div className="px-2 py-1.5 border-r border-gray-100">รายการ</div>
+              <div className="px-2 py-1.5 text-right border-r border-gray-100">จำนวน/เดือน</div>
               <div></div>
             </div>
           )}
@@ -220,24 +222,33 @@ export default function BasicExpensesPage() {
               const baseline = cfBaselineByItem[item.id] ?? 0;
               const isLast = idx === store.basicExpenses.length - 1;
               const rowBorder = isLast ? "" : "border-b border-gray-100";
+              // Trash button: hidden by default on hover-capable devices
+              // (desktop), revealed on row hover. On touch devices (iPad,
+              // phone) @media (hover: none) matches → trash is always
+              // visible so users still have a way to delete.
+              const trashClasses =
+                "opacity-0 transition-opacity text-gray-300 hover:text-red-500 flex items-center justify-center " +
+                "group-hover:opacity-100 [@media(hover:none)]:opacity-100";
               if (store.showCfReference) {
                 return (
                   <div
                     key={item.id}
-                    className={`grid grid-cols-[1fr_64px_84px_18px_18px] gap-1.5 items-center py-1.5 ${rowBorder}`}
+                    className={`group grid grid-cols-[1fr_72px_96px_32px_28px] items-stretch ${rowBorder}`}
                   >
                     {/* Name */}
-                    <input
-                      type="text"
-                      value={item.name}
-                      onChange={(e) =>
-                        store.updateBasicExpenseName(item.id, e.target.value)
-                      }
-                      className="text-xs bg-transparent outline-none truncate min-w-0"
-                    />
+                    <div className="px-2 py-1.5 border-r border-gray-100 flex items-center">
+                      <input
+                        type="text"
+                        value={item.name}
+                        onChange={(e) =>
+                          store.updateBasicExpenseName(item.id, e.target.value)
+                        }
+                        className="text-xs bg-transparent outline-none truncate min-w-0 w-full"
+                      />
+                    </div>
 
                     {/* CF Baseline — 0 shows "—" */}
-                    <div className="text-right text-xs font-medium tabular-nums text-indigo-400">
+                    <div className="px-2 py-1.5 text-right text-xs font-medium tabular-nums text-indigo-400 border-r border-gray-100 flex items-center justify-end">
                       {item.cfSourceName
                         ? baseline > 0
                           ? fmt(baseline)
@@ -246,47 +257,55 @@ export default function BasicExpensesPage() {
                     </div>
 
                     {/* Input — editable ตลอดเวลา */}
-                    <NumberInput
-                      value={item.monthlyAmount}
-                      onChange={(v) => store.updateBasicExpense(item.id, v)}
-                    />
+                    <div className="px-1.5 py-1 border-r border-gray-100 flex items-center">
+                      <NumberInput
+                        value={item.monthlyAmount}
+                        onChange={(v) => store.updateBasicExpense(item.id, v)}
+                      />
+                    </div>
 
                     {/* Triangle — แสดงเฉพาะเมื่อมี baseline + ค่าต่าง */}
-                    <div className="flex justify-center">
+                    <div className="px-1 py-1.5 border-r border-gray-100 flex items-center justify-center">
                       {renderArrow(item, baseline)}
                     </div>
 
-                    {/* Trash */}
+                    {/* Trash — hover-reveal on desktop, always shown on touch */}
                     <button
                       onClick={() => store.removeBasicExpense(item.id)}
-                      className="text-gray-300 hover:text-red-500"
+                      className={trashClasses}
+                      aria-label="ลบรายการ"
                     >
                       <Trash2 size={14} />
                     </button>
                   </div>
                 );
               }
-              // OFF mode — classic 3-column layout: name | input | trash
+              // OFF mode — classic layout: name | input | trash
               return (
                 <div
                   key={item.id}
-                  className={`grid grid-cols-[1fr_96px_18px] gap-2 items-center py-1.5 ${rowBorder}`}
+                  className={`group grid grid-cols-[1fr_104px_28px] items-stretch ${rowBorder}`}
                 >
-                  <input
-                    type="text"
-                    value={item.name}
-                    onChange={(e) =>
-                      store.updateBasicExpenseName(item.id, e.target.value)
-                    }
-                    className="text-xs bg-transparent outline-none truncate min-w-0"
-                  />
-                  <NumberInput
-                    value={item.monthlyAmount}
-                    onChange={(v) => store.updateBasicExpense(item.id, v)}
-                  />
+                  <div className="px-2 py-1.5 border-r border-gray-100 flex items-center">
+                    <input
+                      type="text"
+                      value={item.name}
+                      onChange={(e) =>
+                        store.updateBasicExpenseName(item.id, e.target.value)
+                      }
+                      className="text-xs bg-transparent outline-none truncate min-w-0 w-full"
+                    />
+                  </div>
+                  <div className="px-1.5 py-1 border-r border-gray-100 flex items-center">
+                    <NumberInput
+                      value={item.monthlyAmount}
+                      onChange={(v) => store.updateBasicExpense(item.id, v)}
+                    />
+                  </div>
                   <button
                     onClick={() => store.removeBasicExpense(item.id)}
-                    className="text-gray-300 hover:text-red-500"
+                    className={trashClasses}
+                    aria-label="ลบรายการ"
                   >
                     <Trash2 size={14} />
                   </button>
