@@ -8,6 +8,12 @@ import MoneyInput from "@/components/MoneyInput";
 import { useInsuranceStore, HospitalTier, PremiumBracket } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
 import { useRetirementStore } from "@/store/retirement-store";
+import {
+  PILLAR2_CATEGORIES,
+  Pillar2CatKey,
+  computePolicyAggregates,
+  computePillar2Analysis,
+} from "@/lib/pillar2Analysis";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(n: number): string {
@@ -212,79 +218,25 @@ export default function Pillar2Page() {
   const retireAge = p2.useProfileRetireAge ? profileRetireAge : (p2.customRetireAge || 60);
   const lifeExpectancy = retirementStore.assumptions?.lifeExpectancy || 85;
 
-  // ─── Health policies from store ───────────────────────────────────────
+  // ─── Health policies + aggregates (shared helper) ────────────────────
   const healthPolicies = store.policies.filter((p) =>
-    ["health", "critical_illness", "accident"].includes(p.policyType)
+    ["health", "critical_illness", "accident"].includes(p.policyType),
   );
-  const policyRoom = healthPolicies.filter((p) => p.policyType === "health").reduce((s, p) => s + (p.healthDetails?.roomRatePerDay || 0), 0);
-  const policyIPD = healthPolicies.filter((p) => p.policyType === "health").reduce((s, p) => s + (p.healthDetails?.ipdAmount || p.sumInsured || 0), 0);
-  const policyCI = healthPolicies.filter((p) => p.policyType === "critical_illness").reduce((s, p) => s + (p.healthDetails?.ciLumpSum || p.sumInsured || 0), 0);
-  const policyAccident = healthPolicies.filter((p) => p.policyType === "accident").reduce((s, p) => s + (p.healthDetails?.accidentCoverage || p.sumInsured || 0), 0);
-  const policyOPD = healthPolicies.filter((p) => p.policyType === "health").reduce((s, p) => s + (p.healthDetails?.opdAmount || 0), 0);
+  const { policyRoom, policyIPD, policyCI, policyAccident, policyOPD } =
+    computePolicyAggregates(store.policies);
 
   // ─── Current benchmark ────────────────────────────────────────────────
   const benchmark = HOSPITAL_BENCHMARKS[p2.hospitalTier];
 
-  // ─── Gap categories definition ────────────────────────────────────────
-  type CatKey = "roomRate" | "ipd" | "criticalTreatment" | "ciLumpSum" | "opd" | "accident";
-  const categories: { key: CatKey; label: string; labelShort: string; suffix: string }[] = [
-    { key: "roomRate", label: "ค่าห้องและค่าบริการพยาบาล", labelShort: "ค่าห้อง", suffix: "บาท/วัน" },
-    { key: "ipd", label: "ค่ารักษา — ทั่วไป (IPD)", labelShort: "ค่ารักษา — ทั่วไป", suffix: "บาท/ปี" },
-    { key: "criticalTreatment", label: "ค่ารักษา — ร้ายแรง", labelShort: "ค่ารักษา — ร้ายแรง", suffix: "บาท" },
-    { key: "ciLumpSum", label: "เงินก้อนเพื่อโรคร้ายแรง (CI)", labelShort: "เงินก้อน CI", suffix: "บาท" },
-    { key: "opd", label: "OPD ผู้ป่วยนอก", labelShort: "OPD", suffix: "บาท/ครั้ง" },
-    { key: "accident", label: "อุบัติเหตุ (PA)", labelShort: "อุบัติเหตุ PA", suffix: "บาท" },
-  ];
+  // ─── Gap categories (shared definition) ──────────────────────────────
+  type CatKey = Pillar2CatKey;
+  const categories = PILLAR2_CATEGORIES;
 
-  // ─── Need / Have per category ─────────────────────────────────────────
-  const analysis = useMemo(() => {
-    const need: Record<CatKey, number> = {
-      roomRate: p2.desiredRoomRate,
-      ipd: p2.desiredIPDPerYear,
-      criticalTreatment: p2.desiredCriticalTreatment ?? 500000,
-      ciLumpSum: p2.desiredCICoverage,
-      opd: p2.desiredOPDPerVisit,
-      accident: p2.desiredAccidentCoverage,
-    };
-
-    const employer: Record<CatKey, number> = {
-      roomRate: p2.groupRoomRate,
-      ipd: p2.groupIPDPerYear,
-      criticalTreatment: p2.groupCriticalTreatment ?? 0,
-      ciLumpSum: p2.groupCI,
-      opd: p2.groupOPDPerVisit,
-      accident: p2.groupAccident,
-    };
-
-    const personal: Record<CatKey, number> = p2.usePersonalFromPolicies ? {
-      roomRate: policyRoom,
-      ipd: policyIPD,
-      // Thai health policies typically cover critical-illness treatment inside
-      // the IPD limit, so reuse the IPD number here instead of hard-coding 0.
-      criticalTreatment: policyIPD,
-      ciLumpSum: policyCI,
-      opd: policyOPD,
-      accident: policyAccident,
-    } : {
-      roomRate: p2.personalRoomRate ?? 0,
-      ipd: p2.personalIPD ?? 0,
-      criticalTreatment: p2.personalCriticalTreatment ?? 0,
-      ciLumpSum: p2.personalCI ?? 0,
-      opd: p2.personalOPD ?? 0,
-      accident: p2.personalAccident ?? 0,
-    };
-
-    const have: Record<CatKey, number> = {} as Record<CatKey, number>;
-    const gap: Record<CatKey, number> = {} as Record<CatKey, number>;
-    for (const cat of categories) {
-      have[cat.key] = employer[cat.key] + personal[cat.key];
-      gap[cat.key] = need[cat.key] - have[cat.key];
-    }
-
-    const adequateCount = categories.filter((c) => gap[c.key] <= 0).length;
-
-    return { need, employer, personal, have, gap, adequateCount };
-  }, [p2, policyRoom, policyIPD, policyCI, policyAccident, policyOPD]);
+  // ─── Need / Have per category (shared computation) ───────────────────
+  const analysis = useMemo(
+    () => computePillar2Analysis({ pillar2: p2, policies: store.policies }),
+    [p2, store.policies],
+  );
 
   // ─── Inflation projection table ───────────────────────────────────────
   const inflationTable = useMemo(() => {

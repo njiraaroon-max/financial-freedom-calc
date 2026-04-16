@@ -13,6 +13,7 @@ import { useBalanceSheetStore } from "@/store/balance-sheet-store";
 import { useVariableStore } from "@/store/variable-store";
 import { useGoalsStore } from "@/store/goals-store";
 import { computePillar1Analysis } from "@/lib/pillar1Analysis";
+import { computePillar2Analysis } from "@/lib/pillar2Analysis";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(n: number): string {
@@ -169,32 +170,27 @@ export default function InsuranceHubPage() {
   }, [policies, rm, balanceSheet, goalsStore.goals]);
 
   // ─── Pillar 2: Health & Accident ───────────────────────────────────────
+  // Uses the shared helper so the 6-category evaluation here matches the
+  // Pillar 2 planning page exactly.
   const pillar2 = useMemo(() => {
-    const healthPolicies = policies.filter((p) => matchPolicy(p, ["health", "critical", "accident"], ["health", "critical_illness", "accident"]));
-    const personalIPD = healthPolicies.filter((p) => matchPolicy(p, ["health"], ["health"])).reduce((s, p) => s + p.sumInsured, 0);
-    const personalCI = healthPolicies.filter((p) => matchPolicy(p, ["critical"], ["critical_illness"])).reduce((s, p) => s + p.sumInsured, 0);
-    const personalAccident = healthPolicies.filter((p) => matchPolicy(p, ["accident"], ["accident"])).reduce((s, p) => s + p.sumInsured, 0);
-    const p2 = rm.pillar2;
-    const totalIPD = (p2.groupIPDPerYear || 0) + personalIPD;
-    const totalCI = (p2.groupCI || 0) + personalCI;
-    const totalAccident = (p2.groupAccident || 0) + personalAccident;
-    const items = [
-      { need: p2.desiredIPDPerYear, have: totalIPD },
-      { need: p2.desiredCICoverage, have: totalCI },
-      { need: p2.desiredAccidentCoverage, have: totalAccident },
-    ];
-    const okCount = items.filter((i) => i.have >= i.need).length;
-    const pct = items.length > 0 ? Math.round((okCount / items.length) * 100) : 0;
+    const a = computePillar2Analysis({ pillar2: rm.pillar2, policies });
+    const total = a.totalCategories;
+    const okCount = a.adequateCount;
+    const gapCount = total - okCount;
+    const pct = total > 0 ? Math.round((okCount / total) * 100) : 0;
+
+    const healthPoliciesCount = policies.filter((p) =>
+      ["health", "critical_illness", "accident"].includes(p.policyType),
+    ).length;
 
     const completed = rm.completedPillars["pillar2"];
     let status: PillarStatus = "not_started";
     if (completed) {
-      const gapCount = items.filter((i) => i.have < i.need).length;
       if (gapCount === 0) status = "adequate";
       else if (gapCount <= 1) status = "warning";
       else status = "critical";
     }
-    return { healthPolicies: healthPolicies.length, status, pct, okCount };
+    return { healthPolicies: healthPoliciesCount, status, pct, okCount, total };
   }, [policies, rm]);
 
   // ─── Pillar 3: Asset Protection ────────────────────────────────────────
@@ -315,7 +311,7 @@ export default function InsuranceHubPage() {
       key: "p2", href: "/calculators/insurance/pillar-2",
       icon: HeartPulse, title: "Health & Accident", subtitle: "เข้ารพ.ใครจ่าย", subtitleEn: "Large expense",
       status: pillar2.status, pct: pillar2.pct,
-      metric: pillar2.status !== "not_started" ? `${pillar2.okCount}/3 ผ่าน` : `${pillar2.healthPolicies} เล่ม`,
+      metric: pillar2.status !== "not_started" ? `${pillar2.okCount}/${pillar2.total} ผ่าน` : `${pillar2.healthPolicies} เล่ม`,
     },
     {
       key: "p3", href: "/calculators/insurance/pillar-3",
