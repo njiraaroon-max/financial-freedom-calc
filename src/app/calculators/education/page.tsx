@@ -11,16 +11,20 @@ import {
   TrendingUp,
   Calendar,
   BookOpen,
+  Target,
+  Briefcase,
+  Info,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import MoneyInput from "@/components/MoneyInput";
 import {
   useEducationStore,
-  projectChildEducation,
   aggregateProjection,
+  computePortfolio,
   LEVEL_SEQUENCE,
   type EducationLevelKey,
   type EducationChild,
+  type EducationPortfolio,
 } from "@/store/education-store";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -28,8 +32,8 @@ function fmt(n: number): string {
   return Math.round(n).toLocaleString("th-TH");
 }
 function fmtShort(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${Math.round(n / 1000)}K`;
+  if (Math.abs(n) >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (Math.abs(n) >= 1_000) return `${Math.round(n / 1000)}K`;
   return fmt(n);
 }
 const CURRENT_YEAR = new Date().getFullYear();
@@ -42,15 +46,19 @@ export default function EducationPage() {
   const {
     children,
     levels,
+    portfolios,
     inflationRate,
     addChild,
     updateChild,
     removeChild,
     updateLevel,
+    addPortfolio,
+    updatePortfolio,
+    removePortfolio,
     setInflationRate,
   } = store;
 
-  const [openSection, setOpenSection] = useState<string>("levels");
+  const [openSection, setOpenSection] = useState<string>("children");
   const [openChildId, setOpenChildId] = useState<string | null>(null);
 
   // Aggregated projection
@@ -58,14 +66,6 @@ export default function EducationPage() {
     () => aggregateProjection(children, levels, inflationRate, CURRENT_YEAR),
     [children, levels, inflationRate],
   );
-
-  const perChildProjections = useMemo(
-    () =>
-      children.map((c) => projectChildEducation(c, levels, inflationRate, CURRENT_YEAR)),
-    [children, levels, inflationRate],
-  );
-
-  const totalAcrossAll = perChildProjections.reduce((s, p) => s + p.totalCost, 0);
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
@@ -84,12 +84,12 @@ export default function EducationPage() {
             <span className="text-sm font-bold">วางแผนค่าเล่าเรียนแบบปีต่อปี</span>
           </div>
           <p className="text-[11px] opacity-80 leading-relaxed">
-            สร้างโปรไฟล์ลูกแต่ละคน กำหนดระดับชั้นและค่าเทอมปัจจุบัน
-            ระบบจะประมาณค่าเรียนในอนาคตปรับตามเงินเฟ้อ (คงที่ในแต่ละระดับชั้น)
+            กรอกข้อมูลลูก → กำหนดระดับชั้นและค่าเทอมปัจจุบัน → ดูประมาณการค่าเรียนในอนาคต
+            → วางแผน port ลงทุนเพื่อเตรียมทุน
           </p>
         </div>
 
-        {/* Summary card */}
+        {/* Summary — total across all children */}
         {children.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm p-4 mx-1">
             <div className="flex items-center justify-between mb-2">
@@ -100,18 +100,82 @@ export default function EducationPage() {
               <span className="text-xs text-gray-400">{children.length} คน</span>
             </div>
             <div className="text-2xl font-extrabold text-blue-600">
-              {fmt(totalAcrossAll)} <span className="text-sm font-bold text-gray-400">บาท</span>
+              {fmt(aggregated.grandTotal)} <span className="text-sm font-bold text-gray-400">บาท</span>
             </div>
             <div className="text-[10px] text-gray-400 mt-1">
-              ปรับตามเงินเฟ้อ {inflationRate}%/ปี • คงที่ภายในระดับชั้นเดียวกัน
+              ปรับตามเงินเฟ้อ {inflationRate}%/ปี • คงที่ในแต่ละระดับชั้น • รวมค่าเทอม+เรียนพิเศษ
             </div>
           </div>
         )}
 
-        {/* ─── Section 1: Level catalogue ────────────────────────────────── */}
+        {/* ─── Section 1: Children (MOVED TO TOP) ──────────────────────────── */}
         <SectionCard
-          id="levels"
-          title="ค่าเทอมปัจจุบัน (ต่อปี) ตามระดับชั้น"
+          title="1. ข้อมูลลูก"
+          subtitle={children.length > 0 ? `${children.length} คน` : "ยังไม่มีข้อมูล — เริ่มที่นี่"}
+          icon={<User size={16} className="text-blue-600" />}
+          open={openSection === "children"}
+          onToggle={() => setOpenSection(openSection === "children" ? "" : "children")}
+        >
+          <div className="space-y-3">
+            {children.map((child) => {
+              const expanded = openChildId === child.id;
+              const age = CURRENT_YEAR - child.birthYear;
+              const levelText = child.notEnrolled
+                ? `ยังไม่เข้าเรียน (จะเข้า ${levels.find((l) => l.key === child.plannedStartLevel)?.label || "-"} ปี ${child.plannedStartYear || "-"})`
+                : `${levels.find((l) => l.key === child.currentLevelKey)?.label || "-"} ปีที่ ${child.currentYearInLevel}`;
+              return (
+                <div key={child.id} className="border border-gray-200 rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => setOpenChildId(expanded ? null : child.id)}
+                    className="w-full p-3 flex items-center gap-3 bg-gray-50 hover:bg-gray-100 transition"
+                  >
+                    <div
+                      className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-lg ${
+                        child.gender === "male" ? "bg-blue-400" : "bg-pink-400"
+                      }`}
+                    >
+                      {child.gender === "male" ? "👦" : "👧"}
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="text-sm font-bold text-gray-800">
+                        {child.name || "ลูก (ยังไม่ระบุชื่อ)"}
+                      </div>
+                      <div className="text-[10px] text-gray-500">
+                        อายุ {age} ปี • {levelText}
+                      </div>
+                    </div>
+                    <ChevronDown size={16} className={`text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {expanded && (
+                    <ChildEditor
+                      child={child}
+                      onChange={(patch) => updateChild(child.id, patch)}
+                      onRemove={() => {
+                        removeChild(child.id);
+                        setOpenChildId(null);
+                      }}
+                    />
+                  )}
+                </div>
+              );
+            })}
+
+            <button
+              onClick={() => {
+                const id = addChild();
+                setOpenChildId(id);
+              }}
+              className="w-full py-3 rounded-xl border-2 border-dashed border-blue-300 text-blue-600 text-sm font-medium hover:bg-blue-50 transition flex items-center justify-center gap-2"
+            >
+              <Plus size={16} /> เพิ่มลูก
+            </button>
+          </div>
+        </SectionCard>
+
+        {/* ─── Section 2: Level catalogue ────────────────────────────────── */}
+        <SectionCard
+          title="2. ค่าเทอมและเรียนพิเศษ ตามระดับชั้น"
           subtitle={`เงินเฟ้อ ${inflationRate}%/ปี`}
           icon={<School size={16} className="text-blue-600" />}
           open={openSection === "levels"}
@@ -163,17 +227,27 @@ export default function EducationPage() {
                   {lv.enabled && (
                     <div className="space-y-2 ml-6">
                       <div className="flex items-center gap-2">
-                        <label className="text-[10px] text-gray-600 w-28">ค่าเทอม/ปี:</label>
+                        <label className="text-[10px] text-gray-600 w-28 shrink-0">ค่าเทอม/ปี:</label>
                         <MoneyInput
                           value={lv.tuitionPerYear}
                           onChange={(v) => updateLevel(key, { tuitionPerYear: v })}
                           className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 border border-gray-200 text-right font-bold"
                           ringClass="focus:ring-blue-400"
                         />
-                        <span className="text-[10px] text-gray-500">บาท</span>
+                        <span className="text-[10px] text-gray-500 w-8">บาท</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <label className="text-[10px] text-gray-600 w-28">ชื่อโรงเรียน:</label>
+                        <label className="text-[10px] text-gray-600 w-28 shrink-0">เรียนพิเศษ/ปี:</label>
+                        <MoneyInput
+                          value={lv.tutoringPerYear || 0}
+                          onChange={(v) => updateLevel(key, { tutoringPerYear: v })}
+                          className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 border border-gray-200 text-right font-bold"
+                          ringClass="focus:ring-teal-400"
+                        />
+                        <span className="text-[10px] text-gray-500 w-8">บาท</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <label className="text-[10px] text-gray-600 w-28 shrink-0">ชื่อโรงเรียน:</label>
                         <input
                           type="text"
                           value={lv.schoolName}
@@ -190,101 +264,14 @@ export default function EducationPage() {
           </div>
         </SectionCard>
 
-        {/* ─── Section 2: Children profiles ───────────────────────────────── */}
-        <SectionCard
-          id="children"
-          title="ข้อมูลลูก"
-          subtitle={`${children.length} คน`}
-          icon={<User size={16} className="text-blue-600" />}
-          open={openSection === "children"}
-          onToggle={() => setOpenSection(openSection === "children" ? "" : "children")}
-        >
-          <div className="space-y-3">
-            {children.map((child) => {
-              const proj = perChildProjections.find((p) => p.childId === child.id);
-              const expanded = openChildId === child.id;
-              return (
-                <div key={child.id} className="border border-gray-200 rounded-xl overflow-hidden">
-                  <button
-                    onClick={() => setOpenChildId(expanded ? null : child.id)}
-                    className="w-full p-3 flex items-center gap-3 bg-gray-50 hover:bg-gray-100 transition"
-                  >
-                    <div
-                      className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-lg ${
-                        child.gender === "male" ? "bg-blue-400" : "bg-pink-400"
-                      }`}
-                    >
-                      {child.gender === "male" ? "👦" : "👧"}
-                    </div>
-                    <div className="flex-1 text-left">
-                      <div className="text-sm font-bold text-gray-800">
-                        {child.name || "ลูก (ยังไม่ระบุชื่อ)"}
-                      </div>
-                      <div className="text-[10px] text-gray-500">
-                        อายุ {CURRENT_YEAR - child.birthYear} ปี • {levels.find((l) => l.key === child.currentLevelKey)?.label || "-"}{" "}
-                        ปีที่ {child.currentYearInLevel}
-                      </div>
-                    </div>
-                    <div className="text-right mr-2">
-                      <div className="text-xs font-bold text-blue-600">{fmtShort(proj?.totalCost || 0)}</div>
-                      <div className="text-[9px] text-gray-400">รวมทั้งสิ้น</div>
-                    </div>
-                    <ChevronDown size={16} className={`text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`} />
-                  </button>
-
-                  {expanded && (
-                    <ChildEditor
-                      child={child}
-                      onChange={(patch) => updateChild(child.id, patch)}
-                      onRemove={() => {
-                        removeChild(child.id);
-                        setOpenChildId(null);
-                      }}
-                    />
-                  )}
-                </div>
-              );
-            })}
-
-            <button
-              onClick={() => {
-                const id = addChild();
-                setOpenChildId(id);
-              }}
-              className="w-full py-3 rounded-xl border-2 border-dashed border-blue-300 text-blue-600 text-sm font-medium hover:bg-blue-50 transition flex items-center justify-center gap-2"
-            >
-              <Plus size={16} /> เพิ่มลูก
-            </button>
-          </div>
-        </SectionCard>
-
-        {/* ─── Section 3: Per-child projection ─────────────────────────────── */}
-        {children.length > 0 && (
+        {/* ─── Section 3: Aggregated yearly projection (single table) ──────── */}
+        {children.length > 0 && aggregated.rows.length > 0 && (
           <SectionCard
-            id="projection"
-            title="ประมาณการค่าเรียนรายคน"
-            subtitle="ปรับตามเงินเฟ้อ คงที่ต่อระดับชั้น"
+            title="3. ประมาณการค่าเรียน ปีต่อปี"
+            subtitle={`รวม ${fmtShort(aggregated.grandTotal)} บาท`}
             icon={<Calendar size={16} className="text-blue-600" />}
             open={openSection === "projection"}
             onToggle={() => setOpenSection(openSection === "projection" ? "" : "projection")}
-          >
-            <div className="space-y-4">
-              {perChildProjections.map((proj) => (
-                <ChildProjectionTable key={proj.childId} proj={proj} />
-              ))}
-            </div>
-          </SectionCard>
-        )}
-
-        {/* ─── Section 4: Aggregated yearly projection ──────────────────────── */}
-        {children.length > 0 && aggregated.rows.length > 0 && (
-          <SectionCard
-            id="aggregated"
-            title="ประมาณการรวมทุกคน ปีต่อปี"
-            subtitle={`รวม ${fmtShort(aggregated.grandTotal)} บาท`}
-            icon={<TrendingUp size={16} className="text-blue-600" />}
-            open={openSection === "aggregated"}
-            onToggle={() => setOpenSection(openSection === "aggregated" ? "" : "aggregated")}
           >
             <div className="overflow-x-auto">
               <table className="w-full text-[11px]">
@@ -342,6 +329,67 @@ export default function EducationPage() {
             </div>
           </SectionCard>
         )}
+
+        {/* ─── Section 4: Action Plan — Portfolios ──────────────────────────── */}
+        {children.length > 0 && (
+          <SectionCard
+            title="4. วางแผนพอร์ตลงทุนเพื่อการศึกษา"
+            subtitle={`${portfolios.length} พอร์ต`}
+            icon={<Briefcase size={16} className="text-indigo-600" />}
+            open={openSection === "portfolios"}
+            onToggle={() => setOpenSection(openSection === "portfolios" ? "" : "portfolios")}
+          >
+            <div className="space-y-4">
+              {children.map((child) => {
+                const childPorts = portfolios.filter((p) => p.childId === child.id);
+                return (
+                  <div key={child.id} className="border border-gray-200 rounded-xl p-3 bg-indigo-50/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-sm ${
+                            child.gender === "male" ? "bg-blue-400" : "bg-pink-400"
+                          }`}
+                        >
+                          {child.gender === "male" ? "👦" : "👧"}
+                        </div>
+                        <span className="text-sm font-bold text-gray-800">
+                          {child.name || "ลูก"}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => addPortfolio(child.id)}
+                        className="text-[10px] text-indigo-600 font-bold bg-white border border-indigo-300 rounded-lg px-2 py-1 hover:bg-indigo-100 flex items-center gap-1"
+                      >
+                        <Plus size={12} /> เพิ่มพอร์ต
+                      </button>
+                    </div>
+
+                    {childPorts.length === 0 ? (
+                      <div className="text-[10px] text-gray-400 italic text-center py-2">
+                        ยังไม่มีพอร์ตลงทุน — กด "เพิ่มพอร์ต" เพื่อเริ่มวางแผน
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {childPorts.map((port) => (
+                          <PortfolioEditor
+                            key={port.id}
+                            portfolio={port}
+                            child={child}
+                            levels={levels}
+                            inflationRate={inflationRate}
+                            onChange={(patch) => updatePortfolio(port.id, patch)}
+                            onRemove={() => removePortfolio(port.id)}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </SectionCard>
+        )}
       </div>
     </div>
   );
@@ -352,7 +400,6 @@ export default function EducationPage() {
 function SectionCard({
   title, subtitle, icon, open, onToggle, children,
 }: {
-  id: string;
   title: string;
   subtitle?: string;
   icon: React.ReactNode;
@@ -460,58 +507,120 @@ function ChildEditor({
         </div>
       </div>
 
-      {/* Birth year / Age */}
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <label className="text-[10px] text-gray-500 block mb-1">ปีเกิด (ค.ศ.)</label>
-          <YearInput
-            value={child.birthYear}
-            onChange={(v) => onChange({ birthYear: v })}
-            placeholder={String(CURRENT_YEAR - 5)}
-          />
-          <div className="text-[9px] text-gray-400 mt-0.5">
-            อายุ {age} ปี • พ.ศ. {child.birthYear + BE_OFFSET}
-          </div>
+      {/* Birth year */}
+      <div>
+        <label className="text-[10px] text-gray-500 block mb-1">ปีเกิด (ค.ศ.)</label>
+        <YearInput
+          value={child.birthYear}
+          onChange={(v) => onChange({ birthYear: v })}
+          placeholder={String(CURRENT_YEAR - 5)}
+        />
+        <div className="text-[9px] text-gray-400 mt-0.5">
+          {child.birthYear > CURRENT_YEAR
+            ? `จะเกิดปี พ.ศ. ${child.birthYear + BE_OFFSET}`
+            : `อายุ ${age} ปี • พ.ศ. ${child.birthYear + BE_OFFSET}`}
         </div>
-        <div>
-          <label className="text-[10px] text-gray-500 block mb-1">ระดับปัจจุบัน</label>
-          <select
-            value={child.currentLevelKey}
+      </div>
+
+      {/* Enrollment state toggle */}
+      <div className="border-t border-gray-100 pt-3">
+        <label className="flex items-center gap-2 cursor-pointer mb-2">
+          <input
+            type="checkbox"
+            checked={child.notEnrolled}
             onChange={(e) =>
               onChange({
-                currentLevelKey: e.target.value as EducationLevelKey,
-                currentYearInLevel: 1,
+                notEnrolled: e.target.checked,
+                // Seed defaults when toggling ON
+                plannedStartYear:
+                  e.target.checked && !child.plannedStartYear
+                    ? CURRENT_YEAR + Math.max(0, 3 - age)
+                    : child.plannedStartYear,
+                plannedStartLevel:
+                  e.target.checked && !child.plannedStartLevel
+                    ? "nursery"
+                    : child.plannedStartLevel,
               })
             }
-            className="w-full text-sm bg-gray-50 rounded-lg px-2 py-2 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200"
-          >
-            {LEVEL_SEQUENCE.map((k) => {
-              const lv = levels.find((l) => l.key === k);
-              return lv ? (
-                <option key={k} value={k}>
-                  {lv.label}
-                </option>
-              ) : null;
-            })}
-          </select>
-        </div>
-      </div>
-
-      {/* Year in current level */}
-      <div>
-        <label className="text-[10px] text-gray-500 block mb-1">
-          กำลังเรียนอยู่ปีที่ (ในระดับชั้นปัจจุบัน)
+            className="w-4 h-4 rounded accent-blue-500"
+          />
+          <span className="text-xs font-medium text-gray-700">ยังไม่เข้าโรงเรียน / ยังไม่เกิด</span>
         </label>
-        <YearInLevelSelector
-          level={levels.find((l) => l.key === child.currentLevelKey)}
-          customBachelorYears={child.bachelorYears}
-          customMasterYears={child.masterYears}
-          value={child.currentYearInLevel}
-          onChange={(v) => onChange({ currentYearInLevel: v })}
-        />
+
+        {child.notEnrolled ? (
+          <div className="space-y-2 bg-blue-50/50 border border-blue-200 rounded-xl p-3">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] text-gray-500 block mb-1">จะเข้าเรียนปี (ค.ศ.)</label>
+                <YearInput
+                  value={child.plannedStartYear || CURRENT_YEAR}
+                  onChange={(v) => onChange({ plannedStartYear: v })}
+                  placeholder={String(CURRENT_YEAR + 3)}
+                />
+              </div>
+              <div>
+                <label className="text-[10px] text-gray-500 block mb-1">เริ่มระดับชั้น</label>
+                <select
+                  value={child.plannedStartLevel || "nursery"}
+                  onChange={(e) =>
+                    onChange({ plannedStartLevel: e.target.value as EducationLevelKey })
+                  }
+                  className="w-full text-sm bg-white rounded-lg px-2 py-2 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200"
+                >
+                  {LEVEL_SEQUENCE.map((k) => {
+                    const lv = levels.find((l) => l.key === k);
+                    return lv ? (
+                      <option key={k} value={k}>
+                        {lv.label}
+                      </option>
+                    ) : null;
+                  })}
+                </select>
+              </div>
+            </div>
+            <div className="text-[9px] text-blue-600">
+              💡 ระบบจะเริ่มประมาณการค่าเรียนตั้งแต่ปีที่วางแผนไว้
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-[10px] text-gray-500 block mb-1">ระดับปัจจุบัน</label>
+              <select
+                value={child.currentLevelKey}
+                onChange={(e) =>
+                  onChange({
+                    currentLevelKey: e.target.value as EducationLevelKey,
+                    currentYearInLevel: 1,
+                  })
+                }
+                className="w-full text-sm bg-gray-50 rounded-lg px-2 py-2 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200"
+              >
+                {LEVEL_SEQUENCE.map((k) => {
+                  const lv = levels.find((l) => l.key === k);
+                  return lv ? (
+                    <option key={k} value={k}>
+                      {lv.label}
+                    </option>
+                  ) : null;
+                })}
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] text-gray-500 block mb-1">ปีที่</label>
+              <YearInLevelSelector
+                level={levels.find((l) => l.key === child.currentLevelKey)}
+                customBachelorYears={child.bachelorYears}
+                customMasterYears={child.masterYears}
+                value={child.currentYearInLevel}
+                onChange={(v) => onChange({ currentYearInLevel: v })}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Bachelor / Master years (optional) */}
+      {/* Bachelor / Master years */}
       <div className="grid grid-cols-2 gap-2">
         <div>
           <label className="text-[10px] text-gray-500 block mb-1">ป.ตรี (ปี)</label>
@@ -521,9 +630,7 @@ function ChildEditor({
             className="w-full text-sm bg-gray-50 rounded-lg px-2 py-2 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200"
           >
             {[3, 4, 5, 6].map((y) => (
-              <option key={y} value={y}>
-                {y} ปี
-              </option>
+              <option key={y} value={y}>{y} ปี</option>
             ))}
           </select>
         </div>
@@ -606,13 +713,13 @@ function YearInLevelSelector({
     level.defaultYears;
   const years = Array.from({ length: maxYears }, (_, i) => i + 1);
   return (
-    <div className="flex gap-1.5 flex-wrap">
+    <div className="flex gap-1 flex-wrap">
       {years.map((y) => (
         <button
           key={y}
           type="button"
           onClick={() => onChange(y)}
-          className={`w-9 h-9 rounded-lg text-xs font-bold transition ${
+          className={`w-8 h-8 rounded-lg text-xs font-bold transition ${
             value === y
               ? "bg-blue-500 text-white shadow"
               : "bg-gray-100 text-gray-500 hover:bg-gray-200"
@@ -625,73 +732,188 @@ function YearInLevelSelector({
   );
 }
 
-function ChildProjectionTable({ proj }: { proj: ReturnType<typeof projectChildEducation> }) {
-  if (proj.rows.length === 0) {
-    return (
-      <div className="bg-gray-50 rounded-xl p-4 text-center text-xs text-gray-400">
-        ยังไม่มีข้อมูลประมาณการสำหรับ {proj.childName}
-      </div>
-    );
-  }
+function PortfolioEditor({
+  portfolio,
+  child,
+  levels,
+  inflationRate,
+  onChange,
+  onRemove,
+}: {
+  portfolio: EducationPortfolio;
+  child: EducationChild;
+  levels: ReturnType<typeof useEducationStore.getState>["levels"];
+  inflationRate: number;
+  onChange: (patch: Partial<EducationPortfolio>) => void;
+  onRemove: () => void;
+}) {
+  const calc = useMemo(
+    () => computePortfolio(portfolio, child, levels, inflationRate, CURRENT_YEAR),
+    [portfolio, child, levels, inflationRate],
+  );
 
-  // Group consecutive rows by levelKey so we can render a clean per-level summary
-  const groups: { levelKey: string; levelLabel: string; rows: typeof proj.rows; subtotal: number }[] = [];
-  for (const r of proj.rows) {
-    const last = groups[groups.length - 1];
-    if (last && last.levelKey === r.levelKey) {
-      last.rows.push(r);
-      last.subtotal += r.tuitionPerYear;
-    } else {
-      groups.push({ levelKey: r.levelKey, levelLabel: r.levelLabel, rows: [r], subtotal: r.tuitionPerYear });
-    }
-  }
+  const toggleLevel = (key: EducationLevelKey) => {
+    const next = portfolio.coveredLevels.includes(key)
+      ? portfolio.coveredLevels.filter((k) => k !== key)
+      : [...portfolio.coveredLevels, key];
+    onChange({ coveredLevels: next });
+  };
 
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden">
-      <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-3 py-2 flex items-center justify-between">
-        <div className="text-sm font-bold">{proj.childName}</div>
-        <div className="text-xs font-bold">
-          รวม {fmt(proj.totalCost)} บาท
+    <div className="bg-white border border-gray-200 rounded-xl p-3 space-y-3">
+      {/* Header: name + delete */}
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          value={portfolio.name}
+          onChange={(e) => onChange({ name: e.target.value })}
+          placeholder="ชื่อพอร์ต"
+          className="flex-1 text-sm font-bold bg-gray-50 rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-indigo-400 border border-gray-200"
+        />
+        <button
+          onClick={onRemove}
+          className="text-red-400 hover:text-red-600 shrink-0 p-1.5"
+          title="ลบพอร์ต"
+        >
+          <Trash2 size={14} />
+        </button>
+      </div>
+
+      {/* Covered levels (multi-select chips) */}
+      <div>
+        <label className="text-[10px] text-gray-500 block mb-1">ใช้เป็นทุนสำหรับระดับ</label>
+        <div className="flex flex-wrap gap-1">
+          {LEVEL_SEQUENCE.map((k) => {
+            const lv = levels.find((l) => l.key === k);
+            if (!lv || !lv.enabled) return null;
+            const active = portfolio.coveredLevels.includes(k);
+            return (
+              <button
+                key={k}
+                type="button"
+                onClick={() => toggleLevel(k)}
+                className={`px-2 py-1 rounded-lg text-[10px] font-medium transition border ${
+                  active
+                    ? "bg-indigo-500 text-white border-indigo-500"
+                    : "bg-white text-gray-500 border-gray-200 hover:border-indigo-300"
+                }`}
+              >
+                {lv.shortLabel}
+              </button>
+            );
+          })}
         </div>
       </div>
-      <table className="w-full text-[11px]">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="py-1.5 px-2 text-left text-gray-600">ปี</th>
-            <th className="py-1.5 px-2 text-left text-gray-600">พ.ศ.</th>
-            <th className="py-1.5 px-2 text-left text-gray-600">อายุ</th>
-            <th className="py-1.5 px-2 text-left text-gray-600">ระดับ</th>
-            <th className="py-1.5 px-2 text-right text-gray-600">ค่าเรียน/ปี</th>
-            <th className="py-1.5 px-2 text-right text-gray-600">สะสม</th>
-          </tr>
-        </thead>
-        <tbody>
-          {groups.map((g, gi) => (
-            <React.Fragment key={gi}>
-              {g.rows.map((r, ri) => (
-                <tr key={`${gi}-${ri}`} className="border-t border-gray-100 hover:bg-blue-50/30">
-                  <td className="py-1.5 px-2 text-gray-700">{r.year}</td>
-                  <td className="py-1.5 px-2 text-gray-500">{r.yearBE}</td>
-                  <td className="py-1.5 px-2 text-gray-700">{r.age}</td>
-                  <td className="py-1.5 px-2 text-gray-700">
-                    {r.levelLabel} ปี {r.yearInLevel}
-                  </td>
-                  <td className="py-1.5 px-2 text-right font-bold text-gray-800">{fmt(r.tuitionPerYear)}</td>
-                  <td className="py-1.5 px-2 text-right text-blue-600">{fmt(r.cumulative)}</td>
-                </tr>
-              ))}
-              <tr className="bg-blue-50/70 border-t border-blue-200">
-                <td colSpan={4} className="py-1.5 px-2 text-[10px] text-blue-700 font-bold">
-                  รวม {g.levelLabel}
-                </td>
-                <td className="py-1.5 px-2 text-right text-[11px] font-bold text-blue-700" colSpan={2}>
-                  {fmt(g.subtotal)} บาท
-                </td>
-              </tr>
-            </React.Fragment>
-          ))}
-        </tbody>
-      </table>
+
+      {/* Horizon + Return + Current */}
+      <div className="grid grid-cols-3 gap-2">
+        <div>
+          <label className="text-[10px] text-gray-500 block mb-1">ลงทุน (ปี)</label>
+          <YearInput
+            value={portfolio.yearsToInvest}
+            onChange={(v) => onChange({ yearsToInvest: v })}
+          />
+        </div>
+        <div>
+          <label className="text-[10px] text-gray-500 block mb-1">ผลตอบแทน%</label>
+          <DecimalInput
+            value={portfolio.expectedReturn}
+            onChange={(v) => onChange({ expectedReturn: v })}
+          />
+        </div>
+        <div>
+          <label className="text-[10px] text-gray-500 block mb-1">ยอดมีอยู่</label>
+          <MoneyInput
+            value={portfolio.currentAmount}
+            onChange={(v) => onChange({ currentAmount: v })}
+            className="w-full text-sm bg-gray-50 rounded-lg px-2 py-2 outline-none focus:ring-2 focus:ring-indigo-400 border border-gray-200 text-right font-bold"
+            ringClass="focus:ring-indigo-400"
+          />
+        </div>
+      </div>
+
+      {/* Calculation output */}
+      <div
+        className={`rounded-xl p-3 border ${
+          calc.onTrack
+            ? "bg-emerald-50 border-emerald-200"
+            : calc.targetAmount > 0
+              ? "bg-amber-50 border-amber-200"
+              : "bg-gray-50 border-gray-200"
+        }`}
+      >
+        {calc.targetAmount === 0 ? (
+          <div className="text-[10px] text-gray-500 text-center italic py-1">
+            เลือกระดับที่ต้องการให้พอร์ตนี้ดูแลก่อน
+          </div>
+        ) : (
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-gray-600">เป้าหมายทุน</span>
+              <span className="text-sm font-bold text-gray-800">{fmt(calc.targetAmount)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-gray-600">ยอดมีอยู่ × ผลตอบแทน ({portfolio.yearsToInvest} ปี)</span>
+              <span className="text-sm font-bold text-gray-800">{fmt(calc.futureCurrentAmount)}</span>
+            </div>
+            {calc.onTrack ? (
+              <div className="text-xs font-bold text-emerald-700 text-center mt-2 py-1">
+                ✓ พอร์ตนี้พอแล้ว (เกินเป้า {fmt(calc.futureCurrentAmount - calc.targetAmount)} บาท)
+              </div>
+            ) : (
+              <div className="border-t border-amber-200 pt-2 mt-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-amber-700 font-bold">ต้องเก็บเพิ่ม/เดือน</span>
+                  <span className="text-base font-extrabold text-amber-700">
+                    {fmt(calc.monthlyContribution)} บาท
+                  </span>
+                </div>
+                <div className="text-[9px] text-amber-600 text-right mt-0.5">
+                  (ปีละ {fmt(calc.annualContribution)} บาท เป็นเวลา {portfolio.yearsToInvest} ปี)
+                </div>
+              </div>
+            )}
+            {calc.firstTargetYear && (
+              <div className="text-[9px] text-gray-500 text-right">
+                ใช้ครั้งแรกปี {calc.firstTargetYear}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
+  );
+}
+
+function DecimalInput({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const display = draft !== null ? draft : Number.isFinite(value) ? String(value) : "";
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      value={display}
+      onFocus={(e) => {
+        setDraft(Number.isFinite(value) ? String(value) : "");
+        e.currentTarget.select();
+      }}
+      onChange={(e) => {
+        const raw = e.target.value.replace(/[^\d.]/g, "");
+        const parts = raw.split(".");
+        const cleaned = parts.length > 1 ? parts[0] + "." + parts.slice(1).join("") : raw;
+        setDraft(cleaned);
+        if (cleaned === "" || cleaned === ".") { onChange(0); return; }
+        const n = parseFloat(cleaned);
+        if (Number.isFinite(n)) onChange(n);
+      }}
+      onBlur={() => setDraft(null)}
+      className="w-full text-sm bg-gray-50 rounded-lg px-2 py-2 outline-none focus:ring-2 focus:ring-indigo-400 border border-gray-200 text-center font-bold"
+    />
   );
 }
