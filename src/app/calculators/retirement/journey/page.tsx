@@ -1244,9 +1244,8 @@ function CashflowBarChart({
   const chartW = (maxAge - minAge + 1) * yearColW;
   const svgW = padL + chartW + padR;
 
-  // Determine if balance is active (separate scale)
+  // Balance drawn as a gray line overlay — shares scale with bars
   const showBalance = visible.has("balance");
-  const flowKeys = (["inflow", "outflow", "returns", "net"] as CfSeriesKey[]).filter((k) => visible.has(k));
 
   // Compute per-age values
   const barData = rows.map((r) => {
@@ -1270,8 +1269,10 @@ function CashflowBarChart({
     return { age: r.age, posSegs, negSegs, posSum, negSum, balanceStart: r.balanceStart };
   });
 
-  // Scale — separate for balance if active without flow series
-  const maxPos = Math.max(...barData.map((d) => showBalance && flowKeys.length === 0 ? d.balanceStart : d.posSum), 1);
+  // Scale — include balance in positive range when toggled on
+  const basePosMax = Math.max(...barData.map((d) => d.posSum), 1);
+  const maxBalance = showBalance ? Math.max(...rows.map((r) => r.balanceStart), 0) : 0;
+  const maxPos = Math.max(basePosMax, maxBalance);
   const maxNeg = Math.max(...barData.map((d) => d.negSum), 0);
   const totalRange = maxPos + maxNeg || 1;
 
@@ -1402,18 +1403,6 @@ function CashflowBarChart({
               const bx = cx - barW / 2;
               const isHov = hoverAge === d.age;
 
-              // Balance bar (separate, full-width thin)
-              const balBar = showBalance && flowKeys.length === 0 ? (
-                <rect
-                  x={bx}
-                  y={zeroY - d.balanceStart * pxPerUnit}
-                  width={barW}
-                  height={Math.max(d.balanceStart * pxPerUnit, 0.5)}
-                  fill={isHov ? "#6B7280" : "#9CA3AF"}
-                  rx={1.5}
-                />
-              ) : null;
-
               // Positive stacked segments
               let posY = zeroY;
               const posRects = d.posSegs.map((seg) => {
@@ -1443,7 +1432,6 @@ function CashflowBarChart({
                     <rect x={cx - yearColW / 2} y={0} width={yearColW} height={chartH}
                       fill="#f8fafc" />
                   )}
-                  {balBar}
                   {posRects}
                   {negRects}
                   <rect
@@ -1455,6 +1443,36 @@ function CashflowBarChart({
                 </g>
               );
             })}
+
+            {/* ── Balance line overlay (gray) ── */}
+            {showBalance && rows.length > 0 && (
+              <g>
+                <polyline
+                  points={rows
+                    .map((r) => `${xPos(r.age)},${zeroY - r.balanceStart * pxPerUnit}`)
+                    .join(" ")}
+                  fill="none"
+                  stroke="#9CA3AF"
+                  strokeWidth={1.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                {rows.map((r) => {
+                  const cx = xPos(r.age);
+                  const cy = zeroY - r.balanceStart * pxPerUnit;
+                  const isHov = hoverAge === r.age;
+                  return (
+                    <circle
+                      key={`bal-${r.age}`}
+                      cx={cx}
+                      cy={cy}
+                      r={isHov ? 2.5 : 1.25}
+                      fill={isHov ? "#6B7280" : "#9CA3AF"}
+                    />
+                  );
+                })}
+              </g>
+            )}
           </svg>
 
           {/* ── Tooltip ── */}
