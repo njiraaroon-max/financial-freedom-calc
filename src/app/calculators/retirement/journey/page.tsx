@@ -108,6 +108,8 @@ export default function WealthJourneyPage() {
   const [mcSettingsOpen, setMcSettingsOpen] = useState(false);
   const [mcResult, setMcResult] = useState<MonteCarloResult | null>(null);
   const [mcRunning, setMcRunning] = useState(false);
+  type ChartView = "wealth" | "breakdown";
+  const [chartView, setChartView] = useState<ChartView>("wealth");
 
   // ----- detect empty state -----
   const hasBasicExpenses = retire.basicExpenses.some((e) => e.monthlyAmount > 0);
@@ -436,6 +438,35 @@ export default function WealthJourneyPage() {
       {/* Chart Card */}
       <div className="px-4 md:px-8 pt-4">
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 relative">
+          {/* View toggle: wealth curve vs cashflow breakdown */}
+          <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg mb-3 w-fit">
+            <button
+              onClick={() => setChartView("wealth")}
+              className={`px-3 py-1.5 rounded-md text-[11px] font-bold transition ${
+                chartView === "wealth" ? "bg-white text-[#0B1E3F] shadow-sm" : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              📈 เส้นสินทรัพย์
+            </button>
+            <button
+              onClick={() => setChartView("breakdown")}
+              className={`px-3 py-1.5 rounded-md text-[11px] font-bold transition ${
+                chartView === "breakdown" ? "bg-white text-[#0B1E3F] shadow-sm" : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              📊 วิเคราะห์กระแสเงิน
+            </button>
+          </div>
+
+          {chartView === "breakdown" ? (
+            <CashflowBarChart
+              rows={activeResult.rows}
+              currentAge={a.currentAge}
+              retireAge={a.retireAge}
+              lifeExpectancy={a.lifeExpectancy}
+            />
+          ) : (
+          <>
           {/* Mode tabs */}
           <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
             <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl flex-wrap">
@@ -652,6 +683,8 @@ export default function WealthJourneyPage() {
               </>
             )}
           </div>
+          </>
+          )}
         </div>
       </div>
 
@@ -1142,6 +1175,325 @@ function MonteCarloTooltip({
       <TooltipRow label="P50 (กลาง)" value={fmt(d.p50)} color="text-purple-600" />
       <TooltipRow label="P75" value={fmt(d.p75)} color="text-emerald-500" />
       <TooltipRow label="P90 (ดี)" value={fmt(d.p90)} color="text-emerald-600" />
+    </div>
+  );
+}
+
+// ---------- Cashflow Breakdown Bar Chart (SVG dual-axis) ----------
+type CfSeriesKey = "inflow" | "outflow" | "balance" | "returns" | "net";
+
+const CF_SERIES: { key: CfSeriesKey; label: string; color: string; hoverColor: string }[] = [
+  { key: "inflow", label: "ออมเข้า", color: "#EAB308", hoverColor: "#CA8A04" },
+  { key: "outflow", label: "ถอนออก", color: "#EF4444", hoverColor: "#DC2626" },
+  { key: "balance", label: "ยอดต้นปี", color: "#9CA3AF", hoverColor: "#6B7280" },
+  { key: "returns", label: "ผลตอบแทน", color: "#22C55E", hoverColor: "#16A34A" },
+  { key: "net", label: "สุทธิ", color: "#3B82F6", hoverColor: "#2563EB" },
+];
+
+function cfValue(row: { contribution: number; inflow: number; outflow: number; returnAmount: number }, key: CfSeriesKey): number {
+  switch (key) {
+    case "inflow": return row.contribution + row.inflow;
+    case "outflow": return -row.outflow;
+    case "balance": return 0; // handled separately
+    case "returns": return row.returnAmount;
+    case "net": return row.contribution + row.inflow + row.returnAmount - row.outflow;
+  }
+}
+
+function CashflowBarChart({
+  rows,
+  currentAge,
+  retireAge,
+  lifeExpectancy,
+}: {
+  rows: TooltipRow[];
+  currentAge: number;
+  retireAge: number;
+  lifeExpectancy: number;
+}) {
+  const [visible, setVisible] = useState<Set<CfSeriesKey>>(new Set(["inflow", "outflow", "returns"]));
+  const [hoverAge, setHoverAge] = useState<number | null>(null);
+
+  const toggle = (key: CfSeriesKey) => {
+    setVisible((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  if (rows.length === 0) return null;
+
+  const BE_OFFSET = 543;
+  const yearColW = 20;
+  const padL = 56;
+  const padR = 12;
+  const chartH = 280;
+  const axisH = 80;
+  const barW = 8;
+
+  const birthYear = new Date().getFullYear() - currentAge;
+  const minAge = rows[0].age;
+  const maxAge = rows[rows.length - 1].age;
+  const allAges: number[] = [];
+  for (let a = minAge; a <= maxAge; a++) allAges.push(a);
+
+  const chartW = (maxAge - minAge + 1) * yearColW;
+  const svgW = padL + chartW + padR;
+
+  // Determine if balance is active (separate scale)
+  const showBalance = visible.has("balance");
+  const flowKeys = (["inflow", "outflow", "returns", "net"] as CfSeriesKey[]).filter((k) => visible.has(k));
+
+  // Compute per-age values
+  const barData = rows.map((r) => {
+    let posSum = 0;
+    let negSum = 0;
+    const posSegs: { key: CfSeriesKey; value: number; color: string; hoverColor: string }[] = [];
+    const negSegs: { key: CfSeriesKey; value: number; color: string; hoverColor: string }[] = [];
+
+    for (const s of CF_SERIES) {
+      if (s.key === "balance") continue;
+      if (!visible.has(s.key)) continue;
+      const v = cfValue(r, s.key);
+      if (v > 0) {
+        posSegs.push({ key: s.key, value: v, color: s.color, hoverColor: s.hoverColor });
+        posSum += v;
+      } else if (v < 0) {
+        negSegs.push({ key: s.key, value: Math.abs(v), color: s.color, hoverColor: s.hoverColor });
+        negSum += Math.abs(v);
+      }
+    }
+    return { age: r.age, posSegs, negSegs, posSum, negSum, balanceStart: r.balanceStart };
+  });
+
+  // Scale — separate for balance if active without flow series
+  const maxPos = Math.max(...barData.map((d) => showBalance && flowKeys.length === 0 ? d.balanceStart : d.posSum), 1);
+  const maxNeg = Math.max(...barData.map((d) => d.negSum), 0);
+  const totalRange = maxPos + maxNeg || 1;
+
+  // Zero line position
+  const zeroY = (maxPos / totalRange) * chartH;
+  const pxPerUnit = chartH / totalRange;
+
+  // Y ticks
+  const ySteps = 4;
+  const posStep = maxPos / ySteps;
+  const negStep = maxNeg > 0 ? maxNeg / Math.max(Math.round(ySteps * (maxNeg / totalRange)), 1) : 0;
+  const posTicks = Array.from({ length: ySteps + 1 }, (_, i) => posStep * i);
+  const negTicks = negStep > 0 ? Array.from({ length: Math.round(maxNeg / negStep) }, (_, i) => negStep * (i + 1)) : [];
+
+  const svgH = chartH + axisH + 16;
+
+  const xPos = (age: number) => padL + (age - minAge) * yearColW + yearColW / 2;
+
+  const hoveredRow = hoverAge !== null ? rows.find((r) => r.age === hoverAge) : null;
+  const hoveredData = hoverAge !== null ? barData.find((d) => d.age === hoverAge) : null;
+
+  return (
+    <div>
+      {/* Series toggle chips */}
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        {CF_SERIES.map((s) => (
+          <button
+            key={s.key}
+            onClick={() => toggle(s.key)}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition border ${
+              visible.has(s.key)
+                ? "border-transparent text-white shadow-sm"
+                : "border-gray-200 text-gray-400 bg-white hover:border-gray-300"
+            }`}
+            style={visible.has(s.key) ? { backgroundColor: s.color } : undefined}
+          >
+            <span
+              className="w-2 h-2 rounded-full border border-white/50"
+              style={{ backgroundColor: s.color }}
+            />
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      {visible.size === 0 ? (
+        <div className="text-center text-xs text-gray-400 py-12">
+          เลือกข้อมูลอย่างน้อย 1 รายการเพื่อแสดงกราฟ
+        </div>
+      ) : (
+        <div className="overflow-x-auto -mx-2 px-2">
+          <svg width={svgW} height={svgH} style={{ minWidth: svgW, display: "block" }}>
+            {/* ── Y grid + labels (positive) ── */}
+            {posTicks.map((v, i) => {
+              const y = zeroY - v * pxPerUnit;
+              return (
+                <g key={`pos-${i}`}>
+                  <line x1={padL} y1={y} x2={padL + chartW} y2={y}
+                    stroke={i === 0 ? "#d1d5db" : "#f3f4f6"} strokeWidth={i === 0 ? 1 : 0.5} />
+                  <text x={padL - 4} y={y + 3} textAnchor="end" fontSize={8} fill="#9ca3af">
+                    {fmtM(v)}
+                  </text>
+                </g>
+              );
+            })}
+            {/* Y grid + labels (negative) */}
+            {negTicks.map((v, i) => {
+              const y = zeroY + v * pxPerUnit;
+              return (
+                <g key={`neg-${i}`}>
+                  <line x1={padL} y1={y} x2={padL + chartW} y2={y}
+                    stroke="#fef2f2" strokeWidth={0.5} />
+                  <text x={padL - 4} y={y + 3} textAnchor="end" fontSize={8} fill="#fca5a5">
+                    {fmtM(-v)}
+                  </text>
+                </g>
+              );
+            })}
+            {/* Zero line */}
+            <line x1={padL} y1={zeroY} x2={padL + chartW} y2={zeroY}
+              stroke="#6b7280" strokeWidth={1} />
+
+            {/* ── Retire + lifeExpectancy reference lines ── */}
+            {[retireAge, lifeExpectancy].map((refAge, i) => {
+              if (refAge < minAge || refAge > maxAge) return null;
+              const cx = xPos(refAge);
+              return (
+                <line key={`ref-${i}`} x1={cx} y1={0} x2={cx} y2={chartH}
+                  stroke={i === 0 ? "#F59E0B" : "#64748B"} strokeWidth={1.5} strokeDasharray="4 4" />
+              );
+            })}
+
+            {/* ── X axis ticks + dual labels (พ.ศ. / อายุ) ── */}
+            {allAges.map((age) => {
+              const isMajor = age % 10 === 0;
+              const isMinor = age % 5 === 0;
+              const cx = xPos(age);
+              return (
+                <g key={age}>
+                  {isMajor && (
+                    <line x1={cx} y1={0} x2={cx} y2={chartH}
+                      stroke="#e5e7eb" strokeWidth={0.5} />
+                  )}
+                  <line x1={cx} y1={chartH} x2={cx} y2={chartH + (isMajor ? 8 : isMinor ? 5 : 3)}
+                    stroke={isMajor ? "#6b7280" : isMinor ? "#9ca3af" : "#d1d5db"}
+                    strokeWidth={isMajor ? 1.5 : isMinor ? 1 : 0.5} />
+                  <g transform={`translate(${cx},${chartH + 12}) rotate(90)`}>
+                    <text x={0} y={4} fontSize={7}
+                      fill={isMajor ? "#4b5563" : isMinor ? "#6b7280" : "#9ca3af"}
+                      fontWeight={isMajor ? "700" : "400"}>
+                      {birthYear + age + BE_OFFSET}
+                    </text>
+                  </g>
+                  <g transform={`translate(${cx},${chartH + 44}) rotate(90)`}>
+                    <text x={0} y={4} fontSize={7}
+                      fill={isMajor ? "#3b82f6" : isMinor ? "#60a5fa" : "#93c5fd"}
+                      fontWeight={isMajor ? "700" : "400"}>
+                      {age}
+                    </text>
+                  </g>
+                </g>
+              );
+            })}
+
+            {/* ── Bars ── */}
+            {barData.map((d) => {
+              const cx = xPos(d.age);
+              const bx = cx - barW / 2;
+              const isHov = hoverAge === d.age;
+
+              // Balance bar (separate, full-width thin)
+              const balBar = showBalance && flowKeys.length === 0 ? (
+                <rect
+                  x={bx}
+                  y={zeroY - d.balanceStart * pxPerUnit}
+                  width={barW}
+                  height={Math.max(d.balanceStart * pxPerUnit, 0.5)}
+                  fill={isHov ? "#6B7280" : "#9CA3AF"}
+                  rx={1.5}
+                />
+              ) : null;
+
+              // Positive stacked segments
+              let posY = zeroY;
+              const posRects = d.posSegs.map((seg) => {
+                const h = seg.value * pxPerUnit;
+                posY -= h;
+                return (
+                  <rect key={seg.key} x={bx} y={posY} width={barW} height={h}
+                    fill={isHov ? seg.hoverColor : seg.color} rx={1.5} />
+                );
+              });
+
+              // Negative stacked segments
+              let negY = zeroY;
+              const negRects = d.negSegs.map((seg) => {
+                const h = seg.value * pxPerUnit;
+                const rect = (
+                  <rect key={seg.key} x={bx} y={negY} width={barW} height={h}
+                    fill={isHov ? seg.hoverColor : seg.color} rx={1.5} />
+                );
+                negY += h;
+                return rect;
+              });
+
+              return (
+                <g key={d.age}>
+                  {isHov && (
+                    <rect x={cx - yearColW / 2} y={0} width={yearColW} height={chartH}
+                      fill="#f8fafc" />
+                  )}
+                  {balBar}
+                  {posRects}
+                  {negRects}
+                  <rect
+                    x={cx - yearColW / 2} y={0} width={yearColW} height={chartH}
+                    fill="transparent"
+                    onMouseEnter={() => setHoverAge(d.age)}
+                    onMouseLeave={() => setHoverAge(null)}
+                  />
+                </g>
+              );
+            })}
+          </svg>
+
+          {/* ── Tooltip ── */}
+          {hoveredRow && hoveredData && (
+            <div className="mt-2 bg-white/95 backdrop-blur border border-gray-200 rounded-xl shadow-lg p-3 text-[11px] mx-auto max-w-[300px]">
+              <div className="font-bold text-[#0B1E3F] text-[12px] mb-1.5 flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${hoveredRow.phase === "accumulation" ? "bg-blue-500" : "bg-pink-500"}`} />
+                อายุ {hoveredRow.age} ปี
+                <span className="text-[9px] text-slate-400">
+                  · พ.ศ. {birthYear + hoveredRow.age + BE_OFFSET}
+                </span>
+              </div>
+              <div className="space-y-0.5">
+                {visible.has("balance") && (
+                  <div className="flex justify-between"><span className="text-gray-500">ยอดต้นปี</span><span className="font-bold text-gray-600">{fmt(hoveredRow.balanceStart)}</span></div>
+                )}
+                {visible.has("returns") && (
+                  <div className="flex justify-between"><span className="text-gray-500">ผลตอบแทน</span><span className="font-bold text-emerald-600">+{fmt(hoveredRow.returnAmount)}</span></div>
+                )}
+                {visible.has("inflow") && (
+                  <div className="flex justify-between"><span className="text-gray-500">ออมเข้า</span><span className="font-bold text-yellow-600">+{fmt(hoveredRow.contribution + hoveredRow.inflow)}</span></div>
+                )}
+                {visible.has("outflow") && (
+                  <div className="flex justify-between"><span className="text-gray-500">ถอนออก</span><span className="font-bold text-red-500">{hoveredRow.outflow > 0 ? `−${fmt(hoveredRow.outflow)}` : "—"}</span></div>
+                )}
+                {visible.has("net") && (() => {
+                  const net = hoveredRow.contribution + hoveredRow.inflow + hoveredRow.returnAmount - hoveredRow.outflow;
+                  return (
+                    <div className="flex justify-between border-t border-gray-100 pt-1 mt-1">
+                      <span className="text-gray-500 font-bold">สุทธิ</span>
+                      <span className={`font-black ${net >= 0 ? "text-blue-600" : "text-red-600"}`}>
+                        {net >= 0 ? "+" : ""}{fmt(net)}
+                      </span>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
