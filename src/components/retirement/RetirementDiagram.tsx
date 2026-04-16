@@ -610,15 +610,27 @@ export default function RetirementDiagram({
                 >
                   <text
                     x={pvX}
-                    y={baseline - pvH - 6}
+                    y={baseline - pvH - 16}
                     textAnchor="middle"
-                    fontSize="8"
-                    fontWeight="600"
+                    fontSize="9.5"
+                    fontWeight="700"
                     fill="#64748b"
                     className="dg-text-delay"
                     pointerEvents="none"
                   >
-                    /เดือน · วันนี้
+                    รายจ่ายปัจจุบัน
+                  </text>
+                  <text
+                    x={pvX}
+                    y={baseline - pvH - 5}
+                    textAnchor="middle"
+                    fontSize="7.5"
+                    fontWeight="500"
+                    fill="#94a3b8"
+                    className="dg-text-delay"
+                    pointerEvents="none"
+                  >
+                    (บาท/เดือน)
                   </text>
                   <rect
                     className="dg-bar dg-bar-pv"
@@ -734,15 +746,27 @@ export default function RetirementDiagram({
                 >
                   <text
                     x={fvX}
-                    y={baseline - fvH - 6}
+                    y={baseline - fvH - 16}
                     textAnchor="middle"
-                    fontSize="8"
-                    fontWeight="600"
+                    fontSize="9.5"
+                    fontWeight="700"
                     fill="#1e3a5f"
                     className="dg-text-delay"
                     pointerEvents="none"
                   >
-                    /เดือน · ณ วันเกษียณ
+                    รายจ่าย ณ วันเกษียณ
+                  </text>
+                  <text
+                    x={fvX}
+                    y={baseline - fvH - 5}
+                    textAnchor="middle"
+                    fontSize="7.5"
+                    fontWeight="500"
+                    fill="#64748b"
+                    className="dg-text-delay"
+                    pointerEvents="none"
+                  >
+                    (บาท/เดือน)
                   </text>
                   <rect
                     className="dg-bar dg-bar-fv"
