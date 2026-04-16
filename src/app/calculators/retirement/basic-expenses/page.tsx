@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Save, Plus, Trash2, Info, X, Lightbulb } from "lucide-react";
+import { Save, Plus, Trash2, Info, X, Lightbulb, ChevronDown, Table2 } from "lucide-react";
 
 /** Filled triangle — up (▲) / down (▼) — colored via `currentColor`. */
 function Triangle({ dir }: { dir: "up" | "down" }) {
@@ -63,6 +63,7 @@ export default function BasicExpensesPage() {
   const [showInfo, setShowInfo] = useState(false);
   const [showDiagramInfo, setShowDiagramInfo] = useState(false);
   const [showSensitivityInfo, setShowSensitivityInfo] = useState(false);
+  const [showYearlyTable, setShowYearlyTable] = useState(false);
 
   // Auto-sync age from profile
   useEffect(() => {
@@ -419,6 +420,121 @@ export default function BasicExpensesPage() {
               postRetireReturn={a.postRetireReturn}
               onInfoClick={() => setShowDiagramInfo(true)}
             />
+          </div>
+        )}
+
+        {/* Yearly Expense Table — exact values Wealth Journey uses */}
+        {totalBasicMonthly > 0 && yearsAfterRetire > 0 && (
+          <div className="mt-4 bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <button
+              onClick={() => setShowYearlyTable((v) => !v)}
+              className="w-full px-4 py-3 bg-[#1e3a5f] text-white text-xs font-bold flex items-center justify-between hover:bg-[#2d5a8e] transition"
+              aria-expanded={showYearlyTable}
+            >
+              <span className="flex items-center gap-2">
+                <Table2 size={14} />
+                ตารางค่าใช้จ่ายรายปี (ใช้ใน Wealth Journey)
+              </span>
+              <ChevronDown
+                size={14}
+                className={`transition-transform ${showYearlyTable ? "rotate-180" : ""}`}
+              />
+            </button>
+
+            {showYearlyTable && (
+              <>
+                {(() => {
+                  const currentYear = new Date().getFullYear();
+                  const rows = Array.from({ length: yearsAfterRetire + 1 }, (_, i) => {
+                    const age = a.retireAge + i;
+                    const yearsFromNow = age - a.currentAge;
+                    const year = currentYear + yearsFromNow;
+                    const beYear = year + 543;
+                    const multiplier = Math.pow(1 + a.generalInflation, yearsFromNow);
+                    const monthly = totalBasicMonthly * multiplier;
+                    const yearly = monthly * 12;
+                    return { age, beYear, multiplier, monthly, yearly };
+                  });
+                  const totalNominal = rows.reduce((s, r) => s + r.yearly, 0);
+                  return (
+                    <>
+                      <div className="max-h-[360px] overflow-y-auto">
+                        <table className="w-full text-xs">
+                          <thead className="sticky top-0 bg-gray-50 border-b border-gray-200 z-10">
+                            <tr>
+                              <th className="px-3 py-2 text-left font-bold text-gray-500 text-[10px] uppercase tracking-wide">อายุ</th>
+                              <th className="px-3 py-2 text-left font-bold text-gray-500 text-[10px] uppercase tracking-wide">พ.ศ.</th>
+                              <th className="px-3 py-2 text-right font-bold text-gray-500 text-[10px] uppercase tracking-wide">/เดือน</th>
+                              <th className="px-3 py-2 text-right font-bold text-gray-500 text-[10px] uppercase tracking-wide">/ปี</th>
+                              <th className="px-3 py-2 text-right font-bold text-gray-500 text-[10px] uppercase tracking-wide">× PV</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {rows.map((r, i) => {
+                              const isFirst = i === 0;
+                              const isLast = i === rows.length - 1;
+                              const rowClass = isFirst
+                                ? "bg-cyan-50/50 border-b border-cyan-100"
+                                : isLast
+                                  ? "bg-amber-50/40 border-b border-amber-100"
+                                  : "border-b border-gray-100";
+                              return (
+                                <tr key={r.age} className={rowClass}>
+                                  <td className="px-3 py-1.5 font-bold text-[#1e3a5f] tabular-nums">
+                                    {r.age}
+                                    {isFirst && (
+                                      <span className="ml-1 text-[9px] font-normal text-cyan-600">
+                                        เกษียณ
+                                      </span>
+                                    )}
+                                    {isLast && (
+                                      <span className="ml-1 text-[9px] font-normal text-amber-600">
+                                        สิ้นอายุขัย
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className="px-3 py-1.5 text-gray-500 tabular-nums">
+                                    {r.beYear}
+                                  </td>
+                                  <td className="px-3 py-1.5 text-right tabular-nums text-gray-700">
+                                    {fmt(r.monthly)}
+                                  </td>
+                                  <td className="px-3 py-1.5 text-right tabular-nums font-bold text-red-600">
+                                    {fmt(r.yearly)}
+                                  </td>
+                                  <td className="px-3 py-1.5 text-right tabular-nums text-gray-400 text-[10px]">
+                                    {r.multiplier.toFixed(2)}×
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                          <tfoot>
+                            <tr className="bg-gray-100 font-bold border-t-2 border-gray-300">
+                              <td colSpan={3} className="px-3 py-2 text-gray-700 text-[11px]">
+                                รวม {rows.length} ปี (Nominal)
+                              </td>
+                              <td className="px-3 py-2 text-right tabular-nums text-red-700 text-[11px]">
+                                ฿{fmt(totalNominal)}
+                              </td>
+                              <td></td>
+                            </tr>
+                          </tfoot>
+                        </table>
+                      </div>
+                      <div className="px-3 py-2 bg-gray-50 text-[10px] text-gray-500 border-t border-gray-200 flex items-start gap-1.5">
+                        <Info size={11} className="text-gray-400 shrink-0 mt-0.5" />
+                        <div className="leading-relaxed">
+                          สูตร: <code className="text-[10px] bg-white px-1 rounded">฿{fmt(totalBasicMonthly)} × 12 × (1 + {(a.generalInflation * 100).toFixed(1)}%)<sup>n</sup></code>
+                          &nbsp;— ค่านี้คือ <b>outflow รายปี</b> ที่ Wealth Journey ใช้จริง
+                          ทบเงินเฟ้อจากวันนี้ปีต่อปี (ไม่ใช่ NPV รวม)
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
+              </>
+            )}
           </div>
         )}
 
