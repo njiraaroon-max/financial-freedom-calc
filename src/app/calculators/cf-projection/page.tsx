@@ -156,9 +156,13 @@ export default function CFProjectionPage() {
         startYear: CURRENT_YEAR,
         startingBalance,
         annualIncomeNow: annualIncome,
-        annualExpenseNow: annualExpense - annualInsurancePremiums - annualTaxEstimate, // avoid double-counting
-        annualInsurancePremiums,
-        annualTaxEstimate,
+        // Use the cashflow expense total as-is. It is expected to already
+        // contain insurance/tax line items — we keep them visible on the
+        // data-source panel but do NOT add them again to avoid double
+        // counting. Set the separate buckets to 0 here.
+        annualExpenseNow: annualExpense,
+        annualInsurancePremiums: 0,
+        annualTaxEstimate: 0,
         postRetireMonthlyExpense,
         ssMonthlyPension,
         ssStartAge,
