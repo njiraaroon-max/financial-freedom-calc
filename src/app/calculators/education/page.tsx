@@ -11,9 +11,7 @@ import {
   TrendingUp,
   Calendar,
   BookOpen,
-  Target,
   Briefcase,
-  Info,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import MoneyInput from "@/components/MoneyInput";
