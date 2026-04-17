@@ -292,29 +292,33 @@ export default function PVDPage() {
             <div className="bg-[#1e3a5f] px-4 py-2.5">
               <div className="text-xs font-bold text-white">ตาราง Projection</div>
             </div>
-            <div className="overflow-x-auto max-h-72 overflow-y-auto">
+            <div className="overflow-auto max-h-72 relative">
               <table className="w-full text-[10px] border-collapse">
-                <thead className="bg-[#1e3a5f] text-white sticky top-0">
-                  <tr>
-                    <th className="px-2 py-1.5 text-center sticky left-0 bg-[#1e3a5f] z-10">ปีที่</th>
-                    <th className="px-2 py-1.5 text-center">อายุ</th>
-                    <th className="px-2 py-1.5 text-right">เงินเดือน</th>
-                    <th className="px-2 py-1.5 text-right">ต้นงวดสะสม</th>
-                    <th className="px-2 py-1.5 text-right">ต้นงวดสมทบ</th>
-                    <th className="px-2 py-1.5 text-right bg-[#152d47]">สิ้นปี</th>
+                <thead>
+                  <tr className="bg-[#1e3a5f] text-white">
+                    {/* Top-left corner: sticky on BOTH axes, highest z */}
+                    <th className="px-2 py-1.5 text-center sticky top-0 left-0 bg-[#1e3a5f] z-30">ปีที่</th>
+                    <th className="px-2 py-1.5 text-center sticky top-0 bg-[#1e3a5f] z-20">อายุ</th>
+                    <th className="px-2 py-1.5 text-right sticky top-0 bg-[#1e3a5f] z-20">เงินเดือน</th>
+                    <th className="px-2 py-1.5 text-right sticky top-0 bg-[#1e3a5f] z-20">ต้นงวดสะสม</th>
+                    <th className="px-2 py-1.5 text-right sticky top-0 bg-[#1e3a5f] z-20">ต้นงวดสมทบ</th>
+                    <th className="px-2 py-1.5 text-right sticky top-0 bg-[#152d47] z-20">สิ้นปี</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {projection.map((row) => (
-                    <tr key={row.year} className="border-t border-gray-100 bg-white hover:bg-indigo-50">
-                      <td className="px-2 py-1.5 text-center font-medium sticky left-0 bg-inherit z-10">{row.year}</td>
-                      <td className="px-2 py-1.5 text-center">{row.age}</td>
-                      <td className="px-2 py-1.5 text-right">{fmt(row.salary)}</td>
-                      <td className="px-2 py-1.5 text-right text-blue-600">{fmt(row.empBegin)}</td>
-                      <td className="px-2 py-1.5 text-right text-purple-600">{fmt(row.erBegin)}</td>
-                      <td className="px-2 py-1.5 text-right font-bold bg-gray-50">{fmt(row.total)}</td>
-                    </tr>
-                  ))}
+                  {projection.map((row, i) => {
+                    const rowBg = i % 2 === 0 ? "bg-white" : "bg-slate-50";
+                    return (
+                      <tr key={row.year} className={`border-t border-gray-100 ${rowBg} hover:bg-indigo-50`}>
+                        <td className={`px-2 py-1.5 text-center font-medium sticky left-0 z-10 ${rowBg}`}>{row.year}</td>
+                        <td className="px-2 py-1.5 text-center">{row.age}</td>
+                        <td className="px-2 py-1.5 text-right">{fmt(row.salary)}</td>
+                        <td className="px-2 py-1.5 text-right text-blue-600">{fmt(row.empBegin)}</td>
+                        <td className="px-2 py-1.5 text-right text-purple-600">{fmt(row.erBegin)}</td>
+                        <td className="px-2 py-1.5 text-right font-bold bg-gray-100/80">{fmt(row.total)}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
