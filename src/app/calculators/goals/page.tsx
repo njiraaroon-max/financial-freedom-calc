@@ -133,11 +133,13 @@ function GoalTimeline({
   currentAge,
   retireAge,
   variables,
+  onEditGoal,
 }: {
   goals: GoalItem[];
   currentAge: number;
   retireAge: number;
   variables: Record<string, { value: number; label: string }>;
+  onEditGoal?: (g: GoalItem) => void;
 }) {
   // Measure container width so timeline fits without scrolling
   const containerRef = useRef<HTMLDivElement>(null);
@@ -244,10 +246,21 @@ function GoalTimeline({
           const amt = resolveAmt(g);
           const theme = CAT_THEME[g.category];
           return (
-            <div key={g.id} style={{
-              position: "absolute", top: i * YEARLY_ROW_H + 2, left: L, right: R,
-              display: "flex", alignItems: "center", gap: 6,
-            }}>
+            <div
+              key={g.id}
+              onClick={() => onEditGoal?.(g)}
+              title="แก้ไขเป้าหมาย"
+              style={{
+                position: "absolute", top: i * YEARLY_ROW_H + 2, left: L, right: R,
+                display: "flex", alignItems: "center", gap: 6,
+                cursor: onEditGoal ? "pointer" : "default",
+                padding: "2px 4px",
+                borderRadius: 6,
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={(e) => { if (onEditGoal) e.currentTarget.style.background = NAVY_PALE; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+            >
               <div style={{
                 width: 24, height: 24, borderRadius: "50%",
                 background: theme.bg,
@@ -384,16 +397,44 @@ function GoalTimeline({
           const amt   = resolveAmt(a);
           const lt    = labelTopY(a.level);
           const theme = CAT_THEME[a.category];
+          // Strip our internal plotAge/cx/level fields before handing back to edit handler
+          const goal: GoalItem = {
+            id: a.id, name: a.name, category: a.category, iconName: a.iconName,
+            amount: a.amount, amountSourceKey: a.amountSourceKey,
+            targetYear: a.targetYear, targetAge: a.targetAge, frequency: a.frequency,
+            notes: a.notes, order: a.order, createdAt: a.createdAt,
+          };
           return (
-            <div key={`lbl-${a.id}`} style={{
-              position: "absolute",
-              left: a.cx, top: lt,
-              transform: "translateX(-50%)",
-              width: LABEL_W, height: LABEL_H,
-              display: "flex", flexDirection: "column",
-              alignItems: "center", justifyContent: "flex-start",
-              zIndex: 2,
-            }}>
+            <div
+              key={`lbl-${a.id}`}
+              onClick={() => onEditGoal?.(goal)}
+              title="แก้ไขเป้าหมาย"
+              style={{
+                position: "absolute",
+                left: a.cx, top: lt,
+                transform: "translateX(-50%)",
+                width: LABEL_W, height: LABEL_H,
+                display: "flex", flexDirection: "column",
+                alignItems: "center", justifyContent: "flex-start",
+                zIndex: 2,
+                cursor: onEditGoal ? "pointer" : "default",
+                padding: 2,
+                borderRadius: 8,
+                transition: "background 0.15s, transform 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                if (onEditGoal) {
+                  e.currentTarget.style.background = "rgba(30,58,110,0.06)";
+                  const iconEl = e.currentTarget.firstElementChild as HTMLElement | null;
+                  if (iconEl) iconEl.style.transform = "scale(1.08)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
+                const iconEl = e.currentTarget.firstElementChild as HTMLElement | null;
+                if (iconEl) iconEl.style.transform = "scale(1)";
+              }}
+            >
               {/* Icon in colored circle */}
               <div style={{
                 width: ICON_SIZE, height: ICON_SIZE, borderRadius: "50%",
@@ -402,6 +443,7 @@ function GoalTimeline({
                 boxShadow: `0 2px 4px rgba(0,0,0,0.08)`,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 flexShrink: 0,
+                transition: "transform 0.15s",
               }}>
                 {renderIcon(getGoalIconName(a), 20, theme.icon)}
               </div>
@@ -782,6 +824,7 @@ export default function GoalsPage() {
               currentAge={currentAge}
               retireAge={retireAge}
               variables={variables}
+              onEditGoal={openEdit}
             />
 
             {/* Summary Table */}
