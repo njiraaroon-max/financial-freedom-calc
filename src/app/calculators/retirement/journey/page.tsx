@@ -1725,6 +1725,12 @@ function McSettingsModal({
             <div className="text-[11px] font-bold text-slate-600 mb-2 flex items-center gap-1.5">
               <TrendingUp size={12} className="text-blue-500" />
               ก่อนเกษียณ (ดึงจากหน้าลงทุนเพื่อเกษียณ)
+              <span className="relative group inline-flex">
+                <Info size={11} className="text-slate-400 cursor-help" />
+                <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-1.5 w-64 z-10 bg-slate-800 text-white text-[10px] font-normal leading-relaxed rounded-lg px-3 py-2 shadow-lg opacity-0 group-hover:opacity-100 transition">
+                  Monte Carlo จะจำลองผลตอบแทน<b>แต่ละช่วง</b>ตาม μ/σ ของ risk preset ที่ตั้งใน investment plan แต่ละ phase (ไม่ใช่ค่าเดียวทั้งหมด)
+                </span>
+              </span>
             </div>
             {preRetirePhases.length === 0 ? (
               <div className="text-[11px] text-slate-400 bg-slate-50 rounded-lg p-3 text-center">
@@ -1758,6 +1764,17 @@ function McSettingsModal({
             <div className="text-[11px] font-bold text-slate-600 mb-2 flex items-center gap-1.5">
               <ShieldCheck size={12} className="text-pink-500" />
               หลังเกษียณ — ระดับความเสี่ยง port
+              <span className="relative group inline-flex">
+                <Info size={11} className="text-slate-400 cursor-help" />
+                <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-1.5 w-72 z-10 bg-slate-800 text-white text-[10px] font-normal leading-relaxed rounded-lg px-3 py-2 shadow-lg opacity-0 group-hover:opacity-100 transition">
+                  <b>σ = ความผันผวนต่อปี (SD)</b><br/>
+                  • เสี่ยงสูง 18% — หุ้น ~100%<br/>
+                  • ปานกลาง 12% — 60/40 (หุ้น/พันธบัตร)<br/>
+                  • อนุรักษ์ 5% — 30/70<br/>
+                  • เงินสด 1% — ฝากธนาคาร/พันธบัตรสั้น<br/>
+                  <span className="opacity-80">Default = อนุรักษ์ เพราะเกษียณแล้วลดความเสี่ยง (sequence-of-returns risk)</span>
+                </span>
+              </span>
             </div>
             <div className="grid grid-cols-4 gap-2">
               {profileOptions.map((opt) => {
@@ -1788,7 +1805,15 @@ function McSettingsModal({
 
           {/* Simulations */}
           <div>
-            <div className="text-[11px] font-bold text-slate-600 mb-2">จำนวน simulations</div>
+            <div className="text-[11px] font-bold text-slate-600 mb-2 flex items-center gap-1.5">
+              จำนวน simulations
+              <span className="relative group inline-flex">
+                <Info size={11} className="text-slate-400 cursor-help" />
+                <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-1.5 w-64 z-10 bg-slate-800 text-white text-[10px] font-normal leading-relaxed rounded-lg px-3 py-2 shadow-lg opacity-0 group-hover:opacity-100 transition">
+                  จำนวนครั้งที่ simulate สุ่มเส้นทางผลตอบแทน — ยิ่งเยอะ = ยิ่งแม่น (ค่า success rate / P10 / P90 นิ่งขึ้น) แต่ใช้เวลามากขึ้น
+                </span>
+              </span>
+            </div>
             <div className="grid grid-cols-3 gap-2">
               {nOptions.map((opt) => (
                 <button
