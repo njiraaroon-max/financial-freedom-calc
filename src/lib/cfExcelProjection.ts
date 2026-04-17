@@ -14,6 +14,7 @@ import type {
   EducationLevel,
 } from "@/store/education-store";
 import { projectChildEducation } from "@/store/education-store";
+import type { InvestmentPlanItem, SpecialExpenseItem } from "@/types/retirement";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -73,6 +74,10 @@ export interface ExcelProjectionInputs {
   educationChildren: EducationChild[];
   educationLevels: EducationLevel[];
   educationInflationRate: number;
+
+  // Retirement planning
+  investmentPlans: InvestmentPlanItem[];
+  specialExpenses: SpecialExpenseItem[];
 
   // Tax (annual baseline)
   annualTaxEstimate: number;
@@ -205,6 +210,68 @@ export function buildLineItems(inputs: ExcelProjectionInputs): ExcelLineItem[] {
       yearlyOverrides: overrides,
       startYear: proj.rows[0].year,
       endYear: proj.rows[proj.rows.length - 1].year,
+    });
+  }
+
+  // ── Goal: Retirement investment plans (monthly × 12 for each age in range) ──
+  // yearStart / yearEnd are ages, so we convert to calendar years.
+  const currentAge = inputs.currentAge;
+  for (const plan of inputs.investmentPlans) {
+    const annual = (plan.monthlyAmount || 0) * 12;
+    if (annual <= 0) continue;
+    const startCalendarYear = currentYear + Math.max(0, plan.yearStart - currentAge);
+    const endCalendarYear = currentYear + Math.max(0, plan.yearEnd - currentAge);
+    const overrides: Record<number, number> = {};
+    for (let y = startCalendarYear; y <= endCalendarYear; y++) {
+      overrides[y] = annual;
+    }
+    items.push({
+      id: `retire_plan_${plan.id}`,
+      name: `แผนออม/ลงทุนเพื่อเกษียณ (อายุ ${plan.yearStart}-${plan.yearEnd})`,
+      category: "goal",
+      sourceModule: "retirement",
+      sourceId: plan.id,
+      baseAnnualAmount: 0,
+      inflationRate: 0,
+      yearlyOverrides: overrides,
+      startYear: startCalendarYear,
+      endYear: endCalendarYear,
+    });
+  }
+
+  // ── Goal: Retirement special expenses (one-off or recurring lumps) ──
+  //   "lump" items → single override at occurAge
+  //   "annual" items → override for each year in [startAge, endAge]
+  for (const sp of inputs.specialExpenses) {
+    if ((sp.amount ?? 0) <= 0) continue;
+    const itemInfl = 1 + (sp.inflationRate ?? inputs.defaultInflationRate) / 100;
+    const overrides: Record<number, number> = {};
+    if (sp.kind === "lump" && sp.occurAge !== undefined) {
+      const year = currentYear + Math.max(0, sp.occurAge - currentAge);
+      const yearsFromNow = Math.max(0, sp.occurAge - currentAge);
+      overrides[year] = sp.amount * Math.pow(itemInfl, yearsFromNow);
+    } else if (sp.kind === "annual") {
+      const sAge = sp.startAge ?? currentAge;
+      const eAge = sp.endAge ?? sAge;
+      for (let a = sAge; a <= eAge; a++) {
+        const year = currentYear + Math.max(0, a - currentAge);
+        const yearsFromNow = Math.max(0, a - currentAge);
+        overrides[year] = sp.amount * Math.pow(itemInfl, yearsFromNow);
+      }
+    }
+    const yearsWithValue = Object.keys(overrides).map(Number);
+    if (yearsWithValue.length === 0) continue;
+    items.push({
+      id: `special_${sp.id}`,
+      name: sp.name,
+      category: "goal",
+      sourceModule: "retirement",
+      sourceId: sp.id,
+      baseAnnualAmount: 0,
+      inflationRate: 0,
+      yearlyOverrides: overrides,
+      startYear: Math.min(...yearsWithValue),
+      endYear: Math.max(...yearsWithValue),
     });
   }
 

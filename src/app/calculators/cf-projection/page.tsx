@@ -225,7 +225,7 @@ export default function CFProjectionPage() {
   // ── Build detailed Excel-style projection ────────────────────────────
   const excelProjection: ExcelProjection = useMemo(() => {
     const totalYearsAhead = Math.max(1, lifeExpectancy - currentAge + 1);
-    const baseItems = buildLineItems({
+    const sharedInputs = {
       currentYear: CURRENT_YEAR,
       years: totalYearsAhead,
       currentAge,
@@ -235,29 +235,18 @@ export default function CFProjectionPage() {
       educationChildren: education.children,
       educationLevels: education.levels,
       educationInflationRate: education.inflationRate,
+      investmentPlans: retire.investmentPlans || [],
+      specialExpenses: retire.specialExpenses || [],
       annualTaxEstimate,
       defaultInflationRate: inflationRate,
       salaryGrowth,
-    });
-    // Apply user's per-item inflation overrides
+    };
+    const baseItems = buildLineItems(sharedInputs);
     const items = baseItems.map((it) => {
       const override = inflationOverrides[it.id];
       return override !== undefined ? { ...it, inflationRate: override } : it;
     });
-    return projectExcel(items, {
-      currentYear: CURRENT_YEAR,
-      years: totalYearsAhead,
-      currentAge,
-      cfIncomes: cfStore.incomes,
-      cfExpenses: cfStore.expenses,
-      insurancePolicies: insurance.policies,
-      educationChildren: education.children,
-      educationLevels: education.levels,
-      educationInflationRate: education.inflationRate,
-      annualTaxEstimate,
-      defaultInflationRate: inflationRate,
-      salaryGrowth,
-    });
+    return projectExcel(items, sharedInputs);
   }, [
     currentAge,
     lifeExpectancy,
@@ -267,6 +256,8 @@ export default function CFProjectionPage() {
     education.children,
     education.levels,
     education.inflationRate,
+    retire.investmentPlans,
+    retire.specialExpenses,
     annualTaxEstimate,
     inflationRate,
     salaryGrowth,
