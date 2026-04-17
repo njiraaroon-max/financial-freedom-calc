@@ -133,19 +133,32 @@ export default function CFExcelTable({
                 </th>
                 {years.map((y, i) => {
                   const isRetire = ages[i] === retireAge;
+                  const isProblemYear = projection.netAfterGoals[i] < 0;
                   return (
                     <th
                       key={i}
                       className={`py-2 px-2 text-center font-bold border-r border-[#0f3460] ${
-                        isRetire ? "bg-amber-600" : ""
+                        isProblemYear
+                          ? "bg-red-600"
+                          : isRetire
+                            ? "bg-amber-600"
+                            : ""
                       }`}
                       style={{ minWidth: COL_YEAR_W, width: COL_YEAR_W }}
+                      title={
+                        isProblemYear
+                          ? `ปีนี้เงินสดไม่พอ (ติดลบ)`
+                          : isRetire
+                            ? "ปีเกษียณ"
+                            : undefined
+                      }
                     >
                       <div className="text-[9px] opacity-70">ค.ศ. {y}</div>
                       <div className="text-[11px]">{yearsBE[i]}</div>
                       <div className="text-[9px] opacity-80">
                         อายุ {ages[i]}
                         {isRetire ? " ⭐" : ""}
+                        {isProblemYear ? " 🚨" : ""}
                       </div>
                     </th>
                   );
