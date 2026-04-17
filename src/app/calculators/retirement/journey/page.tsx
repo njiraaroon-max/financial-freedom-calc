@@ -1755,7 +1755,16 @@ function McSettingsModal({
               </div>
             )}
             <div className="text-[10px] text-slate-400 mt-1.5">
-              แก้ได้ที่หน้า "ลงทุนเพื่อการเกษียณ" (per-phase risk preset)
+              แก้ได้ที่{" "}
+              <Link
+                href="/calculators/retirement/investment-plan?mode=mc"
+                onClick={onClose}
+                className="inline-flex items-center gap-0.5 text-indigo-600 hover:text-indigo-700 font-semibold underline decoration-dotted underline-offset-2"
+              >
+                หน้า &ldquo;ลงทุนเพื่อการเกษียณ&rdquo;
+                <ChevronRight size={10} />
+              </Link>
+              {" "}(per-phase risk preset)
             </div>
           </div>
 

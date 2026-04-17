@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { Suspense, useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { Save, Plus, Trash2, TrendingUp, Dice5, BarChart3, RefreshCw, TrendingDown } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import { useInsuranceStore } from "@/store/insurance-store";
@@ -100,6 +101,14 @@ function AgeInput({
 }
 
 export default function InvestmentPlanPage() {
+  return (
+    <Suspense fallback={null}>
+      <InvestmentPlanPageInner />
+    </Suspense>
+  );
+}
+
+function InvestmentPlanPageInner() {
   const store = useRetirementStore();
   const insurance = useInsuranceStore();
   const profile = useProfileStore();
@@ -108,7 +117,12 @@ export default function InvestmentPlanPage() {
   const [saved, setSaved] = useState(false);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
   // Simulation mode tab: "deterministic" = 3-scenario (default), "montecarlo" = MC 10,000 sims
+  const searchParams = useSearchParams();
   const [simMode, setSimMode] = useState<"deterministic" | "montecarlo">("deterministic");
+  // Honor ?mode=mc — auto-open Monte Carlo tab (used by journey MC modal link)
+  useEffect(() => {
+    if (searchParams?.get("mode") === "mc") setSimMode("montecarlo");
+  }, [searchParams]);
   const [mcSeed, setMcSeed] = useState<number>(0xC0FFEE);
 
   const a = store.assumptions;
