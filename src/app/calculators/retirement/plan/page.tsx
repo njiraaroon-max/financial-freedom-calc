@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Save, Plus, Trash2, Download, ChevronDown, ChevronUp, TrendingUp, AlertTriangle, RotateCw, Check, X } from "lucide-react";
+import { Plus, Trash2, Download, ChevronDown, ChevronUp, TrendingUp, AlertTriangle, RotateCw, Check, X } from "lucide-react";
 
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
@@ -11,7 +11,6 @@ import PageHeader from "@/components/PageHeader";
 import { useVariableStore } from "@/store/variable-store";
 import { useProfileStore } from "@/store/profile-store";
 import { useCashFlowStore } from "@/store/cashflow-store";
-import { toast } from "@/store/toast-store";
 import {
   futureValue,
   calcRetirementFund,
@@ -225,15 +224,17 @@ export default function RetirementPlanPage() {
     });
   };
 
-  const handleSave = () => {
+  // Auto-save: sync สรุปไปที่ variable store + markStepCompleted ทุกครั้ง
+  // ที่ตัวเลขเปลี่ยน — รองรับการปรับค่าในหน้าอื่น (basic-expenses, special-expenses,
+  // saving-funds, investment-plan ฯลฯ) ให้ plan page reflect ค่าล่าสุดทันที
+  useEffect(() => {
     setVariable({ key: "retire_fund_needed", label: "ทุนเกษียณที่ต้องมี", value: totalRetireFund, source: "retirement" });
     setVariable({ key: "retire_fund_existing", label: "แหล่งเงินทุนที่มี", value: totalSavingFund, source: "retirement" });
     setVariable({ key: "retire_fund_shortage", label: "เงินที่ต้องเตรียมเพิ่ม", value: Math.max(shortage, 0), source: "retirement" });
     setVariable({ key: "retire_invest_at_retire", label: "พอร์ตลงทุน ณ วันเกษียณ", value: investAtRetire, source: "retirement" });
-    markStepCompleted("retirement_plan");
-    markStepCompleted("investment_plan");
-    toast.success("บันทึกเรียบร้อยแล้ว");
-  };
+    if (totalRetireFund > 0) markStepCompleted("retirement_plan");
+    if (store.investmentPlans.length > 0) markStepCompleted("investment_plan");
+  }, [totalRetireFund, totalSavingFund, shortage, investAtRetire, store.investmentPlans.length, setVariable, markStepCompleted]);
 
   const StepHeader = ({ step, title, subtitle }: { step: number; title: string; subtitle?: string }) => {
     const isSaved = savedSteps.has(step);
@@ -372,14 +373,12 @@ export default function RetirementPlanPage() {
           </div>
         </div>
 
-        {/* Save Button */}
-        <button
-          onClick={handleSave}
-          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-[var(--color-primary)] text-white font-bold text-sm hover:bg-[var(--color-primary-dark)] active:scale-[0.98] transition-all shadow-lg shadow-indigo-200"
-        >
-          <Save size={18} />
-          บันทึก
-        </button>
+        {/* Auto-save indicator */}
+        <div className="flex items-center justify-center gap-1.5 text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-full py-2">
+          <Check size={12} />
+          บันทึกอัตโนมัติ — ค่าซิงค์ตามการแก้ไขในทุกหน้า
+        </div>
+
         <button
           onClick={() => setShowClearConfirm(true)}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-red-200 text-red-500 font-medium text-sm hover:bg-red-50 active:scale-[0.98] transition-all"
