@@ -28,6 +28,7 @@ import { useInsuranceStore } from "@/store/insurance-store";
 import { useEducationStore, aggregateProjection } from "@/store/education-store";
 import { useTaxStore } from "@/store/tax-store";
 import { useVariableStore } from "@/store/variable-store";
+import { useGoalsStore } from "@/store/goals-store";
 import { projectCashflow, type CFProjectionRow, type AnnuityStream } from "@/lib/cfProjection";
 import {
   buildLineItems,
@@ -64,6 +65,7 @@ export default function CFProjectionPage() {
   const education = useEducationStore();
   const tax = useTaxStore();
   const variables = useVariableStore();
+  const goalsStore = useGoalsStore();
 
   const currentAge = profile.getAge?.() || 35;
   const retireAge = profile.retireAge || 60;
@@ -237,6 +239,7 @@ export default function CFProjectionPage() {
       educationInflationRate: education.inflationRate,
       investmentPlans: retire.investmentPlans || [],
       specialExpenses: retire.specialExpenses || [],
+      lifeGoals: goalsStore.goals || [],
       annualTaxEstimate,
       defaultInflationRate: inflationRate,
       salaryGrowth,
@@ -258,6 +261,7 @@ export default function CFProjectionPage() {
     education.inflationRate,
     retire.investmentPlans,
     retire.specialExpenses,
+    goalsStore.goals,
     annualTaxEstimate,
     inflationRate,
     salaryGrowth,

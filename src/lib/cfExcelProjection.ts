@@ -15,6 +15,7 @@ import type {
 } from "@/store/education-store";
 import { projectChildEducation } from "@/store/education-store";
 import type { InvestmentPlanItem, SpecialExpenseItem } from "@/types/retirement";
+import type { GoalItem } from "@/store/goals-store";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -78,6 +79,9 @@ export interface ExcelProjectionInputs {
   // Retirement planning
   investmentPlans: InvestmentPlanItem[];
   specialExpenses: SpecialExpenseItem[];
+
+  // Life goals (house / car / wedding / travel etc.)
+  lifeGoals: GoalItem[];
 
   // Tax (annual baseline)
   annualTaxEstimate: number;
@@ -272,6 +276,49 @@ export function buildLineItems(inputs: ExcelProjectionInputs): ExcelLineItem[] {
       yearlyOverrides: overrides,
       startYear: Math.min(...yearsWithValue),
       endYear: Math.max(...yearsWithValue),
+    });
+  }
+
+  // ── Goal: Life goals from goals-store (house / car / wedding / travel etc.) ──
+  // Only pulls items with frequency "once" and a concrete amount + target year
+  // so we don't double-count things like emergency fund that sit in BS already.
+  for (const goal of inputs.lifeGoals) {
+    if (goal.amount === null || goal.amount <= 0) continue;
+    if (goal.frequency === "immediate") continue; // already budgeted in BS / CF
+    const targetYear =
+      goal.targetYear ??
+      (goal.targetAge !== undefined && goal.targetAge !== null
+        ? currentYear + Math.max(0, goal.targetAge - currentAge)
+        : null);
+    if (targetYear === null) continue;
+
+    const overrides: Record<number, number> = {};
+    if (goal.frequency === "once") {
+      overrides[targetYear] = goal.amount;
+    } else if (goal.frequency === "yearly") {
+      // Recurring from target year to life expectancy
+      for (
+        let y = targetYear;
+        y < currentYear + (inputs.years || 1);
+        y++
+      ) {
+        overrides[y] = goal.amount;
+      }
+    }
+    const yrs = Object.keys(overrides).map(Number);
+    if (yrs.length === 0) continue;
+
+    items.push({
+      id: `life_goal_${goal.id}`,
+      name: `🎯 ${goal.name}`,
+      category: "goal",
+      sourceModule: "computed",
+      sourceId: goal.id,
+      baseAnnualAmount: 0,
+      inflationRate: 0,
+      yearlyOverrides: overrides,
+      startYear: Math.min(...yrs),
+      endYear: Math.max(...yrs),
     });
   }
 
