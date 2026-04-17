@@ -147,21 +147,21 @@ export default function EmergencyFundPage() {
               </button>
 
               {showExpenseDetail && (
-                <div className="mt-2 overflow-x-auto">
-                  <table className="w-full text-xs">
+                <div className="mt-2 overflow-x-auto rounded-lg border border-[#1e3a5f]/20 shadow-sm">
+                  <table className="w-full text-xs border-collapse">
                     <thead>
-                      <tr className="bg-gray-50">
-                        <th className="text-left px-2 py-1.5 font-bold text-gray-600 rounded-tl-lg">รายการ</th>
-                        <th className="text-center px-2 py-1.5 font-bold text-gray-600">ประเภท</th>
-                        <th className="text-right px-2 py-1.5 font-bold text-gray-600">รวม/ปี</th>
-                        <th className="text-right px-2 py-1.5 font-bold text-gray-600 rounded-tr-lg">เฉลี่ย/เดือน</th>
+                      <tr className="bg-[#1e3a5f]">
+                        <th className="text-left px-3 py-2.5 font-bold text-white border-r border-white/10">รายจ่ายจำเป็นเมื่อฉุกเฉิน</th>
+                        <th className="text-center px-2 py-2.5 font-bold text-white border-r border-white/10">ประเภท</th>
+                        <th className="text-right px-3 py-2.5 font-bold text-white border-r border-white/10">ต่อปี (บาท)</th>
+                        <th className="text-right px-3 py-2.5 font-bold text-white">ต่อเดือน (บาท)</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="bg-white">
                       {essentialItems.map((item, i) => (
-                        <tr key={i} className="border-t border-gray-50">
-                          <td className="px-2 py-1.5 text-gray-700">{item.name}</td>
-                          <td className="px-2 py-1.5 text-center">
+                        <tr key={i} className="border-t border-gray-100 hover:bg-slate-50 transition">
+                          <td className="px-3 py-2 text-gray-800">{item.name}</td>
+                          <td className="px-2 py-2 text-center">
                             <span className={`px-1.5 py-0.5 rounded text-[9px] font-medium ${
                               item.category === "fixed" ? "bg-red-50 text-red-500"
                               : item.category === "variable" ? "bg-amber-50 text-amber-600"
@@ -170,16 +170,20 @@ export default function EmergencyFundPage() {
                               {item.category === "fixed" ? "คงที่" : item.category === "variable" ? "ผันแปร" : "ออม/ลงทุน"}
                             </span>
                           </td>
-                          <td className="px-2 py-1.5 text-right font-semibold text-gray-700">฿{fmt(item.annualTotal)}</td>
-                          <td className="px-2 py-1.5 text-right font-semibold text-gray-700">฿{fmt(item.monthlyAvg)}</td>
+                          <td className="px-3 py-2 text-right font-semibold text-gray-800">{fmt(item.annualTotal)}</td>
+                          <td className="px-3 py-2 text-right font-semibold text-gray-800">{fmt(item.monthlyAvg)}</td>
                         </tr>
                       ))}
                     </tbody>
                     <tfoot>
-                      <tr className="border-t-2 border-gray-200 bg-gray-50">
-                        <td colSpan={2} className="px-2 py-2 font-bold text-gray-700 rounded-bl-lg">รวมรายจ่ายจำเป็น</td>
-                        <td className="px-2 py-2 text-right font-bold text-gray-700">฿{fmt(essentialItems.reduce((s, e) => s + e.annualTotal, 0))}</td>
-                        <td className="px-2 py-2 text-right font-bold text-[var(--color-primary)] rounded-br-lg">฿{fmt(effectiveExpense)}</td>
+                      <tr className="bg-[#1e3a5f] text-white">
+                        <td colSpan={2} className="px-3 py-2.5 font-extrabold border-r border-white/10">รวม</td>
+                        <td className="px-3 py-2.5 text-right font-extrabold text-red-400 border-r border-white/10">
+                          {fmt(essentialItems.reduce((s, e) => s + e.annualTotal, 0))}
+                        </td>
+                        <td className="px-3 py-2.5 text-right font-extrabold text-red-400">
+                          {fmt(effectiveExpense)}
+                        </td>
                       </tr>
                     </tfoot>
                   </table>
