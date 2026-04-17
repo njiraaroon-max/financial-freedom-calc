@@ -561,6 +561,9 @@ export function calcInvestmentPlan(
   badOffset: number = -0.01,
   goodOffset: number = 0.01,
 ): { year: number; age: number; baseCase: number; badCase: number; goodCase: number; cost: number; contrib: number }[] {
+  // เราเก็บเงินสุดท้ายตอน "อายุ retireAge - 1" แล้วพอถึง retireAge ก็ใช้
+  // เงินก้อนนั้น — loop จึงเดินจากอายุ currentAge (ต้นปีแรก) ไปจนถึง
+  // retireAge (สิ้นปีสุดท้าย) รวม (retireAge - currentAge) ปี
   const years = retireAge - currentAge;
   const results: { year: number; age: number; baseCase: number; badCase: number; goodCase: number; cost: number; contrib: number }[] = [];
 
@@ -570,19 +573,25 @@ export function calcInvestmentPlan(
   let totalCost = initialAmount;
 
   for (let y = 1; y <= years; y++) {
-    const age = currentAge + y;
+    // อายุต้นปี = อายุที่ "ลงเงิน" (เงินเข้าต้นงวด)
+    // อายุปลายปี = อายุที่บันทึกยอด (หลังเติบโตครบปี)
+    const startAge = currentAge + y - 1;
+    const endAge = currentAge + y;
 
-    const plan = plans.find((p) => age >= p.yearStart && age <= p.yearEnd);
+    // แผนจับคู่กับอายุ "ต้นปี" — ปีไหนที่ startAge อยู่ในช่วงของแผน เราลงเงิน
+    const plan = plans.find((p) => startAge >= p.yearStart && startAge <= p.yearEnd);
     const monthlyContrib = plan?.monthlyAmount || 0;
     const annualContrib = monthlyContrib * 12;
     const returnRate = plan?.expectedReturn || 0.05;
 
-    base = base + base * returnRate + annualContrib;
-    bad = bad + bad * (returnRate + badOffset) + annualContrib;
-    good = good + good * (returnRate + goodOffset) + annualContrib;
+    // ต้นงวด (Annuity Due): ใส่เงินต้นปี → โตทั้งปี
+    // สูตร FV[t] = (FV[t-1] + PMT) × (1 + r)
+    base = (base + annualContrib) * (1 + returnRate);
+    bad = (bad + annualContrib) * (1 + returnRate + badOffset);
+    good = (good + annualContrib) * (1 + returnRate + goodOffset);
     totalCost += annualContrib;
 
-    results.push({ year: y, age, baseCase: base, badCase: bad, goodCase: good, cost: totalCost, contrib: annualContrib });
+    results.push({ year: y, age: endAge, baseCase: base, badCase: bad, goodCase: good, cost: totalCost, contrib: annualContrib });
   }
 
   return results;

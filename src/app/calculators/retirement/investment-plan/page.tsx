@@ -34,6 +34,64 @@ function fmtM(n: number): string {
   return fmt(n);
 }
 
+// Text-based age input — HTML number inputs refuse to let users fully delete
+// the leading "0" when editing, so we use a text input with a draft buffer
+// so typing / deleting feels natural. Also enforces min/max bounds.
+function AgeInput({
+  value,
+  onChange,
+  min,
+  max,
+  onOverMax,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  min?: number;
+  max?: number;
+  onOverMax?: () => void;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const display = draft !== null ? draft : value ? String(value) : "";
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      value={display}
+      onFocus={(e) => {
+        setDraft(value ? String(value) : "");
+        e.currentTarget.select();
+      }}
+      onChange={(e) => {
+        const raw = e.target.value.replace(/[^\d]/g, "").slice(0, 3);
+        setDraft(raw);
+        if (raw === "") {
+          onChange(0);
+          return;
+        }
+        let n = parseInt(raw, 10);
+        if (!Number.isFinite(n)) return;
+        if (max !== undefined && n > max) {
+          onOverMax?.();
+          n = max;
+        }
+        if (min !== undefined && n < min) {
+          // allow user to keep typing without locking them in, only clamp on blur
+        }
+        onChange(n);
+      }}
+      onBlur={() => {
+        setDraft(null);
+        // final clamp on blur
+        let n = value;
+        if (min !== undefined && n < min) n = min;
+        if (max !== undefined && n > max) n = max;
+        if (n !== value) onChange(n);
+      }}
+      className="w-14 text-xs font-semibold bg-white rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-center border border-gray-200"
+    />
+  );
+}
+
 export default function InvestmentPlanPage() {
   const store = useRetirementStore();
   const insurance = useInsuranceStore();
@@ -280,18 +338,23 @@ export default function InvestmentPlanPage() {
                 {/* Age range inputs */}
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-[10px] text-gray-500 w-12 shrink-0">อายุ</span>
-                  <input
-                    type="number"
+                  <AgeInput
                     value={plan.yearStart}
-                    onChange={(e) => store.updateInvestmentPlan(plan.id, { yearStart: Number(e.target.value) || 0 })}
-                    className="w-14 text-xs font-semibold bg-white rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-center border border-gray-200"
+                    onChange={(v) => store.updateInvestmentPlan(plan.id, { yearStart: v })}
+                    min={a.currentAge}
+                    max={a.retireAge - 1}
                   />
                   <span className="text-xs text-gray-400">ถึง</span>
-                  <input
-                    type="number"
+                  <AgeInput
                     value={plan.yearEnd}
-                    onChange={(e) => store.updateInvestmentPlan(plan.id, { yearEnd: Number(e.target.value) || 0 })}
-                    className="w-14 text-xs font-semibold bg-white rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-center border border-gray-200"
+                    onChange={(v) => store.updateInvestmentPlan(plan.id, { yearEnd: v })}
+                    min={plan.yearStart}
+                    max={a.retireAge - 1}
+                    onOverMax={() =>
+                      toast.warning(
+                        `เกษียณตอน ${a.retireAge} ปี — ออมได้สูงสุดถึงอายุ ${a.retireAge - 1}`
+                      )
+                    }
                   />
                   <span className="text-[10px] text-gray-400">({Math.max(plan.yearEnd - plan.yearStart + 1, 0)} ปี)</span>
                 </div>
