@@ -1045,26 +1045,66 @@ export default function GoalsPage() {
                   </div>
 
                   {/* Target Year (only for "once") */}
-                  {form.frequency === "once" && (
-                    <div>
-                      <label className="text-[11px] text-gray-500 mb-1.5 block font-semibold">
-                        ปีเป้าหมาย (พ.ศ.)
-                      </label>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={form.targetYearBE}
-                        onChange={(e) => setForm({ ...form, targetYearBE: e.target.value })}
-                        className="w-full text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200"
-                        placeholder="เช่น 2573"
-                      />
-                      {form.targetYearBE && (
-                        <div className="text-[10px] text-gray-400 mt-1">
-                          อายุประมาณ {currentAge + (Number(form.targetYearBE) - CE_TO_BE - CURRENT_YEAR_CE)} ปี
+                  {form.frequency === "once" && (() => {
+                    const yearBENum = Number(form.targetYearBE) || 0;
+                    const yearsFromNow = yearBENum > 0
+                      ? yearBENum - CE_TO_BE - CURRENT_YEAR_CE
+                      : 0;
+                    const yearsStr = form.targetYearBE === "" ? "" : String(yearsFromNow);
+                    return (
+                      <div>
+                        <label className="text-[11px] text-gray-500 mb-1.5 block font-semibold">
+                          เวลาถึงเป้าหมาย
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                          {/* ปี พ.ศ. */}
+                          <div>
+                            <div className="text-[10px] text-gray-400 mb-1">ปีเป้าหมาย (พ.ศ.)</div>
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              value={form.targetYearBE}
+                              onChange={(e) => setForm({ ...form, targetYearBE: e.target.value })}
+                              className="w-full text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center"
+                              placeholder="เช่น 2573"
+                            />
+                          </div>
+                          {/* อีกกี่ปีจากปัจจุบัน */}
+                          <div>
+                            <div className="text-[10px] text-gray-400 mb-1">อีกกี่ปีจากปัจจุบัน</div>
+                            <div className="relative">
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                value={yearsStr}
+                                onChange={(e) => {
+                                  const raw = e.target.value.replace(/[^0-9-]/g, "");
+                                  if (raw === "" || raw === "-") {
+                                    setForm({ ...form, targetYearBE: "" });
+                                    return;
+                                  }
+                                  const n = Number(raw);
+                                  if (Number.isFinite(n)) {
+                                    setForm({ ...form, targetYearBE: String(CURRENT_YEAR_CE + CE_TO_BE + n) });
+                                  }
+                                }}
+                                className="w-full text-sm bg-gray-50 rounded-xl pl-4 pr-9 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 text-center"
+                                placeholder="เช่น 5"
+                              />
+                              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">
+                                ปี
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  )}
+                        {form.targetYearBE && (
+                          <div className="text-[10px] text-gray-400 mt-1.5">
+                            อายุประมาณ {currentAge + yearsFromNow} ปี
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {/* Notes */}
                   <div>
