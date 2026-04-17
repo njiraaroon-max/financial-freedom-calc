@@ -38,6 +38,30 @@ function fmtShort(n: number): string {
 const CURRENT_YEAR = new Date().getFullYear();
 const BE_OFFSET = 543;
 
+// ─── Level color palette ─────────────────────────────────────────────────────
+// ใช้ทั้งใน cell background (ตารางปีต่อปี) และ chip/bar (สรุปต่อระดับ)
+// Tailwind classes ต้องอยู่ในรูป literal string ครบทุกตัวเพื่อให้ JIT pick up
+const LEVEL_STYLE: Record<
+  EducationLevelKey,
+  {
+    cellBg: string;        // พื้นหลังช่องในตาราง (นวลๆ)
+    cellText: string;      // สีตัวเลขในช่อง
+    cellSubText: string;   // สี caption ในช่อง
+    chipBg: string;        // ชิปใน summary card
+    chipText: string;
+    bar: string;           // สีแท่ง progress ใน summary
+    dot: string;           // จุดเล็กๆ ใน legend
+  }
+> = {
+  nursery:  { cellBg: "bg-pink-50",    cellText: "text-pink-800",    cellSubText: "text-pink-500",    chipBg: "bg-pink-100",    chipText: "text-pink-700",    bar: "bg-pink-400",    dot: "bg-pink-400" },
+  kinder:   { cellBg: "bg-amber-50",   cellText: "text-amber-800",   cellSubText: "text-amber-600",   chipBg: "bg-amber-100",   chipText: "text-amber-700",   bar: "bg-amber-400",   dot: "bg-amber-400" },
+  primary:  { cellBg: "bg-sky-50",     cellText: "text-sky-800",     cellSubText: "text-sky-600",     chipBg: "bg-sky-100",     chipText: "text-sky-700",     bar: "bg-sky-400",     dot: "bg-sky-400" },
+  junior:   { cellBg: "bg-indigo-50",  cellText: "text-indigo-800",  cellSubText: "text-indigo-600",  chipBg: "bg-indigo-100",  chipText: "text-indigo-700",  bar: "bg-indigo-400",  dot: "bg-indigo-400" },
+  senior:   { cellBg: "bg-violet-50",  cellText: "text-violet-800",  cellSubText: "text-violet-600",  chipBg: "bg-violet-100",  chipText: "text-violet-700",  bar: "bg-violet-400",  dot: "bg-violet-400" },
+  bachelor: { cellBg: "bg-emerald-50", cellText: "text-emerald-800", cellSubText: "text-emerald-600", chipBg: "bg-emerald-100", chipText: "text-emerald-700", bar: "bg-emerald-500", dot: "bg-emerald-500" },
+  master:   { cellBg: "bg-teal-50",    cellText: "text-teal-800",    cellSubText: "text-teal-600",    chipBg: "bg-teal-100",    chipText: "text-teal-700",    bar: "bg-teal-500",    dot: "bg-teal-500" },
+};
+
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export default function EducationPage() {
@@ -74,6 +98,40 @@ export default function EducationPage() {
     () => aggregateProjection(children, levels, inflationRate, CURRENT_YEAR),
     [children, levels, inflationRate],
   );
+
+  // Per-child-per-level totals (สำหรับ summary breakdown)
+  //   breakdown[childId] = { [levelKey]: { total, years, levelLabel } }
+  const levelBreakdown = useMemo(() => {
+    const map = new Map<
+      string,
+      Map<
+        EducationLevelKey,
+        { total: number; years: number; levelLabel: string; minAge: number; maxAge: number }
+      >
+    >();
+    for (const row of aggregated.rows) {
+      for (const pc of row.perChild) {
+        if (!map.has(pc.childId)) map.set(pc.childId, new Map());
+        const childMap = map.get(pc.childId)!;
+        const existing = childMap.get(pc.levelKey);
+        if (!existing) {
+          childMap.set(pc.levelKey, {
+            total: pc.tuition,
+            years: 1,
+            levelLabel: pc.levelLabel,
+            minAge: pc.age,
+            maxAge: pc.age,
+          });
+        } else {
+          existing.total += pc.tuition;
+          existing.years += 1;
+          existing.minAge = Math.min(existing.minAge, pc.age);
+          existing.maxAge = Math.max(existing.maxAge, pc.age);
+        }
+      }
+    }
+    return map;
+  }, [aggregated]);
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
@@ -307,12 +365,13 @@ export default function EducationPage() {
                       </td>
                       {children.map((c) => {
                         const entry = row.perChild.find((pc) => pc.childId === c.id);
+                        const style = entry ? LEVEL_STYLE[entry.levelKey] : null;
                         return (
-                          <td key={c.id} className="py-1.5 px-2 text-right">
-                            {entry ? (
-                              <div>
-                                <div className="font-bold text-gray-800">{fmt(entry.tuition)}</div>
-                                <div className="text-[9px] text-gray-400">
+                          <td key={c.id} className="py-1 px-1 text-right align-middle">
+                            {entry && style ? (
+                              <div className={`${style.cellBg} rounded-md px-2 py-1 inline-block min-w-[92px] text-right`}>
+                                <div className={`font-bold ${style.cellText}`}>{fmt(entry.tuition)}</div>
+                                <div className={`text-[9px] ${style.cellSubText} font-medium`}>
                                   {entry.levelLabel} • อายุ {entry.age}
                                 </div>
                               </div>
@@ -340,6 +399,123 @@ export default function EducationPage() {
                   </tr>
                 </tfoot>
               </table>
+            </div>
+
+            {/* ─── Per-child breakdown by level ──────────────────────────────── */}
+            <div className="mt-5 pt-4 border-t border-gray-100">
+              <div className="flex items-center gap-2 mb-3">
+                <BookOpen size={14} className="text-indigo-600" />
+                <h4 className="text-[13px] font-bold text-gray-800">
+                  สรุปค่าใช้จ่ายแยกตามระดับชั้น
+                </h4>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {children.map((child) => {
+                  const childMap = levelBreakdown.get(child.id);
+                  if (!childMap || childMap.size === 0) return null;
+                  // เรียงตาม LEVEL_SEQUENCE
+                  const entries = LEVEL_SEQUENCE.map((k) => ({
+                    key: k,
+                    data: childMap.get(k),
+                  })).filter((e) => e.data !== undefined) as Array<{
+                    key: EducationLevelKey;
+                    data: { total: number; years: number; levelLabel: string; minAge: number; maxAge: number };
+                  }>;
+                  const childTotal = entries.reduce((s, e) => s + e.data.total, 0);
+                  const maxTotal = Math.max(...entries.map((e) => e.data.total), 1);
+
+                  return (
+                    <div
+                      key={child.id}
+                      className="border border-gray-200 rounded-xl bg-white p-3 shadow-sm"
+                    >
+                      <div className="flex items-center justify-between mb-2.5">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs ${
+                              child.gender === "male" ? "bg-blue-400" : "bg-pink-400"
+                            }`}
+                          >
+                            {child.gender === "male" ? "👦" : "👧"}
+                          </div>
+                          <span className="text-[13px] font-bold text-gray-800">
+                            {child.name || "ลูก"}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-[9px] text-gray-400 leading-none">รวม</div>
+                          <div className="text-[13px] font-extrabold text-blue-600 leading-tight">
+                            {fmtShort(childTotal)}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        {entries.map((e) => {
+                          const st = LEVEL_STYLE[e.key];
+                          const pct = (e.data.total / maxTotal) * 100;
+                          const sharePct = (e.data.total / childTotal) * 100;
+                          return (
+                            <div key={e.key}>
+                              <div className="flex items-center justify-between gap-2 text-[11px]">
+                                <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                  <span className={`w-2 h-2 rounded-full ${st.dot} shrink-0`}></span>
+                                  <span className={`${st.chipText} font-bold truncate`}>
+                                    {e.data.levelLabel}
+                                  </span>
+                                  <span className="text-[9px] text-gray-400 shrink-0">
+                                    {e.data.years} ปี
+                                  </span>
+                                </div>
+                                <div className="text-right shrink-0">
+                                  <span className="font-bold text-gray-800">
+                                    {fmt(e.data.total)}
+                                  </span>
+                                  <span className="text-[9px] text-gray-400 ml-1">
+                                    ({sharePct.toFixed(0)}%)
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mt-0.5">
+                                <div
+                                  className={`h-full ${st.bar} rounded-full transition-all`}
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Legend */}
+              <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-x-3 gap-y-1 text-[10px]">
+                <span className="text-gray-500 font-medium mr-1">ระดับชั้น:</span>
+                {LEVEL_SEQUENCE.filter((k) =>
+                  Array.from(levelBreakdown.values()).some((m) => m.has(k)),
+                ).map((k) => {
+                  // find a label from first occurrence
+                  let label: string = k;
+                  for (const m of levelBreakdown.values()) {
+                    const d = m.get(k);
+                    if (d) {
+                      label = d.levelLabel;
+                      break;
+                    }
+                  }
+                  const st = LEVEL_STYLE[k];
+                  return (
+                    <span key={k} className="flex items-center gap-1">
+                      <span className={`w-2.5 h-2.5 rounded-sm ${st.bar}`}></span>
+                      <span className={`${st.chipText} font-medium`}>{label}</span>
+                    </span>
+                  );
+                })}
+              </div>
             </div>
           </SectionCard>
         )}

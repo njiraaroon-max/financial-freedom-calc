@@ -399,6 +399,7 @@ export interface AggregatedProjectionRow {
     childId: string;
     childName: string;
     age: number;
+    levelKey: EducationLevelKey;
     levelLabel: string;
     yearInLevel: number;
     tuition: number;
@@ -433,6 +434,7 @@ export function aggregateProjection(
         childId: proj.childId,
         childName: proj.childName,
         age: row.age,
+        levelKey: row.levelKey,
         levelLabel: row.levelLabel,
         yearInLevel: row.yearInLevel,
         tuition: row.totalPerYear,
