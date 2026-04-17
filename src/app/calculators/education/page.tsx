@@ -24,6 +24,7 @@ import {
   type EducationChild,
   type EducationPortfolio,
 } from "@/store/education-store";
+import { useProfileStore } from "@/store/profile-store";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(n: number): string {
@@ -58,6 +59,15 @@ export default function EducationPage() {
 
   const [openSection, setOpenSection] = useState<string>("children");
   const [openChildId, setOpenChildId] = useState<string | null>(null);
+
+  // Plan owner age — derive from profile-store birthDate (CE year)
+  const ownerBirthDate = useProfileStore((s) => s.birthDate);
+  const ownerBirthYear = useMemo(() => {
+    if (!ownerBirthDate) return null;
+    const d = new Date(ownerBirthDate);
+    const y = d.getFullYear();
+    return Number.isFinite(y) ? y : null;
+  }, [ownerBirthDate]);
 
   // Aggregated projection
   const aggregated = useMemo(
@@ -275,8 +285,8 @@ export default function EducationPage() {
               <table className="w-full text-[11px]">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="py-2 px-2 text-left font-semibold text-gray-600">ปี</th>
                     <th className="py-2 px-2 text-left font-semibold text-gray-600">พ.ศ.</th>
+                    <th className="py-2 px-2 text-left font-semibold text-gray-600">อายุเจ้าของแผน</th>
                     {children.map((c) => (
                       <th key={c.id} className="py-2 px-2 text-right font-semibold text-gray-600">
                         {c.name || "ลูก"}
@@ -286,10 +296,15 @@ export default function EducationPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {aggregated.rows.map((row) => (
+                  {aggregated.rows.map((row) => {
+                    const ownerAge =
+                      ownerBirthYear !== null ? row.year - ownerBirthYear : null;
+                    return (
                     <tr key={row.year} className="border-b border-gray-100 hover:bg-blue-50/30">
-                      <td className="py-1.5 px-2 text-gray-700">{row.year}</td>
-                      <td className="py-1.5 px-2 text-gray-500">{row.yearBE}</td>
+                      <td className="py-1.5 px-2 text-gray-700">{row.yearBE}</td>
+                      <td className="py-1.5 px-2 text-gray-600">
+                        {ownerAge !== null ? `${ownerAge} ปี` : <span className="text-gray-300">—</span>}
+                      </td>
                       {children.map((c) => {
                         const entry = row.perChild.find((pc) => pc.childId === c.id);
                         return (
@@ -311,7 +326,8 @@ export default function EducationPage() {
                         {fmt(row.totalTuition)}
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
                 <tfoot>
                   <tr className="bg-blue-50 border-t-2 border-blue-300">
