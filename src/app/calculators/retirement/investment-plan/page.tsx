@@ -276,9 +276,27 @@ export default function InvestmentPlanPage() {
         {shortage > 0 && shortage < maxVal && (
           <>
             <line x1={leftPad} y1={valToY(shortage)} x2={chartW - rightPad} y2={valToY(shortage)} stroke="#ef4444" strokeWidth={1} strokeDasharray="4,3" />
-            <text x={chartW - rightPad + 3} y={valToY(shortage) + 3} className="text-[7px] fill-red-500 font-bold">
-              เป้า {fmtM(shortage)}
-            </text>
+            {/* Label at center — white halo so it reads over grid lines, avoids overlapping the end-point labels on the right */}
+            {(() => {
+              const labelText = `เป้าหมาย ${fmtM(shortage)}`;
+              const labelX = leftPad + plotW / 2;
+              const labelY = valToY(shortage) - 4;
+              return (
+                <>
+                  <text
+                    x={labelX}
+                    y={labelY}
+                    textAnchor="middle"
+                    stroke="white"
+                    strokeWidth={3}
+                    paintOrder="stroke"
+                    className="text-[8px] fill-red-500 font-bold"
+                  >
+                    {labelText}
+                  </text>
+                </>
+              );
+            })()}
           </>
         )}
 
