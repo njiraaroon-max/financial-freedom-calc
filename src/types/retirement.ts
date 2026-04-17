@@ -457,8 +457,14 @@ export function calcPVDProjection(
   let empBalance = params.currentEmployeeBalance;
   let erBalance = params.currentEmployerBalance;
 
+  // salaryCap: 0 or undefined = ไม่จำกัด (no cap). Only apply a hard cap if
+  // the user entered a positive value. This matches the Thai PVD default
+  // where there is no statutory cap — companies set their own (or none).
+  const applyCap = (s: number) =>
+    params.salaryCap && params.salaryCap > 0 ? Math.min(s, params.salaryCap) : s;
+
   for (let y = 0; y < years; y++) {
-    const cappedSalary = Math.min(salary, params.salaryCap || 1000000);
+    const cappedSalary = applyCap(salary);
     const empBegin = empBalance;
     const erBegin = erBalance;
 
@@ -485,7 +491,10 @@ export function calcPVDProjection(
       total: empBalance + erBalance,
     });
 
-    salary = Math.min(salary * (1 + params.salaryIncrease), params.salaryCap || 1000000);
+    // Salary grows with raises each year; cap is re-applied when computing
+    // next year's contribution so the "real" salary can keep climbing past
+    // the cap if the user chooses to track it that way.
+    salary = salary * (1 + params.salaryIncrease);
   }
 
   return results;

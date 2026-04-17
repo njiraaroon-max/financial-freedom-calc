@@ -86,16 +86,21 @@ export default function PVDPage() {
     markStepCompleted("pvd");
   };
 
-  const fields = [
-    { label: "เงินเดือนปัจจุบัน", key: "currentSalary" as const, type: "number" },
-    { label: "เพดานเงินเดือนสูงสุด", key: "salaryCap" as const, type: "number" },
-    { label: "อัตราขึ้นเงินเดือน (%)", key: "salaryIncrease" as const, type: "percent" },
-    { label: "อัตราเงินสะสม (%)", key: "employeeRate" as const, type: "percent" },
-    { label: "อัตราเงินสมทบ (%)", key: "employerRate" as const, type: "percent" },
-    { label: "ผลตอบแทนที่คาดหวัง (%)", key: "expectedReturn" as const, type: "percent" },
-    { label: "ยอดสะสมลูกจ้าง (ปัจจุบัน)", key: "currentEmployeeBalance" as const, type: "number" },
-    { label: "ยอดสมทบนายจ้าง (ปัจจุบัน)", key: "currentEmployerBalance" as const, type: "number" },
-    { label: "เดือนที่เหลือในปีนี้", key: "remainingMonths" as const, type: "months" },
+  const fields: {
+    label: string;
+    hint?: string;
+    key: keyof typeof p;
+    type: "number" | "percent" | "months";
+  }[] = [
+    { label: "เงินเดือนปัจจุบัน", key: "currentSalary", type: "number" },
+    { label: "เพดานเงินเดือน", hint: "ใส่ 0 = ไม่มีเพดาน (บริษัทส่วนใหญ่ไม่มี)", key: "salaryCap", type: "number" },
+    { label: "อัตราขึ้นเงินเดือน (%)", key: "salaryIncrease", type: "percent" },
+    { label: "อัตราเงินสะสม (%)", key: "employeeRate", type: "percent" },
+    { label: "อัตราเงินสมทบ (%)", key: "employerRate", type: "percent" },
+    { label: "ผลตอบแทนที่คาดหวัง (%)", key: "expectedReturn", type: "percent" },
+    { label: "ยอดสะสมลูกจ้าง (ปัจจุบัน)", key: "currentEmployeeBalance", type: "number" },
+    { label: "ยอดสมทบนายจ้าง (ปัจจุบัน)", key: "currentEmployerBalance", type: "number" },
+    { label: "เดือนที่เหลือในปีนี้", key: "remainingMonths", type: "months" },
   ];
 
   return (
@@ -149,8 +154,11 @@ export default function PVDPage() {
             )}
           </div>
           {fields.map((f) => (
-            <div key={f.key} className="flex items-center justify-between">
-              <span className="text-xs text-gray-600">{f.label}</span>
+            <div key={f.key} className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="text-xs text-gray-600">{f.label}</div>
+                {f.hint && <div className="text-[9px] text-gray-400 mt-0.5 leading-tight">{f.hint}</div>}
+              </div>
               {f.type === "percent" ? (
                 <div className="flex items-center gap-1">
                   <input
