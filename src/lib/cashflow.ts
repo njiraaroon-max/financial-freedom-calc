@@ -490,12 +490,16 @@ function contribCaretaker(
   const p = ctx.caretakerParams;
   if (!p) return null;
   if (p.monthlyRate <= 0) return null;
+  // Age range must track MAIN retirement assumptions (single source of truth).
+  // Caretaker page has its own lifeExpectancy/extraYearsBeyondLife/currentAge
+  // fields (for independent NPV exploration), but Journey projection must
+  // always use ctx values to avoid drift when user updates assumptions later.
   const startAge = Math.max(p.caretakerStartAge, ctx.retireAge);
-  const endAge = p.lifeExpectancy + (p.extraYearsBeyondLife ?? 0);
+  const endAge = ctx.lifeExpectancy + (ctx.extraYearsBeyondLife ?? 5);
   const rows: YearlyFlowRow[] = [];
   const prob = p.probability ?? 1;
   for (let age = startAge; age <= endAge; age++) {
-    const yearsFromNow = Math.max(age - p.currentAge, 0);
+    const yearsFromNow = Math.max(age - ctx.currentAge, 0);
     const monthlyAtAge =
       p.monthlyRate * Math.pow(1 + p.inflationRate, yearsFromNow);
     const annualAtAge = monthlyAtAge * 12 * prob;
