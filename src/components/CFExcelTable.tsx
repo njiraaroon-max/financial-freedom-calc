@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ChevronRight, ChevronDown } from "lucide-react";
+import { ChevronRight, ChevronDown, Minimize2, Maximize2 } from "lucide-react";
 import type {
   ExcelProjection,
   ExcelItemCategory,
@@ -57,6 +57,28 @@ export default function CFExcelTable({
   const toggle = (cat: ExcelItemCategory) =>
     setCollapsed((c) => ({ ...c, [cat]: !c[cat] }));
 
+  // Quick actions: collapse only CF categories, or expand everything
+  const collapseAllCF = () =>
+    setCollapsed({
+      income: true,
+      fixed_expense: true,
+      variable_expense: true,
+      investment_expense: true,
+      goal: false,   // keep the goals section open since that's the interesting bit
+    });
+
+  const expandAll = () =>
+    setCollapsed({
+      income: false,
+      fixed_expense: false,
+      variable_expense: false,
+      investment_expense: false,
+      goal: false,
+    });
+
+  const anyCFCollapsed =
+    collapsed.income || collapsed.fixed_expense || collapsed.variable_expense || collapsed.investment_expense;
+
   const { items, years, ages, yearsBE, matrix } = projection;
 
   const yearCount = years.length;
@@ -64,11 +86,30 @@ export default function CFExcelTable({
 
   return (
     <div className="relative">
-      {/* Usage hint */}
-      <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 text-[10px] text-gray-500 flex items-center gap-3 flex-wrap">
-        <span>← → เลื่อนขวา-ซ้ายดูข้อมูลทั้งหมด</span>
-        <span>▾ กดหัวข้อเพื่อยุบ</span>
-        <span>% = อัตราเงินเฟ้อของแต่ละรายการ (กดปรับได้)</span>
+      {/* Usage hint + quick actions */}
+      <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 text-[10px] text-gray-500 flex items-center gap-3 flex-wrap justify-between">
+        <div className="flex items-center gap-3 flex-wrap">
+          <span>← → เลื่อนขวา-ซ้ายดูข้อมูลทั้งหมด</span>
+          <span>▾ กดหัวข้อเพื่อยุบ</span>
+          <span>% = อัตราเงินเฟ้อของแต่ละรายการ (กดปรับได้)</span>
+        </div>
+        <div className="flex items-center gap-1.5 ml-auto">
+          {anyCFCollapsed ? (
+            <button
+              onClick={expandAll}
+              className="flex items-center gap-1 text-[10px] text-sky-600 font-semibold bg-sky-50 border border-sky-200 rounded-md px-2 py-1 hover:bg-sky-100"
+            >
+              <Maximize2 size={10} /> ขยาย CF ทั้งหมด
+            </button>
+          ) : (
+            <button
+              onClick={collapseAllCF}
+              className="flex items-center gap-1 text-[10px] text-slate-600 font-semibold bg-slate-50 border border-slate-200 rounded-md px-2 py-1 hover:bg-slate-100"
+            >
+              <Minimize2 size={10} /> ยุบ CF เดิม (ดูแต่สรุป)
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="overflow-auto max-h-[80vh]">
