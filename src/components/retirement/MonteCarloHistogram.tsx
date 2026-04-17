@@ -13,6 +13,7 @@ export default function MonteCarloHistogram({
   height = 180,
   xFormatter,
   targetLabel = "เป้า",
+  integer = false,
 }: {
   values: number[];
   targetAmount?: number;
@@ -21,6 +22,11 @@ export default function MonteCarloHistogram({
   xFormatter?: (v: number) => string;
   /** Optional label above the target line. Default: "เป้า". */
   targetLabel?: string;
+  /**
+   * Treat values as integers — uses bin width = 1 so every integer gets its
+   * own bar (no gaps from float bin alignment). Useful for ages / years.
+   */
+  integer?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(600);
@@ -34,7 +40,22 @@ export default function MonteCarloHistogram({
     return () => ro.disconnect();
   }, []);
 
-  const hist = histogramFD(values);
+  // Integer mode: bin width = 1 so every integer gets exactly one bar,
+  // avoiding gaps that appear when FD bin width is a non-integer (e.g. 1.1)
+  const hist = (() => {
+    if (integer && values.length > 0) {
+      const rounded = values.map((v) => Math.round(v));
+      const minV = Math.min(...rounded);
+      const maxV = Math.max(...rounded);
+      const bins = Math.max(1, maxV - minV + 1);
+      const counts = new Array<number>(bins).fill(0);
+      for (const v of rounded) counts[v - minV]++;
+      const edges: number[] = [];
+      for (let i = 0; i <= bins; i++) edges.push(minV + i);
+      return { bins, counts, edges, min: minV, max: maxV + 1 };
+    }
+    return histogramFD(values);
+  })();
   const maxCount = Math.max(1, ...hist.counts);
 
   const padL = 50;

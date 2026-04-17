@@ -778,6 +778,7 @@ export default function WealthJourneyPage() {
                 targetLabel={`อายุขัย ${a.lifeExpectancy}`}
                 height={200}
                 xFormatter={(v) => `${Math.round(v)}`}
+                integer
               />
             ) : (
               <div className="text-center py-12 text-[11px] text-emerald-600 font-bold">
