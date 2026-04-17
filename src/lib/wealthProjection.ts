@@ -27,6 +27,7 @@ import type {
   WealthProjectionSummary,
   WealthYearRow,
 } from "@/types/wealthJourney";
+import { mulberry32, boxMullerGaussian, RISK_PRESETS } from "@/types/retirement";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -286,13 +287,40 @@ export function calcWealthProjection(
 // Monte Carlo (Phase 3 hook — implementing basic version now for reuse)
 // ---------------------------------------------------------------------------
 
+/**
+ * Monte Carlo projection using per-phase risk profiles.
+ *
+ * - **Pre-retire:** แต่ละ investmentPlan มีของตัวเอง (μ=expectedReturn, σ=volatility,
+ *   clip [minReturn, maxReturn]) — ถ้าไม่ได้ set จะ fallback เป็น balanced preset
+ * - **Post-retire:** ใช้ inputs.postRetireMC (μ=postRetireReturn, σ/min/max ตาม preset
+ *   ที่ผู้ใช้เลือก) — fallback = conservative preset
+ * - ใช้ Mulberry32 seeded PRNG + Box-Muller เหมือนหน้า investment-plan
+ *   (ตัวเดียวกัน) เพื่อให้สุ่มซ้ำได้
+ */
 export function runMonteCarloProjection(
   inputs: WealthProjectionInputs,
-  simulations = 1000,
-  sigma = 0.02,
+  simulations = 10000,
+  // เก็บ sigma param ไว้เพื่อ backward compat (ไม่ใช้จริง); ใช้ per-phase แทน
+  _legacySigma?: number,
+  options?: { seed?: number },
 ): MonteCarloResult {
+  void _legacySigma; // no-op — kept for call-site backward compat
   const endAge = inputs.lifeExpectancy + (inputs.extraYearsBeyondLife || 0);
   const ageSpan = endAge - inputs.currentAge + 1;
+
+  // Set up seeded PRNG (shared across all sims — deterministic)
+  const seed = (options?.seed ?? 0xC0FFEE) >>> 0;
+  const rand = mulberry32(seed);
+
+  // Post-retire MC params (fallback = conservative preset)
+  const postMC = inputs.postRetireMC ?? {
+    volatility: RISK_PRESETS.conservative.volatility,
+    minReturn: RISK_PRESETS.conservative.minReturn,
+    maxReturn: RISK_PRESETS.conservative.maxReturn,
+  };
+
+  // Balanced preset used as fallback for pre-retire phases
+  const fb = RISK_PRESETS.balanced;
 
   // balances[sim][ageIndex]
   const paths: number[][] = [];
@@ -313,15 +341,26 @@ export function runMonteCarloProjection(
       let outflow = 0;
 
       if (isPreRetire) {
-        const { rate, monthlyContrib } = preRetireReturnAtAge(
-          inputs.investmentPlans,
-          age,
-          inputs.fallbackPreReturn,
+        // หา plan ที่ครอบคลุม age นี้
+        const plan = inputs.investmentPlans.find(
+          (p) => age >= p.yearStart && age <= p.yearEnd,
         );
-        returnRate = randomNormal(rate, sigma);
-        contribution = monthlyContrib * 12;
+        const mu = plan?.expectedReturn ?? inputs.fallbackPreReturn;
+        const sigma = plan?.volatility ?? fb.volatility;
+        const lo = plan?.minReturn ?? fb.minReturn;
+        const hi = plan?.maxReturn ?? fb.maxReturn;
+        const z = boxMullerGaussian(rand);
+        let r = mu + sigma * z;
+        if (r < lo) r = lo;
+        if (r > hi) r = hi;
+        returnRate = r;
+        contribution = (plan?.monthlyAmount ?? 0) * 12;
       } else {
-        returnRate = randomNormal(inputs.postRetireReturn, sigma);
+        const z = boxMullerGaussian(rand);
+        let r = inputs.postRetireReturn + postMC.volatility * z;
+        if (r < postMC.minReturn) r = postMC.minReturn;
+        if (r > postMC.maxReturn) r = postMC.maxReturn;
+        returnRate = r;
 
         if (isRetireAge) {
           inflow +=
@@ -412,9 +451,18 @@ export function runMonteCarloProjection(
     (d) => d >= inputs.lifeExpectancy,
   ).length;
 
+  // Representative σ — avg of pre-retire phase volatility (for legacy display)
+  const preRetireSigmas = inputs.investmentPlans
+    .map((p) => p.volatility ?? RISK_PRESETS.balanced.volatility)
+    .filter((v): v is number => v !== undefined);
+  const avgPreSigma =
+    preRetireSigmas.length > 0
+      ? preRetireSigmas.reduce((a, b) => a + b, 0) / preRetireSigmas.length
+      : RISK_PRESETS.balanced.volatility;
+
   return {
     simulations,
-    sigma,
+    sigma: avgPreSigma,
     successRate: successCount / simulations,
     percentiles,
     depletionAges: {

@@ -45,7 +45,8 @@ import {
   type CashflowRegistryContext,
   type PremiumBracketLite,
 } from "@/lib/cashflow";
-import type { YearlyFlowRow } from "@/types/retirement";
+import type { YearlyFlowRow, RiskProfile } from "@/types/retirement";
+import { RISK_PRESETS, getMCParams } from "@/types/retirement";
 import type {
   JourneyScenario,
   MonteCarloResult,
@@ -108,8 +109,10 @@ export default function WealthJourneyPage() {
   const [chartMode, setChartMode] = useState<ChartMode>("single");
   const [tableOpen, setTableOpen] = useState(false);
   const [assumpOpen, setAssumpOpen] = useState(false);
-  const [mcSimulations, setMcSimulations] = useState(1000);
-  const [mcSigma, setMcSigma] = useState(0.02);
+  const mcSimulations = retire.mcSimulations ?? 10000;
+  const setMcSimulations = retire.updateMcSimulations;
+  const mcPostRetireProfile = retire.mcPostRetireProfile ?? "conservative";
+  const setMcPostRetireProfile = retire.updateMcPostRetireProfile;
   const [mcSettingsOpen, setMcSettingsOpen] = useState(false);
   const [mcResult, setMcResult] = useState<MonteCarloResult | null>(null);
   const [mcRunning, setMcRunning] = useState(false);
@@ -237,15 +240,35 @@ export default function WealthJourneyPage() {
       lifeExpectancy: a.lifeExpectancy,
       extraYearsBeyondLife: retire.caretakerParams.extraYearsBeyondLife || 5,
       startingBalance: a.currentSavings || 0,
-      investmentPlans: retire.investmentPlans.map((p) => ({
-        yearStart: p.yearStart,
-        yearEnd: p.yearEnd,
-        monthlyAmount: p.monthlyAmount,
-        expectedReturn: p.expectedReturn,
-      })),
+      investmentPlans: retire.investmentPlans.map((p) => {
+        const mc = getMCParams(p);
+        return {
+          yearStart: p.yearStart,
+          yearEnd: p.yearEnd,
+          monthlyAmount: p.monthlyAmount,
+          expectedReturn: p.expectedReturn,
+          volatility: mc.volatility,
+          minReturn: mc.minReturn,
+          maxReturn: mc.maxReturn,
+        };
+      }),
       fallbackPreReturn: a.postRetireReturn,
       postRetireReturn: a.postRetireReturn,
       generalInflation: a.generalInflation,
+      postRetireMC: {
+        volatility:
+          mcPostRetireProfile === "custom"
+            ? RISK_PRESETS.conservative.volatility
+            : RISK_PRESETS[mcPostRetireProfile].volatility,
+        minReturn:
+          mcPostRetireProfile === "custom"
+            ? RISK_PRESETS.conservative.minReturn
+            : RISK_PRESETS[mcPostRetireProfile].minReturn,
+        maxReturn:
+          mcPostRetireProfile === "custom"
+            ? RISK_PRESETS.conservative.maxReturn
+            : RISK_PRESETS[mcPostRetireProfile].maxReturn,
+      },
       basicMonthlyToday,
       specialExpenses: specialExpensesExpanded,
       ssMonthlyPension: ssMonthly,
@@ -259,7 +282,7 @@ export default function WealthJourneyPage() {
       badOffset: -0.01,
       goodOffset: 0.01,
     };
-  }, [retire, a, policies, insurance, isEmpty]);
+  }, [retire, a, policies, insurance, isEmpty, mcPostRetireProfile]);
 
   // ----- run projections -----
   const baseResult = useMemo(() => calcWealthProjection(inputs, "base"), [inputs]);
@@ -276,12 +299,12 @@ export default function WealthJourneyPage() {
     setMcRunning(true);
     // Defer to next tick so UI can show "running" state
     const id = setTimeout(() => {
-      const result = runMonteCarloProjection(inputs, mcSimulations, mcSigma);
+      const result = runMonteCarloProjection(inputs, mcSimulations);
       setMcResult(result);
       setMcRunning(false);
     }, 20);
     return () => clearTimeout(id);
-  }, [chartMode, inputs, mcSimulations, mcSigma]);
+  }, [chartMode, inputs, mcSimulations]);
 
   // ----- icon markers for one-off expenses (car, home repair) on bar chart -----
   const cashflowMarkers = useMemo<CfMarker[]>(() => {
@@ -727,10 +750,20 @@ export default function WealthJourneyPage() {
       {mcSettingsOpen && (
         <McSettingsModal
           simulations={mcSimulations}
-          sigma={mcSigma}
-          onApply={(n, s) => {
+          postRetireProfile={mcPostRetireProfile}
+          preRetirePhases={retire.investmentPlans.map((p) => {
+            const mc = getMCParams(p);
+            return {
+              yearStart: p.yearStart,
+              yearEnd: p.yearEnd,
+              expectedReturn: mc.expectedReturn,
+              volatility: mc.volatility,
+              profile: p.riskProfile ?? "balanced",
+            };
+          })}
+          onApply={(n, profile) => {
             setMcSimulations(n);
-            setMcSigma(s);
+            setMcPostRetireProfile(profile);
             setMcSettingsOpen(false);
           }}
           onClose={() => setMcSettingsOpen(false)}
@@ -1149,7 +1182,7 @@ function MonteCarloHero({
         <Dices size={12} className="text-purple-600" />
         Monte Carlo Simulation
         <span className="text-slate-300">•</span>
-        <span className="uppercase tracking-wide">{mcResult.simulations.toLocaleString()} รอบ · σ={(mcResult.sigma * 100).toFixed(1)}%</span>
+        <span className="uppercase tracking-wide">{mcResult.simulations.toLocaleString()} รอบ · σ̄={(mcResult.sigma * 100).toFixed(1)}%</span>
       </div>
 
       <div className="mt-2 flex items-end gap-4 flex-wrap">
@@ -1634,25 +1667,46 @@ function CashflowBarChart({
 // ---------- MC Settings Modal ----------
 function McSettingsModal({
   simulations,
-  sigma,
+  postRetireProfile,
+  preRetirePhases,
   onApply,
   onClose,
 }: {
   simulations: number;
-  sigma: number;
-  onApply: (n: number, s: number) => void;
+  postRetireProfile: RiskProfile;
+  preRetirePhases: {
+    yearStart: number;
+    yearEnd: number;
+    expectedReturn: number;
+    volatility: number;
+    profile: RiskProfile;
+  }[];
+  onApply: (n: number, profile: RiskProfile) => void;
   onClose: () => void;
 }) {
   const [n, setN] = useState(simulations);
-  const [s, setS] = useState(sigma);
+  const [profile, setProfile] = useState<RiskProfile>(postRetireProfile);
 
-  const nOptions = [500, 1000, 2000, 5000];
-  const sOptions = [0.01, 0.02, 0.03, 0.05];
+  const nOptions = [1000, 5000, 10000];
+  const profileOptions: { key: Exclude<RiskProfile, "custom">; label: string; desc: string; color: string }[] = [
+    { key: "aggressive", label: "เสี่ยงสูง", desc: "หุ้น 100%", color: "from-red-500 to-orange-500" },
+    { key: "balanced", label: "ปานกลาง", desc: "60/40", color: "from-purple-500 to-indigo-500" },
+    { key: "conservative", label: "อนุรักษ์", desc: "30/70", color: "from-emerald-500 to-teal-500" },
+    { key: "cash", label: "เงินสด", desc: "ปลอดภัย", color: "from-slate-500 to-slate-600" },
+  ];
+
+  const profileLabelTh = (p: RiskProfile): string => {
+    if (p === "aggressive") return "เสี่ยงสูง";
+    if (p === "balanced") return "ปานกลาง";
+    if (p === "conservative") return "อนุรักษ์";
+    if (p === "cash") return "เงินสด";
+    return "custom";
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md p-5"
+        className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-lg p-5 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-3">
@@ -1666,9 +1720,76 @@ function McSettingsModal({
         </div>
 
         <div className="space-y-4">
+          {/* Pre-retire phases — read-only summary (from investment-plan) */}
+          <div>
+            <div className="text-[11px] font-bold text-slate-600 mb-2 flex items-center gap-1.5">
+              <TrendingUp size={12} className="text-blue-500" />
+              ก่อนเกษียณ (ดึงจากหน้าลงทุนเพื่อเกษียณ)
+            </div>
+            {preRetirePhases.length === 0 ? (
+              <div className="text-[11px] text-slate-400 bg-slate-50 rounded-lg p-3 text-center">
+                ยังไม่มีแผนลงทุน — ไปตั้งค่าที่หน้า "ลงทุนเพื่อการเกษียณ"
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {preRetirePhases.map((ph, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between bg-blue-50/60 border border-blue-100 rounded-lg px-3 py-2"
+                  >
+                    <div className="text-[11px] text-slate-700">
+                      <span className="font-bold">อายุ {ph.yearStart}–{ph.yearEnd}</span>
+                      <span className="text-slate-500"> · {profileLabelTh(ph.profile)}</span>
+                    </div>
+                    <div className="text-[11px] font-mono text-slate-600">
+                      μ={(ph.expectedReturn * 100).toFixed(1)}% · σ={(ph.volatility * 100).toFixed(1)}%
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="text-[10px] text-slate-400 mt-1.5">
+              แก้ได้ที่หน้า "ลงทุนเพื่อการเกษียณ" (per-phase risk preset)
+            </div>
+          </div>
+
+          {/* Post-retire risk preset picker */}
+          <div>
+            <div className="text-[11px] font-bold text-slate-600 mb-2 flex items-center gap-1.5">
+              <ShieldCheck size={12} className="text-pink-500" />
+              หลังเกษียณ — ระดับความเสี่ยง port
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              {profileOptions.map((opt) => {
+                const preset = RISK_PRESETS[opt.key];
+                const active = profile === opt.key;
+                return (
+                  <button
+                    key={opt.key}
+                    onClick={() => setProfile(opt.key)}
+                    className={`py-2.5 px-2 rounded-xl text-[11px] font-bold transition ${
+                      active
+                        ? `bg-gradient-to-r ${opt.color} text-white shadow`
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    <div>{opt.label}</div>
+                    <div className={`text-[9px] font-mono mt-0.5 ${active ? "opacity-90" : "opacity-70"}`}>
+                      σ={(preset.volatility * 100).toFixed(0)}%
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="text-[10px] text-slate-400 mt-1.5">
+              หลังเกษียณมักลดความเสี่ยง — default = อนุรักษ์
+            </div>
+          </div>
+
+          {/* Simulations */}
           <div>
             <div className="text-[11px] font-bold text-slate-600 mb-2">จำนวน simulations</div>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {nOptions.map((opt) => (
                 <button
                   key={opt}
@@ -1684,31 +1805,7 @@ function McSettingsModal({
               ))}
             </div>
             <div className="text-[10px] text-slate-400 mt-1.5">
-              มากขึ้น = แม่นขึ้น แต่ช้าลง (5000 ≈ 1 วิ)
-            </div>
-          </div>
-
-          <div>
-            <div className="text-[11px] font-bold text-slate-600 mb-2">
-              ความผันผวน (σ) — ยิ่งสูงยิ่งเสี่ยง
-            </div>
-            <div className="grid grid-cols-4 gap-2">
-              {sOptions.map((opt) => (
-                <button
-                  key={opt}
-                  onClick={() => setS(opt)}
-                  className={`py-2 rounded-xl text-[11px] font-bold transition ${
-                    s === opt
-                      ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                  }`}
-                >
-                  {(opt * 100).toFixed(0)}%
-                </button>
-              ))}
-            </div>
-            <div className="text-[10px] text-slate-400 mt-1.5">
-              1% = อนุรักษ์ · 2% = ปกติ (60/40 portfolio) · 5% = เสี่ยงสูง (หุ้น 100%)
+              10,000 = แม่นสุด (เหมือนหน้าลงทุน) · 1,000 = เร็วสุด
             </div>
           </div>
         </div>
@@ -1721,7 +1818,7 @@ function McSettingsModal({
             ยกเลิก
           </button>
           <button
-            onClick={() => onApply(n, s)}
+            onClick={() => onApply(n, profile)}
             className="px-4 py-2 rounded-xl text-[12px] font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 transition shadow"
           >
             ใช้ค่านี้

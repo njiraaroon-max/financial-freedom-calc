@@ -15,6 +15,7 @@ import type {
   CaretakerParams,
   CashflowItem,
   CashflowKind,
+  RiskProfile,
 } from "@/types/retirement";
 import {
   DEFAULT_ASSUMPTIONS,
@@ -43,6 +44,14 @@ interface RetirementState {
    * ตอนเกษียณวางแผนไว้เท่าไร เทียบกับที่ใช้จริงในปัจจุบัน)
    */
   showCfReference: boolean;
+
+  /**
+   * Post-retire Monte Carlo risk preset (used by Journey MC simulation).
+   * Pre-retire uses per-phase volatility from each investmentPlan.
+   */
+  mcPostRetireProfile: RiskProfile;
+  /** Number of Monte Carlo simulations to run in Journey page */
+  mcSimulations: number;
 
   // Sub-calculator params
   pvdParams: PVDParams;
@@ -108,6 +117,10 @@ interface RetirementState {
   updateCaretakerParam: <K extends keyof CaretakerParams>(key: K, value: CaretakerParams[K]) => void;
   resetCaretakerParams: () => void;
 
+  // Actions — Monte Carlo (Journey page)
+  updateMcPostRetireProfile: (profile: RiskProfile) => void;
+  updateMcSimulations: (n: number) => void;
+
   // Completion tracking
   completedSteps: Record<string, boolean>;
   markStepCompleted: (step: string) => void;
@@ -159,6 +172,8 @@ export const useRetirementStore = create<RetirementState>()(
       investmentPlans: [],
       travelPlanItems: [],
       showCfReference: false,
+      mcPostRetireProfile: "conservative",
+      mcSimulations: 10000,
       pvdParams: { ...DEFAULT_PVD },
       ssParams: { ...DEFAULT_SS },
       severanceParams: { ...DEFAULT_SEVERANCE },
@@ -405,6 +420,10 @@ export const useRetirementStore = create<RetirementState>()(
       resetCaretakerParams: () =>
         set({ caretakerParams: { ...DEFAULT_CARETAKER } }),
 
+      // Monte Carlo (Journey)
+      updateMcPostRetireProfile: (profile) => set({ mcPostRetireProfile: profile }),
+      updateMcSimulations: (n) => set({ mcSimulations: n }),
+
       markStepCompleted: (step) =>
         set((state) => ({
           completedSteps: { ...state.completedSteps, [step]: true },
@@ -432,6 +451,8 @@ export const useRetirementStore = create<RetirementState>()(
           investmentPlans: [],
           travelPlanItems: [],
           showCfReference: false,
+          mcPostRetireProfile: "conservative",
+          mcSimulations: 10000,
           pvdParams: { ...DEFAULT_PVD },
           ssParams: { ...DEFAULT_SS },
           severanceParams: { ...DEFAULT_SEVERANCE },
@@ -442,7 +463,7 @@ export const useRetirementStore = create<RetirementState>()(
     }),
     {
       name: "ffc-retirement",
-      version: 14,
+      version: 15,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       migrate: (persisted: any, version: number) => {
         if (persisted?.savingFunds) {
@@ -864,6 +885,14 @@ export const useRetirementStore = create<RetirementState>()(
               },
             ];
           }
+        }
+        // v15: Monte Carlo settings — post-retire risk preset + sim count
+        // for unified Journey MC (aligned with investment-plan MC architecture).
+        if (persisted && typeof persisted.mcPostRetireProfile !== "string") {
+          persisted.mcPostRetireProfile = "conservative";
+        }
+        if (persisted && typeof persisted.mcSimulations !== "number") {
+          persisted.mcSimulations = 10000;
         }
         return persisted;
       },

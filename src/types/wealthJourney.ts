@@ -44,12 +44,24 @@ export interface WealthProjectionInputs {
     yearEnd: number;
     monthlyAmount: number;
     expectedReturn: number;
+    // Monte Carlo fields (optional — pulled from InvestmentPlanItem via journey page)
+    volatility?: number;   // SD ของ return ต่อปี
+    minReturn?: number;    // clip floor
+    maxReturn?: number;    // clip ceiling
   }[];
   fallbackPreReturn: number;       // ใช้เมื่อไม่มี plan ครอบคลุม
 
   // post-retirement
   postRetireReturn: number;
   generalInflation: number;
+
+  // Monte Carlo — post-retirement portfolio params
+  // (pre-retire uses investmentPlans[].volatility/min/max; fallback = balanced preset)
+  postRetireMC?: {
+    volatility: number;   // SD ของ return ต่อปี (e.g. 0.05 for conservative)
+    minReturn: number;
+    maxReturn: number;
+  };
 
   // expenses
   basicMonthlyToday: number;       // sum of basicExpenses[].monthlyAmount (PV)
