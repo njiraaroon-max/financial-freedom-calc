@@ -218,7 +218,7 @@ function GoalTimeline({
 
   const maxLevel = assignments.reduce((m, a) => Math.max(m, a.level + 1), 0);
 
-  const YEAR_ROW_H  = 18;  // NEW — พ.ศ. labels at top
+  const YEAR_ROW_H  = 36;  // พ.ศ. labels — vertical, shown every year
   const yearlyAreaH = yearlyGoals.length > 0 ? yearlyGoals.length * YEARLY_ROW_H + 6 : 0;
   const yearRowTop  = yearlyAreaH;
   const goalsTop    = yearRowTop + YEAR_ROW_H + 4;
@@ -234,13 +234,6 @@ function GoalTimeline({
 
   const ticks: number[] = [];
   for (let age = minAge; age <= maxAge; age++) ticks.push(age);
-
-  // For BE year labels: show first, last, retire age, and every 5 years
-  function shouldShowYearLabel(age: number): boolean {
-    if (age === minAge || age === maxAge) return true;
-    if (age === retireAge) return true;
-    return (age - minAge) % 5 === 0;
-  }
 
   return (
     <div ref={containerRef} style={{ width: "100%" }}>
@@ -278,27 +271,26 @@ function GoalTimeline({
           );
         })}
 
-        {/* ── พ.ศ. year labels row (top) ── */}
-        {ticks.filter(shouldShowYearLabel).map((age) => {
+        {/* ── พ.ศ. year labels row (top, vertical — every year) ── */}
+        {ticks.map((age) => {
           const yearBE = CURRENT_YEAR_CE + (age - currentAge) + CE_TO_BE;
-          const isRetire = age === retireAge;
+          const isRetire  = age === retireAge;
+          const isCurrent = age === currentAge;
           return (
             <div
               key={`yr-${age}`}
               style={{
                 position: "absolute",
                 left: xOf(age),
-                top: yearRowTop,
-                transform: "translateX(-50%)",
+                top: yearRowTop + YEAR_ROW_H / 2,
+                transform: "translate(-50%, -50%) rotate(-90deg)",
                 fontSize: 10,
-                fontWeight: isRetire ? 800 : 700,
+                fontWeight: isRetire || isCurrent ? 800 : 700,
                 color: isRetire ? "#dc2626" : NAVY,
-                background: isRetire ? "#fee2e2" : NAVY_PALE,
-                padding: "2px 6px",
-                borderRadius: 6,
-                border: `1px solid ${isRetire ? "#fca5a5" : NAVY_LIGHT}`,
                 whiteSpace: "nowrap",
                 zIndex: 2,
+                lineHeight: 1,
+                letterSpacing: 0.2,
               }}
             >
               {yearBE}
