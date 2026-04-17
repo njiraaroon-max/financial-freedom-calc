@@ -5,6 +5,7 @@ import { Save, Landmark, Info, X } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import PageHeader from "@/components/PageHeader";
 import MoneyInput from "@/components/MoneyInput";
+import HintIcon from "@/components/HintIcon";
 import { useVariableStore } from "@/store/variable-store";
 import { useProfileStore } from "@/store/profile-store";
 import { calcPVDProjection, type PVDYearResult } from "@/types/retirement";
@@ -89,18 +90,69 @@ export default function PVDPage() {
   const fields: {
     label: string;
     hint?: string;
+    detail?: string;
     key: keyof typeof p;
     type: "number" | "percent" | "months";
   }[] = [
     { label: "เงินเดือนปัจจุบัน", key: "currentSalary", type: "number" },
-    { label: "เพดานเงินเดือน", hint: "ใส่ 0 = ไม่มีเพดาน (บริษัทส่วนใหญ่ไม่มี)", key: "salaryCap", type: "number" },
-    { label: "อัตราขึ้นเงินเดือน (%)", key: "salaryIncrease", type: "percent" },
-    { label: "อัตราเงินสะสม (%)", key: "employeeRate", type: "percent" },
-    { label: "อัตราเงินสมทบ (%)", key: "employerRate", type: "percent" },
-    { label: "ผลตอบแทนที่คาดหวัง (%)", key: "expectedReturn", type: "percent" },
+    {
+      label: "เพดานเงินเดือน",
+      hint: "ใส่ 0 = ไม่มีเพดาน (บริษัทส่วนใหญ่ไม่มี)",
+      detail:
+        "บางบริษัทกำหนดเงินเดือนที่ใช้คำนวณ PVD ไว้ไม่เกินเท่านี้ เช่น 60,000 บาท/เดือน\n" +
+        "• เงินเดือน ≤ เพดาน → ใช้เงินเดือนจริง\n" +
+        "• เงินเดือน > เพดาน → ใช้เพดานแทน\n" +
+        "• ใส่ 0 = ไม่จำกัด (ใช้เงินเดือนจริงตลอด)",
+      key: "salaryCap",
+      type: "number",
+    },
+    {
+      label: "อัตราขึ้นเงินเดือน (%)",
+      detail: "อัตราการขึ้นเงินเดือนเฉลี่ยต่อปี ใช้ขยายเงินเดือนในปีต่อๆ ไป",
+      key: "salaryIncrease",
+      type: "percent",
+    },
+    {
+      label: "อัตราเงินสะสม (%)",
+      detail:
+        "% ของเงินเดือนที่ลูกจ้างเลือกสะสมเข้า PVD (ตามกฎหมายเลือกได้ 2-15%)\n" +
+        "สูตร: เงินสะสมรายปี = เงินเดือน × 12 × อัตราสะสม%",
+      key: "employeeRate",
+      type: "percent",
+    },
+    {
+      label: "อัตราเงินสมทบ (%)",
+      detail: "% ของเงินเดือนที่นายจ้างสมทบเพิ่มเข้า PVD ให้ลูกจ้าง (2-15% ตามข้อตกลง)",
+      key: "employerRate",
+      type: "percent",
+    },
+    {
+      label: "ผลตอบแทนที่คาดหวัง (%)",
+      detail:
+        "ผลตอบแทนเฉลี่ยของพอร์ตลงทุนต่อปี ขึ้นกับนโยบายการลงทุนที่ลูกจ้างเลือก\n" +
+        "• พันธบัตร/ตราสารหนี้ ~2-3%\n" +
+        "• ผสม ~4-5%\n" +
+        "• หุ้น ~6-8%",
+      key: "expectedReturn",
+      type: "percent",
+    },
     { label: "ยอดสะสมลูกจ้าง (ปัจจุบัน)", key: "currentEmployeeBalance", type: "number" },
     { label: "ยอดสมทบนายจ้าง (ปัจจุบัน)", key: "currentEmployerBalance", type: "number" },
-    { label: "เดือนที่เหลือในปีนี้", key: "remainingMonths", type: "months" },
+    {
+      label: "เดือนที่เหลือในปีนี้",
+      detail:
+        "ใส่จำนวนเดือนที่เหลือจะส่ง PVD ใน \"ปีแรก\" เท่านั้น\n" +
+        "ปีถัดๆ ไปคำนวณเต็ม 12 เดือนเสมอ\n\n" +
+        "ตัวอย่าง:\n" +
+        "• เข้าคำนวณต้นปี → 12 เดือน\n" +
+        "• เข้าคำนวณกรกฎาคม → 6 เดือน\n" +
+        "• เข้าคำนวณตุลาคม → 3 เดือน\n\n" +
+        "มีผล 2 จุดในปีแรก:\n" +
+        "• เงินสะสม+สมทบ = เงินเดือน × rate × จำนวนเดือน\n" +
+        "• ผลตอบแทน = ยอดสะสม × % × (เดือน/12)",
+      key: "remainingMonths",
+      type: "months",
+    },
   ];
 
   return (
@@ -156,7 +208,10 @@ export default function PVDPage() {
           {fields.map((f) => (
             <div key={f.key} className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <div className="text-xs text-gray-600">{f.label}</div>
+                <div className="text-xs text-gray-600 flex items-center gap-1">
+                  <span>{f.label}</span>
+                  {f.detail && <HintIcon text={f.detail} />}
+                </div>
                 {f.hint && <div className="text-[9px] text-gray-400 mt-0.5 leading-tight">{f.hint}</div>}
               </div>
               {f.type === "percent" ? (
