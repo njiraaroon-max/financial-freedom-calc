@@ -436,7 +436,7 @@ export default function WealthJourneyPage() {
                 value={`${mcResult.depletionAges.p10} ปี`}
                 subtext="10% ที่แย่สุด"
                 color="from-red-400 to-red-600"
-                tooltip="อายุที่เงินจะหมดใน 10% กรณีที่แย่ที่สุด (ผลตอบแทนต่ำ) — ถ้าต่ำกว่า life expectancy ควรเพิ่ม safety margin"
+                tooltip="P = Percentile (เปอร์เซ็นไทล์) — P10 = 10% ของ simulations เงินหมดก่อนอายุนี้ (อีก 90% เงินอยู่ได้นานกว่า) · เป็นตัวชี้วัด 'กรณีโชคร้าย' ที่วงการ financial planning ใช้ (Vanguard/Fidelity) แทน min เพราะไม่ไวต่อ outlier สุดโต่ง · ถ้า P10 < life expectancy ควรเพิ่ม safety margin"
               />
               <StatCard
                 icon={Dices}
@@ -444,7 +444,7 @@ export default function WealthJourneyPage() {
                 value={`${mcResult.depletionAges.p50} ปี`}
                 subtext="median"
                 color="from-pink-400 to-pink-600"
-                tooltip="ค่ากลาง (median) ของอายุที่เงินหมด — 50% ของ simulations อยู่รอบค่านี้"
+                tooltip="P50 = Median (ค่ากลาง) — ครึ่งหนึ่งของ simulations เงินหมดก่อนอายุนี้, อีกครึ่งหลังอายุนี้ · ตัวแทนที่ดีของ 'กรณีปกติ' (robust กว่าค่าเฉลี่ยเพราะไม่ถูก outlier ฉุด)"
               />
               <StatCard
                 icon={ShieldCheck}
@@ -452,7 +452,7 @@ export default function WealthJourneyPage() {
                 value={`${mcResult.depletionAges.p90} ปี`}
                 subtext="10% ที่ดีสุด"
                 color="from-emerald-400 to-emerald-600"
-                tooltip="อายุที่เงินยังเหลือใน 10% กรณีที่ดีที่สุด (ผลตอบแทนสูง)"
+                tooltip="P90 = 90th Percentile — 90% ของ simulations เงินหมดก่อนอายุนี้ (มีแค่ 10% โชคดีที่ port โตดีพอให้เงินอยู่นานกว่านี้) · ตัวแทน 'กรณีโชคดี' ใช้คู่กับ P10 เพื่อดู range 80% ตรงกลางของผลลัพธ์ที่เป็นไปได้"
               />
             </>
           ) : (
