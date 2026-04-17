@@ -136,4 +136,8 @@ export interface MonteCarloResult {
     p50: number;
     p90: number;
   };
+  /** Raw depletion age per simulation (length = simulations) — for histogram */
+  depletionAgesRaw: number[];
+  /** Raw final balance at endAge per simulation (length = simulations) — optional histogram */
+  finalBalancesRaw: number[];
 }

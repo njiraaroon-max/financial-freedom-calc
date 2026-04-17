@@ -11,10 +11,16 @@ export default function MonteCarloHistogram({
   values,
   targetAmount,
   height = 180,
+  xFormatter,
+  targetLabel = "เป้า",
 }: {
   values: number[];
   targetAmount?: number;
   height?: number;
+  /** Optional custom x-axis / target formatter. Default: M/K/integer. */
+  xFormatter?: (v: number) => string;
+  /** Optional label above the target line. Default: "เป้า". */
+  targetLabel?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(600);
@@ -38,11 +44,12 @@ export default function MonteCarloHistogram({
   const plotW = Math.max(100, width - padL - padR);
   const plotH = Math.max(50, height - padT - padB);
 
-  const fmt = (v: number): string => {
+  const defaultFmt = (v: number): string => {
     if (Math.abs(v) >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
     if (Math.abs(v) >= 1_000) return `${(v / 1_000).toFixed(0)}K`;
     return Math.round(v).toLocaleString("th-TH");
   };
+  const fmt = xFormatter ?? defaultFmt;
 
   const barWidth = plotW / hist.bins;
   const targetX =
@@ -108,7 +115,7 @@ export default function MonteCarloHistogram({
           <g>
             <line x1={targetX} x2={targetX} y1={padT} y2={padT + plotH} stroke="#dc2626" strokeWidth={1.5} strokeDasharray="4,3" />
             <text x={targetX} y={padT - 2} textAnchor="middle" fontSize={9} fontWeight="bold" fill="#dc2626">
-              เป้า
+              {targetLabel}
             </text>
           </g>
         )}

@@ -34,6 +34,7 @@ import {
 } from "recharts";
 
 import PageHeader from "@/components/PageHeader";
+import MonteCarloHistogram from "@/components/retirement/MonteCarloHistogram";
 import { useRetirementStore } from "@/store/retirement-store";
 import { useInsuranceStore } from "@/store/insurance-store";
 import { calcWealthProjection, runMonteCarloProjection } from "@/lib/wealthProjection";
@@ -722,6 +723,52 @@ export default function WealthJourneyPage() {
           )}
         </div>
       </div>
+
+      {/* MC Depletion Age Histogram */}
+      {chartMode === "monteCarlo" && mcResult && mcResult.depletionAgesRaw && mcResult.depletionAgesRaw.length > 0 && (
+        <div className="px-4 md:px-8 pt-4">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-base">📊</span>
+                  <h3 className="text-sm font-bold text-[#0B1E3F]">
+                    การกระจายของอายุที่เงินหมด
+                  </h3>
+                </div>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  กระจายจาก {mcResult.simulations.toLocaleString()} simulations ·
+                  แต่ละแท่ง = จำนวน sims ที่เงินหมดในช่วงอายุนั้น
+                </p>
+              </div>
+              <div className="text-right">
+                <div className="text-[10px] text-slate-500">เป้าหมาย</div>
+                <div className="text-sm font-bold text-[#0B1E3F]">อายุขัย {a.lifeExpectancy} ปี</div>
+              </div>
+            </div>
+            <MonteCarloHistogram
+              values={mcResult.depletionAgesRaw}
+              targetAmount={a.lifeExpectancy}
+              targetLabel={`อายุขัย ${a.lifeExpectancy}`}
+              height={200}
+              xFormatter={(v) => `${Math.round(v)}`}
+            />
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 pt-2 border-t border-gray-100 text-[10px] text-gray-600">
+              <span className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded bg-red-500/75"></span>
+                เงินหมดก่อนอายุขัย (ไม่ผ่านเป้า)
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded bg-emerald-600/75"></span>
+                เงินอยู่ถึง/เกินอายุขัย (ผ่านเป้า)
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-3 h-0.5 bg-red-600 inline-block"></span> เส้นเป้า = อายุขัย
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MC Settings Modal */}
       {mcSettingsOpen && (

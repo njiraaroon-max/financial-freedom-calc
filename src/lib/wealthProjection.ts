@@ -451,6 +451,9 @@ export function runMonteCarloProjection(
     (d) => d >= inputs.lifeExpectancy,
   ).length;
 
+  // Raw per-sim data for histograms
+  const finalBalancesRaw = paths.map((p) => p[p.length - 1]);
+
   // Representative σ — avg of pre-retire phase volatility (for legacy display)
   const preRetireSigmas = inputs.investmentPlans
     .map((p) => p.volatility ?? RISK_PRESETS.balanced.volatility)
@@ -470,5 +473,7 @@ export function runMonteCarloProjection(
       p50: percentile(sortedDep, 0.5),
       p90: percentile(sortedDep, 0.9),
     },
+    depletionAgesRaw: depletionAges,
+    finalBalancesRaw,
   };
 }
