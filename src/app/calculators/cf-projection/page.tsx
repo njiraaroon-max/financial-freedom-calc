@@ -29,6 +29,12 @@ import { useEducationStore, aggregateProjection } from "@/store/education-store"
 import { useTaxStore } from "@/store/tax-store";
 import { useVariableStore } from "@/store/variable-store";
 import { projectCashflow, type CFProjectionRow, type AnnuityStream } from "@/lib/cfProjection";
+import {
+  buildLineItems,
+  projectExcel,
+  type ExcelProjection,
+} from "@/lib/cfExcelProjection";
+import CFExcelTable from "@/components/CFExcelTable";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(n: number): string {
@@ -72,8 +78,11 @@ export default function CFProjectionPage() {
     ((retire.assumptions?.postRetireReturn ?? 0.045) * 100),
   );
 
-  // Tab: summary | pre | post | spreadsheet | all
-  const [view, setView] = useState<"summary" | "pre" | "post" | "spreadsheet" | "all">("summary");
+  // Tab: summary | excel (per-line detail) | spreadsheet | pre | post | all
+  const [view, setView] = useState<"summary" | "excel" | "spreadsheet" | "pre" | "post" | "all">("summary");
+
+  // Per-item inflation overrides for the Excel view
+  const [inflationOverrides, setInflationOverrides] = useState<Record<string, number>>({});
 
   // ── Compute annual totals from cashflow store ─────────────────────────
   const { annualIncome, annualExpense } = useMemo(() => {
@@ -212,6 +221,57 @@ export default function CFProjectionPage() {
     if (view === "all" || view === "spreadsheet") return rows;
     return [];
   }, [rows, view]);
+
+  // ── Build detailed Excel-style projection ────────────────────────────
+  const excelProjection: ExcelProjection = useMemo(() => {
+    const totalYearsAhead = Math.max(1, lifeExpectancy - currentAge + 1);
+    const baseItems = buildLineItems({
+      currentYear: CURRENT_YEAR,
+      years: totalYearsAhead,
+      currentAge,
+      cfIncomes: cfStore.incomes,
+      cfExpenses: cfStore.expenses,
+      insurancePolicies: insurance.policies,
+      educationChildren: education.children,
+      educationLevels: education.levels,
+      educationInflationRate: education.inflationRate,
+      annualTaxEstimate,
+      defaultInflationRate: inflationRate,
+      salaryGrowth,
+    });
+    // Apply user's per-item inflation overrides
+    const items = baseItems.map((it) => {
+      const override = inflationOverrides[it.id];
+      return override !== undefined ? { ...it, inflationRate: override } : it;
+    });
+    return projectExcel(items, {
+      currentYear: CURRENT_YEAR,
+      years: totalYearsAhead,
+      currentAge,
+      cfIncomes: cfStore.incomes,
+      cfExpenses: cfStore.expenses,
+      insurancePolicies: insurance.policies,
+      educationChildren: education.children,
+      educationLevels: education.levels,
+      educationInflationRate: education.inflationRate,
+      annualTaxEstimate,
+      defaultInflationRate: inflationRate,
+      salaryGrowth,
+    });
+  }, [
+    currentAge,
+    lifeExpectancy,
+    cfStore.incomes,
+    cfStore.expenses,
+    insurance.policies,
+    education.children,
+    education.levels,
+    education.inflationRate,
+    annualTaxEstimate,
+    inflationRate,
+    salaryGrowth,
+    inflationOverrides,
+  ]);
 
   // ── Narrative insights — auto-generate a "flashlight-ahead" story ────
   const insights = useMemo(() => {
@@ -503,7 +563,8 @@ export default function CFProjectionPage() {
         <div className="bg-white rounded-2xl shadow-sm p-1.5 mx-1 flex gap-1 overflow-x-auto">
           {[
             { key: "summary", label: "สรุปย่อ" },
-            { key: "spreadsheet", label: "Excel View" },
+            { key: "excel", label: "📊 Excel Detail" },
+            { key: "spreadsheet", label: "Excel Summary" },
             { key: "pre", label: "ก่อนเกษียณ" },
             { key: "post", label: "หลังเกษียณ" },
             { key: "all", label: "ตารางเต็ม" },
@@ -525,6 +586,22 @@ export default function CFProjectionPage() {
         {/* Content */}
         {view === "summary" ? (
           <CondensedSummary rows={rows} currentAge={currentAge} retireAge={retireAge} />
+        ) : view === "excel" ? (
+          <div className="bg-white rounded-2xl shadow-sm mx-1 overflow-hidden">
+            <div className="px-3 py-2.5 border-b border-gray-100 bg-gradient-to-r from-sky-50 to-indigo-50">
+              <div className="text-xs font-bold text-slate-800">📊 ตารางรายละเอียดแบบ Excel</div>
+              <div className="text-[10px] text-slate-500 mt-0.5">
+                ทุกรายการจาก Cash Flow + การศึกษาบุตร — ปีเป็นแนวนอน, ปรับเงินเฟ้อต่อรายการได้
+              </div>
+            </div>
+            <CFExcelTable
+              projection={excelProjection}
+              retireAge={retireAge}
+              onUpdateInflation={(itemId, rate) =>
+                setInflationOverrides((prev) => ({ ...prev, [itemId]: rate }))
+              }
+            />
+          </div>
         ) : view === "spreadsheet" ? (
           <SpreadsheetView rows={filteredRows} retireAge={retireAge} summary={summary} />
         ) : (
