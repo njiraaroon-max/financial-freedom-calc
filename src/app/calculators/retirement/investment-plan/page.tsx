@@ -99,6 +99,7 @@ export default function InvestmentPlanPage() {
   const { markStepCompleted } = store;
   const { setVariable } = useVariableStore();
   const [saved, setSaved] = useState(false);
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
 
   const a = store.assumptions;
 
@@ -220,8 +221,40 @@ export default function InvestmentPlanPage() {
     const lastIdx = investResult.length - 1;
     const endX = idxToX(lastIdx);
 
+    // ── Mouse tracking → find the nearest year index ──
+    const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+      const svg = e.currentTarget;
+      const pt = svg.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      const ctm = svg.getScreenCTM();
+      if (!ctm) return;
+      const svgPt = pt.matrixTransform(ctm.inverse());
+      if (svgPt.x < leftPad || svgPt.x > chartW - rightPad) {
+        setHoverIdx(null);
+        return;
+      }
+      const fraction = (svgPt.x - leftPad) / plotW;
+      const i = Math.round(fraction * (investResult.length - 1));
+      setHoverIdx(Math.max(0, Math.min(investResult.length - 1, i)));
+    };
+
+    const hoverRow = hoverIdx !== null ? investResult[hoverIdx] : null;
+    const hoverX = hoverIdx !== null ? idxToX(hoverIdx) : null;
+
+    // Tooltip geometry — flip to left of line if near right edge
+    const TIP_W = 108;
+    const TIP_H = 66;
+    const tipAtRight = hoverX !== null ? hoverX + TIP_W + 4 > chartW - rightPad + 90 : true;
+    const tipX = hoverX !== null ? (tipAtRight ? hoverX - TIP_W - 6 : hoverX + 8) : 0;
+
     return (
-      <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full mx-auto">
+      <svg
+        viewBox={`0 0 ${chartW} ${chartH}`}
+        className="w-full mx-auto touch-none select-none"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setHoverIdx(null)}
+      >
         {/* Grid lines */}
         {yLabels.map((v, i) => (
           <g key={i}>
@@ -288,6 +321,68 @@ export default function InvestmentPlanPage() {
 
         {/* Bottom axis */}
         <line x1={leftPad} y1={valToY(minVal)} x2={chartW - rightPad} y2={valToY(minVal)} stroke="#9ca3af" strokeWidth={1} />
+
+        {/* ── Hover indicators (vertical line + dots + tooltip) ── */}
+        {hoverRow && hoverX !== null && (
+          <g>
+            {/* vertical guide */}
+            <line
+              x1={hoverX}
+              y1={topPad}
+              x2={hoverX}
+              y2={valToY(minVal)}
+              stroke="#64748b"
+              strokeWidth={0.8}
+              strokeDasharray="2,2"
+            />
+
+            {/* dots on each series */}
+            <circle cx={hoverX} cy={valToY(hoverRow.goodCase)} r={3} fill="#10b981" stroke="white" strokeWidth={1.2} />
+            <circle cx={hoverX} cy={valToY(hoverRow.baseCase)} r={3} fill="#3b82f6" stroke="white" strokeWidth={1.2} />
+            <circle cx={hoverX} cy={valToY(hoverRow.badCase)} r={3} fill="#f59e0b" stroke="white" strokeWidth={1.2} />
+            <circle cx={hoverX} cy={valToY(hoverRow.cost)} r={3} fill="#9ca3af" stroke="white" strokeWidth={1.2} />
+
+            {/* tooltip card */}
+            <g transform={`translate(${tipX}, ${topPad + 4})`}>
+              <rect
+                width={TIP_W}
+                height={TIP_H}
+                rx={4}
+                fill="#1e293b"
+                fillOpacity={0.96}
+                stroke="#0f172a"
+                strokeWidth={0.5}
+              />
+              <text x={6} y={11} className="text-[7px] font-bold fill-white">
+                อายุ {hoverRow.age} (ปีที่ {hoverRow.year})
+              </text>
+              <g transform="translate(6, 20)">
+                <circle cx={2} cy={4} r={2} fill="#10b981" />
+                <text x={8} y={6} className="text-[7px] fill-emerald-200">
+                  Good: {fmtM(hoverRow.goodCase)}
+                </text>
+              </g>
+              <g transform="translate(6, 30)">
+                <circle cx={2} cy={4} r={2} fill="#3b82f6" />
+                <text x={8} y={6} className="text-[7px] fill-blue-200 font-bold">
+                  Base: {fmtM(hoverRow.baseCase)}
+                </text>
+              </g>
+              <g transform="translate(6, 40)">
+                <circle cx={2} cy={4} r={2} fill="#f59e0b" />
+                <text x={8} y={6} className="text-[7px] fill-amber-200">
+                  Bad: {fmtM(hoverRow.badCase)}
+                </text>
+              </g>
+              <g transform="translate(6, 50)">
+                <circle cx={2} cy={4} r={2} fill="#9ca3af" />
+                <text x={8} y={6} className="text-[7px] fill-slate-300">
+                  ต้นทุน: {fmtM(hoverRow.cost)}
+                </text>
+              </g>
+            </g>
+          </g>
+        )}
       </svg>
     );
   };
