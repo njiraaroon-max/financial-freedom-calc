@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Save, Plus, Trash2, TrendingUp } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Save, Plus, Trash2, TrendingUp, Dice5, BarChart3, RefreshCw, TrendingDown } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import { useInsuranceStore } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
@@ -14,7 +14,14 @@ import {
   futureValue,
   calcRetirementFund,
   calcInvestmentPlan,
+  runMonteCarloInvestment,
+  RISK_PRESETS,
+  getMCParams,
+  type RiskProfile,
 } from "@/types/retirement";
+import MonteCarloChart from "@/components/retirement/MonteCarloChart";
+import MonteCarloHistogram from "@/components/retirement/MonteCarloHistogram";
+import RiskPresetPicker from "@/components/retirement/RiskPresetPicker";
 import {
   sumSavingFundsNpv,
   sumSpecialExpensesNpv,
@@ -100,6 +107,9 @@ export default function InvestmentPlanPage() {
   const { setVariable } = useVariableStore();
   const [saved, setSaved] = useState(false);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  // Simulation mode tab: "deterministic" = 3-scenario (default), "montecarlo" = MC 10,000 sims
+  const [simMode, setSimMode] = useState<"deterministic" | "montecarlo">("deterministic");
+  const [mcSeed, setMcSeed] = useState<number>(0xC0FFEE);
 
   const a = store.assumptions;
 
@@ -168,6 +178,28 @@ export default function InvestmentPlanPage() {
   const investAtRetireGood = investResult.length > 0 ? investResult[investResult.length - 1].goodCase : 0;
   const investAtRetireCost = investResult.length > 0 ? investResult[investResult.length - 1].cost : 0;
   const finalShortage = shortage - investAtRetire;
+
+  // ---- Monte Carlo simulation (10,000 sims; recomputed only เมื่ออยู่ใน MC tab) ----
+  const mcTargetAmount = shortage > 0 ? shortage : 0;
+  const mcResult = useMemo(() => {
+    if (simMode !== "montecarlo") return null;
+    if (store.investmentPlans.length === 0) return null;
+    return runMonteCarloInvestment(
+      store.investmentPlans,
+      a.currentAge,
+      a.retireAge,
+      initialAmount,
+      { simulations: 10000, sampleSize: 500, seed: mcSeed, targetAmount: mcTargetAmount },
+    );
+  }, [
+    simMode,
+    mcSeed,
+    store.investmentPlans,
+    a.currentAge,
+    a.retireAge,
+    initialAmount,
+    mcTargetAmount,
+  ]);
 
   // ---- Save handler ----
   const handleSave = () => {
@@ -521,6 +553,101 @@ export default function InvestmentPlanPage() {
                     <span>15%</span>
                   </div>
                 </div>
+
+                {/* Monte Carlo settings — show only in MC mode */}
+                {simMode === "montecarlo" && (() => {
+                  const mc = getMCParams(plan);
+                  const profile: RiskProfile = plan.riskProfile || "balanced";
+                  return (
+                    <div className="mt-3 pt-3 border-t border-indigo-100 bg-indigo-50/40 rounded-lg px-2.5 py-2.5 -mx-0.5 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-indigo-700">🎲 การจำลอง Monte Carlo</span>
+                      </div>
+
+                      {/* Preset picker */}
+                      <div>
+                        <div className="text-[9px] text-gray-500 mb-1">รูปแบบพอร์ต</div>
+                        <RiskPresetPicker
+                          value={profile}
+                          onPick={(p) => {
+                            if (p === "custom") {
+                              store.updateInvestmentPlan(plan.id, { riskProfile: "custom" });
+                            } else {
+                              const preset = RISK_PRESETS[p];
+                              store.updateInvestmentPlan(plan.id, {
+                                riskProfile: p,
+                                expectedReturn: preset.expectedReturn,
+                                volatility: preset.volatility,
+                                minReturn: preset.minReturn,
+                                maxReturn: preset.maxReturn,
+                              });
+                            }
+                          }}
+                          compact
+                        />
+                      </div>
+
+                      {/* Volatility + min/max */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <div>
+                          <div className="text-[9px] text-gray-500 mb-0.5">SD (%)</div>
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            value={(mc.volatility * 100).toFixed(1)}
+                            onChange={(e) => {
+                              const v = Number(e.target.value) / 100;
+                              if (!Number.isFinite(v)) return;
+                              store.updateInvestmentPlan(plan.id, {
+                                volatility: Math.max(0, v),
+                                riskProfile: "custom",
+                              });
+                            }}
+                            className="w-full text-xs font-semibold bg-white rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-400 text-right border border-gray-200"
+                          />
+                        </div>
+                        <div>
+                          <div className="text-[9px] text-gray-500 mb-0.5">ขาดทุนสูงสุด (%)</div>
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            value={(mc.minReturn * 100).toFixed(1)}
+                            onChange={(e) => {
+                              const v = Number(e.target.value) / 100;
+                              if (!Number.isFinite(v)) return;
+                              store.updateInvestmentPlan(plan.id, {
+                                minReturn: v,
+                                riskProfile: "custom",
+                              });
+                            }}
+                            className="w-full text-xs font-semibold bg-white rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-400 text-right border border-gray-200"
+                          />
+                        </div>
+                        <div>
+                          <div className="text-[9px] text-gray-500 mb-0.5">กำไรสูงสุด (%)</div>
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            value={(mc.maxReturn * 100).toFixed(1)}
+                            onChange={(e) => {
+                              const v = Number(e.target.value) / 100;
+                              if (!Number.isFinite(v)) return;
+                              store.updateInvestmentPlan(plan.id, {
+                                maxReturn: v,
+                                riskProfile: "custom",
+                              });
+                            }}
+                            className="w-full text-xs font-semibold bg-white rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-400 text-right border border-gray-200"
+                          />
+                        </div>
+                      </div>
+                      <div className="text-[9px] text-gray-500 leading-relaxed">
+                        ผลตอบแทนจะถูกสุ่มจากช่วง ({(mc.minReturn * 100).toFixed(0)}% ถึง {(mc.maxReturn * 100).toFixed(0)}%)
+                        · ค่าเฉลี่ย {(mc.expectedReturn * 100).toFixed(1)}% · ผันผวน {(mc.volatility * 100).toFixed(1)}%
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             ))}
           </div>
@@ -533,40 +660,191 @@ export default function InvestmentPlanPage() {
           </button>
         </div>
 
-        {/* Chart: 3 scenarios */}
+        {/* Tab switcher: Deterministic vs Monte Carlo */}
         {investResult.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-200 p-4">
-            <div className="text-xs font-bold text-[#1e3a5f] text-center mb-3">
-              ภาพรวมพอร์ตลงทุน ณ วันเกษียณ
+          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div className="flex border-b border-gray-200 bg-gray-50">
+              <button
+                onClick={() => setSimMode("deterministic")}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold transition ${
+                  simMode === "deterministic"
+                    ? "bg-white text-[#1e3a5f] border-b-2 border-[#1e3a5f]"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                <BarChart3 size={14} /> แบบปกติ (3 กรณี)
+              </button>
+              <button
+                onClick={() => setSimMode("montecarlo")}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold transition ${
+                  simMode === "montecarlo"
+                    ? "bg-white text-indigo-600 border-b-2 border-indigo-600"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                <Dice5 size={14} /> Monte Carlo (10,000 จำลอง)
+              </button>
             </div>
 
-            {renderChart()}
-
-            {/* Legend */}
-            <div className="flex flex-wrap items-center justify-center gap-3 mt-3">
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-0.5 bg-emerald-500 rounded" />
-                <span className="text-[9px] text-gray-500">Good Case</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-0.5 bg-blue-500 rounded" />
-                <span className="text-[9px] text-gray-500">Base Case</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-0.5 bg-amber-500 rounded" />
-                <span className="text-[9px] text-gray-500">Bad Case</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-[1px] bg-gray-400 border-dashed border-t" />
-                <span className="text-[9px] text-gray-500">ต้นทุน</span>
-              </div>
-              {shortage > 0 && (
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-[1px] bg-red-500 border-dashed border-t" />
-                  <span className="text-[9px] text-gray-500">เป้าหมาย</span>
+            {/* Deterministic (default) */}
+            {simMode === "deterministic" && (
+              <div className="p-4">
+                <div className="text-xs font-bold text-[#1e3a5f] text-center mb-3">
+                  ภาพรวมพอร์ตลงทุน ณ วันเกษียณ
                 </div>
-              )}
-            </div>
+
+                {renderChart()}
+
+                {/* Legend */}
+                <div className="flex flex-wrap items-center justify-center gap-3 mt-3">
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-0.5 bg-emerald-500 rounded" />
+                    <span className="text-[9px] text-gray-500">Good Case</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-0.5 bg-blue-500 rounded" />
+                    <span className="text-[9px] text-gray-500">Base Case</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-0.5 bg-amber-500 rounded" />
+                    <span className="text-[9px] text-gray-500">Bad Case</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-[1px] bg-gray-400 border-dashed border-t" />
+                    <span className="text-[9px] text-gray-500">ต้นทุน</span>
+                  </div>
+                  {shortage > 0 && (
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-[1px] bg-red-500 border-dashed border-t" />
+                      <span className="text-[9px] text-gray-500">เป้าหมาย</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Monte Carlo */}
+            {simMode === "montecarlo" && mcResult && (
+              <div className="p-4 space-y-4">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="text-xs font-bold text-indigo-700">
+                    โอกาสสำเร็จของแผน (Monte Carlo Simulation)
+                  </div>
+                  <button
+                    onClick={() => setMcSeed((s) => (s * 1664525 + 1013904223) >>> 0)}
+                    className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition font-semibold"
+                  >
+                    <RefreshCw size={11} /> สุ่มใหม่
+                  </button>
+                </div>
+
+                {/* Success Rate big banner */}
+                {mcResult.successRate !== undefined && mcTargetAmount > 0 && (
+                  <div
+                    className={`rounded-xl p-4 text-white ${
+                      mcResult.successRate >= 0.8
+                        ? "bg-gradient-to-br from-emerald-500 to-teal-600"
+                        : mcResult.successRate >= 0.5
+                        ? "bg-gradient-to-br from-amber-500 to-orange-600"
+                        : "bg-gradient-to-br from-red-500 to-rose-600"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-[11px] opacity-80">
+                          โอกาสที่จะถึงเป้าหมาย ฿{fmt(mcTargetAmount)}
+                        </div>
+                        <div className="text-3xl font-extrabold mt-0.5">
+                          {(mcResult.successRate * 100).toFixed(1)}%
+                        </div>
+                      </div>
+                      <div className="text-right text-[10px] opacity-80 leading-relaxed">
+                        <div>
+                          สำเร็จ:{" "}
+                          {Math.round(mcResult.successRate * 10000).toLocaleString("th-TH")} /
+                          10,000
+                        </div>
+                        <div>ไม่สำเร็จ: {Math.round((1 - mcResult.successRate) * 10000).toLocaleString("th-TH")}</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* MC Chart */}
+                <div>
+                  <div className="text-[10px] text-gray-500 mb-1">เส้นจำลองพอร์ต (500 จาก 10,000) + แถบ P5-P95</div>
+                  <MonteCarloChart
+                    result={mcResult}
+                    targetAmount={mcTargetAmount > 0 ? mcTargetAmount : undefined}
+                    height={280}
+                  />
+                </div>
+
+                {/* Percentile stats */}
+                <div className="grid grid-cols-5 gap-2">
+                  {[
+                    { label: "P5 แย่สุด", value: mcResult.p05[mcResult.p05.length - 1], color: "text-red-600" },
+                    { label: "P25", value: mcResult.p25[mcResult.p25.length - 1], color: "text-orange-500" },
+                    { label: "P50 กลาง", value: mcResult.p50[mcResult.p50.length - 1], color: "text-indigo-600" },
+                    { label: "P75", value: mcResult.p75[mcResult.p75.length - 1], color: "text-emerald-500" },
+                    { label: "P95 ดีสุด", value: mcResult.p95[mcResult.p95.length - 1], color: "text-emerald-700" },
+                  ].map((s) => (
+                    <div key={s.label} className="bg-gray-50 rounded-lg p-2 text-center border border-gray-100">
+                      <div className="text-[9px] text-gray-500">{s.label}</div>
+                      <div className={`text-xs font-extrabold ${s.color}`}>฿{fmtM(s.value)}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Summary numbers */}
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-red-50 border border-red-100 rounded-lg p-2.5">
+                    <div className="flex items-center gap-1 text-[9px] text-red-600">
+                      <TrendingDown size={10} /> แย่สุด
+                    </div>
+                    <div className="text-sm font-bold text-red-600">฿{fmtM(mcResult.finalMin)}</div>
+                  </div>
+                  <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-2.5">
+                    <div className="text-[9px] text-indigo-600">เฉลี่ย</div>
+                    <div className="text-sm font-bold text-indigo-700">฿{fmtM(mcResult.finalMean)}</div>
+                  </div>
+                  <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-2.5">
+                    <div className="flex items-center gap-1 text-[9px] text-emerald-600">
+                      <TrendingUp size={10} /> ดีสุด
+                    </div>
+                    <div className="text-sm font-bold text-emerald-600">฿{fmtM(mcResult.finalMax)}</div>
+                  </div>
+                </div>
+
+                {/* Histogram */}
+                <div>
+                  <div className="text-[10px] text-gray-500 mb-1">
+                    การกระจายของพอร์ต ณ วันเกษียณ (10,000 sim)
+                  </div>
+                  <MonteCarloHistogram
+                    values={mcResult.finalBalances}
+                    targetAmount={mcTargetAmount > 0 ? mcTargetAmount : undefined}
+                    height={180}
+                  />
+                  <div className="flex items-center justify-center gap-3 mt-1">
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-2 bg-red-500 opacity-75 rounded-sm" />
+                      <span className="text-[9px] text-gray-500">ต่ำกว่าเป้า</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-2 bg-emerald-600 opacity-75 rounded-sm" />
+                      <span className="text-[9px] text-gray-500">ถึงเป้า</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-[9px] text-gray-400 leading-relaxed bg-gray-50 rounded-lg p-2.5">
+                  💡 Monte Carlo จำลอง 10,000 กรณี โดยสุ่มผลตอบแทนแต่ละปีจากการแจกแจงปกติ
+                  (mean = ผลตอบแทนคาดหวัง, SD = ความผันผวน) แล้ว clip ด้วยช่วง min/max
+                  ของแต่ละพอร์ต · เปลี่ยนรูปแบบพอร์ตและปรับ SD ได้ในแต่ละ Phase ด้านบน
+                </div>
+              </div>
+            )}
           </div>
         )}
 

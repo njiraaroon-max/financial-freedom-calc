@@ -122,12 +122,103 @@ export interface SavingFundItem {
 }
 
 // ===== Investment Plan =====
+export type RiskProfile = "aggressive" | "balanced" | "conservative" | "cash" | "custom";
+
 export interface InvestmentPlanItem {
   id: string;
   yearStart: number;  // ปีที่เริ่ม (อายุ)
   yearEnd: number;    // ปีที่จบ (อายุ)
   monthlyAmount: number;
-  expectedReturn: number; // % ต่อปี
+  expectedReturn: number; // % ต่อปี (ใช้ทั้งโหมดปกติ และเป็น mean ของ Monte Carlo)
+
+  // --- Monte Carlo fields (optional; fallback to "balanced" preset) ---
+  riskProfile?: RiskProfile;   // default "balanced"
+  volatility?: number;         // SD ของผลตอบแทนต่อปี (เช่น 0.12 = 12%)
+  minReturn?: number;          // floor ผลตอบแทน (clip ด้านล่าง)
+  maxReturn?: number;          // ceiling ผลตอบแทน (clip ด้านบน)
+}
+
+/** Risk presets — ใช้เป็นค่าเริ่มต้น + ช่วยผู้ใช้เลือกพอร์ตโดยไม่ต้องจำตัวเลข */
+export interface RiskPreset {
+  key: RiskProfile;
+  label: string;      // ไทย
+  emoji: string;
+  expectedReturn: number;
+  volatility: number;
+  minReturn: number;
+  maxReturn: number;
+  description: string;
+}
+
+export const RISK_PRESETS: Record<Exclude<RiskProfile, "custom">, RiskPreset> = {
+  aggressive: {
+    key: "aggressive",
+    label: "เชิงรุก",
+    emoji: "🔴",
+    expectedReturn: 0.10,
+    volatility: 0.18,
+    minReturn: -0.35,
+    maxReturn: 0.50,
+    description: "หุ้นเป็นหลัก · ผันผวนสูง",
+  },
+  balanced: {
+    key: "balanced",
+    label: "สมดุล",
+    emoji: "🟡",
+    expectedReturn: 0.07,
+    volatility: 0.12,
+    minReturn: -0.20,
+    maxReturn: 0.30,
+    description: "หุ้น+พันธบัตรผสม",
+  },
+  conservative: {
+    key: "conservative",
+    label: "อนุรักษ์",
+    emoji: "🟢",
+    expectedReturn: 0.04,
+    volatility: 0.05,
+    minReturn: -0.08,
+    maxReturn: 0.12,
+    description: "พันธบัตรเป็นหลัก · ผันผวนต่ำ",
+  },
+  cash: {
+    key: "cash",
+    label: "เงินฝาก",
+    emoji: "💎",
+    expectedReturn: 0.02,
+    volatility: 0.005,
+    minReturn: -0.01,
+    maxReturn: 0.03,
+    description: "เงินฝาก/ตลาดเงิน · เสถียรมาก",
+  },
+};
+
+/** ได้ค่า effective MC params จาก plan item (ใช้ preset ถ้าไม่ได้กรอก custom) */
+export function getMCParams(plan: InvestmentPlanItem): {
+  expectedReturn: number;
+  volatility: number;
+  minReturn: number;
+  maxReturn: number;
+} {
+  const profile = plan.riskProfile || "balanced";
+  if (profile !== "custom") {
+    const preset = RISK_PRESETS[profile];
+    return {
+      // ใช้ expectedReturn จาก item เป็นตัวตั้ง (เผื่อผู้ใช้ปรับจาก preset)
+      expectedReturn: plan.expectedReturn ?? preset.expectedReturn,
+      volatility: plan.volatility ?? preset.volatility,
+      minReturn: plan.minReturn ?? preset.minReturn,
+      maxReturn: plan.maxReturn ?? preset.maxReturn,
+    };
+  }
+  // custom: ใช้ค่าที่ผู้ใช้กรอก ถ้าไม่กรอกให้ fallback เป็น balanced
+  const fb = RISK_PRESETS.balanced;
+  return {
+    expectedReturn: plan.expectedReturn ?? fb.expectedReturn,
+    volatility: plan.volatility ?? fb.volatility,
+    minReturn: plan.minReturn ?? fb.minReturn,
+    maxReturn: plan.maxReturn ?? fb.maxReturn,
+  };
 }
 
 // ===== PVD Calculator =====
@@ -604,6 +695,237 @@ export function calcInvestmentPlan(
   }
 
   return results;
+}
+
+// ===== Monte Carlo — Portfolio Simulation =====
+
+/** Mulberry32 seeded PRNG — deterministic, compact, uniform [0,1) */
+export function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Box-Muller — returns a standard normal N(0,1). Consumes 2 uniform samples. */
+export function boxMullerGaussian(rand: () => number): number {
+  let u = 0;
+  let v = 0;
+  while (u === 0) u = rand();
+  while (v === 0) v = rand();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+export interface MonteCarloConfig {
+  simulations: number;       // เช่น 10,000
+  sampleSize: number;        // จำนวน paths ที่ sample ออกมาเก็บไว้แสดง (เช่น 500)
+  seed?: number;             // default 0xC0FFEE
+  targetAmount?: number;     // เงินเป้าหมาย ณ วันเกษียณ (สำหรับ success rate)
+}
+
+export interface MonteCarloPath {
+  // ยอดเงินต้นปี (index 0 = currentAge, length = years+1)
+  balances: number[];
+}
+
+export interface MonteCarloResult {
+  years: number;                // ระยะเวลาสะสม
+  ages: number[];               // อายุในแต่ละ year-end (length = years+1)
+  samplePaths: MonteCarloPath[]; // sampleSize paths (สำหรับ spaghetti chart)
+  // Percentile surfaces (length = years+1)
+  p05: number[];
+  p25: number[];
+  p50: number[];
+  p75: number[];
+  p95: number[];
+  mean: number[];
+  // Final distribution (length = simulations)
+  finalBalances: number[];
+  finalMin: number;
+  finalMax: number;
+  finalMean: number;
+  finalMedian: number;
+  // Success metrics
+  successRate?: number;         // % ของ sim ที่ final >= targetAmount
+  targetAmount?: number;
+  totalContrib: number;         // รวมเงินที่ลง (ทุก sim เท่ากัน = deterministic)
+}
+
+/**
+ * Monte Carlo simulation สำหรับแผนการลงทุน
+ * - แต่ละปีจะสุ่มผลตอบแทนจาก Normal(μ, σ) ของ "แผน" ที่ active ในอายุต้นปี
+ * - Clip ด้วย [minReturn, maxReturn] เพื่อกันค่าหางแปลก
+ * - ใส่เงินต้นปี (annuity-due): balance = (balance + annualContrib) × (1 + r)
+ */
+export function runMonteCarloInvestment(
+  plans: InvestmentPlanItem[],
+  currentAge: number,
+  retireAge: number,
+  initialAmount: number,
+  config: MonteCarloConfig,
+): MonteCarloResult {
+  const years = Math.max(retireAge - currentAge, 0);
+  const simulations = Math.max(1, Math.floor(config.simulations));
+  const sampleSize = Math.min(Math.max(1, Math.floor(config.sampleSize)), simulations);
+  const seed = (config.seed ?? 0xC0FFEE) >>> 0;
+  const rand = mulberry32(seed);
+
+  // Precompute per-year MC params + contribution (same across sims)
+  const yearParams: { annualContrib: number; mu: number; sigma: number; lo: number; hi: number }[] = [];
+  let totalContrib = initialAmount;
+  for (let y = 1; y <= years; y++) {
+    const startAge = currentAge + y - 1;
+    const plan = plans.find((p) => startAge >= p.yearStart && startAge <= p.yearEnd);
+    const annualContrib = (plan?.monthlyAmount || 0) * 12;
+    totalContrib += annualContrib;
+    const mc = plan ? getMCParams(plan) : { expectedReturn: 0.05, volatility: 0.12, minReturn: -0.20, maxReturn: 0.30 };
+    yearParams.push({
+      annualContrib,
+      mu: mc.expectedReturn,
+      sigma: mc.volatility,
+      lo: mc.minReturn,
+      hi: mc.maxReturn,
+    });
+  }
+
+  // Storage for balances per year across all sims (years+1 × simulations)
+  // เก็บเฉพาะ array ของ "final" เต็ม; ส่วน samplePaths เก็บแค่ N paths
+  const finalBalances = new Float64Array(simulations);
+  const samplePaths: MonteCarloPath[] = [];
+  const sampleStride = Math.max(1, Math.floor(simulations / sampleSize));
+
+  // Per-year percentile data → เก็บ balance ณ ทุก year สำหรับทุก sim
+  // เพื่อความเร็ว+หน่วยความจำ เก็บเป็น Float64Array ต่อปี
+  const perYear: Float64Array[] = [];
+  for (let y = 0; y <= years; y++) perYear.push(new Float64Array(simulations));
+
+  for (let s = 0; s < simulations; s++) {
+    let balance = initialAmount;
+    const track = s % sampleStride === 0 && samplePaths.length < sampleSize;
+    const path = track ? new Array<number>(years + 1) : null;
+    if (path) path[0] = balance;
+    perYear[0][s] = balance;
+
+    for (let y = 1; y <= years; y++) {
+      const p = yearParams[y - 1];
+      const z = boxMullerGaussian(rand);
+      let r = p.mu + p.sigma * z;
+      if (r < p.lo) r = p.lo;
+      if (r > p.hi) r = p.hi;
+      balance = (balance + p.annualContrib) * (1 + r);
+      if (path) path[y] = balance;
+      perYear[y][s] = balance;
+    }
+    finalBalances[s] = balance;
+    if (path) samplePaths.push({ balances: path });
+  }
+
+  // Percentile helpers
+  const pct = (sortedArr: Float64Array, p: number): number => {
+    if (sortedArr.length === 0) return 0;
+    const idx = (sortedArr.length - 1) * p;
+    const lo = Math.floor(idx);
+    const hi = Math.ceil(idx);
+    if (lo === hi) return sortedArr[lo];
+    const frac = idx - lo;
+    return sortedArr[lo] * (1 - frac) + sortedArr[hi] * frac;
+  };
+
+  const p05: number[] = [];
+  const p25: number[] = [];
+  const p50: number[] = [];
+  const p75: number[] = [];
+  const p95: number[] = [];
+  const mean: number[] = [];
+  const ages: number[] = [];
+
+  for (let y = 0; y <= years; y++) {
+    const arr = perYear[y].slice();
+    arr.sort();
+    p05.push(pct(arr, 0.05));
+    p25.push(pct(arr, 0.25));
+    p50.push(pct(arr, 0.50));
+    p75.push(pct(arr, 0.75));
+    p95.push(pct(arr, 0.95));
+    let sum = 0;
+    for (let i = 0; i < arr.length; i++) sum += arr[i];
+    mean.push(sum / arr.length);
+    ages.push(currentAge + y);
+  }
+
+  // Final distribution stats
+  const finalsSorted = Float64Array.from(finalBalances).sort();
+  const finalMin = finalsSorted[0];
+  const finalMax = finalsSorted[finalsSorted.length - 1];
+  const finalMedian = pct(finalsSorted, 0.5);
+  let fSum = 0;
+  for (let i = 0; i < finalsSorted.length; i++) fSum += finalsSorted[i];
+  const finalMean = fSum / finalsSorted.length;
+
+  let successRate: number | undefined;
+  if (config.targetAmount !== undefined && config.targetAmount > 0) {
+    let hits = 0;
+    for (let i = 0; i < finalBalances.length; i++) {
+      if (finalBalances[i] >= config.targetAmount) hits++;
+    }
+    successRate = hits / simulations;
+  }
+
+  return {
+    years,
+    ages,
+    samplePaths,
+    p05, p25, p50, p75, p95, mean,
+    finalBalances: Array.from(finalBalances),
+    finalMin, finalMax, finalMean, finalMedian,
+    successRate,
+    targetAmount: config.targetAmount,
+    totalContrib,
+  };
+}
+
+/** Freedman-Diaconis bin width → returns { bins, counts, edges } */
+export function histogramFD(values: number[], minBins = 20, maxBins = 60): {
+  bins: number;
+  counts: number[];
+  edges: number[];  // length = bins+1
+  min: number;
+  max: number;
+} {
+  const n = values.length;
+  if (n === 0) return { bins: 0, counts: [], edges: [], min: 0, max: 0 };
+  const sorted = [...values].sort((a, b) => a - b);
+  const min = sorted[0];
+  const max = sorted[n - 1];
+  const pct = (p: number) => {
+    const idx = (n - 1) * p;
+    const lo = Math.floor(idx);
+    const hi = Math.ceil(idx);
+    if (lo === hi) return sorted[lo];
+    return sorted[lo] * (1 - (idx - lo)) + sorted[hi] * (idx - lo);
+  };
+  const q1 = pct(0.25);
+  const q3 = pct(0.75);
+  const iqr = q3 - q1;
+  let binWidth = iqr > 0 ? 2 * iqr * Math.pow(n, -1 / 3) : (max - min) / 30;
+  if (binWidth <= 0) binWidth = Math.max((max - min) / 30, 1);
+  let bins = Math.ceil((max - min) / binWidth);
+  bins = Math.max(minBins, Math.min(maxBins, bins));
+  const edges: number[] = [];
+  const step = (max - min) / bins || 1;
+  for (let i = 0; i <= bins; i++) edges.push(min + i * step);
+  const counts = new Array<number>(bins).fill(0);
+  for (const v of values) {
+    let idx = Math.floor((v - min) / step);
+    if (idx < 0) idx = 0;
+    if (idx >= bins) idx = bins - 1;
+    counts[idx]++;
+  }
+  return { bins, counts, edges, min, max };
 }
 
 // ===== Caretaker (คนดูแลหลังเกษียณ) =====
