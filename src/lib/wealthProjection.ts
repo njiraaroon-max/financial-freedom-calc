@@ -161,7 +161,9 @@ function buildRows(
         .filter((s) => age <= (s.endAge ?? endAge))
         .reduce(
           (sum, s) =>
-            sum + s.amount * Math.pow(1 + (s.inflationRate || generalInflation), yearsFromNow),
+            // ใช้ ?? เพื่อให้ inflationRate=0 (สำหรับ rows ที่ pre-inflated มาแล้ว
+            // จาก expandToYearly) ไม่ตก fallback ไปใช้ generalInflation ซ้ำ
+            sum + s.amount * Math.pow(1 + (s.inflationRate ?? generalInflation), yearsFromNow),
           0,
         );
       const specialLump = specialExpenses
@@ -173,7 +175,7 @@ function buildRows(
           return (
             sum +
             s.amount *
-              Math.pow(1 + (s.inflationRate || generalInflation), yearsToTarget)
+              Math.pow(1 + (s.inflationRate ?? generalInflation), yearsToTarget)
           );
         }, 0);
       outflow = basicAnnual + specialAnnual + specialLump;
@@ -354,7 +356,7 @@ export function runMonteCarloProjection(
             (sum, s) =>
               sum +
               s.amount *
-                Math.pow(1 + (s.inflationRate || inputs.generalInflation), yearsFromNow),
+                Math.pow(1 + (s.inflationRate ?? inputs.generalInflation), yearsFromNow),
             0,
           );
         const specialLump = inputs.specialExpenses
@@ -366,7 +368,7 @@ export function runMonteCarloProjection(
             return (
               sum +
               s.amount *
-                Math.pow(1 + (s.inflationRate || inputs.generalInflation), yearsToTarget)
+                Math.pow(1 + (s.inflationRate ?? inputs.generalInflation), yearsToTarget)
             );
           }, 0);
         outflow = basicAnnual + specialAnnual + specialLump;
