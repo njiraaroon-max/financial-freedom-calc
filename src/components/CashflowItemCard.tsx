@@ -22,6 +22,8 @@ import {
   Settings2,
   ExternalLink,
   Info,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import type {
   CashflowItem,
@@ -599,10 +601,12 @@ function LinkedCard({
   editLabel,
   accent,
 }: LinkedProps & { accent: AccentTheme }) {
+  const [showTable, setShowTable] = useState(false);
   const rows = contribution?.yearlyStream ?? [];
   const npv = contribution?.npvAtRetire ?? 0;
   const avg = averageAnnual(rows);
   const hasData = rows.length > 0 && npv !== 0;
+  const canExpand = rows.length > 1;
 
   const summary = buildLinkedSummary(contribution, item);
 
@@ -640,7 +644,88 @@ function LinkedCard({
           accent={accent}
         />
       )}
+
+      {hasData && canExpand && (
+        <button
+          type="button"
+          onClick={() => setShowTable((v) => !v)}
+          className={`w-full flex items-center justify-center gap-1 text-[10px] ${accent.chip} font-bold hover:underline pt-1`}
+        >
+          {showTable ? (
+            <>
+              ซ่อนตารางรายปี <ChevronUp size={10} />
+            </>
+          ) : (
+            <>
+              ดูตารางรายปี <ChevronDown size={10} />
+            </>
+          )}
+        </button>
+      )}
+
+      {hasData && canExpand && showTable && (
+        <YearlyStreamTable rows={rows} accent={accent} />
+      )}
     </>
+  );
+}
+
+function YearlyStreamTable({
+  rows,
+  accent,
+}: {
+  rows: YearlyFlowRow[];
+  accent: AccentTheme;
+}) {
+  // Aggregate by age (in case of duplicates from multiple sources)
+  const byAge = new Map<number, number>();
+  for (const r of rows) byAge.set(r.age, (byAge.get(r.age) ?? 0) + r.amount);
+  const ageRows = [...byAge.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([age, amt]) => ({ age, amt }));
+  const total = ageRows.reduce((s, r) => s + r.amt, 0);
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="max-h-48 overflow-y-auto">
+        <table className="w-full text-[10px]">
+          <thead className="bg-gray-50 sticky top-0">
+            <tr className="text-gray-500">
+              <th className="text-left px-2 py-1 font-semibold">อายุ</th>
+              <th className="text-left px-2 py-1 font-semibold">พ.ศ.</th>
+              <th className="text-right px-2 py-1 font-semibold">จำนวน (บาท)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ageRows.map((r, idx) => {
+              const be = new Date().getFullYear() + 543;
+              // Approximate — caller doesn't pass currentAge; use first row as anchor
+              const firstAge = ageRows[0].age;
+              const year = be + (r.age - firstAge);
+              return (
+                <tr key={idx} className="border-t border-gray-100">
+                  <td className="px-2 py-1">{r.age}</td>
+                  <td className="px-2 py-1 text-gray-500">{year}</td>
+                  <td className={`px-2 py-1 text-right font-semibold ${accent.strong}`}>
+                    {fmt(r.amt)}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot className="bg-gray-50 sticky bottom-0">
+            <tr>
+              <td colSpan={2} className="px-2 py-1 font-bold text-gray-700">
+                รวม
+              </td>
+              <td className={`px-2 py-1 text-right font-bold ${accent.strong}`}>
+                {fmt(total)}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
   );
 }
 

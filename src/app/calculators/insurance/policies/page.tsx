@@ -478,6 +478,7 @@ export default function PortfolioDashboard() {
   const totalPolicies = policies.length;
   const totalSumInsured = policies.reduce((s, p) => s + p.sumInsured, 0);
   const totalPremium = policies.reduce((s, p) => s + p.premium, 0);
+  const annuityCount = policies.filter((p) => p.policyType === "annuity").length;
 
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -592,6 +593,31 @@ export default function PortfolioDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Pension NPV entry point */}
+      {annuityCount > 0 && (
+        <div className="mx-2 mb-3">
+          <a
+            href="/calculators/retirement/pension-insurance?from=insurance"
+            className="flex items-center justify-between bg-gradient-to-r from-purple-50 to-fuchsia-50 border border-purple-200 rounded-xl p-3 hover:from-purple-100 hover:to-fuchsia-100 active:scale-[0.98] transition"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-fuchsia-500 text-white flex items-center justify-center text-lg shrink-0">
+                💰
+              </div>
+              <div>
+                <div className="text-[10px] font-bold text-purple-700 uppercase tracking-wide">
+                  ประกันบำนาญ {annuityCount} กรมธรรม์
+                </div>
+                <div className="text-xs text-gray-700 font-semibold">
+                  คำนวณ NPV ณ วันเกษียณ · เชื่อมแผนเกษียณอัตโนมัติ
+                </div>
+              </div>
+            </div>
+            <div className="text-purple-600 text-sm font-bold shrink-0">›</div>
+          </a>
+        </div>
+      )}
 
       {/* Content */}
       {policies.length === 0 ? (

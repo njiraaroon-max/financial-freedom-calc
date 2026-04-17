@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Wallet, Scale, ShieldAlert, Palmtree, TrendingUp, HeartPulse, Droplets, Anchor, Sprout, CheckCircle, AlertTriangle, XCircle, Info } from "lucide-react";
+import Link from "next/link";
+import { Wallet, Scale, ShieldAlert, Palmtree, TrendingUp, HeartPulse, Droplets, Anchor, Sprout, CheckCircle, AlertTriangle, XCircle, Info, FileText } from "lucide-react";
 import { useVariableStore } from "@/store/variable-store";
 import PageHeader from "@/components/PageHeader";
 import GaugeChart, { higherIsBetterZones, lowerIsBetterZones, mapToGauge } from "@/components/GaugeChart";
@@ -175,6 +176,24 @@ export default function SummaryPage() {
       />
 
       <div className="px-4 md:px-8 pt-4 pb-8 space-y-4 md:space-y-6">
+
+        {/* Generate Report CTA */}
+        <Link
+          href="/report"
+          className="flex items-center justify-between bg-gradient-to-r from-[#2d1f14] via-[#4a3728] to-[#2d1f14] text-[#faf8f3] rounded-2xl p-4 hover:from-[#1a110a] hover:to-[#1a110a] transition-all active:scale-[0.99] shadow-md"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-[#c9b99b]/20 border border-[#c9b99b]/40 flex items-center justify-center shrink-0">
+              <FileText size={20} className="text-[#c9b99b]" />
+            </div>
+            <div>
+              <div className="text-[9px] tracking-[0.3em] text-[#c9b99b] font-semibold">HOLISTIC REPORT</div>
+              <div className="text-sm font-bold">สร้างรายงานสรุปแผนการเงินองค์รวม</div>
+              <div className="text-[10px] opacity-70 mt-0.5">พร้อม Action Plan แบบ personalize · print-ready</div>
+            </div>
+          </div>
+          <div className="text-[#c9b99b] text-lg shrink-0">›</div>
+        </Link>
 
         {/* Financial Health Gauges */}
         {(() => {

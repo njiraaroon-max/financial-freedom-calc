@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { Save, Calculator, Download, Info, X, Plus, Pencil, Trash2, Building2, ChevronDown, ChevronUp } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import PageHeader from "@/components/PageHeader";
@@ -445,7 +446,22 @@ function AnnuityModal({
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN PAGE
 // ═══════════════════════════════════════════════════════════════════════════════
-export default function PensionInsurancePage() {
+function PensionInsurancePageInner() {
+  const searchParams = useSearchParams();
+  const fromParam = searchParams.get("from");
+  const backHref =
+    fromParam === "saving-funds"
+      ? "/calculators/retirement/saving-funds"
+      : fromParam === "insurance"
+      ? "/calculators/insurance/policies"
+      : "/calculators/retirement";
+  const fromLabel =
+    fromParam === "saving-funds"
+      ? "แหล่งเงินทุนหลังเกษียณ"
+      : fromParam === "insurance"
+      ? "กรมธรรม์ประกัน"
+      : null;
+
   const store = useRetirementStore();
   const { markStepCompleted } = useRetirementStore();
   const { setVariable } = useVariableStore();
@@ -653,10 +669,29 @@ export default function PensionInsurancePage() {
       <PageHeader
         title="ประกันบำนาญ"
         subtitle="Pension Insurance Calculator"
-        backHref="/calculators/retirement"
+        backHref={backHref}
       />
 
       <div className="px-4 md:px-8 pt-4 pb-8 space-y-4">
+        {/* ─── Contextual return banner ─── */}
+        {fromLabel && (
+          <a
+            href={backHref}
+            className="flex items-center justify-between bg-white rounded-xl border border-purple-200 px-3 py-2 mx-1 hover:bg-purple-50 transition"
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs font-bold">
+                ←
+              </div>
+              <div>
+                <div className="text-[9px] text-gray-500 uppercase tracking-wide font-bold">มาจาก</div>
+                <div className="text-xs font-bold text-gray-800">{fromLabel}</div>
+              </div>
+            </div>
+            <div className="text-[10px] text-purple-600 font-bold">กดกลับ ›</div>
+          </a>
+        )}
+
         {/* ─── Intro Banner ─── */}
         <div className="bg-gradient-to-br from-purple-600 to-fuchsia-600 rounded-2xl p-4 text-white mx-1 relative">
           <button
@@ -1123,5 +1158,13 @@ export default function PensionInsurancePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function PensionInsurancePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[var(--color-bg)]" />}>
+      <PensionInsurancePageInner />
+    </Suspense>
   );
 }

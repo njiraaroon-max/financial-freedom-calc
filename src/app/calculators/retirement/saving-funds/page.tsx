@@ -26,7 +26,7 @@ const EDIT_HREF: Record<string, string> = {
   ss_pension: "/calculators/retirement/social-security",
   pvd_at_retire: "/calculators/retirement/pvd",
   severance_pay: "/calculators/retirement/severance",
-  pension_insurance: "/calculators/retirement/pension-insurance",
+  pension_insurance: "/calculators/retirement/pension-insurance?from=saving-funds",
 };
 
 export default function SavingFundsPage() {
