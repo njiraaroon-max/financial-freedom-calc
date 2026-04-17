@@ -48,20 +48,25 @@ export default function CaretakerPage() {
   const sourceLifeExpectancy = a.lifeExpectancy;
   const sourcePostRetireReturn = a.postRetireReturn;
 
-  // Init from source on first mount if params are still at hard default
+  // Auto-sync from source (profile + assumptions) whenever source changes.
+  // User can still override locally, but the next time an assumption changes
+  // upstream (e.g. updating lifeExpectancy in /retirement/assumptions), this
+  // page mirrors it so Journey projection + caretaker NPV stay consistent.
   useEffect(() => {
-    const isDefault =
-      p.currentAge === 35 &&
-      p.retireAge === 60 &&
-      p.lifeExpectancy === 85;
-    if (isDefault && sourceCurrentAge > 0) {
+    if (sourceCurrentAge > 0 && p.currentAge !== sourceCurrentAge) {
       store.updateCaretakerParam("currentAge", sourceCurrentAge);
+    }
+    if (p.retireAge !== sourceRetireAge) {
       store.updateCaretakerParam("retireAge", sourceRetireAge);
+    }
+    if (p.lifeExpectancy !== sourceLifeExpectancy) {
       store.updateCaretakerParam("lifeExpectancy", sourceLifeExpectancy);
+    }
+    if (Math.abs(p.postRetireReturn - sourcePostRetireReturn) > 0.0001) {
       store.updateCaretakerParam("postRetireReturn", sourcePostRetireReturn);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [sourceCurrentAge, sourceRetireAge, sourceLifeExpectancy, sourcePostRetireReturn]);
 
   const result = useMemo(() => calcCaretakerNPV(p), [p]);
 
@@ -125,18 +130,19 @@ export default function CaretakerPage() {
           </div>
         </div>
 
-        {/* Reset-to-source banner */}
+        {/* Auto-sync banner */}
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-3 flex items-center justify-between gap-3">
           <div className="text-[11px] text-blue-900 leading-relaxed">
-            💡 ค่าเริ่มต้นดึงจาก <b>Profile</b> + <b>สมมติฐานการเกษียณ</b> — ปรับในหน้านี้ได้อย่างอิสระ
-            โดย<b>ไม่กระทบ</b>ข้อมูลต้นทาง
+            🔗 หน้านี้<b>ซิงก์อัตโนมัติ</b>กับ <b>Profile</b> + <b>สมมติฐานการเกษียณ</b> —
+            แก้อายุ/ผลตอบแทนที่ต้นทาง แล้วหน้านี้จะอัพเดตตามให้ทันที
           </div>
           <button
             onClick={handleResetToSource}
             className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border border-blue-300 text-blue-700 text-[10px] font-bold hover:bg-blue-100 transition"
+            title="กดเพื่อซิงก์กลับทันที (ถ้าเผลอแก้ในหน้านี้)"
           >
             <RotateCcw size={11} />
-            รีเซ็ต
+            ซิงก์เดี๋ยวนี้
           </button>
         </div>
 
