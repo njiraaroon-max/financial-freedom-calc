@@ -725,7 +725,14 @@ export default function WealthJourneyPage() {
       </div>
 
       {/* MC Depletion Age Histogram */}
-      {chartMode === "monteCarlo" && mcResult && mcResult.depletionAgesRaw && mcResult.depletionAgesRaw.length > 0 && (
+      {chartMode === "monteCarlo" && mcResult && mcResult.depletionAgesRaw && mcResult.depletionAgesRaw.length > 0 && (() => {
+        // แยก sims ที่เงินไม่หมดตลอดช่วง (depAge = endAge+1) ออกจาก histogram
+        // มิฉะนั้นจะกองเป็นแท่งเดียวใหญ่เบี้ยว distribution
+        const endAge = a.lifeExpectancy + (retire.caretakerParams.extraYearsBeyondLife || 5);
+        const depleted = mcResult.depletionAgesRaw.filter((v) => v <= endAge);
+        const neverDepleted = mcResult.depletionAgesRaw.length - depleted.length;
+        const neverPct = (neverDepleted / mcResult.simulations) * 100;
+        return (
         <div className="px-4 md:px-8 pt-4">
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
             <div className="flex items-start justify-between gap-3 mb-2">
@@ -737,8 +744,8 @@ export default function WealthJourneyPage() {
                   </h3>
                 </div>
                 <p className="text-[11px] text-slate-500 mt-0.5">
-                  กระจายจาก {mcResult.simulations.toLocaleString()} simulations ·
-                  แต่ละแท่ง = จำนวน sims ที่เงินหมดในช่วงอายุนั้น
+                  จาก {mcResult.simulations.toLocaleString()} simulations ·
+                  แสดงเฉพาะ {depleted.length.toLocaleString()} sims ที่เงินหมดในช่วงอายุ ≤ {endAge} ปี
                 </p>
               </div>
               <div className="text-right">
@@ -746,13 +753,38 @@ export default function WealthJourneyPage() {
                 <div className="text-sm font-bold text-[#0B1E3F]">อายุขัย {a.lifeExpectancy} ปี</div>
               </div>
             </div>
-            <MonteCarloHistogram
-              values={mcResult.depletionAgesRaw}
-              targetAmount={a.lifeExpectancy}
-              targetLabel={`อายุขัย ${a.lifeExpectancy}`}
-              height={200}
-              xFormatter={(v) => `${Math.round(v)}`}
-            />
+
+            {/* Never-depleted callout */}
+            {neverDepleted > 0 && (
+              <div className="mb-3 flex items-center justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck size={14} className="text-emerald-600" />
+                  <span className="text-[11px] font-bold text-emerald-800">
+                    🎉 เงินไม่หมดเลยตลอดช่วง
+                  </span>
+                </div>
+                <span className="text-[11px] text-emerald-700">
+                  <b className="font-black">{neverDepleted.toLocaleString()}</b> sims
+                  <span className="text-emerald-500"> ({neverPct.toFixed(1)}%) </span>
+                  — ไม่ถูกนำมาแสดงในกราฟ
+                </span>
+              </div>
+            )}
+
+            {depleted.length > 0 ? (
+              <MonteCarloHistogram
+                values={depleted}
+                targetAmount={a.lifeExpectancy}
+                targetLabel={`อายุขัย ${a.lifeExpectancy}`}
+                height={200}
+                xFormatter={(v) => `${Math.round(v)}`}
+              />
+            ) : (
+              <div className="text-center py-12 text-[11px] text-emerald-600 font-bold">
+                ทุก simulation เงินไม่หมดเลย — แผนปลอดภัยมาก 💪
+              </div>
+            )}
+
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 pt-2 border-t border-gray-100 text-[10px] text-gray-600">
               <span className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded bg-red-500/75"></span>
@@ -760,7 +792,7 @@ export default function WealthJourneyPage() {
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded bg-emerald-600/75"></span>
-                เงินอยู่ถึง/เกินอายุขัย (ผ่านเป้า)
+                เงินหมดหลังอายุขัย (ผ่านเป้า)
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-3 h-0.5 bg-red-600 inline-block"></span> เส้นเป้า = อายุขัย
@@ -768,7 +800,8 @@ export default function WealthJourneyPage() {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* MC Settings Modal */}
       {mcSettingsOpen && (
