@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Save, Landmark, Info, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Landmark, Info, X, CheckCircle2 } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import PageHeader from "@/components/PageHeader";
 import MoneyInput from "@/components/MoneyInput";
 import HintIcon from "@/components/HintIcon";
 import { useVariableStore } from "@/store/variable-store";
 import { useProfileStore } from "@/store/profile-store";
-import { calcPVDProjection, type PVDYearResult } from "@/types/retirement";
+import { calcPVDProjection } from "@/types/retirement";
 
 function fmt(n: number): string { return Math.round(n).toLocaleString("th-TH"); }
 
@@ -67,25 +67,31 @@ export default function PVDPage() {
     }
   };
 
-  const [calculated, setCalculated] = useState(false);
-  const [hasCalculated, setHasCalculated] = useState(false);
-  const [hasSaved, setHasSaved] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
-  const [projection, setProjection] = useState<PVDYearResult[]>([]);
-  const [atRetire, setAtRetire] = useState(0);
 
-  const handleCalculate = () => {
-    const result = calcPVDProjection(p, assumptions.retireAge, assumptions.currentAge);
-    setProjection(result);
-    const total = result.length > 0 ? result[result.length - 1].total : 0;
-    setAtRetire(total);
-    setCalculated(true);
-    setHasCalculated(true);
-    // Auto save
-    setVariable({ key: "pvd_at_retire", label: "PVD ณ วันเกษียณ", value: total, source: "retirement-pvd" });
-    setHasSaved(true);
+  // ── Live projection — recomputed whenever any input changes ──
+  const projection = useMemo(
+    () => calcPVDProjection(p, assumptions.retireAge, assumptions.currentAge),
+    [p, assumptions.retireAge, assumptions.currentAge],
+  );
+  const atRetire = projection.length > 0 ? projection[projection.length - 1].total : 0;
+
+  // Has the user entered enough to consider this step complete?
+  const hasValidInput = p.currentSalary > 0 && p.employeeRate > 0;
+
+  // Auto-save into the shared variable store + mark step completed, but only
+  // when we actually have meaningful data. This way drafts-in-progress don't
+  // keep firing store writes.
+  useEffect(() => {
+    if (!hasValidInput || atRetire <= 0) return;
+    setVariable({
+      key: "pvd_at_retire",
+      label: "PVD ณ วันเกษียณ",
+      value: atRetire,
+      source: "retirement-pvd",
+    });
     markStepCompleted("pvd");
-  };
+  }, [atRetire, hasValidInput, setVariable, markStepCompleted]);
 
   const fields: {
     label: string;
@@ -266,28 +272,24 @@ export default function PVDPage() {
           <div className="text-[9px] text-blue-400">แก้ไขได้ที่ แผนเกษียณ → Step 1 สมมติฐาน</div>
         </div>
 
-        {/* Calculate Button */}
-        <button
-          onClick={handleCalculate}
-          className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-sm active:scale-[0.98] transition-all ${
-            hasCalculated
-              ? "bg-green-100 text-green-700 border border-green-300 shadow-none"
-              : "bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:shadow-lg shadow-md shadow-blue-200"
-          }`}
-        >
-          {hasCalculated ? "✅ คำนวณแล้ว" : "🧮 คำนวณ PVD"}
-        </button>
-
-        {/* Result — only show after calculation */}
-        {calculated && (
-          <div className="bg-gradient-to-br from-blue-500 to-indigo-700 rounded-2xl p-5 text-white text-center">
+        {/* Result — live, no button needed */}
+        {hasValidInput ? (
+          <div className="bg-gradient-to-br from-blue-500 to-indigo-700 rounded-2xl p-5 text-white text-center relative">
+            <div className="absolute top-3 right-3 flex items-center gap-1 text-[9px] bg-white/15 rounded-full px-2 py-0.5">
+              <CheckCircle2 size={10} /> บันทึกอัตโนมัติ
+            </div>
             <div className="text-xs opacity-70 mb-1">มูลค่า PVD ณ วันเกษียณ (อายุ {assumptions.retireAge})</div>
             <div className="text-2xl font-extrabold">฿{fmt(atRetire)}</div>
+            <div className="text-[10px] opacity-60 mt-1">ปรับค่าด้านบนได้เลย ผลลัพธ์จะอัปเดตทันที</div>
+          </div>
+        ) : (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center text-xs text-amber-700">
+            ⚠️ กรุณากรอกเงินเดือนปัจจุบัน และอัตราเงินสะสมอย่างน้อย เพื่อดูผลลัพธ์
           </div>
         )}
 
         {/* Projection Table */}
-        {calculated && projection.length > 0 && (
+        {hasValidInput && projection.length > 0 && (
           <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
             <div className="bg-[#1e3a5f] px-4 py-2.5">
               <div className="text-xs font-bold text-white">ตาราง Projection</div>
