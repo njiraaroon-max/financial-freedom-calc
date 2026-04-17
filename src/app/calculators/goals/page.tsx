@@ -76,6 +76,42 @@ const ICON_MAP_SM: Record<string, React.ReactNode> = {
   PiggyBank:     <Banknote      size={24} style={{ color: NAVY }} />,
 };
 
+// Icon component renderer — for custom-sized / custom-colored icons
+function renderIcon(name: string, size: number, color: string): React.ReactNode {
+  const props = { size, style: { color } };
+  switch (name) {
+    case "ShieldAlert":   return <ShieldAlert   {...props} />;
+    case "HeartPulse":    return <HeartPulse    {...props} />;
+    case "Banknote":      return <Banknote      {...props} />;
+    case "Palmtree":      return <Palmtree      {...props} />;
+    case "Plane":         return <Plane         {...props} />;
+    case "Home":          return <Home          {...props} />;
+    case "Car":           return <Car           {...props} />;
+    case "Heart":         return <Heart         {...props} />;
+    case "GraduationCap": return <GraduationCap {...props} />;
+    case "Briefcase":     return <Briefcase     {...props} />;
+    case "Star":          return <Star          {...props} />;
+    case "PiggyBank":     return <Banknote      {...props} />;
+    default:              return <Star          {...props} />;
+  }
+}
+
+// Category-specific color themes for the timeline icons (soft colorful)
+const CAT_THEME: Record<GoalCategory, { bg: string; ring: string; icon: string }> = {
+  emergency:         { bg: "#fee2e2", ring: "#f87171", icon: "#dc2626" },
+  insurance_life:    { bg: "#fce7f3", ring: "#f472b6", icon: "#db2777" },
+  insurance_health:  { bg: "#dcfce7", ring: "#4ade80", icon: "#16a34a" },
+  insurance_saving:  { bg: "#dbeafe", ring: "#60a5fa", icon: "#2563eb" },
+  retirement:        { bg: "#e0e7ff", ring: "#818cf8", icon: "#4338ca" },
+  travel:            { bg: "#cffafe", ring: "#22d3ee", icon: "#0891b2" },
+  house:             { bg: "#fef3c7", ring: "#fbbf24", icon: "#d97706" },
+  car:               { bg: "#f1f5f9", ring: "#94a3b8", icon: "#475569" },
+  wedding:           { bg: "#ffe4e6", ring: "#fb7185", icon: "#e11d48" },
+  education:         { bg: "#f3e8ff", ring: "#c084fc", icon: "#9333ea" },
+  business:          { bg: "#d1fae5", ring: "#34d399", icon: "#059669" },
+  custom:            { bg: "#fef9c3", ring: "#facc15", icon: "#ca8a04" },
+};
+
 function getPreset(category: GoalCategory): PresetGoal {
   return PRESET_GOALS.find((p) => p.category === category) ?? PRESET_GOALS[PRESET_GOALS.length - 1];
 }
@@ -139,39 +175,57 @@ function GoalTimeline({
   }));
   withAge.sort((a, b) => a.plotAge - b.plotAge);
 
-  // All goals go ABOVE the axis — stacked by level within same age
-  const slotCount: Record<number, number> = {};
-  const assignments = withAge.map((g) => {
-    if (!slotCount[g.plotAge]) slotCount[g.plotAge] = 0;
-    const level = slotCount[g.plotAge]++;
-    return { ...g, level };
-  });
-
-  const maxLevel = assignments.reduce((m, a) => Math.max(m, a.level + 1), 0);
-
   // ── Geometry ──
   const YEARLY_ROW_H = 26;
-  const LABEL_H      = 48; // icon(24) + gap(4) + amount(12) + pad(8)
-  const STEM_H       = 8;
-  const LEVEL_H      = LABEL_H + STEM_H; // 44px per level
-
-  const yearlyAreaH = yearlyGoals.length > 0 ? yearlyGoals.length * YEARLY_ROW_H + 6 : 0;
-  const goalsAreaH  = Math.max(maxLevel * LEVEL_H, maxLevel > 0 ? 44 : 0);
-  const AXIS_Y      = yearlyAreaH + goalsAreaH + 4;
-  const TICK_H      = 20;
-  const totalH      = AXIS_Y + 2 + TICK_H + 8;
+  const LABEL_W      = 58;  // label box width
+  const ICON_SIZE    = 38;  // circle diameter
+  const LABEL_H      = 78;  // icon(38) + gap(3) + name(12) + gap(2) + amount(11) + pad
+  const STEM_H       = 6;
+  const LEVEL_H      = LABEL_H + STEM_H;
 
   // ── Width: fit container, no scrolling ──
-  const L = 20, R = 20;
+  const L = 22, R = 22;
   const drawW  = Math.max(containerWidth - L - R, 1);
   const minAge = currentAge;
-  const maxAge = Math.max(retireAge, ...assignments.map((a) => a.plotAge), currentAge + 1);
+  const maxAge = Math.max(retireAge, ...withAge.map((a) => a.plotAge), currentAge + 1);
   const ageRange = maxAge - minAge;
 
   function xOf(age: number) {
     if (ageRange === 0) return L;
     return L + ((age - minAge) / ageRange) * drawW;
   }
+
+  // ── Collision-aware level assignment ──
+  // Sweep left-to-right; for each goal find lowest level that doesn't horizontally
+  // overlap a previously-placed goal at that same level.
+  const HALF_W = LABEL_W / 2;
+  const placedPerLevel: { x: number; halfW: number }[][] = [];
+  const assignments = withAge.map((g) => {
+    const cx = xOf(g.plotAge);
+    let level = 0;
+    while (true) {
+      const row = placedPerLevel[level] ?? [];
+      const collides = row.some((p) => Math.abs(p.x - cx) < (p.halfW + HALF_W + 2));
+      if (!collides) {
+        if (!placedPerLevel[level]) placedPerLevel[level] = [];
+        placedPerLevel[level].push({ x: cx, halfW: HALF_W });
+        break;
+      }
+      level++;
+    }
+    return { ...g, level, cx };
+  });
+
+  const maxLevel = assignments.reduce((m, a) => Math.max(m, a.level + 1), 0);
+
+  const YEAR_ROW_H  = 18;  // NEW — พ.ศ. labels at top
+  const yearlyAreaH = yearlyGoals.length > 0 ? yearlyGoals.length * YEARLY_ROW_H + 6 : 0;
+  const yearRowTop  = yearlyAreaH;
+  const goalsTop    = yearRowTop + YEAR_ROW_H + 4;
+  const goalsAreaH  = Math.max(maxLevel * LEVEL_H, maxLevel > 0 ? 44 : 0);
+  const AXIS_Y      = goalsTop + goalsAreaH + 4;
+  const TICK_H      = 20;
+  const totalH      = AXIS_Y + 2 + TICK_H + 8;
 
   // Label top Y — level 0 is closest to axis
   function labelTopY(level: number) {
@@ -181,6 +235,13 @@ function GoalTimeline({
   const ticks: number[] = [];
   for (let age = minAge; age <= maxAge; age++) ticks.push(age);
 
+  // For BE year labels: show first, last, retire age, and every 5 years
+  function shouldShowYearLabel(age: number): boolean {
+    if (age === minAge || age === maxAge) return true;
+    if (age === retireAge) return true;
+    return (age - minAge) % 5 === 0;
+  }
+
   return (
     <div ref={containerRef} style={{ width: "100%" }}>
       <div style={{ position: "relative", width: containerWidth, height: totalH }}>
@@ -188,12 +249,21 @@ function GoalTimeline({
         {/* ── Yearly goal rows (top section) ── */}
         {yearlyGoals.map((g, i) => {
           const amt = resolveAmt(g);
+          const theme = CAT_THEME[g.category];
           return (
             <div key={g.id} style={{
               position: "absolute", top: i * YEARLY_ROW_H + 2, left: L, right: R,
-              display: "flex", alignItems: "center", gap: 5,
+              display: "flex", alignItems: "center", gap: 6,
             }}>
-              {ICON_MAP_SM[getGoalIconName(g)] ?? <Star size={24} className="text-[#1e3a6e]" />}
+              <div style={{
+                width: 24, height: 24, borderRadius: "50%",
+                background: theme.bg,
+                border: `1.5px solid ${theme.ring}`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0,
+              }}>
+                {renderIcon(getGoalIconName(g), 14, theme.icon)}
+              </div>
               <span style={{ fontSize: 11, fontWeight: 700, color: NAVY, whiteSpace: "nowrap" }}>
                 {g.name}
               </span>
@@ -208,12 +278,40 @@ function GoalTimeline({
           );
         })}
 
+        {/* ── พ.ศ. year labels row (top) ── */}
+        {ticks.filter(shouldShowYearLabel).map((age) => {
+          const yearBE = CURRENT_YEAR_CE + (age - currentAge) + CE_TO_BE;
+          const isRetire = age === retireAge;
+          return (
+            <div
+              key={`yr-${age}`}
+              style={{
+                position: "absolute",
+                left: xOf(age),
+                top: yearRowTop,
+                transform: "translateX(-50%)",
+                fontSize: 10,
+                fontWeight: isRetire ? 800 : 700,
+                color: isRetire ? "#dc2626" : NAVY,
+                background: isRetire ? "#fee2e2" : NAVY_PALE,
+                padding: "2px 6px",
+                borderRadius: 6,
+                border: `1px solid ${isRetire ? "#fca5a5" : NAVY_LIGHT}`,
+                whiteSpace: "nowrap",
+                zIndex: 2,
+              }}
+            >
+              {yearBE}
+            </div>
+          );
+        })}
+
         {/* ── Vertical grid lines at each age (behind everything) ── */}
         {ticks.map((age) => (
           <div key={`vl-${age}`} style={{
             position: "absolute",
             left: xOf(age),
-            top: yearlyAreaH,
+            top: goalsTop,
             width: 1,
             height: goalsAreaH + 4,
             background: NAVY_PALE,
@@ -231,66 +329,119 @@ function GoalTimeline({
         </div>
 
         {/* ── Age ticks + labels ── */}
-        {ticks.map((age) => (
-          <div key={age} style={{ position: "absolute", left: xOf(age), top: AXIS_Y, zIndex: 1 }}>
-            <div style={{ width: 1, height: 5, background: NAVY }} />
-            <div style={{
-              fontSize: 9, color: NAVY, fontWeight: 600,
-              transform: "translateX(-50%)", marginTop: 2, whiteSpace: "nowrap",
-            }}>
-              {age}
+        {ticks.map((age) => {
+          const isRetire = age === retireAge;
+          const isCurrent = age === currentAge;
+          return (
+            <div key={age} style={{ position: "absolute", left: xOf(age), top: AXIS_Y, zIndex: 1 }}>
+              <div style={{
+                width: isRetire || isCurrent ? 2 : 1,
+                height: isRetire || isCurrent ? 7 : 5,
+                background: isRetire ? "#dc2626" : NAVY,
+                transform: isRetire || isCurrent ? "translateX(-0.5px)" : undefined,
+              }} />
+              <div style={{
+                fontSize: 9,
+                color: isRetire ? "#dc2626" : NAVY,
+                fontWeight: isRetire || isCurrent ? 800 : 600,
+                transform: "translateX(-50%)",
+                marginTop: 2,
+                whiteSpace: "nowrap",
+              }}>
+                {age}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* ── Stems (label bottom → axis) ── */}
         {assignments.map((a) => {
+          const theme = CAT_THEME[a.category];
           const lt = labelTopY(a.level);
           const stemTop = lt + LABEL_H + 2;
           return (
             <div key={`stem-${a.id}`} style={{
               position: "absolute",
-              left: xOf(a.plotAge), top: stemTop,
-              width: 1, height: AXIS_Y - stemTop,
-              background: NAVY_MID, zIndex: 1,
+              left: a.cx, top: stemTop,
+              width: 1.5, height: AXIS_Y - stemTop,
+              background: theme.ring,
+              opacity: 0.6,
+              zIndex: 1,
             }} />
           );
         })}
 
         {/* ── Dots on axis ── */}
-        {assignments.map((a) => (
-          <div key={`dot-${a.id}`} style={{
-            position: "absolute",
-            left: xOf(a.plotAge) - 7, top: AXIS_Y - 7,
-            width: 14, height: 14, borderRadius: "50%",
-            background: NAVY, zIndex: 3,
-          }} />
-        ))}
+        {assignments.map((a) => {
+          const theme = CAT_THEME[a.category];
+          return (
+            <div key={`dot-${a.id}`} style={{
+              position: "absolute",
+              left: a.cx - 6, top: AXIS_Y - 6,
+              width: 12, height: 12, borderRadius: "50%",
+              background: theme.icon,
+              border: `2px solid white`,
+              boxShadow: `0 0 0 1.5px ${theme.icon}`,
+              zIndex: 3,
+            }} />
+          );
+        })}
 
         {/* ── Labels (all above axis) ── */}
         {assignments.map((a) => {
-          const amt    = resolveAmt(a);
-          const lt     = labelTopY(a.level);
+          const amt   = resolveAmt(a);
+          const lt    = labelTopY(a.level);
+          const theme = CAT_THEME[a.category];
           return (
             <div key={`lbl-${a.id}`} style={{
               position: "absolute",
-              left: xOf(a.plotAge), top: lt,
+              left: a.cx, top: lt,
               transform: "translateX(-50%)",
-              width: 64, height: LABEL_H,
+              width: LABEL_W, height: LABEL_H,
               display: "flex", flexDirection: "column",
-              alignItems: "center", justifyContent: "center", gap: 2,
+              alignItems: "center", justifyContent: "flex-start",
               zIndex: 2,
             }}>
-              {ICON_MAP_SM[getGoalIconName(a)] ?? <Star size={24} className="text-[#1e3a6e]" />}
+              {/* Icon in colored circle */}
+              <div style={{
+                width: ICON_SIZE, height: ICON_SIZE, borderRadius: "50%",
+                background: theme.bg,
+                border: `2px solid ${theme.ring}`,
+                boxShadow: `0 2px 4px rgba(0,0,0,0.08)`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0,
+              }}>
+                {renderIcon(getGoalIconName(a), 20, theme.icon)}
+              </div>
+              {/* Goal name */}
+              <div style={{
+                fontSize: 9,
+                fontWeight: 700,
+                color: NAVY,
+                lineHeight: 1.15,
+                marginTop: 3,
+                textAlign: "center",
+                width: "100%",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }} title={a.name}>
+                {a.name}
+              </div>
+              {/* Amount */}
               {amt !== null ? (
                 <div style={{
-                  fontSize: 9, fontWeight: 700, color: NAVY,
-                  whiteSpace: "nowrap", textAlign: "center",
+                  fontSize: 9,
+                  fontWeight: 700,
+                  color: theme.icon,
+                  marginTop: 1,
+                  whiteSpace: "nowrap",
+                  textAlign: "center",
                 }}>
-                  {fmtShort(amt)}
+                  ฿{fmtShort(amt)}
                 </div>
               ) : (
-                <div style={{ fontSize: 8, color: "#9ca3af" }}>ไม่ทราบ</div>
+                <div style={{ fontSize: 8, color: "#9ca3af", marginTop: 1 }}>ไม่ทราบ</div>
               )}
             </div>
           );
