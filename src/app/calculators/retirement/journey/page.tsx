@@ -105,8 +105,9 @@ export default function WealthJourneyPage() {
   const a = retire.assumptions;
 
   type ChartMode = "single" | "compare" | "monteCarlo";
-  const [scenario, setScenario] = useState<JourneyScenario>("base");
-  const [chartMode, setChartMode] = useState<ChartMode>("single");
+  // scenario kept for breakdown view + compare chart; no longer user-selectable
+  const scenario: JourneyScenario = "base";
+  const [chartMode, setChartMode] = useState<ChartMode>("monteCarlo");
   const [tableOpen, setTableOpen] = useState(false);
   const [assumpOpen, setAssumpOpen] = useState(false);
   const mcSimulations = retire.mcSimulations ?? 10000;
@@ -289,8 +290,9 @@ export default function WealthJourneyPage() {
   const badResult = useMemo(() => calcWealthProjection(inputs, "bad"), [inputs]);
   const goodResult = useMemo(() => calcWealthProjection(inputs, "good"), [inputs]);
 
-  const activeResult =
-    scenario === "bad" ? badResult : scenario === "good" ? goodResult : baseResult;
+  // scenario is fixed to "base" — scenario picker removed; use baseResult directly
+  void scenario; void badResult; void goodResult;
+  const activeResult = baseResult;
   const summary = activeResult.summary;
 
   // ----- Monte Carlo (lazy, only when active) -----
@@ -405,7 +407,7 @@ export default function WealthJourneyPage() {
         {chartMode === "monteCarlo" && mcResult ? (
           <MonteCarloHero mcResult={mcResult} assumptions={a} />
         ) : (
-          <HeroCard summary={summary} assumptions={a} scenario={scenario} />
+          <HeroCard summary={summary} assumptions={a} chartMode={chartMode} />
         )}
       </div>
 
@@ -526,44 +528,10 @@ export default function WealthJourneyPage() {
           ) : (
           <>
           {/* Mode tabs */}
-          <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
-            <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl flex-wrap">
-              <ScenarioTab
-                active={scenario === "bad" && chartMode === "single"}
-                color="red"
-                onClick={() => { setScenario("bad"); setChartMode("single"); }}
-                label="แย่"
-                sub="−1%"
-              />
-              <ScenarioTab
-                active={scenario === "base" && chartMode === "single"}
-                color="pink"
-                onClick={() => { setScenario("base"); setChartMode("single"); }}
-                label="กลาง"
-                sub="Base"
-              />
-              <ScenarioTab
-                active={scenario === "good" && chartMode === "single"}
-                color="green"
-                onClick={() => { setScenario("good"); setChartMode("single"); }}
-                label="ดี"
-                sub="+1%"
-              />
-            </div>
+          <div className="flex items-center justify-end flex-wrap gap-2 mb-4">
             <div className="flex items-center gap-2 flex-wrap">
               <button
-                onClick={() => setChartMode(chartMode === "compare" ? "single" : "compare")}
-                className={`flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-xl transition ${
-                  chartMode === "compare"
-                    ? "bg-[#0B1E3F] text-white shadow"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                <ArrowLeftRight size={14} />
-                เปรียบเทียบ 3 scenarios
-              </button>
-              <button
-                onClick={() => setChartMode(chartMode === "monteCarlo" ? "single" : "monteCarlo")}
+                onClick={() => setChartMode("monteCarlo")}
                 className={`flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-xl transition ${
                   chartMode === "monteCarlo"
                     ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow"
@@ -572,6 +540,17 @@ export default function WealthJourneyPage() {
               >
                 <Dices size={14} />
                 Monte Carlo
+              </button>
+              <button
+                onClick={() => setChartMode("compare")}
+                className={`flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-xl transition ${
+                  chartMode === "compare"
+                    ? "bg-[#0B1E3F] text-white shadow"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                <ArrowLeftRight size={14} />
+                เปรียบเทียบ 3 scenarios
               </button>
               {chartMode === "monteCarlo" && (
                 <button
@@ -689,9 +668,7 @@ export default function WealthJourneyPage() {
                       <Area
                         type="monotone"
                         dataKey="decum"
-                        stroke={
-                          scenario === "bad" ? "#EF4444" : scenario === "good" ? "#10B981" : "#EC4899"
-                        }
+                        stroke="#EC4899"
                         strokeWidth={2.5}
                         fill="url(#gDecum)"
                         connectNulls={false}
@@ -905,11 +882,11 @@ export default function WealthJourneyPage() {
 function HeroCard({
   summary,
   assumptions,
-  scenario,
+  chartMode,
 }: {
   summary: ReturnType<typeof calcWealthProjection>["summary"];
   assumptions: { lifeExpectancy: number };
-  scenario: JourneyScenario;
+  chartMode: "single" | "compare" | "monteCarlo";
 }) {
   const depletion = summary.depletionAge;
   const pass = summary.passesGoal;
@@ -927,7 +904,7 @@ function HeroCard({
         เส้นทางสินทรัพย์ของคุณ
         <span className="text-slate-300">•</span>
         <span className="uppercase tracking-wide">
-          {scenario === "bad" ? "Bad Case" : scenario === "good" ? "Good Case" : "Base Case"}
+          {chartMode === "compare" ? "Compare 3 Scenarios" : "Base Case"}
         </span>
       </div>
 
@@ -1012,37 +989,6 @@ function StatCard({
         </div>
       )}
     </div>
-  );
-}
-
-function ScenarioTab({
-  active,
-  color,
-  onClick,
-  label,
-  sub,
-}: {
-  active: boolean;
-  color: "red" | "pink" | "green";
-  onClick: () => void;
-  label: string;
-  sub: string;
-}) {
-  const activeColors = {
-    red: "bg-red-500 text-white",
-    pink: "bg-pink-500 text-white",
-    green: "bg-emerald-500 text-white",
-  };
-  return (
-    <button
-      onClick={onClick}
-      className={`px-3 py-1.5 rounded-lg transition text-center ${
-        active ? activeColors[color] + " shadow" : "text-slate-600 hover:bg-white"
-      }`}
-    >
-      <div className="text-[11px] font-bold leading-tight">{label}</div>
-      <div className={`text-[9px] leading-tight ${active ? "text-white/80" : "text-slate-400"}`}>{sub}</div>
-    </button>
   );
 }
 
