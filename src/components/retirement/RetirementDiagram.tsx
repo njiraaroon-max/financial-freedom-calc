@@ -889,7 +889,7 @@ export default function RetirementDiagram({
                       : Math.max(tooltip.y - 8, 4);
                   return (
                     <div
-                      className="absolute pointer-events-none bg-white shadow-xl rounded-lg border border-gray-200 px-3 py-2 text-xs z-20"
+                      className="glass absolute pointer-events-none rounded-lg px-3 py-2 text-xs z-20"
                       style={{ left, top, minWidth: 180, maxWidth: 230 }}
                     >
                       <div className="font-bold text-[#1e3a5f] mb-1 text-[11px]">

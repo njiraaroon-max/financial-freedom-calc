@@ -191,7 +191,7 @@ export default function Pillar1Page() {
         )}
 
         {/* ─── Step Progress Bar ─────────────────────────────────── */}
-        <div className="mx-1 bg-white rounded-2xl shadow-sm p-4">
+        <div className="glass mx-1 rounded-2xl p-4">
           <div className="flex items-start">
             {[
               { n: 1, label: "Total Needs", sub: "ความต้องการ" },
@@ -227,7 +227,7 @@ export default function Pillar1Page() {
         </div>
 
         {/* ═══ STEP 1: คำนวณความต้องการทั้งหมด (Total Needs) ═══ */}
-        <div className="bg-white rounded-2xl shadow-sm mx-1">
+        <div className="glass rounded-2xl mx-1">
           <button onClick={() => toggleStep(1)} className="w-full p-4 md:p-6 pb-0 flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-[10px] font-bold flex items-center justify-center">1</span>
@@ -469,7 +469,7 @@ export default function Pillar1Page() {
                                       update({ educationLevels: levels });
                                     }}
                                     unit="บาท/ปี"
-                                    className="w-full text-sm text-right font-bold bg-white border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2"
+                                    className="glass w-full text-sm text-right font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2"
                                     ringClass="focus:ring-blue-400"
                                   />
                                 </div>
@@ -488,7 +488,7 @@ export default function Pillar1Page() {
                             const currentLevel = (p1.educationLevels || []).find((lv: { key: string }) => lv.key === child.currentLevelKey) as { key: string; label: string; years: number } | undefined;
                             const maxYears = currentLevel?.years || 1;
                             return (
-                              <div key={child.id} className="bg-white rounded-lg border border-blue-100 p-2.5 space-y-2">
+                              <div key={child.id} className="glass rounded-lg border border-blue-100 p-2.5 space-y-2">
                                 {/* Row 1: Name + delete */}
                                 <div className="flex items-center gap-2">
                                   <input
@@ -708,7 +708,7 @@ export default function Pillar1Page() {
         </div>
 
         {/* ═══ STEP 2: รวบรวมสินทรัพย์ที่มีอยู่ (Existing Assets) ═══ */}
-        <div className="bg-white rounded-2xl shadow-sm mx-1">
+        <div className="glass rounded-2xl mx-1">
           <button onClick={() => toggleStep(2)} className="w-full p-4 md:p-6 pb-0 flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-[10px] font-bold flex items-center justify-center">2</span>
@@ -790,7 +790,7 @@ export default function Pillar1Page() {
         </div>
 
         {/* ═══ STEP 3: หาจุดที่ยังขาด (The Gap) ═══ */}
-        <div className="bg-white rounded-2xl shadow-sm mx-1">
+        <div className="glass rounded-2xl mx-1">
           <button onClick={() => toggleStep(3)} className="w-full p-4 md:p-6 pb-0 flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
               <span className={`w-6 h-6 rounded-full text-white text-[10px] font-bold flex items-center justify-center ${
@@ -927,7 +927,7 @@ export default function Pillar1Page() {
       {/* ── Info Modal: หลักการคำนวณทุนประกัน ── */}
       {showInfo && (
         <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center bg-black/40" onClick={() => setShowInfo(false)}>
-          <div className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-xl max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="glass w-full max-w-lg md:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             {/* Header */}
             <div className="sticky top-0 bg-[#1e3a5f] text-white px-5 py-4 flex items-center justify-between z-10 md:rounded-t-2xl rounded-t-2xl">
               <div className="flex items-center gap-2">
@@ -1068,7 +1068,7 @@ export default function Pillar1Page() {
       {/* ── Needs Analysis Detail Modal ── */}
       {showNeedsDetail && (
         <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center bg-black/40" onClick={() => setShowNeedsDetail(false)}>
-          <div className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="glass w-full max-w-lg md:rounded-2xl rounded-t-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             {/* Header */}
             <div className="sticky top-0 bg-[#1e3a5f] text-white px-5 py-4 flex items-center justify-between z-10 md:rounded-t-2xl rounded-t-2xl">
               <div className="flex items-center gap-2">
@@ -1157,7 +1157,7 @@ export default function Pillar1Page() {
                     <p className="text-[10px] text-gray-600 leading-relaxed mb-2">
                       หา PV ของค่าใช้จ่ายในอนาคต โดยคำนึงถึง อัตราเงินเฟ้อ (Inflation) และ อัตราผลตอบแทนจากการลงทุน (Investment Return)
                     </p>
-                    <div className="bg-white rounded-lg border border-gray-200 p-2.5 text-[10px] space-y-1">
+                    <div className="glass rounded-lg p-2.5 text-[10px] space-y-1">
                       <div className="font-bold text-gray-700">ใช้ Real Rate of Return:</div>
                       <div className="text-center font-mono text-xs text-blue-700 py-1">
                         i<sub>real</sub> = ((1 + i) / (1 + f) - 1) × 100
@@ -1203,12 +1203,12 @@ export default function Pillar1Page() {
                     ไปอีก 15 ปี โดยคาดว่าเงินก้อนนี้จะนำไปลงทุนได้ผลตอบแทน 5%
                   </p>
 
-                  <div className="bg-white rounded-lg border border-gray-200 p-3 space-y-1.5 text-[10px]">
+                  <div className="glass rounded-lg p-3 space-y-1.5 text-[10px]">
                     <div className="font-bold text-gray-700">หา Real Rate:</div>
                     <div className="font-mono text-blue-700 text-center">(1.05 / 1.03) − 1 = 1.9417%</div>
                   </div>
 
-                  <div className="bg-white rounded-lg border border-gray-200 p-3 space-y-1 text-[10px]">
+                  <div className="glass rounded-lg p-3 space-y-1 text-[10px]">
                     <div className="font-bold text-gray-700">กดเครื่องคิดเลข Financial (Mode BGN):</div>
                     <div className="grid grid-cols-2 gap-1 font-mono text-gray-700 mt-1">
                       <div>N = 15</div>

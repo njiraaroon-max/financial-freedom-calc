@@ -199,7 +199,7 @@ export default function PVDPage() {
         </div>
 
         {/* Input */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
+        <div className="glass rounded-2xl p-4 space-y-3">
           <div className="flex items-center justify-between mb-2">
             <div className="text-xs font-bold text-gray-600">ข้อมูล PVD</div>
             {hasCFData && (
@@ -290,7 +290,7 @@ export default function PVDPage() {
 
         {/* Projection Table */}
         {hasValidInput && projection.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+          <div className="glass rounded-2xl overflow-hidden">
             <div className="bg-[#1e3a5f] px-4 py-2.5">
               <div className="text-xs font-bold text-white">ตาราง Projection</div>
             </div>
@@ -334,7 +334,7 @@ export default function PVDPage() {
       {/* ─── Info Modal: PVD (Future Value Projection) ──────────── */}
       {showInfo && (
         <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center bg-black/40" onClick={() => setShowInfo(false)}>
-          <div className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-xl max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="glass w-full max-w-lg md:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 bg-blue-600 text-white px-5 py-4 flex items-center justify-between z-10 md:rounded-t-2xl rounded-t-2xl">
               <div className="flex items-center gap-2">
                 <Info size={18} />

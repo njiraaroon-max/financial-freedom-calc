@@ -24,21 +24,20 @@ export default function ActionButton({
 
   const variants: Record<string, { normal: string; success: string }> = {
     primary: {
-      normal:
-        "bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)] shadow-lg shadow-indigo-200",
+      normal: "btn-gradient",
       success:
-        "bg-green-100 text-green-700 border border-green-300 shadow-none",
+        "bg-green-100/80 backdrop-blur text-green-700 border border-green-300 shadow-none",
     },
     danger: {
       normal:
-        "border-2 border-red-200 text-red-500 font-medium hover:bg-red-50",
+        "border-2 border-red-200 text-red-500 font-medium hover:bg-red-50/70 bg-white/40 backdrop-blur",
       success:
-        "bg-green-100 text-green-700 border border-green-300 shadow-none",
+        "bg-green-100/80 backdrop-blur text-green-700 border border-green-300 shadow-none",
     },
     outline: {
-      normal: "border border-gray-300 text-gray-600 hover:bg-gray-50",
+      normal: "glass text-gray-700 hover:bg-white/70",
       success:
-        "bg-green-100 text-green-700 border border-green-300 shadow-none",
+        "bg-green-100/80 backdrop-blur text-green-700 border border-green-300 shadow-none",
     },
   };
 

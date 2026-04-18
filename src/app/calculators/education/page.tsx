@@ -157,7 +157,7 @@ export default function EducationPage() {
 
         {/* Summary — total across all children */}
         {children.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-sm p-4 mx-1">
+          <div className="glass rounded-2xl p-4 mx-1">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <TrendingUp size={16} className="text-blue-500" />
@@ -297,7 +297,7 @@ export default function EducationPage() {
                         <MoneyInput
                           value={lv.tuitionPerYear}
                           onChange={(v) => updateLevel(key, { tuitionPerYear: v })}
-                          className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 border border-gray-200 text-right font-bold"
+                          className="glass flex-1 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 text-right font-bold"
                           ringClass="focus:ring-blue-400"
                         />
                         <span className="text-[10px] text-gray-500 w-8">บาท</span>
@@ -307,7 +307,7 @@ export default function EducationPage() {
                         <MoneyInput
                           value={lv.tutoringPerYear || 0}
                           onChange={(v) => updateLevel(key, { tutoringPerYear: v })}
-                          className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 border border-gray-200 text-right font-bold"
+                          className="glass flex-1 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 text-right font-bold"
                           ringClass="focus:ring-teal-400"
                         />
                         <span className="text-[10px] text-gray-500 w-8">บาท</span>
@@ -319,7 +319,7 @@ export default function EducationPage() {
                           value={lv.schoolName}
                           onChange={(e) => updateLevel(key, { schoolName: e.target.value })}
                           placeholder="(ไม่ระบุ)"
-                          className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200"
+                          className="glass flex-1 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-400"
                         />
                       </div>
                     </div>
@@ -428,7 +428,7 @@ export default function EducationPage() {
                   return (
                     <div
                       key={child.id}
-                      className="border border-gray-200 rounded-xl bg-white p-3 shadow-sm"
+                      className="glass rounded-xl p-3"
                     >
                       <div className="flex items-center justify-between mb-2.5">
                         <div className="flex items-center gap-2">
@@ -549,7 +549,7 @@ export default function EducationPage() {
                       </div>
                       <button
                         onClick={() => addPortfolio(child.id)}
-                        className="text-[10px] text-indigo-600 font-bold bg-white border border-indigo-300 rounded-lg px-2 py-1 hover:bg-indigo-100 flex items-center gap-1"
+                        className="glass text-[10px] text-indigo-600 font-bold border border-indigo-300 rounded-lg px-2 py-1 hover:bg-indigo-100 flex items-center gap-1"
                       >
                         <Plus size={12} /> เพิ่มพอร์ต
                       </button>
@@ -598,7 +598,7 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm mx-1 overflow-hidden">
+    <div className="glass rounded-2xl mx-1 overflow-hidden">
       <button
         onClick={onToggle}
         className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition"
@@ -639,7 +639,7 @@ function InflationInput({ value, onChange }: { value: number; onChange: (v: numb
         if (Number.isFinite(n)) onChange(n);
       }}
       onBlur={() => setDraft(null)}
-      className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-amber-400 border border-amber-200 text-center font-bold"
+      className="glass flex-1 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-amber-400 border border-amber-200 text-center font-bold"
       placeholder="5"
     />
   );
@@ -755,7 +755,7 @@ function ChildEditor({
                   onChange={(e) =>
                     onChange({ plannedStartLevel: e.target.value as EducationLevelKey })
                   }
-                  className="w-full text-sm bg-white rounded-lg px-2 py-2 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200"
+                  className="glass w-full text-sm rounded-lg px-2 py-2 outline-none focus:ring-2 focus:ring-blue-400"
                 >
                   {LEVEL_SEQUENCE.map((k) => {
                     const lv = levels.find((l) => l.key === k);
@@ -950,7 +950,7 @@ function PortfolioEditor({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-3 space-y-3">
+    <div className="glass rounded-xl p-3 space-y-3">
       {/* Header: name + delete */}
       <div className="flex items-center gap-2">
         <input

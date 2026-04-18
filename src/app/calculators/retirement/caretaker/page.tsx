@@ -138,7 +138,7 @@ export default function CaretakerPage() {
           </div>
           <button
             onClick={handleResetToSource}
-            className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border border-blue-300 text-blue-700 text-[10px] font-bold hover:bg-blue-100 transition"
+            className="glass shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg border border-blue-300 text-blue-700 text-[10px] font-bold hover:bg-blue-100 transition"
             title="กดเพื่อซิงก์กลับทันที (ถ้าเผลอแก้ในหน้านี้)"
           >
             <RotateCcw size={11} />
@@ -147,7 +147,7 @@ export default function CaretakerPage() {
         </div>
 
         {/* Ages section */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
+        <div className="glass rounded-2xl p-4 space-y-3">
           <div className="text-xs font-bold text-gray-500">ช่วงอายุ</div>
 
           <AgeRow
@@ -204,7 +204,7 @@ export default function CaretakerPage() {
         </div>
 
         {/* Cost section */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
+        <div className="glass rounded-2xl p-4 space-y-3">
           <div className="text-xs font-bold text-gray-500">ค่าคนดูแล ณ ปัจจุบัน</div>
 
           <div className="flex items-center gap-2">
@@ -241,7 +241,7 @@ export default function CaretakerPage() {
         </div>
 
         {/* Inflation + probability */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-4">
+        <div className="glass rounded-2xl p-4 space-y-4">
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs font-bold text-gray-500">เงินเฟ้อค่าจ้าง (ต่อปี)</span>
@@ -322,7 +322,7 @@ export default function CaretakerPage() {
             <Stat label="คูณโอกาสใช้จริง" value={`×${(p.probability * 100).toFixed(0)}%`} />
           </div>
 
-          <div className="bg-white rounded-xl p-4 border border-pink-200 text-center">
+          <div className="glass rounded-xl p-4 border border-pink-200 text-center">
             <div className="text-[10px] text-gray-500 font-medium">NPV ณ วันเกษียณ</div>
             <div className="text-2xl font-extrabold text-pink-700 mt-1">
               ฿{fmt(result.npvAtRetire)}
@@ -335,7 +335,7 @@ export default function CaretakerPage() {
 
         {/* Year-by-year table (collapsible) */}
         {result.rows.length > 0 && (
-          <details className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+          <details className="glass rounded-2xl overflow-hidden">
             <summary className="px-4 py-3 cursor-pointer text-xs font-bold text-gray-600 hover:bg-gray-50 select-none">
               📋 รายละเอียดแต่ละปี ({result.rows.length} ปี)
             </summary>
@@ -388,7 +388,7 @@ export default function CaretakerPage() {
           onClick={() => setShowInfo(false)}
         >
           <div
-            className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-xl max-h-[85vh] overflow-y-auto"
+            className="glass w-full max-w-lg md:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="sticky top-0 bg-gradient-to-br from-pink-500 to-rose-500 text-white px-5 py-4 flex items-center justify-between z-10">

@@ -679,7 +679,7 @@ export default function GoalsPage() {
       {/* ── Summary bar ── */}
       {goals.length > 0 && (
         <div className="px-4 md:px-8 pt-4">
-          <div className="bg-white rounded-2xl border border-gray-200 p-4 flex justify-between items-center">
+          <div className="glass rounded-2xl p-4 flex justify-between items-center">
             <div>
               <div className="text-xs text-gray-500">เป้าหมายทั้งหมด</div>
               <div className="text-xl font-extrabold text-gray-800">{goals.length} เป้าหมาย</div>
@@ -695,13 +695,13 @@ export default function GoalsPage() {
       {/* ── Goal Table ── */}
       <div className="px-4 md:px-8 pt-4">
         {sortedGoals.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-10 text-center">
+          <div className="glass rounded-2xl border border-dashed border-gray-300 p-10 text-center">
             <Target size={36} className="text-gray-300 mx-auto mb-3" />
             <div className="text-sm font-bold text-gray-500 mb-1">ยังไม่มีเป้าหมาย</div>
             <div className="text-xs text-gray-400">กดปุ่มด้านล่างเพื่อเพิ่มเป้าหมายแรก</div>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+          <div className="glass rounded-2xl overflow-hidden">
             {/* Header */}
             <div className="grid grid-cols-[28px_28px_1fr_auto_auto_32px] gap-1.5 px-3 py-2.5 bg-gray-50 border-b border-gray-100">
               <div className="text-[10px] font-bold text-gray-500 text-center">#</div>
@@ -817,7 +817,7 @@ export default function GoalsPage() {
       {/* ── Timeline ── */}
       {sortedGoals.length > 0 && (
         <div className="px-4 md:px-8 pt-4">
-          <div className="bg-white rounded-2xl border border-gray-200 p-4">
+          <div className="glass rounded-2xl p-4">
             <div className="text-xs font-bold text-gray-600 mb-4">📅 Timeline เป้าหมาย</div>
             <GoalTimeline
               goals={sortedGoals}
@@ -972,7 +972,7 @@ export default function GoalsPage() {
                 <div className="space-y-4">
                   {/* Selected category indicator */}
                   <div className="flex items-center gap-3 p-3 bg-[#e8f0f8] rounded-2xl">
-                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                    <div className="glass w-10 h-10 rounded-xl flex items-center justify-center">
                       {ICON_MAP[form.category === "custom" ? form.iconName : getPreset(form.category).iconName] ?? <Star size={20} className="text-[#1e3a6e]" />}
                     </div>
                     <div>

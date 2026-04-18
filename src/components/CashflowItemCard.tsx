@@ -686,7 +686,7 @@ function YearlyStreamTable({
   const total = ageRows.reduce((s, r) => s + r.amt, 0);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div className="glass rounded-lg overflow-hidden">
       <div className="max-h-48 overflow-y-auto">
         <table className="w-full text-[10px]">
           <thead className="bg-gray-50 sticky top-0">

@@ -85,8 +85,8 @@ export default function MoneyInput({
         : value.toLocaleString("th-TH");
 
   const baseClass = compact
-    ? "w-28 text-right text-sm font-semibold bg-gray-50 rounded-xl px-3 py-2 outline-none focus:ring-2 border border-gray-200"
-    : "w-full text-sm font-semibold bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 text-right";
+    ? "w-28 text-right text-sm font-semibold bg-white/50 backdrop-blur-sm rounded-xl px-3 py-2 outline-none focus:ring-2 border border-white/60"
+    : "w-full text-sm font-semibold bg-white/50 backdrop-blur-sm rounded-xl px-4 py-2.5 outline-none focus:ring-2 text-right border border-white/60";
 
   return (
     <div className="flex items-center gap-2">

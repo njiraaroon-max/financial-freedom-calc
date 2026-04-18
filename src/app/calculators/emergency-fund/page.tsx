@@ -120,7 +120,7 @@ export default function EmergencyFundPage() {
 
       {/* Data Source */}
       <div className="px-4 md:px-8 pt-4">
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
+        <div className="glass rounded-2xl p-4 space-y-3">
           <div className="text-xs font-bold text-gray-600 mb-2">📋 ข้อมูลที่ใช้คำนวณ</div>
           <div className="flex justify-between items-center">
             <span className="text-xs text-gray-500">รายจ่ายจำเป็น/เดือน</span>
@@ -196,7 +196,7 @@ export default function EmergencyFundPage() {
 
       {/* Target Months Selector */}
       <div className="px-4 md:px-8 pt-4">
-        <div className="bg-white rounded-2xl border border-gray-200 p-4">
+        <div className="glass rounded-2xl p-4">
           <div className="text-xs font-bold text-gray-600 mb-3">🎯 ต้องการเงินสำรองกี่เดือน?</div>
           <div className="flex gap-2">
             {[3, 6, 9, 12].map((m) => (
@@ -282,7 +282,7 @@ export default function EmergencyFundPage() {
       {/* Savings Plan — only show if not enough */}
       {!isEnough && effectiveExpense > 0 && (
         <div className="px-4 md:px-8 pt-4">
-          <div className="bg-white rounded-2xl border border-gray-200 p-4">
+          <div className="glass rounded-2xl p-4">
             <div className="text-xs font-bold text-gray-600 mb-3">💡 แผนออมเงินสำรอง</div>
 
             <div className="mb-4">

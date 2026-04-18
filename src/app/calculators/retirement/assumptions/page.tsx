@@ -93,7 +93,7 @@ export default function AssumptionsPage() {
         </button>
 
         {/* Fields */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-4">
+        <div className="glass rounded-2xl p-4 space-y-4">
           {[
             { label: "อายุปัจจุบัน", key: "currentAge" as const, unit: "ปี", isPercent: false },
             { label: "อายุเกษียณ", key: "retireAge" as const, unit: "ปี", isPercent: false },

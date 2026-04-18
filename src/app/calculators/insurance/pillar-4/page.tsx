@@ -139,7 +139,7 @@ export default function TaxOptimizationPage() {
         </div>
 
         {/* ─── SECTION 1: Tax Deduction ──────────────────────────────── */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
+        <div className="glass rounded-2xl p-4 md:p-6 mx-1 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-[10px] font-bold flex items-center justify-center">1</span>
@@ -268,7 +268,7 @@ export default function TaxOptimizationPage() {
         </div>
 
         {/* ─── SECTION 2: Cash Flow Impact ─────────────────────────────── */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
+        <div className="glass rounded-2xl p-4 md:p-6 mx-1 space-y-4">
           <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
             <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-[10px] font-bold flex items-center justify-center">2</span>
             ผลกระทบต่อกระแสเงินสด

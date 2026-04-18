@@ -168,7 +168,7 @@ function PolicySummaryTable({ policies, birthYear }: { policies: InsurancePolicy
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+    <div className="glass rounded-xl p-4 md:p-6">
       <h3 className="text-base font-bold text-gray-800 mb-3">ตารางสรุปกรมธรรม์</h3>
       <div className="overflow-x-auto -mx-2">
         <table className="w-full text-[10px] min-w-[800px]">
@@ -246,7 +246,7 @@ function TaxDeduction({ policies }: { policies: InsurancePolicy[] }) {
   ];
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+    <div className="glass rounded-xl p-4 md:p-6">
       <h3 className="text-base font-bold text-gray-800 mb-4">สิทธิลดหย่อนภาษี ({CURRENT_YEAR + BE_OFFSET})</h3>
       <div className="space-y-4">
         {bars.map((b) => {
@@ -341,7 +341,7 @@ function PremiumByAgeBracket({ policies, birthYear, currentAge, retireAge: defau
   const grandTotal = brackets.reduce((s, b) => s + b.total, 0);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+    <div className="glass rounded-xl p-4 md:p-6">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-base font-bold text-gray-800">สรุปเบี้ยรวมตามช่วงอายุ</h3>
         <div className="text-xs text-gray-400">รวมทั้งหมด <span className="font-bold text-gray-700">{fmt(grandTotal)}</span> บาท</div>
@@ -423,7 +423,7 @@ function PolicyCard({ policy, birthYear, onEdit, onDelete }: {
   const covEnd = getCoverageEndYear(policy, birthYear);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div className="glass rounded-xl overflow-hidden">
       <div className="p-3 flex items-center gap-3 cursor-pointer active:bg-gray-50" onClick={() => setExpanded(!expanded)}>
         <div className="w-2 h-10 rounded-full" style={{ background: colors.premium }} />
         <div className="flex-1 min-w-0">
@@ -650,7 +650,7 @@ export default function PortfolioDashboard() {
       {/* ═══ ADD/EDIT MODAL ═══ */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40" onClick={() => setShowModal(false)}>
-          <div className="bg-white w-full max-w-md md:rounded-2xl rounded-t-2xl shadow-xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="glass w-full max-w-md md:rounded-2xl rounded-t-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-3 flex items-center justify-between z-10 rounded-t-2xl">
               <h3 className="text-sm font-bold text-gray-800">{editingId ? "แก้ไขกรมธรรม์" : "เพิ่มกรมธรรม์ใหม่"}</h3>
               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
@@ -887,7 +887,7 @@ export default function PortfolioDashboard() {
                         value={form.healthDetails.roomRatePerDay}
                         onChange={(v) => setForm({ ...form, healthDetails: { ...form.healthDetails, roomRatePerDay: v } })}
                         placeholder="5,000"
-                        className="w-full text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                        className="glass w-full text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 text-center font-bold"
                         ringClass="focus:ring-teal-400"
                       />
                     </div>
@@ -907,7 +907,7 @@ export default function PortfolioDashboard() {
                         value={form.healthDetails.ipdAmount}
                         onChange={(v) => setForm({ ...form, healthDetails: { ...form.healthDetails, ipdAmount: v } })}
                         placeholder="1,000,000"
-                        className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                        className="glass flex-1 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 text-center font-bold"
                         ringClass="focus:ring-teal-400"
                       />
                       <div className="flex bg-gray-100 rounded-full p-0.5 shrink-0">
@@ -927,7 +927,7 @@ export default function PortfolioDashboard() {
                         value={form.healthDetails.opdAmount}
                         onChange={(v) => setForm({ ...form, healthDetails: { ...form.healthDetails, opdAmount: v } })}
                         placeholder="2,000"
-                        className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                        className="glass flex-1 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 text-center font-bold"
                         ringClass="focus:ring-teal-400"
                       />
                       <div className="flex bg-gray-100 rounded-full p-0.5 shrink-0">
@@ -947,7 +947,7 @@ export default function PortfolioDashboard() {
                       onChange={(v) => setForm({ ...form, healthDetails: { ...form.healthDetails, ciLumpSum: v } })}
                       unit="บาท"
                       placeholder="1,000,000"
-                      className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                      className="glass flex-1 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 text-center font-bold"
                       ringClass="focus:ring-teal-400"
                     />
                   </div>
@@ -972,7 +972,7 @@ export default function PortfolioDashboard() {
                       onChange={(v) => setForm({ ...form, healthDetails: { ...form.healthDetails, accidentCoverage: v } })}
                       unit="บาท"
                       placeholder="500,000"
-                      className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                      className="glass flex-1 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 text-center font-bold"
                       ringClass="focus:ring-teal-400"
                     />
                   </div>
@@ -989,7 +989,7 @@ export default function PortfolioDashboard() {
                       <div className="flex items-center gap-1">
                         <input type="text" inputMode="numeric" value={form.annuityDetails.payoutStartAge || ""}
                           onChange={(e) => setForm({ ...form, annuityDetails: { ...form.annuityDetails, payoutStartAge: parseInt(e.target.value.replace(/[^0-9]/g, "")) || 0 } })}
-                          className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-purple-400 border border-gray-200 text-center font-bold" placeholder="60" />
+                          className="glass flex-1 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-purple-400 text-center font-bold" placeholder="60" />
                         <span className="text-[10px] text-gray-500">ปี</span>
                       </div>
                     </div>
@@ -1000,7 +1000,7 @@ export default function PortfolioDashboard() {
                         onChange={(v) => setForm({ ...form, annuityDetails: { ...form.annuityDetails, payoutPerYear: v } })}
                         unit="บาท"
                         placeholder="120,000"
-                        className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                        className="glass flex-1 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 text-center font-bold"
                         ringClass="focus:ring-purple-400"
                       />
                     </div>
@@ -1023,7 +1023,7 @@ export default function PortfolioDashboard() {
                           {age === 99 ? "99 (ตลอดชีพ)" : `${age} ปี`}
                         </button>
                       ))}
-                      <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg px-2 py-1">
+                      <div className="glass flex items-center gap-1 rounded-lg px-2 py-1">
                         <input
                           type="text"
                           inputMode="numeric"
@@ -1061,13 +1061,13 @@ export default function PortfolioDashboard() {
                         <span className="text-[10px] text-gray-400 shrink-0">ปีที่</span>
                         <input type="text" inputMode="numeric" value={d.year || ""}
                           onChange={(e) => { const arr = [...form.endowmentDetails.dividends]; arr[i] = { ...arr[i], year: parseInt(e.target.value.replace(/[^0-9]/g, "")) || 0 }; setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, dividends: arr } }); }}
-                          className="w-14 text-sm bg-white rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-green-400 border border-gray-200 text-center font-bold" />
+                          className="glass w-14 text-sm rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-green-400 text-center font-bold" />
                         <span className="text-[10px] text-gray-400 shrink-0">จำนวน</span>
                         <MoneyInput
                           value={d.amount}
                           onChange={(v) => { const arr = [...form.endowmentDetails.dividends]; arr[i] = { ...arr[i], amount: v }; setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, dividends: arr } }); }}
                           placeholder="50,000"
-                          className="flex-1 text-sm bg-white rounded-lg px-2 py-1.5 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                          className="glass flex-1 text-sm rounded-lg px-2 py-1.5 outline-none focus:ring-2 text-center font-bold"
                           ringClass="focus:ring-green-400"
                         />
                         <button type="button" onClick={() => { const arr = form.endowmentDetails.dividends.filter((_, idx) => idx !== i); setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, dividends: arr } }); }}
@@ -1084,7 +1084,7 @@ export default function PortfolioDashboard() {
                         value={form.endowmentDetails.maturityPayout}
                         onChange={(v) => setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, maturityPayout: v } })}
                         placeholder="1,000,000"
-                        className="w-full text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                        className="glass w-full text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 text-center font-bold"
                         ringClass="focus:ring-green-400"
                       />
                     </div>
@@ -1092,7 +1092,7 @@ export default function PortfolioDashboard() {
                       <label className="text-[10px] text-gray-500 mb-0.5 block">ปีที่ได้เงินก้อน</label>
                       <input type="text" inputMode="numeric" value={form.endowmentDetails.maturityYear || ""}
                         onChange={(e) => setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, maturityYear: parseInt(e.target.value.replace(/[^0-9]/g, "")) || 0 } })}
-                        className="w-full text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-green-400 border border-gray-200 text-center font-bold" placeholder="20" />
+                        className="glass w-full text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-green-400 text-center font-bold" placeholder="20" />
                     </div>
                   </div>
                 </div>
@@ -1123,7 +1123,7 @@ export default function PortfolioDashboard() {
       {/* ── Delete Confirmation Modal ── */}
       {deleteTarget && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40" onClick={() => setDeleteTarget(null)}>
-          <div className="bg-white w-[90%] max-w-xs rounded-2xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+          <div className="glass w-[90%] max-w-xs rounded-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
             {/* Icon */}
             <div className="flex flex-col items-center pt-6 pb-2 px-5">
               <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-3">

@@ -388,7 +388,7 @@ export default function Pillar2Page() {
         </div>
 
         {/* ─── Step Progress Bar ─────────────────────────────────── */}
-        <div className="mx-1 bg-white rounded-2xl shadow-sm p-4">
+        <div className="glass mx-1 rounded-2xl p-4">
           <div className="flex items-start">
             {[
               { n: 1, label: "Coverage Needed", sub: "ความคุ้มครองที่ควรมี" },
@@ -419,7 +419,7 @@ export default function Pillar2Page() {
         </div>
 
         {/* ═══ STEP 1: ความคุ้มครองที่ควรมี ═══ */}
-        <div className="bg-white rounded-2xl shadow-sm mx-1">
+        <div className="glass rounded-2xl mx-1">
           <button onClick={() => toggleStep(1)} className="w-full p-4 md:p-6 pb-0 flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-teal-500 text-white text-[10px] font-bold flex items-center justify-center">1</span>
@@ -650,7 +650,7 @@ export default function Pillar2Page() {
         </div>
 
         {/* ═══ STEP 2: มูลค่าความคุ้มครองที่มีอยู่แล้ว ═══ */}
-        <div className="bg-white rounded-2xl shadow-sm mx-1">
+        <div className="glass rounded-2xl mx-1">
           <button onClick={() => toggleStep(2)} className="w-full p-4 md:p-6 pb-0 flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-teal-500 text-white text-[10px] font-bold flex items-center justify-center">2</span>
@@ -870,7 +870,7 @@ export default function Pillar2Page() {
         </div>
 
         {/* ═══ STEP 3: ส่วนต่าง (The Gap) ═══ */}
-        <div className="bg-white rounded-2xl shadow-sm mx-1">
+        <div className="glass rounded-2xl mx-1">
           <button onClick={() => toggleStep(3)} className="w-full p-4 md:p-6 pb-0 flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
               <span className={`w-6 h-6 rounded-full text-white text-[10px] font-bold flex items-center justify-center ${
@@ -994,7 +994,7 @@ export default function Pillar2Page() {
         </div>
 
         {/* ═══ PREMIUM PROJECTION & NPV ═══ */}
-        <div id="premium-section" className="bg-white rounded-2xl shadow-sm mx-1 scroll-mt-24">
+        <div id="premium-section" className="glass rounded-2xl mx-1 scroll-mt-24">
           <button onClick={() => setOpenPremium(!openPremium)} className="w-full p-4 md:p-6 flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
               <TrendingUp size={16} className="text-teal-600" />
@@ -1327,7 +1327,7 @@ export default function Pillar2Page() {
                   {fromSpecialExpenses && (
                     <Link
                       href="/calculators/retirement/special-expenses"
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-white hover:bg-teal-50 text-teal-700 border border-teal-300 transition-all active:scale-[0.98] shadow-sm"
+                      className="glass inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold hover:bg-teal-50 text-teal-700 border border-teal-300 transition-all active:scale-[0.98]"
                     >
                       <ArrowLeft size={14} /> กลับไปค่าใช้จ่ายพิเศษ
                     </Link>
@@ -1394,7 +1394,7 @@ export default function Pillar2Page() {
       {/* ── Info Modal ── */}
       {showInfoKey && HEALTH_INFO[showInfoKey] && (
         <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center bg-black/40" onClick={() => setShowInfoKey(null)}>
-          <div className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-xl max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="glass w-full max-w-lg md:rounded-2xl rounded-t-2xl max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 bg-teal-500 text-white px-5 py-4 flex items-center justify-between z-10 md:rounded-t-2xl rounded-t-2xl">
               <div className="flex items-center gap-2">
                 <Info size={18} />

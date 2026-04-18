@@ -171,7 +171,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+    <div className="glass rounded-2xl overflow-hidden">
       <div className={`px-4 py-2.5 ${color}`}>
         <span className="text-xs font-bold text-white">{title}</span>
       </div>
@@ -191,7 +191,7 @@ function GuidePopup({
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white w-full md:max-w-md rounded-t-3xl md:rounded-3xl max-h-[80vh] flex flex-col">
+      <div className="glass relative w-full md:max-w-md rounded-t-3xl md:rounded-3xl max-h-[80vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100">
           <div className="flex items-center gap-2">

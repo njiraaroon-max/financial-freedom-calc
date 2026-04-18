@@ -83,7 +83,7 @@ function PensionPolicyCard({
   const lifetimeTotal = ad.payoutPerYear * years;
 
   return (
-    <div className="bg-white rounded-xl border border-purple-100 overflow-hidden">
+    <div className="glass rounded-xl border border-purple-100 overflow-hidden">
       <div className="p-3 flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-fuchsia-500 flex items-center justify-center text-white shrink-0">
           <Building2 size={18} />
@@ -189,7 +189,7 @@ function AnnuityModal({
       onClick={onClose}
     >
       <div
-        className="bg-white w-full max-w-md md:rounded-2xl rounded-t-2xl shadow-xl max-h-[90vh] overflow-y-auto"
+        className="glass w-full max-w-md md:rounded-2xl rounded-t-2xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -307,7 +307,7 @@ function AnnuityModal({
                 }
                 unit="บาท"
                 placeholder="เช่น 120,000"
-                className="flex-1 text-sm bg-white rounded-lg px-3 py-2 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                className="glass flex-1 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 text-center font-bold"
                 ringClass="focus:ring-purple-400"
               />
             </div>
@@ -352,7 +352,7 @@ function AnnuityModal({
                       },
                     })
                   }
-                  className="w-14 text-sm font-bold bg-white rounded-xl px-2 py-2 outline-none focus:ring-2 focus:ring-purple-400 border border-gray-200 text-center"
+                  className="glass w-14 text-sm font-bold rounded-xl px-2 py-2 outline-none focus:ring-2 focus:ring-purple-400 text-center"
                   placeholder="อื่นๆ"
                 />
               </div>
@@ -398,7 +398,7 @@ function AnnuityModal({
                       },
                     })
                   }
-                  className="w-14 text-sm font-bold bg-white rounded-xl px-2 py-2 outline-none focus:ring-2 focus:ring-purple-400 border border-gray-200 text-center"
+                  className="glass w-14 text-sm font-bold rounded-xl px-2 py-2 outline-none focus:ring-2 focus:ring-purple-400 text-center"
                   placeholder="อื่นๆ"
                 />
               </div>
@@ -677,7 +677,7 @@ function PensionInsurancePageInner() {
         {fromLabel && (
           <a
             href={backHref}
-            className="flex items-center justify-between bg-white rounded-xl border border-purple-200 px-3 py-2 mx-1 hover:bg-purple-50 transition"
+            className="glass flex items-center justify-between rounded-xl border border-purple-200 px-3 py-2 mx-1 hover:bg-purple-50 transition"
           >
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs font-bold">
@@ -756,7 +756,7 @@ function PensionInsurancePageInner() {
         )}
 
         {/* ─── Assumptions ─── */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
+        <div className="glass rounded-2xl p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="text-sm font-bold text-gray-700 flex items-center gap-2">
               <Info size={16} className="text-blue-500" />
@@ -860,7 +860,7 @@ function PensionInsurancePageInner() {
 
         {/* ─── Scenario 1: EMPTY STATE ─── */}
         {!hasPolicies && (
-          <div className="bg-white rounded-2xl border-2 border-dashed border-purple-200 p-8 text-center">
+          <div className="glass rounded-2xl border-2 border-dashed border-purple-200 p-8 text-center">
             <div className="text-5xl mb-3">💰</div>
             <div className="text-sm font-bold text-gray-700 mb-2">
               ยังไม่มีกรมธรรม์บำนาญ
@@ -1018,7 +1018,7 @@ function PensionInsurancePageInner() {
           onClick={() => setDeleteTarget(null)}
         >
           <div
-            className="bg-white w-[90%] max-w-xs rounded-2xl shadow-2xl overflow-hidden"
+            className="glass w-[90%] max-w-xs rounded-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex flex-col items-center pt-6 pb-2 px-5">
@@ -1066,7 +1066,7 @@ function PensionInsurancePageInner() {
           onClick={() => setShowInfo(false)}
         >
           <div
-            className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-xl max-h-[85vh] overflow-y-auto"
+            className="glass w-full max-w-lg md:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="sticky top-0 bg-purple-600 text-white px-5 py-4 flex items-center justify-between z-10 md:rounded-t-2xl rounded-t-2xl">

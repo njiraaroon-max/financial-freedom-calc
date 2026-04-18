@@ -381,7 +381,7 @@ export default function LongLivePage() {
 
         {/* ── Empty state ────────────────────────────────────────────────── */}
         {!hasData && (
-          <div className="bg-white rounded-2xl shadow-sm p-10 mx-1 text-center">
+          <div className="glass rounded-2xl p-10 mx-1 text-center">
             <div className="text-3xl mb-2">📋</div>
             <div className="text-sm font-bold text-gray-500">ยังไม่มีกรมธรรม์สะสมทรัพย์หรือบำนาญ</div>
             <div className="text-[10px] text-gray-400 mt-1">เพิ่มได้ที่หน้าสรุปกรมธรรม์ → เลือกประเภท &ldquo;สะสมทรัพย์&rdquo; หรือ &ldquo;บำนาญ&rdquo;</div>
@@ -391,7 +391,7 @@ export default function LongLivePage() {
         {hasData && (
           <>
             {/* ── Summary totals ──────────────────────────────────────────── */}
-            <div className="bg-white rounded-2xl shadow-sm p-4 mx-1 space-y-3">
+            <div className="glass rounded-2xl p-4 mx-1 space-y-3">
               <div className="text-center">
                 <div className="text-[10px] text-gray-400">เงินจากประกันรวมตลอดชีวิต (ประมาณการ)</div>
                 <div className="text-2xl font-extrabold text-indigo-600 mt-0.5">฿{fmtShort(grandTotal)}</div>
@@ -414,7 +414,7 @@ export default function LongLivePage() {
 
             {/* ── Endowment policy cards ───────────────────────────────────── */}
             {endowmentPolicies.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-sm p-4 mx-1 space-y-3">
+              <div className="glass rounded-2xl p-4 mx-1 space-y-3">
                 <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
                   <Coins size={14} className="text-purple-600" />
                   กรมธรรม์สะสมทรัพย์
@@ -469,7 +469,7 @@ export default function LongLivePage() {
 
             {/* ── Annuity policy cards ─────────────────────────────────────── */}
             {annuityPolicies.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-sm p-4 mx-1 space-y-3">
+              <div className="glass rounded-2xl p-4 mx-1 space-y-3">
                 <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
                   <TrendingUp size={14} className="text-indigo-600" />
                   กรมธรรม์บำนาญ
@@ -522,7 +522,7 @@ export default function LongLivePage() {
 
             {/* ── Bar Chart ────────────────────────────────────────────────── */}
             {barData.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-sm p-4 mx-1 space-y-2">
+              <div className="glass rounded-2xl p-4 mx-1 space-y-2">
                 <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
                   <BarChart2 size={14} className="text-indigo-600" />
                   ผลตอบแทนรายปี (แยกตามอายุ)
@@ -546,7 +546,7 @@ export default function LongLivePage() {
 
             {/* ── Cashflow Pivot Table ─────────────────────────────────────── */}
             {pivotData.rows.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-sm mx-1 overflow-hidden">
+              <div className="glass rounded-2xl mx-1 overflow-hidden">
                 {/* Header / toggle */}
                 <button
                   onClick={() => setTableOpen(!tableOpen)}

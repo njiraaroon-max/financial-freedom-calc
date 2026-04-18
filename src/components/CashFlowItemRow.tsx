@@ -158,7 +158,7 @@ export default function CashFlowItemRow({
           </button>
 
           {showDeleteMenu && (
-            <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
+            <div className="glass absolute right-0 top-full mt-1 w-48 rounded-xl z-50 overflow-hidden">
               <button
                 onClick={() => {
                   onClearMonth ? onClearMonth() : onAmountChange(0);

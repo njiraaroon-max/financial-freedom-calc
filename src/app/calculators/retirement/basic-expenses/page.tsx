@@ -190,7 +190,7 @@ export default function BasicExpensesPage() {
         </div>
 
         {/* Items */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-4">
+        <div className="glass rounded-2xl p-4">
           <div className="text-xs font-bold text-gray-500 mb-3">
             รายจ่ายพื้นฐาน (ราคาปัจจุบัน)
           </div>
@@ -340,7 +340,7 @@ export default function BasicExpensesPage() {
 
         {/* Simple Bar Chart: PV vs FV (quick glance) */}
         {totalBasicMonthly > 0 && (
-          <div className="mt-4 bg-white rounded-2xl border border-gray-200 p-4">
+          <div className="glass mt-4 rounded-2xl p-4">
             <div className="text-xs font-bold text-center text-[#1e3a5f] mb-4">
               ประเมินรายจ่ายพื้นฐานต่อเดือนหลังเกษียณอายุ
             </div>
@@ -422,7 +422,7 @@ export default function BasicExpensesPage() {
 
         {/* Yearly Expense Table — exact values Wealth Journey uses */}
         {totalBasicMonthly > 0 && yearsAfterRetire > 0 && (
-          <div className="mt-4 bg-white rounded-2xl border border-gray-200 overflow-hidden">
+          <div className="glass mt-4 rounded-2xl overflow-hidden">
             <button
               onClick={() => setShowYearlyTable((v) => !v)}
               className="w-full px-4 py-3 bg-[#1e3a5f] text-white text-xs font-bold flex items-center justify-between hover:bg-[#2d5a8e] transition"
@@ -537,7 +537,7 @@ export default function BasicExpensesPage() {
 
         {/* Sensitivity Table */}
         {totalBasicMonthly > 0 && (
-          <div className="mt-4 bg-white rounded-2xl border border-gray-200 overflow-hidden">
+          <div className="glass mt-4 rounded-2xl overflow-hidden">
             {(() => {
               const annualExpFV = basicMonthlyFV * 12;
               const baseResiduals = [0, 5000000, 10000000];
@@ -687,7 +687,7 @@ export default function BasicExpensesPage() {
           onClick={() => setShowDiagramInfo(false)}
         >
           <div
-            className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-xl max-h-[85vh] overflow-y-auto"
+            className="glass w-full max-w-lg md:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="sticky top-0 bg-[#1e3a5f] text-white px-5 py-4 flex items-center justify-between z-10 md:rounded-t-2xl rounded-t-2xl">
@@ -790,7 +790,7 @@ export default function BasicExpensesPage() {
               {/* Final Formula */}
               <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl p-4 border-2 border-cyan-300">
                 <div className="text-xs font-bold text-cyan-800 mb-2">🎯 ทุนเกษียณ (A) ที่ต้องมี ณ วันเกษียณ</div>
-                <div className="bg-white rounded-lg px-3 py-2 text-[11px] space-y-1">
+                <div className="glass rounded-lg px-3 py-2 text-[11px] space-y-1">
                   <div className="font-bold text-[#1e3a5f]">A = PV<sub>A</sub> + PV<sub>residual</sub></div>
                   <div className="text-gray-500 text-[10px]">
                     = {fmt(basicRetireFund - a.residualFund / Math.pow(1 + a.postRetireReturn, a.lifeExpectancy - a.retireAge))} + {fmt(a.residualFund / Math.pow(1 + a.postRetireReturn, a.lifeExpectancy - a.retireAge))}
@@ -828,7 +828,7 @@ export default function BasicExpensesPage() {
           onClick={() => setShowSensitivityInfo(false)}
         >
           <div
-            className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-xl max-h-[85vh] overflow-y-auto"
+            className="glass w-full max-w-lg md:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="sticky top-0 bg-[#1e3a5f] text-white px-5 py-4 flex items-center justify-between z-10 md:rounded-t-2xl rounded-t-2xl">
@@ -985,7 +985,7 @@ export default function BasicExpensesPage() {
           onClick={() => setShowInfo(false)}
         >
           <div
-            className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-xl max-h-[85vh] overflow-y-auto"
+            className="glass w-full max-w-lg md:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}

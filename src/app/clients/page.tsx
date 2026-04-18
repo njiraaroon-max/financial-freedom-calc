@@ -172,7 +172,7 @@ export default function ClientsPage() {
           {/* Add New Client Card */}
           <button
             onClick={() => setShowNewPopup(true)}
-            className="bg-white rounded-2xl border-2 border-dashed border-gray-300 p-4 flex flex-col items-center justify-center gap-2 hover:border-indigo-400 hover:bg-indigo-50/30 active:scale-95 transition-all min-h-[180px]"
+            className="glass rounded-2xl border-2 border-dashed border-gray-300 p-4 flex flex-col items-center justify-center gap-2 hover:border-indigo-400 hover:bg-indigo-50/30 active:scale-95 transition-all min-h-[180px]"
           >
             <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center">
               <Plus size={24} className="text-indigo-500" />
@@ -185,7 +185,7 @@ export default function ClientsPage() {
       {/* New Client Popup */}
       {showNewPopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setShowNewPopup(false)}>
-          <div className="bg-white rounded-2xl shadow-xl p-5 mx-6 w-full max-w-xs md:max-w-sm" onClick={(e) => e.stopPropagation()}>
+          <div className="glass rounded-2xl p-5 mx-6 w-full max-w-xs md:max-w-sm" onClick={(e) => e.stopPropagation()}>
             <div className="text-sm font-bold text-gray-700 mb-1">เพิ่มUserใหม่</div>
             <div className="text-[10px] text-gray-400 mb-3">ข้อมูลปัจจุบันจะถูกบันทึกเป็นUserคนนี้</div>
             <input
@@ -218,7 +218,7 @@ export default function ClientsPage() {
       {/* Delete Confirm Popup */}
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setDeleteConfirm(null)}>
-          <div className="bg-white rounded-2xl shadow-xl p-5 mx-6 w-full max-w-xs" onClick={(e) => e.stopPropagation()}>
+          <div className="glass rounded-2xl p-5 mx-6 w-full max-w-xs" onClick={(e) => e.stopPropagation()}>
             <div className="text-sm font-bold text-gray-700 mb-2">ลบUser</div>
             <div className="text-xs text-gray-500 mb-4">
               ต้องการลบ &quot;{clients.find((c) => c.id === deleteConfirm)?.name}&quot; ใช่ไหม?

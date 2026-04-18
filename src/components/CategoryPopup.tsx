@@ -33,7 +33,7 @@ export default function CategoryPopup({
 
       {/* Panel */}
       <div
-        className="relative w-full max-w-[430px] md:max-w-lg bg-white rounded-t-2xl md:rounded-2xl p-5 pb-8 animate-slide-up"
+        className="glass relative w-full max-w-[430px] md:max-w-lg rounded-t-2xl md:rounded-2xl p-5 pb-8 animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">

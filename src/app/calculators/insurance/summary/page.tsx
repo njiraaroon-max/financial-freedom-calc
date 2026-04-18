@@ -278,7 +278,7 @@ function TaxDeductionSection({ policies, currentYear }: { policies: InsurancePol
   const pensionDeduction = Math.min(pensionPremium, 200000);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+    <div className="glass rounded-2xl overflow-hidden">
       <div className="px-4 py-3 border-b border-gray-100 bg-amber-50">
         <h3 className="text-sm font-extrabold text-amber-800">การใช้สิทธิลดหย่อนภาษีหมวดประกัน</h3>
         <p className="text-[10px] text-amber-600">ปีภาษี {currentYear + 543}</p>
@@ -420,7 +420,7 @@ export default function InsuranceSummaryPage() {
 
       <div className="px-4 md:px-8 pt-4 pb-8 space-y-4">
         {/* Client info */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-4">
+        <div className="glass rounded-2xl p-4">
           <div className="grid grid-cols-3 gap-3 text-center">
             <div>
               <div className="text-[10px] text-gray-400">ชื่อผู้เอาประกัน</div>
@@ -440,15 +440,15 @@ export default function InsuranceSummaryPage() {
         {/* Summary totals */}
         {sorted.length > 0 && (
           <div className="grid grid-cols-3 gap-2">
-            <div className="bg-white rounded-2xl border border-gray-200 p-3 text-center">
+            <div className="glass rounded-2xl p-3 text-center">
               <div className="text-[10px] text-gray-400">ทุนประกันรวม</div>
               <div className="text-sm font-extrabold text-emerald-600">฿{fmt(totalSumInsured)}</div>
             </div>
-            <div className="bg-white rounded-2xl border border-gray-200 p-3 text-center">
+            <div className="glass rounded-2xl p-3 text-center">
               <div className="text-[10px] text-gray-400">มูลค่าเวนคืนรวม</div>
               <div className="text-sm font-extrabold text-gray-700">฿{fmt(totalCashValue)}</div>
             </div>
-            <div className="bg-white rounded-2xl border border-gray-200 p-3 text-center">
+            <div className="glass rounded-2xl p-3 text-center">
               <div className="text-[10px] text-gray-400">เบี้ยรวม/ปี</div>
               <div className="text-sm font-extrabold text-orange-600">฿{fmt(totalPremium)}</div>
             </div>
@@ -457,7 +457,7 @@ export default function InsuranceSummaryPage() {
 
         {/* Policy Cards + Gantt */}
         {sorted.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-10 text-center">
+          <div className="glass rounded-2xl border border-dashed border-gray-300 p-10 text-center">
             <div className="text-sm font-bold text-gray-500 mb-1">ยังไม่มีกรมธรรม์</div>
             <div className="text-xs text-gray-400">กรุณาเพิ่มกรมธรรม์ในหน้า "สรุปกรมธรรม์ที่มีอยู่"</div>
             <Link
@@ -468,7 +468,7 @@ export default function InsuranceSummaryPage() {
             </Link>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+          <div className="glass rounded-2xl overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-100">
               <h3 className="text-sm font-extrabold text-gray-800">ตารางกรมธรรม์ + Timeline</h3>
               <div className="flex gap-3 mt-1.5">
@@ -552,7 +552,7 @@ export default function InsuranceSummaryPage() {
 
         {/* Premium Breakdown by Group */}
         {sorted.length > 0 && premiumByGroup.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+          <div className="glass rounded-2xl overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-100">
               <h3 className="text-sm font-extrabold text-gray-800">สรุปเบี้ยประกันตามประเภท</h3>
               <p className="text-[10px] text-gray-400">การกระจายเบี้ยประกันแต่ละหมวด</p>
@@ -585,7 +585,7 @@ export default function InsuranceSummaryPage() {
 
         {/* Premium Ratio vs Income */}
         {sorted.length > 0 && annualIncome > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+          <div className="glass rounded-2xl overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-100">
               <h3 className="text-sm font-extrabold text-gray-800">สัดส่วนเบี้ยต่อรายได้</h3>
               <p className="text-[10px] text-gray-400">เบี้ยประกันรวมเทียบกับรายได้ต่อปี</p>
@@ -652,7 +652,7 @@ export default function InsuranceSummaryPage() {
 
         {/* Coverage by Age Chart */}
         {sorted.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+          <div className="glass rounded-2xl overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-100">
               <h3 className="text-sm font-extrabold text-gray-800">ทุนคุ้มครองชีวิตตามช่วงอายุ</h3>
               <p className="text-[10px] text-gray-400">แสดงทุนประกันชีวิตรวมที่แต่ละช่วงอายุ (เฉพาะกรมธรรม์ชีวิต/สะสมทรัพย์/อุบัติเหตุ/โรคร้ายแรง)</p>

@@ -126,7 +126,7 @@ export default function Pillar3Page() {
         </div>
 
         {/* ─── SECTION 1: บ้าน/ที่อยู่อาศัย ──────────────────────────── */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
+        <div className="glass rounded-2xl p-4 md:p-6 mx-1 space-y-4">
           <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
             <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">1</span>
             <Home size={14} className="text-amber-600" />
@@ -223,7 +223,7 @@ export default function Pillar3Page() {
         </div>
 
         {/* ─── SECTION 2: ยานพาหนะ ──────────────────────────────────── */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
+        <div className="glass rounded-2xl p-4 md:p-6 mx-1 space-y-4">
           <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
             <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">2</span>
             <Car size={14} className="text-amber-600" />
@@ -308,7 +308,7 @@ export default function Pillar3Page() {
         </div>
 
         {/* ─── SECTION 3: ความรับผิดต่อบุคคลภายนอก ───────────────── */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
+        <div className="glass rounded-2xl p-4 md:p-6 mx-1 space-y-4">
           <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
             <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">3</span>
             <ShieldAlert size={14} className="text-amber-600" />
@@ -337,7 +337,7 @@ export default function Pillar3Page() {
         </div>
 
         {/* ─── SECTION 4: ทรัพย์สินอื่นๆ ────────────────────────────── */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
+        <div className="glass rounded-2xl p-4 md:p-6 mx-1 space-y-4">
           <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
             <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">4</span>
             <Package size={14} className="text-amber-600" />
@@ -369,7 +369,7 @@ export default function Pillar3Page() {
         </div>
 
         {/* ─── SECTION 5: Gap Analysis ────────────────────────────────── */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 mx-1 space-y-4">
+        <div className="glass rounded-2xl p-4 md:p-6 mx-1 space-y-4">
           <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
             <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">5</span>
             วิเคราะห์ช่องว่าง (Gap Analysis)

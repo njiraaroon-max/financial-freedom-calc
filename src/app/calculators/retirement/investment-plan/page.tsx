@@ -95,7 +95,7 @@ function AgeInput({
         if (max !== undefined && n > max) n = max;
         if (n !== value) onChange(n);
       }}
-      className="w-14 text-xs font-semibold bg-white rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-center border border-gray-200"
+      className="glass w-14 text-xs font-semibold rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-center"
     />
   );
 }
@@ -472,7 +472,7 @@ function InvestmentPlanPageInner() {
         </div>
 
         {/* Investment plan phases */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-4">
+        <div className="glass rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp size={16} className="text-[#1e3a5f]" />
             <span className="text-sm font-bold text-[#1e3a5f]">แผนการออม/ลงทุน</span>
@@ -526,7 +526,7 @@ function InvestmentPlanPageInner() {
                       value={plan.monthlyAmount}
                       onChange={(v) => store.updateInvestmentPlan(plan.id, { monthlyAmount: v })}
                       unit="บาท"
-                      className="w-24 text-xs font-semibold bg-white rounded-lg px-2 py-1 outline-none focus:ring-2 text-right border border-gray-200"
+                      className="glass w-24 text-xs font-semibold rounded-lg px-2 py-1 outline-none focus:ring-2 text-right"
                       ringClass="focus:ring-[var(--color-primary)]"
                     />
                   </div>
@@ -617,7 +617,7 @@ function InvestmentPlanPageInner() {
                                 riskProfile: "custom",
                               });
                             }}
-                            className="w-full text-xs font-semibold bg-white rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-400 text-right border border-gray-200"
+                            className="glass w-full text-xs font-semibold rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-400 text-right"
                           />
                         </div>
                         <div>
@@ -634,7 +634,7 @@ function InvestmentPlanPageInner() {
                                 riskProfile: "custom",
                               });
                             }}
-                            className="w-full text-xs font-semibold bg-white rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-400 text-right border border-gray-200"
+                            className="glass w-full text-xs font-semibold rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-400 text-right"
                           />
                         </div>
                         <div>
@@ -651,7 +651,7 @@ function InvestmentPlanPageInner() {
                                 riskProfile: "custom",
                               });
                             }}
-                            className="w-full text-xs font-semibold bg-white rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-400 text-right border border-gray-200"
+                            className="glass w-full text-xs font-semibold rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-400 text-right"
                           />
                         </div>
                       </div>
@@ -676,7 +676,7 @@ function InvestmentPlanPageInner() {
 
         {/* Tab switcher: Deterministic vs Monte Carlo */}
         {investResult.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+          <div className="glass rounded-2xl overflow-hidden">
             <div className="flex border-b border-gray-200 bg-gray-50">
               <button
                 onClick={() => setSimMode("deterministic")}

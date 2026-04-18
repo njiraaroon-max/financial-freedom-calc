@@ -120,7 +120,7 @@ export default function TravelPlanPage() {
         </div>
 
         {/* Items */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-4">
+        <div className="glass rounded-2xl p-4">
           <div className="text-xs font-bold text-gray-500 mb-3">
             รายการท่องเที่ยว
           </div>
@@ -197,7 +197,7 @@ export default function TravelPlanPage() {
         </div>
 
         {/* Yearly breakdown */}
-        <div className="mt-4 bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+        <div className="glass mt-4 rounded-2xl overflow-hidden">
           <div className="bg-[#1e3a5f] px-4 py-2.5 flex items-center justify-between">
             <span className="text-xs font-bold text-white">ตารางรายปี</span>
             <span className="text-[10px] text-white/80 font-medium">

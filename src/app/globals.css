@@ -7,24 +7,68 @@
   --color-success: #22c55e;
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
-  --color-bg: #f8fafc;
-  --color-card: #ffffff;
+  --color-bg: #eef2ff;
+  --color-card: rgba(255, 255, 255, 0.65);
   --color-text: #1e293b;
   --color-text-secondary: #64748b;
-  --color-border: #e2e8f0;
+  --color-border: rgba(255, 255, 255, 0.5);
+
+  /* glass design tokens */
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-bg-strong: rgba(255, 255, 255, 0.75);
+  --glass-bg-subtle: rgba(255, 255, 255, 0.35);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-border-strong: rgba(255, 255, 255, 0.8);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 41, 92, 0.08);
+  --glass-shadow-lg: 0 12px 48px 0 rgba(31, 41, 92, 0.12);
 }
 
 * {
   -webkit-tap-highlight-color: transparent;
 }
 
+html, body {
+  min-height: 100dvh;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: var(--color-bg);
   color: var(--color-text);
   max-width: 1024px;
   margin: 0 auto;
   min-height: 100dvh;
+  background:
+    radial-gradient(1200px 800px at 10% -10%, rgba(99, 102, 241, 0.22), transparent 60%),
+    radial-gradient(900px 700px at 110% 10%, rgba(14, 165, 233, 0.18), transparent 60%),
+    radial-gradient(900px 700px at 50% 110%, rgba(168, 85, 247, 0.18), transparent 60%),
+    linear-gradient(180deg, #eef2ff 0%, #f0f9ff 50%, #faf5ff 100%);
+  background-attachment: fixed;
+  position: relative;
+}
+
+/* Aurora blobs — fixed decorative layer */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(600px 400px at 20% 20%, rgba(99, 102, 241, 0.22), transparent 70%),
+    radial-gradient(500px 400px at 85% 35%, rgba(6, 182, 212, 0.20), transparent 70%),
+    radial-gradient(700px 500px at 50% 90%, rgba(168, 85, 247, 0.18), transparent 70%);
+  filter: blur(40px) saturate(110%);
+  animation: aurora-drift 24s ease-in-out infinite alternate;
+}
+
+@keyframes aurora-drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1);       opacity: 0.9; }
+  50%  { transform: translate3d(2%, -1%, 0) scale(1.04); opacity: 1;   }
+  100% { transform: translate3d(-2%, 1%, 0) scale(0.98); opacity: 0.85;}
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before { animation: none; }
 }
 
 input[type="number"]::-webkit-inner-spin-button,
@@ -35,6 +79,61 @@ input[type="number"]::-webkit-outer-spin-button {
 
 input[type="number"] {
   -moz-appearance: textfield;
+}
+
+/* ─── Glassmorphism utilities ─── */
+@layer utilities {
+  .glass {
+    background-color: var(--glass-bg);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  .glass-strong {
+    background-color: var(--glass-bg-strong);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    border: 1px solid var(--glass-border-strong);
+    box-shadow: var(--glass-shadow-lg);
+  }
+
+  .glass-subtle {
+    background-color: var(--glass-bg-subtle);
+    backdrop-filter: blur(16px) saturate(130%);
+    -webkit-backdrop-filter: blur(16px) saturate(130%);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+  }
+
+  .glass-dark {
+    background-color: rgba(30, 41, 59, 0.55);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #f8fafc;
+  }
+
+  /* Hover lift for interactive glass cards */
+  .glass-hover {
+    transition: transform 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
+  }
+  .glass-hover:hover {
+    background-color: var(--glass-bg-strong);
+    box-shadow: var(--glass-shadow-lg);
+    transform: translateY(-1px);
+  }
+
+  /* Gradient primary button — tech feel */
+  .btn-gradient {
+    background-image: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
+    color: #fff;
+    box-shadow: 0 8px 24px -6px rgba(99, 102, 241, 0.5);
+  }
+  .btn-gradient:hover {
+    box-shadow: 0 12px 32px -6px rgba(99, 102, 241, 0.6);
+    filter: brightness(1.05);
+  }
 }
 
 /* ─── Clear-all modal animations ─── */
@@ -67,4 +166,17 @@ input[type="number"] {
   0% { transform: scale(0); opacity: 0; }
   60% { transform: scale(1.15); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
+}
+
+/* ─── Print: report must stay paper-white (no glass/aurora) ─── */
+@media print {
+  body {
+    background: #ffffff !important;
+  }
+  body::before { display: none !important; }
+  .glass, .glass-strong, .glass-subtle {
+    background-color: #ffffff !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
 }

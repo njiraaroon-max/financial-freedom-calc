@@ -45,7 +45,7 @@ function getStatusBg(status: FinancialRatio["status"]): string {
 
 export default function FinancialRatiosCard({ ratios }: FinancialRatiosCardProps) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+    <div className="glass rounded-2xl overflow-hidden">
       <div className="bg-gradient-to-r from-indigo-500 to-purple-500 px-4 py-3">
         <h3 className="text-sm font-bold text-white flex items-center gap-2">
           <TrendingUp size={16} />

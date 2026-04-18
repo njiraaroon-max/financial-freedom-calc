@@ -493,7 +493,7 @@ export default function CFProjectionPage() {
 
         {/* Balance over time chart */}
         {rows.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-sm p-4 mx-1">
+          <div className="glass rounded-2xl p-4 mx-1">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <LineIcon size={16} className="text-sky-600" />
@@ -506,7 +506,7 @@ export default function CFProjectionPage() {
         )}
 
         {/* Inputs panel */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 mx-1">
+        <div className="glass rounded-2xl p-4 mx-1">
           <div className="flex items-center gap-2 mb-3">
             <Sliders size={16} className="text-sky-600" />
             <h3 className="text-sm font-bold text-gray-800">สมมติฐาน (ปรับได้)</h3>
@@ -531,7 +531,7 @@ export default function CFProjectionPage() {
         </div>
 
         {/* Data sources indicator */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 mx-1 space-y-3">
+        <div className="glass rounded-2xl p-4 mx-1 space-y-3">
           <div>
             <h3 className="text-sm font-bold text-gray-800 mb-2">ปัจจุบัน (ก่อนเกษียณ)</h3>
             <div className="grid grid-cols-2 gap-2 text-[11px]">
@@ -555,7 +555,7 @@ export default function CFProjectionPage() {
         </div>
 
         {/* View toggle */}
-        <div className="bg-white rounded-2xl shadow-sm p-1.5 mx-1 flex gap-1 overflow-x-auto">
+        <div className="glass rounded-2xl p-1.5 mx-1 flex gap-1 overflow-x-auto">
           {[
             { key: "summary", label: "สรุปย่อ" },
             { key: "excel", label: "📊 Excel Detail" },
@@ -582,7 +582,7 @@ export default function CFProjectionPage() {
         {view === "summary" ? (
           <CondensedSummary rows={rows} currentAge={currentAge} retireAge={retireAge} />
         ) : view === "excel" ? (
-          <div className="bg-white rounded-2xl shadow-sm mx-1 overflow-hidden">
+          <div className="glass rounded-2xl mx-1 overflow-hidden">
             <div className="px-3 py-2.5 border-b border-gray-100 bg-gradient-to-r from-sky-50 to-indigo-50">
               <div className="text-xs font-bold text-slate-800">📊 ตารางรายละเอียดแบบ Excel</div>
               <div className="text-[10px] text-slate-500 mt-0.5">
@@ -621,7 +621,7 @@ function SummaryCard({
   accent: string;
 }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm p-3">
+    <div className="glass rounded-xl p-3">
       <div className="flex items-center gap-1.5 text-[10px] text-gray-500 mb-1">
         {icon}
         <span>{label}</span>
@@ -700,13 +700,13 @@ function FullProjectionTable({
 }) {
   if (rows.length === 0) {
     return (
-      <div className="bg-white rounded-2xl p-8 text-center text-xs text-gray-400 mx-1">
+      <div className="glass rounded-2xl p-8 text-center text-xs text-gray-400 mx-1">
         ไม่มีแถวในช่วงที่เลือก
       </div>
     );
   }
   return (
-    <div className="bg-white rounded-2xl shadow-sm mx-1 overflow-x-auto">
+    <div className="glass rounded-2xl mx-1 overflow-x-auto">
       <table className="w-full text-[10px]">
         <thead className="bg-gray-50 sticky top-0">
           <tr>
@@ -779,7 +779,7 @@ function CondensedSummary({
   const picked = rows.filter((r) => ages.has(r.age));
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm mx-1 p-3">
+    <div className="glass rounded-2xl mx-1 p-3">
       <h3 className="text-sm font-bold text-gray-800 mb-3">จุดสำคัญในเส้นทาง</h3>
       <div className="space-y-2">
         {picked.map((r) => {
@@ -977,7 +977,7 @@ function SpreadsheetView({
 }) {
   if (rows.length === 0) {
     return (
-      <div className="bg-white rounded-2xl p-8 text-center text-xs text-gray-400 mx-1">
+      <div className="glass rounded-2xl p-8 text-center text-xs text-gray-400 mx-1">
         ไม่มีข้อมูลในช่วงที่เลือก
       </div>
     );
@@ -1005,7 +1005,7 @@ function SpreadsheetView({
   const depletionRow = rows.find((r) => r.depleted);
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm mx-1 overflow-hidden">
+    <div className="glass rounded-2xl mx-1 overflow-hidden">
       {/* Legend */}
       <div className="px-3 py-2 border-b border-gray-100 bg-gray-50 flex flex-wrap gap-2 text-[9px]">
         <span className="inline-flex items-center gap-1">

@@ -72,7 +72,7 @@ export default function RetirementHubPage() {
 
       {/* ─── Step Progress Bar ─────────────────────────────────── */}
       <div className="px-4 md:px-8 pt-4">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+        <div className="glass rounded-2xl p-4">
           <div className="flex items-start">
             {[
               { n: 1, label: "Retirement Funds", sub: "ทุนเกษียณที่ต้องการ", done: step1Done },
@@ -114,7 +114,7 @@ export default function RetirementHubPage() {
           <div className={`w-10 h-10 rounded-lg flex items-center justify-center relative shrink-0 ${assumptionsDone ? "bg-emerald-500" : "bg-slate-600"}`}>
             <Settings size={18} className="text-white" />
             {assumptionsDone && (
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center">
+              <div className="glass absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center">
                 <Check size={10} className="text-emerald-500" />
               </div>
             )}
@@ -129,7 +129,7 @@ export default function RetirementHubPage() {
 
       {/* Step 1: หาทุนเกษียณที่ต้องการ */}
       <div className="px-4 md:px-8 pt-4">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
+        <div className="glass rounded-2xl">
           <button onClick={() => toggleStep(1)} className="w-full p-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${step1Done ? "bg-emerald-500 text-white" : "bg-[#1e3a5f] text-white"}`}>
@@ -162,7 +162,7 @@ export default function RetirementHubPage() {
                       <div className={`w-10 h-10 ${done ? "bg-emerald-500" : card.color} rounded-lg flex items-center justify-center mx-auto mb-2 relative`}>
                         <Icon size={18} className="text-white" />
                         {done && (
-                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center">
+                          <div className="glass absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center">
                             <Check size={10} className="text-emerald-500" />
                           </div>
                         )}
@@ -180,7 +180,7 @@ export default function RetirementHubPage() {
 
       {/* Step 2: คำนวณแหล่งเงินทุน */}
       <div className="px-4 md:px-8 pt-3">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
+        <div className="glass rounded-2xl">
           <button onClick={() => toggleStep(2)} className="w-full p-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${step2Done ? "bg-emerald-500 text-white" : "bg-[#1e3a5f] text-white"}`}>
@@ -222,7 +222,7 @@ export default function RetirementHubPage() {
                       <div className={`w-10 h-10 ${done ? "bg-emerald-500" : card.color} rounded-lg flex items-center justify-center mx-auto mb-2 relative`}>
                         <Icon size={18} className="text-white" />
                         {done && (
-                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center">
+                          <div className="glass absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center">
                             <Check size={10} className="text-emerald-500" />
                           </div>
                         )}
@@ -240,7 +240,7 @@ export default function RetirementHubPage() {
 
       {/* Step 3: Shortage or Gap + Saving Plan */}
       <div className="px-4 md:px-8 pt-3">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
+        <div className="glass rounded-2xl">
           <button onClick={() => toggleStep(3)} className="w-full p-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${step3Done ? "bg-emerald-500 text-white" : canCalculate ? "bg-[#1e3a5f] text-white" : "bg-gray-300 text-gray-500"}`}>
@@ -270,7 +270,7 @@ export default function RetirementHubPage() {
               <div className={`w-10 h-10 ${planDone ? "bg-emerald-500" : "bg-cyan-500"} rounded-lg flex items-center justify-center mx-auto mb-2 relative`}>
                 <Calculator size={18} className="text-white" />
                 {planDone && (
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center">
+                  <div className="glass absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center">
                     <Check size={10} className="text-emerald-500" />
                   </div>
                 )}
@@ -299,7 +299,7 @@ export default function RetirementHubPage() {
               <div className={`w-10 h-10 ${isCompleted("investment_plan") ? "bg-emerald-500" : "bg-amber-500"} rounded-lg flex items-center justify-center mx-auto mb-2 relative`}>
                 <TrendingUp size={18} className="text-white" />
                 {isCompleted("investment_plan") && (
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center">
+                  <div className="glass absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center">
                     <Check size={10} className="text-emerald-500" />
                   </div>
                 )}
@@ -324,7 +324,7 @@ export default function RetirementHubPage() {
 
       {/* บทสรุป Cashflow หลังวางแผนเกษียณ (Wealth Journey) */}
       <div className="px-4 md:px-8 pt-3 pb-8">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
+        <div className="glass rounded-2xl">
           <button onClick={() => toggleStep(4)} className="w-full p-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full flex items-center justify-center bg-[#1e3a5f] text-white">

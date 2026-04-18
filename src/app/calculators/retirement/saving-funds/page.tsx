@@ -146,7 +146,7 @@ export default function SavingFundsPage() {
         </button>
 
         {/* Items */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-4">
+        <div className="glass rounded-2xl p-4">
           <div className="text-xs font-bold text-gray-500 mb-3">
             รายการแหล่งเงินทุน
           </div>

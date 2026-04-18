@@ -224,7 +224,7 @@ export default function AgeScrollPicker({
       {/* Modal */}
       {open && (
         <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center bg-black/40" onClick={() => setOpen(false)}>
-          <div className="bg-white w-full max-w-sm md:rounded-2xl rounded-t-2xl shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="glass w-full max-w-sm md:rounded-2xl rounded-t-2xl" onClick={(e) => e.stopPropagation()}>
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
               <span className="text-sm font-bold text-gray-700">{label || "เลือกอายุ"}</span>

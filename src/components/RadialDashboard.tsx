@@ -300,7 +300,7 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
 
       {/* Bottom Module Selector — only unselected modules */}
       {unselectedPieces.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-2 mt-1">
+        <div className="glass rounded-2xl p-2 mt-1">
           <div className="text-[9px] text-gray-400 text-center mb-1.5">กดเพื่อเพิ่มแผนที่ต้องการ</div>
           <div className="flex flex-wrap justify-center gap-1.5 md:gap-2">
             {unselectedPieces.map((piece) => {

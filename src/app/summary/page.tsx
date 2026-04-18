@@ -261,7 +261,7 @@ export default function SummaryPage() {
           ];
 
           return (
-            <div className="bg-white rounded-2xl border border-gray-200 p-4">
+            <div className="glass rounded-2xl p-4">
               <div className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-4">
                 <HeartPulse size={16} className="text-emerald-500" />
                 สุขภาพทางการเงิน
@@ -298,7 +298,7 @@ export default function SummaryPage() {
 
                 return (
                   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setSelectedGauge(null)}>
-                    <div className="bg-white rounded-2xl shadow-xl p-5 mx-4 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+                    <div className="glass rounded-2xl p-5 mx-4 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
                       {/* Header */}
                       <div className="flex items-center gap-2 mb-4">
                         {statusIcon}
@@ -357,7 +357,7 @@ export default function SummaryPage() {
         <div className="md:grid md:grid-cols-2 md:gap-4 space-y-4 md:space-y-0">
 
           {/* 1. Cash Flow Summary */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-4">
+          <div className="glass rounded-2xl p-4">
             <div className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
               <Wallet size={16} className="text-indigo-500" />
               สรุป Cash Flow รายปี
@@ -396,7 +396,7 @@ export default function SummaryPage() {
           </div>
 
           {/* 2. Balance Sheet Summary */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-4">
+          <div className="glass rounded-2xl p-4">
             <div className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
               <Scale size={16} className="text-purple-500" />
               สรุป Balance Sheet
@@ -424,7 +424,7 @@ export default function SummaryPage() {
         <div className="md:grid md:grid-cols-2 md:gap-4 space-y-4 md:space-y-0">
 
           {/* 3. Emergency Fund */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-4">
+          <div className="glass rounded-2xl p-4">
             <div className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
               <ShieldAlert size={16} className="text-teal-500" />
               เงินสำรองฉุกเฉิน
@@ -451,7 +451,7 @@ export default function SummaryPage() {
           </div>
 
           {/* 4. Retirement Timeline */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-4">
+          <div className="glass rounded-2xl p-4">
             <div className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
               <Palmtree size={16} className="text-cyan-500" />
               Timeline ชีวิต
@@ -493,7 +493,7 @@ export default function SummaryPage() {
         </div>
 
         {/* 5. ทุนเกษียณที่ต้องเตรียมเพิ่มเติม */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-4">
+        <div className="glass rounded-2xl p-4">
           <div className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-4">
             <TrendingUp size={16} className="text-indigo-500" />
             ทุนเกษียณที่ต้องเตรียมเพิ่มเติม
@@ -540,7 +540,7 @@ export default function SummaryPage() {
 
         {/* 6. ตารางสรุปแผนลงทุน + กราฟ */}
         {retireStore.investmentPlans.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-200 p-4">
+          <div className="glass rounded-2xl p-4">
             <div className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
               <TrendingUp size={16} className="text-purple-500" />
               สรุปแผนการลงทุน

@@ -692,7 +692,7 @@ export default function TaxPage() {
                 const aH = Math.round(barMaxH * (totalTaxAfter / maxVal));
                 const sH = Math.max(Math.round(barMaxH * (taxSaved / maxVal)), 0);
                 return (
-                  <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
+                  <div className="glass rounded-xl p-4 mb-4">
                     <div className="text-xs font-bold text-[#1e3a5f] text-center mb-4">เปรียบเทียบภาษีเงินได้</div>
                     <div className="flex items-end justify-center gap-8" style={{ height: `${barMaxH + 30}px` }}>
                       <div className="flex flex-col items-center">
@@ -724,7 +724,7 @@ export default function TaxPage() {
                 const bH = Math.round(barMaxH * (effectiveBefore / maxETR));
                 const aH = Math.round(barMaxH * (effectiveAfter / maxETR));
                 return (
-                  <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
+                  <div className="glass rounded-xl p-4 mb-4">
                     <div className="text-xs font-bold text-[#1e3a5f] text-center mb-4">Effective Tax Rate</div>
                     <div className="flex items-end justify-center gap-10" style={{ height: `${barMaxH + 30}px` }}>
                       <div className="flex flex-col items-center">

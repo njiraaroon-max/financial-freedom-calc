@@ -65,7 +65,7 @@ export default function ConfirmDialog() {
       aria-modal="true"
     >
       <div
-        className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl animate-dialog-in"
+        className="glass rounded-3xl w-full max-w-sm p-6 animate-dialog-in"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start gap-3 mb-4">

@@ -111,7 +111,7 @@ export default function PersonalInfoPage() {
         )}
 
         {/* === ข้อมูลทั่วไป === */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-4">
+        <div className="glass rounded-2xl p-4 space-y-4">
           <div className="flex items-center gap-2 text-sm font-bold text-gray-700">
             <User size={16} className="text-[var(--color-primary)]" />
             ข้อมูลทั่วไป
@@ -193,7 +193,7 @@ export default function PersonalInfoPage() {
         </div>
 
         {/* === ข้อมูลอาชีพ === */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-4">
+        <div className="glass rounded-2xl p-4 space-y-4">
           <div className="flex items-center gap-2 text-sm font-bold text-gray-700">
             <Briefcase size={16} className="text-amber-500" />
             ข้อมูลอาชีพ
@@ -218,7 +218,7 @@ export default function PersonalInfoPage() {
                       : "border-gray-300"
                   }`}>
                     {draft.occupation === opt.value && (
-                      <div className="w-2 h-2 bg-white rounded-full" />
+                      <div className="glass w-2 h-2 rounded-full" />
                     )}
                   </div>
                   <div>

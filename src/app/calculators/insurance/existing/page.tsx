@@ -54,7 +54,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+    <div className="glass rounded-2xl overflow-hidden">
       <div className={`px-4 py-2.5 ${color}`}>
         <span className="text-xs font-bold text-white">{title}</span>
       </div>

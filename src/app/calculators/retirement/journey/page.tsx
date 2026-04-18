@@ -497,7 +497,7 @@ export default function WealthJourneyPage() {
 
       {/* Chart Card */}
       <div className="px-4 md:px-8 pt-4">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 relative">
+        <div className="glass rounded-2xl p-4 relative">
           {/* View toggle: wealth curve vs cashflow breakdown */}
           <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg mb-3 w-fit">
             <button
@@ -734,7 +734,7 @@ export default function WealthJourneyPage() {
         const neverPct = (neverDepleted / mcResult.simulations) * 100;
         return (
         <div className="px-4 md:px-8 pt-4">
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+          <div className="glass rounded-2xl p-4">
             <div className="flex items-start justify-between gap-3 mb-2">
               <div>
                 <div className="flex items-center gap-2">
@@ -830,7 +830,7 @@ export default function WealthJourneyPage() {
 
       {/* Year Table (collapsible) */}
       <div className="px-4 md:px-8 pt-3">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="glass rounded-2xl overflow-hidden">
           <button
             onClick={() => setTableOpen((v) => !v)}
             className="w-full p-4 flex items-center justify-between hover:bg-slate-50"
@@ -897,7 +897,7 @@ export default function WealthJourneyPage() {
 
       {/* Assumptions Recap */}
       <div className="px-4 md:px-8 pt-3">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="glass rounded-2xl overflow-hidden">
           <button
             onClick={() => setAssumpOpen((v) => !v)}
             className="w-full p-4 flex items-center justify-between hover:bg-slate-50"
@@ -1043,7 +1043,7 @@ function StatCard({
 }) {
   const [showTip, setShowTip] = useState(false);
   return (
-    <div className="relative bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+    <div className="glass relative rounded-2xl p-4">
       <div className="flex items-start justify-between">
         <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center mb-2`}>
           <Icon size={18} className="text-white" />
@@ -1733,7 +1733,7 @@ function McSettingsModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-lg p-5 max-h-[90vh] overflow-y-auto"
+        className="glass rounded-2xl w-full max-w-lg p-5 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-3">

@@ -245,7 +245,7 @@ export default function BalanceSheetTable({
           onClick={() => setEditCell(null)}
         >
           <div
-            className="bg-white rounded-2xl shadow-xl p-5 mx-6 w-full max-w-xs md:max-w-sm"
+            className="glass rounded-2xl p-5 mx-6 w-full max-w-xs md:max-w-sm"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="text-sm font-bold text-gray-700 mb-3">

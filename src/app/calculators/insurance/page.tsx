@@ -631,7 +631,7 @@ export default function InsuranceHubPage() {
         {/* ═══ END TEMPLE ══════════════════════════════════════════ */}
 
         {/* ═══ RADAR CHART ═══════════════════════════════════════════ */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 mx-1">
+        <div className="glass rounded-2xl p-4 mx-1">
           <div className="text-center mb-2">
             <div className="text-sm font-bold text-gray-800">Risk Allocation Balance Score</div>
             <div className="text-[10px] text-gray-400">อายุ {currentAge} ปี | ประเมินแล้ว {completedCount}/4 Pillars</div>
@@ -655,7 +655,7 @@ export default function InsuranceHubPage() {
 
         {/* ═══ RECOMMENDED NEXT STEPS ══════════════════════════════ */}
         {recommendations.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-sm p-4 mx-1">
+          <div className="glass rounded-2xl p-4 mx-1">
             <div className="text-xs font-bold text-gray-800 mb-3 flex items-center gap-2">
               <TrendingUp size={14} className="text-gray-600" />
               Recommended Next Steps

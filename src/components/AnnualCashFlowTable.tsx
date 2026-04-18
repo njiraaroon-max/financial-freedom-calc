@@ -151,7 +151,7 @@ export default function AnnualCashFlowTable({
   return (
     <div className="mx-2 mb-4 space-y-4">
       {/* Pie Charts */}
-      <div className="grid grid-cols-2 gap-2 bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+      <div className="glass grid grid-cols-2 gap-2 rounded-xl p-4">
         <PieChart title="รายรับ" slices={incomeSlices} size={120} />
         <PieChart title="รายจ่าย" slices={expenseSlices} size={120} />
       </div>
@@ -309,7 +309,7 @@ export default function AnnualCashFlowTable({
           onClick={() => setEditCell(null)}
         >
           <div
-            className="bg-white rounded-2xl shadow-xl p-5 mx-6 w-full max-w-xs md:max-w-sm"
+            className="glass rounded-2xl p-5 mx-6 w-full max-w-xs md:max-w-sm"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="text-sm font-bold text-gray-700 mb-1">

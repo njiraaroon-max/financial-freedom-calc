@@ -276,7 +276,7 @@ export default function RetirementPlanPage() {
 
           {/* A. ค่าใช้จ่ายพื้นฐาน */}
           <Link href="/calculators/retirement/basic-expenses" className="block">
-            <div className="rounded-xl border border-orange-200 bg-white p-4 hover:bg-orange-50/50 transition active:scale-[0.98]">
+            <div className="glass rounded-xl border border-orange-200 p-4 hover:bg-orange-50/50 transition active:scale-[0.98]">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-[10px] text-orange-500 font-medium">A. ค่าใช้จ่ายพื้นฐานหลังเกษียณ</div>
@@ -296,7 +296,7 @@ export default function RetirementPlanPage() {
 
           {/* B. ค่าใช้จ่ายพิเศษ */}
           <Link href="/calculators/retirement/special-expenses" className="block">
-            <div className="rounded-xl border border-red-200 bg-white p-4 hover:bg-red-50/50 transition active:scale-[0.98]">
+            <div className="glass rounded-xl border border-red-200 p-4 hover:bg-red-50/50 transition active:scale-[0.98]">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-[10px] text-red-500 font-medium">B. ค่าใช้จ่ายพิเศษหลังเกษียณ</div>
@@ -397,7 +397,7 @@ export default function RetirementPlanPage() {
           }}
         >
           <div
-            className="bg-white w-full max-w-md md:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden"
+            className="glass w-full max-w-md md:rounded-2xl rounded-t-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {clearStage === "idle" && (

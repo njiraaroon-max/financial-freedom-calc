@@ -215,17 +215,17 @@ export default function OverviewPage() {
 
         {/* Summary cards */}
         <div className="grid grid-cols-3 gap-2">
-          <div className="bg-white rounded-2xl border border-gray-200 p-3 text-center">
+          <div className="glass rounded-2xl p-3 text-center">
             <div className="text-[10px] text-gray-400">กรมธรรม์</div>
             <div className="text-lg font-extrabold text-gray-800">{policies.length}</div>
             <div className="text-[10px] text-gray-400">ฉบับ</div>
           </div>
-          <div className="bg-white rounded-2xl border border-gray-200 p-3 text-center">
+          <div className="glass rounded-2xl p-3 text-center">
             <div className="text-[10px] text-gray-400">ความคุ้มครองพอ</div>
             <div className="text-lg font-extrabold text-emerald-600">{okCount}</div>
             <div className="text-[10px] text-gray-400">รายการ</div>
           </div>
-          <div className="bg-white rounded-2xl border border-gray-200 p-3 text-center">
+          <div className="glass rounded-2xl p-3 text-center">
             <div className="text-[10px] text-gray-400">ยังขาด</div>
             <div className="text-lg font-extrabold text-red-500">{gapCount}</div>
             <div className="text-[10px] text-gray-400">รายการ</div>
@@ -233,7 +233,7 @@ export default function OverviewPage() {
         </div>
 
         {/* Gap analysis table */}
-        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+        <div className="glass rounded-2xl overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-100">
             <h3 className="text-sm font-extrabold text-gray-800">ช่องว่างความคุ้มครอง</h3>
             <p className="text-[10px] text-gray-400">เปรียบเทียบความคุ้มครองที่ควรมี vs ที่มีอยู่</p>
@@ -295,7 +295,7 @@ export default function OverviewPage() {
         </div>
 
         {/* Premium breakdown */}
-        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+        <div className="glass rounded-2xl overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-100">
             <h3 className="text-sm font-extrabold text-gray-800">สรุปเบี้ยประกัน</h3>
           </div>

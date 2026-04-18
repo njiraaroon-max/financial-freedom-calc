@@ -276,7 +276,7 @@ export default function SpecialExpensesPage() {
         )}
 
         {/* Items */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-4">
+        <div className="glass rounded-2xl p-4">
           <div className="text-xs font-bold text-gray-500 mb-3">
             รายจ่ายพิเศษ (PV = ราคาปัจจุบัน)
           </div>
@@ -425,7 +425,7 @@ export default function SpecialExpensesPage() {
         </div>
 
         {/* Summary Table */}
-        <div className="mt-4 bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+        <div className="glass mt-4 rounded-2xl overflow-hidden">
           <div className="bg-[#1e3a5f] px-4 py-2.5 flex items-center justify-between">
             <span className="text-xs font-bold text-white">
               ตารางสรุป ค่าใช้จ่ายพิเศษหลังเกษียณ
@@ -532,7 +532,7 @@ export default function SpecialExpensesPage() {
           onClick={() => setShowInfo(false)}
         >
           <div
-            className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-xl max-h-[85vh] overflow-y-auto"
+            className="glass w-full max-w-lg md:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="sticky top-0 bg-pink-600 text-white px-5 py-4 flex items-center justify-between z-10 md:rounded-t-2xl rounded-t-2xl">
