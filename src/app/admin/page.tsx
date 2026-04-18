@@ -344,7 +344,6 @@ export default function AdminPage() {
                   <tr>
                     <th className="text-left px-3 py-2.5 font-medium">อีเมล</th>
                     <th className="text-left px-3 py-2.5 font-medium">ชื่อ</th>
-                    <th className="text-left px-3 py-2.5 font-medium">บริษัท</th>
                     <th className="text-center px-3 py-2.5 font-medium">
                       สิทธิ์
                     </th>
@@ -384,9 +383,6 @@ export default function AdminPage() {
                         </td>
                         <td className="px-3 py-2.5 text-gray-600">
                           {row.display_name || "-"}
-                        </td>
-                        <td className="px-3 py-2.5 text-gray-600">
-                          {row.company || "-"}
                         </td>
                         <td className="px-3 py-2.5 text-center">
                           <select
