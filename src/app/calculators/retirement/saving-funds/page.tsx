@@ -5,6 +5,7 @@ import { Save, Plus, RefreshCw, Info } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import { useInsuranceStore } from "@/store/insurance-store";
 import { useVariableStore } from "@/store/variable-store";
+import { flushAllStores } from "@/lib/sync/flush-all";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 import CashflowItemCard from "@/components/CashflowItemCard";
@@ -103,7 +104,7 @@ export default function SavingFundsPage() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     store.markStepCompleted("saving_funds");
     setVariable({
       key: "retire_fund_existing",
@@ -112,9 +113,10 @@ export default function SavingFundsPage() {
       source: "retirement",
     });
     setHasSaved(true);
-    setTimeout(() => {
-      window.location.href = "/calculators/retirement/plan";
-    }, 1200);
+    // Flush all stores to Supabase before the full-page reload aborts
+    // any in-flight autosave fetches.
+    await flushAllStores();
+    window.location.href = "/calculators/retirement/plan";
   };
 
   return (

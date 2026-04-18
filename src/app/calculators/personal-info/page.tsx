@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Save, User, Briefcase, Heart, Calendar, Banknote, Clock, ShieldCheck, Trash2 } from "lucide-react";
 import { useProfileStore, OCCUPATION_OPTIONS, MARITAL_OPTIONS } from "@/store/profile-store";
+import { flushAllStores } from "@/lib/sync/flush-all";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 import ThaiDatePicker from "@/components/ThaiDatePicker";
@@ -76,7 +77,8 @@ export default function PersonalInfoPage() {
     ? Math.floor((Date.now() - new Date(draft.birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
     : 0;
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    // 1. Push draft → zustand store (localStorage is synchronous).
     profile.updateProfile("name", draft.name);
     profile.updateProfile("birthDate", draft.birthDate);
     profile.updateProfile("occupation", draft.occupation);
@@ -89,11 +91,14 @@ export default function PersonalInfoPage() {
     profile.updateProfile("socialSecurityMonths", draft.socialSecurityMonths);
     setHasSaved(true);
     setHasChanges(false);
-    // Wait > 800ms autosave debounce so Supabase receives the write
-    // before a full page reload aborts the pending fetch.
-    setTimeout(() => {
-      window.location.href = "/";
-    }, 1200);
+
+    // 2. Flush to Supabase SYNCHRONOUSLY. The 800ms autosave debounce
+    // races against the full-page reload below — the in-flight fetch
+    // gets aborted. Awaiting the write guarantees it lands.
+    await flushAllStores();
+
+    // 3. Navigate home. Safe now — writes have completed.
+    window.location.href = "/";
   };
 
   return (

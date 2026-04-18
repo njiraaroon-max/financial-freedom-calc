@@ -5,6 +5,7 @@ import { Save, TrendingUp, TrendingDown, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { useInsuranceStore } from "@/store/insurance-store";
 import { useVariableStore } from "@/store/variable-store";
+import { flushAllStores } from "@/lib/sync/flush-all";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 
@@ -145,7 +146,7 @@ export default function OverviewPage() {
     premiumByGroup[p.group] = (premiumByGroup[p.group] || 0) + p.premium;
   });
 
-  function handleSave() {
+  async function handleSave() {
     store.markStepCompleted("overview");
 
     variableStore.setVariable({
@@ -162,9 +163,10 @@ export default function OverviewPage() {
     });
 
     setHasSaved(true);
-    setTimeout(() => {
-      window.location.href = "/calculators/insurance";
-    }, 1200);
+    // Flush all stores to Supabase before the full-page reload aborts
+    // any in-flight autosave fetches.
+    await flushAllStores();
+    window.location.href = "/calculators/insurance";
   }
 
   const GROUP_LABELS: Record<string, string> = {

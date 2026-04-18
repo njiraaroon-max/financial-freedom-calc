@@ -18,6 +18,7 @@ import {
 import { useRetirementStore } from "@/store/retirement-store";
 import { useProfileStore } from "@/store/profile-store";
 import { useInsuranceStore } from "@/store/insurance-store";
+import { flushAllStores } from "@/lib/sync/flush-all";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 import CashflowItemCard from "@/components/CashflowItemCard";
@@ -203,12 +204,13 @@ export default function SpecialExpensesPage() {
     0,
   );
 
-  const handleSave = () => {
+  const handleSave = async () => {
     store.markStepCompleted("special_expenses");
     setHasSaved(true);
-    setTimeout(() => {
-      window.location.href = "/calculators/retirement";
-    }, 1200);
+    // Flush all stores to Supabase before the full-page reload aborts
+    // any in-flight autosave fetches.
+    await flushAllStores();
+    window.location.href = "/calculators/retirement";
   };
 
   return (

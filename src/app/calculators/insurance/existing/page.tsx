@@ -6,6 +6,7 @@ import {
   useInsuranceStore,
   ExistingCoverage,
 } from "@/store/insurance-store";
+import { flushAllStores } from "@/lib/sync/flush-all";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 import MoneyInput from "@/components/MoneyInput";
@@ -89,12 +90,13 @@ export default function ExistingCoveragePage() {
     store.updateCoverage(key, value as ExistingCoverage[K]);
   }
 
-  function handleSave() {
+  async function handleSave() {
     store.markStepCompleted("existing");
     setHasSaved(true);
-    setTimeout(() => {
-      window.location.href = "/calculators/insurance";
-    }, 1200);
+    // Flush all stores to Supabase before the full-page reload aborts
+    // any in-flight autosave fetches.
+    await flushAllStores();
+    window.location.href = "/calculators/insurance";
   }
 
   return (

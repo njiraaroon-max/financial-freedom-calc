@@ -129,8 +129,10 @@ export default function ClientDataSync() {
         if (!store) continue;
         const payload = store.getState() as unknown as Json;
         // Fire-and-forget; page is about to unmount.
-        savePlanData(clientId, domain, payload).catch((err) =>
-          console.error(`[ClientDataSync] flush(${domain}) failed`, err),
+        // Use store.domain (typed as PlanDomain) rather than the map
+        // key (string) so we satisfy savePlanData's signature.
+        savePlanData(clientId, store.domain, payload).catch((err) =>
+          console.error(`[ClientDataSync] flush(${store.domain}) failed`, err),
         );
       }
       pendingTimersRef.current.clear();
