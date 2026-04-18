@@ -336,17 +336,24 @@ export default function ExcelCashflow({
           const isSource =
             drag?.itemId === item.id && drag.sourceMonth === i;
           const isInRange = inDragRange(item.id, i);
-          const showHandle = a !== 0 && !drag; // only on non-empty source cells, and never while dragging
+          // Fill handle on every cell (non-zero = copy-fill, zero = clear-fill)
+          const showHandle = !drag;
+          const isClearDrag = drag?.sourceValue === 0;
           return (
             <td
               key={i}
               data-item-id={item.id}
               data-month-index={i}
-              className={`${dataCell} relative cursor-pointer ${
+              tabIndex={0}
+              className={`${dataCell} relative cursor-pointer outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-inset ${
                 isInRange
                   ? isSource
-                    ? "bg-indigo-200 ring-2 ring-indigo-500 ring-inset"
-                    : "bg-indigo-100"
+                    ? isClearDrag
+                      ? "bg-rose-200 ring-2 ring-rose-500 ring-inset"
+                      : "bg-indigo-200 ring-2 ring-indigo-500 ring-inset"
+                    : isClearDrag
+                      ? "bg-rose-100"
+                      : "bg-indigo-100"
                   : "hover:bg-indigo-50 active:bg-indigo-100"
               }`}
               onClick={() => {
@@ -358,15 +365,48 @@ export default function ExcelCashflow({
                 });
                 setEditValue(a);
               }}
+              onKeyDown={(e) => {
+                // Delete/Backspace on focused cell = instant clear (no popup)
+                if (e.key === "Delete" || e.key === "Backspace") {
+                  if (a !== 0) {
+                    e.preventDefault();
+                    onUpdateAmount(item.id, i, 0);
+                  }
+                  return;
+                }
+                // Enter / Space / any digit → open edit popup
+                if (
+                  e.key === "Enter" ||
+                  e.key === " " ||
+                  /^[0-9.]$/.test(e.key)
+                ) {
+                  e.preventDefault();
+                  setEditCell({
+                    itemId: item.id,
+                    itemName: item.name,
+                    monthIndex: i,
+                  });
+                  setEditValue(/^[0-9.]$/.test(e.key) ? Number(e.key) || 0 : a);
+                }
+              }}
             >
               {isInRange && !isSource ? fmt(drag!.sourceValue) : fmt(a)}
-              {/* Fill handle — bottom-right, only on cells that have data */}
+              {/* Fill handle — bottom-right. On non-zero cells: drag to copy.
+                  On zero cells: drag to clear a range (touch-hidden to reduce clutter). */}
               {showHandle && (
                 <span
                   onPointerDown={(e) => startDragFill(e, item.id, i, a)}
-                  className="fill-handle"
-                  aria-label="ลากเพื่อคัดลอกข้ามเดือน"
-                  title="ลากไปยังเดือนอื่นเพื่อคัดลอกค่า"
+                  className={`fill-handle ${a === 0 ? "fill-handle-zero" : ""}`}
+                  aria-label={
+                    a === 0
+                      ? "ลากเพื่อล้างค่าหลายเดือน"
+                      : "ลากเพื่อคัดลอกข้ามเดือน"
+                  }
+                  title={
+                    a === 0
+                      ? "ลากไปยังเดือนอื่นเพื่อล้างค่าเป็น 0"
+                      : "ลากไปยังเดือนอื่นเพื่อคัดลอกค่า"
+                  }
                 />
               )}
             </td>
@@ -804,6 +844,16 @@ export default function ExcelCashflow({
             />
             <div className="flex gap-2 mt-4">
               <button
+                onClick={() => {
+                  if (editCell) onUpdateAmount(editCell.itemId, editCell.monthIndex, 0);
+                  setEditCell(null);
+                }}
+                className="py-2.5 px-3 rounded-xl bg-rose-50 text-rose-600 text-sm font-medium hover:bg-rose-100 transition flex items-center justify-center gap-1"
+                title="ล้างค่าเป็น 0"
+              >
+                <Trash2 size={14} /> ล้าง
+              </button>
+              <button
                 onClick={() => setEditCell(null)}
                 className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-500 text-sm font-medium hover:bg-gray-200 transition"
               >
@@ -844,11 +894,25 @@ export default function ExcelCashflow({
         :global(.fill-handle:hover) {
           transform: scale(1.25);
         }
+        /* Zero-cell handle — subtler (gray) because drag-to-clear is a
+           power-user gesture; don't want it competing with the copy-fill
+           affordance on cells that have data. */
+        :global(.fill-handle-zero) {
+          background: #9ca3af;
+        }
+        :global(td:hover .fill-handle-zero) {
+          opacity: 0.5;
+        }
         /* Touch devices — always show the handle at 60% so the affordance
-           is reachable without a hover state. */
+           is reachable without a hover state. Hide zero-cell handles on
+           touch to keep the grid clean; use the edit popup's ล้าง button
+           instead. */
         @media (hover: none) {
           :global(.fill-handle) {
             opacity: 0.6;
+          }
+          :global(.fill-handle-zero) {
+            opacity: 0;
           }
         }
       `}</style>
