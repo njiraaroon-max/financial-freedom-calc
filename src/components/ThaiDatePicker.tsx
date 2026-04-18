@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Calendar, X } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -267,6 +268,10 @@ export default function ThaiDatePicker({
   className = "",
 }: ThaiDatePickerProps) {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const parsed = toThaiDate(value);
   const [selDay, setSelDay] = useState(parsed.day);
   const [selMonth, setSelMonth] = useState(parsed.month);
@@ -326,8 +331,9 @@ export default function ThaiDatePicker({
         </span>
       </button>
 
-      {/* Picker Modal */}
-      {open && (
+      {/* Picker Modal — portal to body to escape any ancestor
+          `backdrop-filter` containing block (the glass theme). */}
+      {open && mounted && createPortal(
         <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={handleCancel} />
           <div className="relative bg-white w-full md:max-w-sm rounded-t-3xl md:rounded-3xl overflow-hidden shadow-2xl">
@@ -383,7 +389,8 @@ export default function ThaiDatePicker({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
       {/* Hide scrollbar */}
