@@ -330,7 +330,7 @@ export default function ThaiDatePicker({
       {open && (
         <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={handleCancel} />
-          <div className="glass relative w-full md:max-w-sm rounded-t-3xl md:rounded-3xl overflow-hidden">
+          <div className="relative bg-white w-full md:max-w-sm rounded-t-3xl md:rounded-3xl overflow-hidden shadow-2xl">
             {/* Header */}
             <div className="flex items-center justify-between px-5 pt-4 pb-2">
               <span className="text-sm font-bold text-gray-800">{label || "เลือกวันที่"}</span>
