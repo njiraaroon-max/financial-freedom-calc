@@ -115,9 +115,33 @@ export default function TagSheet({
     return { from: firstIdx, to: lastIdx };
   }, [item.amounts]);
 
-  const [fromMonth, setFromMonth] = useState<number>(impliedRange.from);
-  const [toMonth, setToMonth] = useState<number>(impliedRange.to);
-  const [isRecurring, setIsRecurringLocal] = useState<boolean>(item.isRecurring);
+  const [fromMonth, setFromMonthRaw] = useState<number>(impliedRange.from);
+  const [toMonth, setToMonthRaw] = useState<number>(impliedRange.to);
+  const [isRecurring, setIsRecurringLocalRaw] = useState<boolean>(
+    item.isRecurring,
+  );
+
+  // Dirty flag — true once user touches amount/range/recurring. Used so
+  // that clicking "เสร็จ" commits the pending changes automatically
+  // (avoids the gotcha where users forget to click the inline "ใช้กับ ..." button).
+  const [dirty, setDirty] = useState(false);
+
+  const setAmountDirty = (v: number) => {
+    setAmount(v);
+    setDirty(true);
+  };
+  const setFromMonth = (v: number) => {
+    setFromMonthRaw(v);
+    setDirty(true);
+  };
+  const setToMonth = (v: number) => {
+    setToMonthRaw(v);
+    setDirty(true);
+  };
+  const setIsRecurringLocal = (v: boolean) => {
+    setIsRecurringLocalRaw(v);
+    setDirty(true);
+  };
 
   // salary %-linked (expense-only)
   const percentLinkType = expense.percentLinkType;
@@ -126,13 +150,14 @@ export default function TagSheet({
     expense.salaryPercent,
   );
 
-  // Sync when opening a different item
+  // Sync when opening a different item (reset to pristine, not dirty)
   useEffect(() => {
     setName(item.name);
     setAmount(pickDefaultAmount());
-    setFromMonth(impliedRange.from);
-    setToMonth(impliedRange.to);
-    setIsRecurringLocal(item.isRecurring);
+    setFromMonthRaw(impliedRange.from);
+    setToMonthRaw(impliedRange.to);
+    setIsRecurringLocalRaw(item.isRecurring);
+    setDirty(false);
     if (!isIncome) setSalaryPct((item as ExpenseItem).salaryPercent);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item.id]);
@@ -152,6 +177,15 @@ export default function TagSheet({
       onBulkFillRange(item.id, fromMonth, fromMonth, amount, true);
       onSetRecurring(item.id, false);
     }
+    setDirty(false);
+  };
+
+  // Commit pending changes and close — so users who type an amount then
+  // tap "เสร็จ" (instead of the inline "ใช้กับ ..." button) still save.
+  const commitAndClose = () => {
+    commitName();
+    if (dirty) applyTiming();
+    onClose();
   };
 
   const applySalaryPct = (pct: number | undefined) => {
@@ -319,7 +353,7 @@ export default function TagSheet({
               </label>
               <MoneyInput
                 value={amount}
-                onChange={setAmount}
+                onChange={setAmountDirty}
                 placeholder="0"
                 ringClass="focus:ring-indigo-400"
               />
@@ -422,13 +456,14 @@ export default function TagSheet({
           </button>
           <div className="flex-1" />
           <button
-            onClick={() => {
-              commitName();
-              onClose();
-            }}
-            className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-bold hover:bg-[var(--color-primary-dark)] transition shadow-sm"
+            onClick={commitAndClose}
+            className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-white text-sm font-bold transition shadow-sm ${
+              dirty
+                ? "bg-emerald-500 hover:bg-emerald-600 ring-2 ring-emerald-200"
+                : "bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)]"
+            }`}
           >
-            <Check size={16} /> เสร็จ
+            <Check size={16} /> {dirty ? "บันทึก & ปิด" : "เสร็จ"}
           </button>
         </div>
       </div>
