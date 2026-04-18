@@ -118,9 +118,20 @@ export default function ClientDataSync() {
 
     return () => {
       unsubs.forEach((u) => u());
-      // Flush pending saves on unmount / client change
-      for (const timer of pendingTimersRef.current.values()) {
+      // Flush pending saves on unmount / client change. We cancel the
+      // debounce timer and fire the save IMMEDIATELY (fire-and-forget);
+      // otherwise a page reload triggered shortly after a .setState
+      // would race the 800ms debounce and lose the write.
+      const clientId = activeClientId;
+      for (const [domain, timer] of pendingTimersRef.current.entries()) {
         clearTimeout(timer);
+        const store = SYNCED_STORES.find((s) => s.domain === domain);
+        if (!store) continue;
+        const payload = store.getState() as unknown as Json;
+        // Fire-and-forget; page is about to unmount.
+        savePlanData(clientId, domain, payload).catch((err) =>
+          console.error(`[ClientDataSync] flush(${domain}) failed`, err),
+        );
       }
       pendingTimersRef.current.clear();
     };

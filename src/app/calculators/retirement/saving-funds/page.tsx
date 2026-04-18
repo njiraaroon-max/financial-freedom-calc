@@ -114,7 +114,7 @@ export default function SavingFundsPage() {
     setHasSaved(true);
     setTimeout(() => {
       window.location.href = "/calculators/retirement/plan";
-    }, 500);
+    }, 1200);
   };
 
   return (

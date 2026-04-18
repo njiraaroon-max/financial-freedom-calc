@@ -164,7 +164,7 @@ export default function OverviewPage() {
     setHasSaved(true);
     setTimeout(() => {
       window.location.href = "/calculators/insurance";
-    }, 500);
+    }, 1200);
   }
 
   const GROUP_LABELS: Record<string, string> = {

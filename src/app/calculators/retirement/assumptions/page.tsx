@@ -71,7 +71,7 @@ export default function AssumptionsPage() {
     setHasSaved(true);
     setTimeout(() => {
       window.location.href = "/calculators/retirement";
-    }, 500);
+    }, 1200);
   };
 
   return (

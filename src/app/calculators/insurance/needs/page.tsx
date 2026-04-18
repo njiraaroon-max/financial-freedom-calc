@@ -264,7 +264,7 @@ export default function NeedsPage() {
     setHasSaved(true);
     setTimeout(() => {
       window.location.href = "/calculators/insurance";
-    }, 500);
+    }, 1200);
   }
 
   // Totals

@@ -94,7 +94,7 @@ export default function ExistingCoveragePage() {
     setHasSaved(true);
     setTimeout(() => {
       window.location.href = "/calculators/insurance";
-    }, 500);
+    }, 1200);
   }
 
   return (

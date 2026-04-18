@@ -118,7 +118,7 @@ export default function BasicExpensesPage() {
     setHasSaved(true);
     setTimeout(() => {
       window.location.href = "/calculators/retirement";
-    }, 500);
+    }, 1200);
   };
 
   return (

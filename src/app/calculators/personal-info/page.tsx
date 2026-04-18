@@ -89,9 +89,11 @@ export default function PersonalInfoPage() {
     profile.updateProfile("socialSecurityMonths", draft.socialSecurityMonths);
     setHasSaved(true);
     setHasChanges(false);
+    // Wait > 800ms autosave debounce so Supabase receives the write
+    // before a full page reload aborts the pending fetch.
     setTimeout(() => {
       window.location.href = "/";
-    }, 500);
+    }, 1200);
   };
 
   return (
