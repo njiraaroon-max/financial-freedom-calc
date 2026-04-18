@@ -15,10 +15,15 @@
 
 import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
+import UserMenu from "./UserMenu";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || "/";
-  const hideShell = pathname.startsWith("/report");
+  const hideShell =
+    pathname.startsWith("/report") ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/signup") ||
+    pathname.startsWith("/auth");
 
   if (hideShell) {
     return <>{children}</>;
@@ -34,6 +39,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <Sidebar />
+      <UserMenu />
     </div>
   );
 }
