@@ -108,6 +108,63 @@ export default function ExcelCashflow({
 
   // During drag: walk elementFromPoint to find which cell the pointer
   // is over. Each data cell tags itself with data-item-id + data-month.
+  //
+  // NOTE: we intentionally do NOT call setPointerCapture. On Safari
+  // (both macOS and iOS) pointer capture makes document.elementFromPoint
+  // return the captured element instead of the element visually under
+  // the pointer, so the "which cell?" query always returns the source
+  // cell and the drag silently does nothing. Using global listeners on
+  // `window` works uniformly across browsers.
+  useEffect(() => {
+    if (!drag) return;
+
+    const handleMove = (e: PointerEvent) => {
+      e.preventDefault();
+      const d = dragRef.current;
+      if (!d) return;
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      if (!el) return;
+      const cell = (el as HTMLElement).closest<HTMLElement>(
+        "[data-item-id][data-month-index]",
+      );
+      if (!cell) return;
+      const itemId = cell.getAttribute("data-item-id");
+      const monthStr = cell.getAttribute("data-month-index");
+      if (itemId !== d.itemId || monthStr === null) return;
+      const month = Number(monthStr);
+      if (!Number.isNaN(month) && month !== d.targetMonth) {
+        setDrag({ ...d, targetMonth: month });
+      }
+    };
+
+    const handleUp = () => {
+      const d = dragRef.current;
+      if (d && d.sourceMonth !== d.targetMonth) {
+        const lo = Math.min(d.sourceMonth, d.targetMonth);
+        const hi = Math.max(d.sourceMonth, d.targetMonth);
+        onFillRange(d.itemId, lo, hi, d.sourceValue);
+      }
+      setDrag(null);
+    };
+
+    // Pin touch-action so iOS doesn't scroll mid-drag
+    const prevTouch = document.body.style.touchAction;
+    const prevSelect = document.body.style.userSelect;
+    document.body.style.touchAction = "none";
+    document.body.style.userSelect = "none";
+
+    window.addEventListener("pointermove", handleMove, { passive: false });
+    window.addEventListener("pointerup", handleUp);
+    window.addEventListener("pointercancel", handleUp);
+    return () => {
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
+      window.removeEventListener("pointercancel", handleUp);
+      document.body.style.touchAction = prevTouch;
+      document.body.style.userSelect = prevSelect;
+    };
+  }, [drag, onFillRange]);
+
   const startDragFill = (
     e: React.PointerEvent,
     itemId: string,
@@ -116,37 +173,7 @@ export default function ExcelCashflow({
   ) => {
     e.preventDefault();
     e.stopPropagation();
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     setDrag({ itemId, sourceMonth, targetMonth: sourceMonth, sourceValue });
-  };
-
-  const moveDragFill = (e: React.PointerEvent) => {
-    const d = dragRef.current;
-    if (!d) return;
-    const el = document.elementFromPoint(e.clientX, e.clientY);
-    if (!el) return;
-    const cell = (el as HTMLElement).closest<HTMLElement>(
-      "[data-item-id][data-month-index]",
-    );
-    if (!cell) return;
-    const itemId = cell.getAttribute("data-item-id");
-    const monthStr = cell.getAttribute("data-month-index");
-    if (itemId !== d.itemId || monthStr === null) return;
-    const month = Number(monthStr);
-    if (!Number.isNaN(month) && month !== d.targetMonth) {
-      setDrag({ ...d, targetMonth: month });
-    }
-  };
-
-  const endDragFill = () => {
-    const d = dragRef.current;
-    if (!d) return;
-    if (d.sourceMonth !== d.targetMonth) {
-      const lo = Math.min(d.sourceMonth, d.targetMonth);
-      const hi = Math.max(d.sourceMonth, d.targetMonth);
-      onFillRange(d.itemId, lo, hi, d.sourceValue);
-    }
-    setDrag(null);
   };
 
   // Close row menu when clicking elsewhere, scrolling, or resizing
@@ -321,7 +348,7 @@ export default function ExcelCashflow({
                     ? "bg-indigo-200 ring-2 ring-indigo-500 ring-inset"
                     : "bg-indigo-100"
                   : "hover:bg-indigo-50 active:bg-indigo-100"
-              } ${drag ? "group/cell" : "group/cell"}`}
+              }`}
               onClick={() => {
                 if (drag) return; // ignore the click that ends a drag
                 setEditCell({
@@ -336,14 +363,8 @@ export default function ExcelCashflow({
               {/* Fill handle — bottom-right, only on cells that have data */}
               {showHandle && (
                 <span
-                  onPointerDown={(e) =>
-                    startDragFill(e, item.id, i, a)
-                  }
-                  onPointerMove={moveDragFill}
-                  onPointerUp={endDragFill}
-                  onPointerCancel={endDragFill}
-                  className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-indigo-500 rounded-sm cursor-crosshair opacity-0 group-hover/cell:opacity-100 hover:scale-125 transition touch-none"
-                  style={{ touchAction: "none" }}
+                  onPointerDown={(e) => startDragFill(e, item.id, i, a)}
+                  className="fill-handle"
                   aria-label="ลากเพื่อคัดลอกข้ามเดือน"
                   title="ลากไปยังเดือนอื่นเพื่อคัดลอกค่า"
                 />
@@ -798,6 +819,39 @@ export default function ExcelCashflow({
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        /* Fill handle — small indigo square at the bottom-right of each
+           data cell. Hidden by default on hover-capable devices, shown at
+           reduced opacity on touch devices (iPad Safari has no hover). */
+        :global(.fill-handle) {
+          position: absolute;
+          right: 0;
+          bottom: 0;
+          width: 14px;
+          height: 14px;
+          background: #6366f1;
+          border-radius: 3px;
+          cursor: crosshair;
+          opacity: 0;
+          transition: opacity 120ms ease, transform 120ms ease;
+          touch-action: none;
+          z-index: 2;
+        }
+        :global(td:hover .fill-handle) {
+          opacity: 1;
+        }
+        :global(.fill-handle:hover) {
+          transform: scale(1.25);
+        }
+        /* Touch devices — always show the handle at 60% so the affordance
+           is reachable without a hover state. */
+        @media (hover: none) {
+          :global(.fill-handle) {
+            opacity: 0.6;
+          }
+        }
+      `}</style>
     </div>
   );
 }
