@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import AppShell from "@/components/AppShell";
 import ToastContainer from "@/components/ToastContainer";
 import ConfirmDialog from "@/components/ConfirmDialog";
 
@@ -39,7 +40,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body className="antialiased">
-        {children}
+        <AppShell>{children}</AppShell>
         <ToastContainer />
         <ConfirmDialog />
       </body>
