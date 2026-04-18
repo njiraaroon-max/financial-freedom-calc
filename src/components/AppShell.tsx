@@ -4,13 +4,13 @@
  * AppShell — top-level layout wrapper.
  *
  * Renders a fixed left <Sidebar> for desktop (lg+) and offsets the main
- * content to match. On the print-only /report route, the shell steps
- * completely out of the way so the page can render at A4 width with
- * no navigation chrome.
+ * content by --sidebar-w (set by Sidebar based on pinned collapsed state).
+ *
+ * On the print-only /report route, the shell steps completely out of the
+ * way so the page can render at A4 width with no navigation chrome.
  *
  * Below lg: the sidebar is hidden entirely and each page keeps its
- * existing header / bottom-tab navigation — no change to tablet-portrait
- * or narrower breakpoints.
+ * existing header / bottom-tab navigation.
  */
 
 import { usePathname } from "next/navigation";
@@ -27,7 +27,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative min-h-dvh">
       <Sidebar />
-      <main className="lg:pl-[272px] min-h-dvh">{children}</main>
+      {/* Main padding follows the pinned sidebar width (default 17rem / 272px).
+          Hover-expand is overlay-only so content does NOT shift when hovering. */}
+      <main
+        className="min-h-dvh transition-[padding] duration-200 ease-out lg:pl-[var(--sidebar-w,17rem)]"
+      >
+        {children}
+      </main>
     </div>
   );
 }
