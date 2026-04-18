@@ -3,8 +3,11 @@
  * request and gates protected routes.
  *
  * Rules:
- *  - Public: "/", "/login", "/signup", "/auth/*"
- *  - Everything else: requires a valid session → redirect to /login
+ *  - Public: "/", "/login", "/signup", "/auth/*", "/forgot-password"
+ *  - Pending / rejected FAs → "/pending-approval" (except the page
+ *    itself, the signout endpoint, and auth callbacks).
+ *  - Admin-only: "/admin/*" — require role='admin'. Non-admin logged
+ *    users get redirected home.
  *
  * Supabase JWTs expire after ~1 hour; without this refresh the user
  * would get 401s mid-session. Keep this lean — it runs on every
@@ -64,6 +67,51 @@ export async function updateSession(request: NextRequest) {
     url.pathname = "/";
     url.search = "";
     return NextResponse.redirect(url);
+  }
+
+  // Approval + admin gating — only for logged-in users.
+  if (user) {
+    const { data: profile } = await supabase
+      .from("fa_profiles")
+      .select("role, status")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const status = profile?.status ?? "pending";
+    const role = profile?.role ?? "fa";
+
+    const isPendingPage = pathname.startsWith("/pending-approval");
+    const isSignout = pathname.startsWith("/auth/signout");
+    const isAuthCallback = pathname.startsWith("/auth/callback");
+
+    // Not approved → force /pending-approval (unless already there)
+    if (
+      status !== "approved" &&
+      !isPendingPage &&
+      !isSignout &&
+      !isAuthCallback
+    ) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/pending-approval";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+
+    // Approved user shouldn't linger on /pending-approval
+    if (status === "approved" && isPendingPage) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+
+    // /admin is admin-only
+    if (pathname.startsWith("/admin") && role !== "admin") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
   }
 
   return response;

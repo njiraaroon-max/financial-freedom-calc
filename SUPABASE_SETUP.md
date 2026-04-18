@@ -61,6 +61,28 @@ npm run dev
 5. ถ้าปิดไว้ → เข้าได้เลย
 6. ดูมุมขวาบน — เห็น UserMenu (avatar + ชื่อ + dropdown สำหรับ sign out)
 
+## Admin Bootstrap (หลังรัน migration 004)
+
+Migration `004_admin_and_approval.sql` เพิ่มระบบอนุมัติ: signup ใหม่
+ทุกคนจะ `status='pending'` จนกว่า admin จะอนุมัติ ครั้งแรกคุณต้อง
+ตั้งตัวเองเป็น admin ด้วย SQL ใน **Supabase Dashboard → SQL Editor**:
+
+```sql
+update public.fa_profiles
+   set role = 'admin', status = 'approved'
+ where email = 'your@email.com';  -- ใส่อีเมลที่ signup ไว้
+```
+
+หลังรันคำสั่งนี้:
+1. Logout แล้ว login ใหม่ (session จะ reload role)
+2. เห็นเมนู **"Admin Dashboard"** ใน UserMenu มุมขวาบน
+3. เข้า `/admin` → เห็น list FA ทั้งหมด, สถิติ, ปุ่มอนุมัติ/ปฏิเสธ/ส่ง reset link
+
+**Flow ของ FA คนอื่นหลังจากนี้:**
+- Signup → ไปหน้า `/pending-approval` (ใช้งาน calculator ไม่ได้)
+- Admin เข้า `/admin` → กดเครื่องหมาย ✓ อนุมัติ
+- FA refresh → เข้าระบบได้ปกติ
+
 ## สิ่งที่ Phase A ยังไม่ครอบคลุม
 
 - ❌ ยังไม่มี database tables (Phase B)

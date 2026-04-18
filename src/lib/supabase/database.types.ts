@@ -46,6 +46,8 @@ export interface Database {
           company: string | null;
           phone: string | null;
           avatar_url: string | null;
+          role: "fa" | "admin";
+          status: "pending" | "approved" | "rejected";
           created_at: string;
           updated_at: string;
         };
@@ -57,6 +59,8 @@ export interface Database {
           company?: string | null;
           phone?: string | null;
           avatar_url?: string | null;
+          role?: "fa" | "admin";
+          status?: "pending" | "approved" | "rejected";
         };
         Update: Partial<Database["public"]["Tables"]["fa_profiles"]["Insert"]>;
         Relationships: [];

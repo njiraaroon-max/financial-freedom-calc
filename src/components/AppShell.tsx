@@ -26,7 +26,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     pathname.startsWith("/signup") ||
     pathname.startsWith("/auth") ||
     pathname.startsWith("/forgot-password") ||
-    pathname.startsWith("/reset-password");
+    pathname.startsWith("/reset-password") ||
+    pathname.startsWith("/pending-approval");
 
   if (hideShell) {
     return <>{children}</>;

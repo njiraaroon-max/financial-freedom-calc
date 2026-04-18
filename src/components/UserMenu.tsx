@@ -18,6 +18,7 @@ import {
   UserCircle,
   ChevronDown,
   Users,
+  ShieldCheck,
 } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
@@ -25,6 +26,7 @@ import { useActiveClientStore } from "@/store/active-client-store";
 
 export default function UserMenu() {
   const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const activeClientName = useActiveClientStore((s) => s.activeClientName);
@@ -32,10 +34,24 @@ export default function UserMenu() {
   useEffect(() => {
     const supabase = createClient();
 
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    const loadProfile = async (uid: string) => {
+      const { data } = await supabase
+        .from("fa_profiles")
+        .select("role")
+        .eq("user_id", uid)
+        .maybeSingle();
+      setIsAdmin(data?.role === "admin");
+    };
+
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      if (data.user) loadProfile(data.user.id);
+    });
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) loadProfile(session.user.id);
+      else setIsAdmin(false);
     });
 
     return () => sub.subscription.unsubscribe();
@@ -106,6 +122,16 @@ export default function UserMenu() {
             <Users size={13} />
             จัดการ Clients
           </Link>
+          {isAdmin && (
+            <Link
+              href="/admin"
+              onClick={() => setOpen(false)}
+              className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-indigo-700 hover:bg-indigo-50 transition border-t border-gray-100"
+            >
+              <ShieldCheck size={13} />
+              Admin Dashboard
+            </Link>
+          )}
           <form action="/auth/signout" method="POST">
             <button
               type="submit"
