@@ -4,9 +4,16 @@
  * Store sync registry — maps each Zustand store to a plan_data
  * domain. Single source of truth for "what to save/load per client."
  *
- * To add a new store to sync: import the hook, append an entry to
- * SYNCED_STORES with a unique domain string. No migration needed —
- * plan_data.domain is a plain TEXT column.
+ * Each entry exposes:
+ *  - getState() / setState() / subscribe() — the zustand trio, sans
+ *    action methods (stripActions guards round-trip through JSON)
+ *  - reset() — wipe back to defaults. Called when switching to a
+ *    client that has NO row for this domain yet, so the previous
+ *    client's data doesn't leak into the new one's first autosave.
+ *
+ * To add a new store: import the hook, append an entry with a unique
+ * domain string and a reset thunk. plan_data.domain is a plain TEXT
+ * column — no migration needed.
  */
 
 import type { PlanDomain } from "@/lib/supabase/database.types";
@@ -21,11 +28,6 @@ import { useTaxStore } from "@/store/tax-store";
 import { useVariableStore } from "@/store/variable-store";
 import { useEducationStore } from "@/store/education-store";
 
-/**
- * Minimal Zustand store shape — each hook exposes these statics.
- * We only care about the three methods, not the hook's per-component
- * subscription semantics.
- */
 interface ZustandHook {
   getState: () => unknown;
   setState: (partial: Record<string, unknown>) => void;
@@ -38,6 +40,7 @@ export interface SyncedStore {
   getState: () => Record<string, unknown>;
   setState: (state: Record<string, unknown>) => void;
   subscribe: (listener: () => void) => () => void;
+  reset: () => void;
 }
 
 /**
@@ -60,6 +63,7 @@ function entry(
   domain: PlanDomain,
   label: string,
   hook: ZustandHook,
+  reset: () => void,
 ): SyncedStore {
   return {
     domain,
@@ -70,17 +74,42 @@ function entry(
       hook.setState(state);
     },
     subscribe: (listener) => hook.subscribe(listener),
+    reset,
   };
 }
 
+// Type-narrow the hook to its shape that exposes the clear/reset action
+// we want. We cast at call-site rather than parameterize `entry` to
+// avoid pulling every store's state type into this file.
+type WithAction<K extends string> = { [P in K]: () => void };
+
 export const SYNCED_STORES: SyncedStore[] = [
-  entry("profile", "Profile", useProfileStore),
-  entry("cashflow", "Cashflow", useCashFlowStore),
-  entry("balance_sheet", "Balance Sheet", useBalanceSheetStore),
-  entry("retirement", "Retirement", useRetirementStore),
-  entry("insurance", "Insurance", useInsuranceStore),
-  entry("education", "Education", useEducationStore),
-  entry("goals", "Goals", useGoalsStore),
-  entry("tax", "Tax", useTaxStore),
-  entry("variables", "Variables", useVariableStore),
+  entry("profile", "Profile", useProfileStore, () =>
+    (useProfileStore.getState() as WithAction<"clearProfile">).clearProfile(),
+  ),
+  entry("cashflow", "Cashflow", useCashFlowStore, () =>
+    (useCashFlowStore.getState() as WithAction<"clearAll">).clearAll(),
+  ),
+  entry("balance_sheet", "Balance Sheet", useBalanceSheetStore, () =>
+    (useBalanceSheetStore.getState() as WithAction<"clearAll">).clearAll(),
+  ),
+  entry("retirement", "Retirement", useRetirementStore, () =>
+    (useRetirementStore.getState() as WithAction<"clearAll">).clearAll(),
+  ),
+  entry("insurance", "Insurance", useInsuranceStore, () =>
+    (useInsuranceStore.getState() as WithAction<"clearAll">).clearAll(),
+  ),
+  entry("education", "Education", useEducationStore, () =>
+    (useEducationStore.getState() as WithAction<"clearAll">).clearAll(),
+  ),
+  entry("goals", "Goals", useGoalsStore, () =>
+    (useGoalsStore.getState() as WithAction<"clearGoals">).clearGoals(),
+  ),
+  entry("tax", "Tax", useTaxStore, () =>
+    (useTaxStore.getState() as WithAction<"clearAll">).clearAll(),
+  ),
+  // variable-store has no dedicated reset action — wipe the map directly.
+  entry("variables", "Variables", useVariableStore, () =>
+    useVariableStore.setState({ variables: {} }),
+  ),
 ];

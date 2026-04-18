@@ -55,10 +55,17 @@ export default function ClientDataSync() {
         for (const store of SYNCED_STORES) {
           const data = all[store.domain];
           if (data && typeof data === "object" && !Array.isArray(data)) {
+            // Reset first to drop any keys the previous client had but
+            // the new one doesn't (setState is shallow merge — it
+            // would otherwise leak stale keys).
+            store.reset();
             store.setState(data as Record<string, unknown>);
+          } else {
+            // No row for this domain yet — reset to defaults so the
+            // previous client's data doesn't leak into the new client's
+            // first autosave.
+            store.reset();
           }
-          // If no row exists yet: leave store at current value —
-          // first user edit will create the row via autosave.
         }
         prevIdRef.current = activeClientId;
       } catch (err) {
