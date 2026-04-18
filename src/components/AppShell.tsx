@@ -16,6 +16,7 @@
 import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
 import UserMenu from "./UserMenu";
+import ClientDataSync from "./ClientDataSync";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || "/";
@@ -40,6 +41,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </main>
       <Sidebar />
       <UserMenu />
+      <ClientDataSync />
     </div>
   );
 }

@@ -18,7 +18,14 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
+/**
+ * Domains stored in plan_data JSONB. The DB column is `text` with no
+ * enum constraint, so adding a new domain here doesn't require a
+ * migration — just register a store in store-sync.ts.
+ */
 export type PlanDomain =
+  | "profile"
+  | "cashflow"
   | "retirement"
   | "insurance"
   | "education"

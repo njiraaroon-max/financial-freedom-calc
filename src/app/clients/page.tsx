@@ -22,13 +22,14 @@ import {
   FolderOpen,
   Loader2,
   Archive,
-  AlertTriangle,
+  Upload,
 } from "lucide-react";
 import { useClients } from "@/hooks/useClients";
 import { useActiveClientStore } from "@/store/active-client-store";
 import { toast } from "@/store/toast-store";
 import PageHeader from "@/components/PageHeader";
 import type { Client } from "@/lib/supabase/database.types";
+import { migrateLocalStorageToClient } from "@/lib/sync/migrate-local";
 
 function formatDate(iso: string | null): string {
   if (!iso) return "-";
@@ -53,6 +54,7 @@ export default function ClientsPage() {
   const [newNickname, setNewNickname] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<Client | null>(null);
+  const [migrating, setMigrating] = useState(false);
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
@@ -94,6 +96,37 @@ export default function ClientsPage() {
     }
   };
 
+  const handleMigrate = async () => {
+    if (!activeClientId) {
+      toast.error("กรุณาเลือก client ก่อน");
+      return;
+    }
+    if (
+      !confirm(
+        "คัดลอกข้อมูลจาก browser เข้าสู่ client ที่กำลังใช้งาน?\n(ข้อมูลเดิมใน client จะถูกทับ)",
+      )
+    )
+      return;
+    setMigrating(true);
+    try {
+      const res = await migrateLocalStorageToClient(activeClientId);
+      if (res.migrated.length > 0) {
+        toast.success(`นำเข้าข้อมูล: ${res.migrated.join(", ")}`);
+      } else {
+        toast.info("ไม่มีข้อมูลใน browser ให้นำเข้า");
+      }
+      if (res.errors.length > 0) {
+        toast.error(
+          `ผิดพลาด: ${res.errors.map((e) => e.domain).join(", ")}`,
+        );
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "นำเข้าไม่สำเร็จ");
+    } finally {
+      setMigrating(false);
+    }
+  };
+
   const handleArchive = async (c: Client) => {
     try {
       await update(c.id, { status: "archived" });
@@ -111,33 +144,38 @@ export default function ClientsPage() {
         subtitle="Client Manager"
       />
 
-      {/* Phase D warning */}
-      <div className="mx-4 md:mx-8 mt-4 p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-2">
-        <AlertTriangle size={16} className="text-amber-600 shrink-0 mt-0.5" />
-        <div className="text-[11px] text-amber-800">
-          <b>หมายเหตุ (Phase C):</b> การสร้าง/ลบ client ใช้ database จริงแล้ว
-          แต่ข้อมูลแผน (รายรับ-รายจ่าย, เกษียณ, ประกัน) ยังใช้ browser storage
-          — ยังไม่แยกตาม client จนกว่า Phase D จะเสร็จ
-        </div>
-      </div>
-
       {/* Active Client Banner */}
       {activeClientId && (
-        <div className="mx-4 md:mx-8 mt-3 p-3 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <UserCircle size={18} className="text-indigo-500" />
-            <span className="text-xs font-bold text-indigo-700">
+        <div className="mx-4 md:mx-8 mt-4 p-3 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <UserCircle size={18} className="text-indigo-500 shrink-0" />
+            <span className="text-xs font-bold text-indigo-700 truncate">
               กำลังทำงาน:{" "}
               {clients.find((c) => c.id === activeClientId)?.name ||
                 "(ไม่พบ client)"}
             </span>
           </div>
-          <button
-            onClick={clearActive}
-            className="text-[10px] text-indigo-600 hover:text-indigo-800 font-medium"
-          >
-            ยกเลิกเลือก
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={handleMigrate}
+              disabled={migrating}
+              title="คัดลอกข้อมูลจาก browser เข้าสู่ client นี้ (ใช้สำหรับย้ายข้อมูลเก่าครั้งเดียว)"
+              className="inline-flex items-center gap-1 text-[10px] font-medium text-indigo-700 bg-white border border-indigo-200 rounded-lg px-2 py-1 hover:bg-indigo-100 disabled:opacity-50 transition"
+            >
+              {migrating ? (
+                <Loader2 size={12} className="animate-spin" />
+              ) : (
+                <Upload size={12} />
+              )}
+              นำเข้าจาก browser
+            </button>
+            <button
+              onClick={clearActive}
+              className="text-[10px] text-indigo-600 hover:text-indigo-800 font-medium"
+            >
+              ยกเลิกเลือก
+            </button>
+          </div>
         </div>
       )}
 
