@@ -31,8 +31,8 @@ interface Props {
   onUpdateAmount: (id: string, monthIndex: number, value: number) => void;
   onRename: (id: string, name: string) => void;
   onRemove: (id: string) => void;
-  onTagIncome: (id: string) => void;
-  onTagExpense: (id: string) => void;
+  /** Open the consolidated TagSheet for this row (handles income + expense) */
+  onOpenTag: (id: string) => void;
   onAddIncome: () => void;
   onAddExpense: (category: ExpenseCategory) => void;
 }
@@ -57,8 +57,7 @@ export default function ExcelCashflow({
   onUpdateAmount,
   onRename,
   onRemove,
-  onTagIncome,
-  onTagExpense,
+  onOpenTag,
   onAddIncome,
   onAddExpense,
 }: Props) {
@@ -201,14 +200,12 @@ export default function ExcelCashflow({
                   </button>
                   <button
                     onClick={() => {
-                      if (isIncome) onTagIncome(item.id);
-                      else onTagExpense(item.id);
+                      onOpenTag(item.id);
                       setRowMenuId(null);
                     }}
                     className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-white/60 text-gray-700"
                   >
-                    <Tag size={13} />{" "}
-                    {isIncome ? "เปลี่ยนประเภท (40)" : "เปลี่ยนหมวด / จำเป็น"}
+                    <Tag size={13} /> ตั้งค่ารายการ...
                   </button>
                   <button
                     onClick={() => {
@@ -224,8 +221,12 @@ export default function ExcelCashflow({
             </div>
           </div>
 
-          {/* Tag label line */}
-          <div className="text-[10px] text-gray-400 truncate pr-1">
+          {/* Tag label line — click to open TagSheet */}
+          <button
+            onClick={() => onOpenTag(item.id)}
+            className="text-[10px] text-gray-400 truncate pr-1 hover:text-indigo-600 text-left w-full transition"
+            title="แตะเพื่อแก้ไขหมวด/ช่วงเดือน"
+          >
             {isIncome
               ? INCOME_TAX_CATEGORIES.find(
                   (c) => c.value === (item as IncomeItem).taxCategory,
@@ -238,8 +239,8 @@ export default function ExcelCashflow({
                   (item as ExpenseItem).isEssential ? "จำเป็น" : null,
                 ]
                   .filter(Boolean)
-                  .join(" · ")}
-          </div>
+                  .join(" · ") || "ตั้งค่า..."}
+          </button>
         </td>
 
         {item.amounts.map((a, i) => (

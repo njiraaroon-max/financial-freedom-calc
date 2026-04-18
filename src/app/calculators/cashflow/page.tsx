@@ -1,12 +1,11 @@
 "use client";
 
 /**
- * Cash Flow page — unified Excel-like view (Phase 1 redesign).
+ * Cash Flow page — unified Excel-like view.
  *
  * The page shell stays thin: header, <ExcelCashflow/>, and save/clear.
- * All table interactions live inside ExcelCashflow. Tag popups are still
- * owned here so they can be reused; Phase 2 will collapse them into a
- * single TagSheet.
+ * Row-level editing lives in a single <TagSheet/> (category, timing,
+ * salary %, delete) — replacing the old 3-step popup chain.
  */
 
 import { useState, useEffect, useRef } from "react";
@@ -17,18 +16,9 @@ import ActionButton from "@/components/ActionButton";
 import { useVariableStore } from "@/store/variable-store";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { useProfileStore } from "@/store/profile-store";
-import {
-  INCOME_TAX_CATEGORIES,
-  EXPENSE_CATEGORIES,
-  DEBT_REPAYMENT_OPTIONS,
-} from "@/types/cashflow";
-import type {
-  IncomeTaxCategory,
-  ExpenseCategory,
-  DebtRepaymentType,
-} from "@/types/cashflow";
-import CategoryPopup from "@/components/CategoryPopup";
+import type { ExpenseCategory } from "@/types/cashflow";
 import ExcelCashflow from "@/components/ExcelCashflow";
+import TagSheet from "@/components/TagSheet";
 
 export default function CashFlowPage() {
   const {
@@ -43,7 +33,10 @@ export default function CashFlowPage() {
     setIncomeTaxCategory,
     setExpenseCategory,
     setDebtRepayment,
+    setSalaryPercent,
     recalculateSalaryLinked,
+    bulkFillRange,
+    setRecurring,
     clearAll,
     getAnnualTotal,
     getCommonRatio,
@@ -75,80 +68,29 @@ export default function CashFlowPage() {
 
   const [hasSaved, setHasSaved] = useState(false);
 
-  // ─── Tag popups (3-step chain for expense; 1-step for income) ──────
-  const [categoryPopup, setCategoryPopup] = useState<{
-    type: "income" | "expense";
-    itemId: string;
-    currentValue: string;
-  } | null>(null);
-  const [debtPopup, setDebtPopup] = useState<{
-    itemId: string;
-    currentValue: DebtRepaymentType;
-  } | null>(null);
-  const [essentialPopup, setEssentialPopup] = useState<{
-    itemId: string;
-  } | null>(null);
+  // ─── Single TagSheet state (replaces 3-popup chain) ─────────────
+  const [tagSheetId, setTagSheetId] = useState<string | null>(null);
+  const activeTagItem =
+    tagSheetId !== null
+      ? incomes.find((i) => i.id === tagSheetId) ||
+        expenses.find((e) => e.id === tagSheetId) ||
+        null
+      : null;
 
-  const handleCategorySelected = (itemId: string, category: string) => {
-    if (categoryPopup?.type === "expense") {
-      setExpenseCategory(itemId, category as ExpenseCategory);
-      setCategoryPopup(null);
-      const item = expenses.find((e) => e.id === itemId);
-      setDebtPopup({
-        itemId,
-        currentValue: item?.isDebtRepayment || "none",
-      });
-    } else {
-      setIncomeTaxCategory(itemId, category as IncomeTaxCategory);
-      setCategoryPopup(null);
-    }
-  };
-
-  const handleDebtSelected = (itemId: string, value: DebtRepaymentType) => {
-    setDebtRepayment(itemId, value);
-    setDebtPopup(null);
-    setEssentialPopup({ itemId });
-  };
-
-  // ─── Row-level action handlers passed to ExcelCashflow ──────────────
-  const onTagIncome = (itemId: string) => {
-    const item = incomes.find((i) => i.id === itemId);
-    if (item) {
-      setCategoryPopup({
-        type: "income",
-        itemId,
-        currentValue: item.taxCategory,
-      });
-    }
-  };
-
-  const onTagExpense = (itemId: string) => {
-    const item = expenses.find((e) => e.id === itemId);
-    if (item) {
-      setCategoryPopup({
-        type: "expense",
-        itemId,
-        currentValue: item.expenseCategory,
-      });
-    }
-  };
+  // ─── Row-level action handlers passed to ExcelCashflow ──────────
+  const onOpenTag = (itemId: string) => setTagSheetId(itemId);
 
   const onAddIncome = () => {
     const id = addIncome("รายรับใหม่");
-    // Auto-open tag picker so user can categorize
-    setTimeout(() => {
-      setCategoryPopup({
-        type: "income",
-        itemId: id,
-        currentValue: "40(1)",
-      });
-    }, 50);
+    // Auto-open TagSheet so user can categorize + set timing
+    setTimeout(() => setTagSheetId(id), 50);
   };
 
   const onAddExpense = (category: ExpenseCategory) => {
     const id = addExpense("รายจ่ายใหม่", true);
-    // Set the category we came from immediately (skip category step)
     setExpenseCategory(id, category);
+    // Auto-open TagSheet
+    setTimeout(() => setTagSheetId(id), 50);
   };
 
   const onUpdateAmountWithSync = (
@@ -164,7 +106,7 @@ export default function CashFlowPage() {
     }
   };
 
-  // ─── Save → VariableStore ──────────────────────────────────────────
+  // ─── Save → VariableStore ──────────────────────────────────────
   const handleSaveVariables = () => {
     const monthlyEssential = getMonthlyEssentialExpense();
     const annualEssential = getAnnualEssentialExpense();
@@ -314,8 +256,7 @@ export default function CashFlowPage() {
         onUpdateAmount={onUpdateAmountWithSync}
         onRename={updateItemName}
         onRemove={removeItem}
-        onTagIncome={onTagIncome}
-        onTagExpense={onTagExpense}
+        onOpenTag={onOpenTag}
         onAddIncome={onAddIncome}
         onAddExpense={onAddExpense}
       />
@@ -348,80 +289,21 @@ export default function CashFlowPage() {
         />
       </div>
 
-      {/* Category Popup — Income */}
-      {categoryPopup && categoryPopup.type === "income" && (
-        <CategoryPopup
-          title="ประเภทเงินได้"
-          options={INCOME_TAX_CATEGORIES}
-          selectedValue={categoryPopup.currentValue}
-          onSelect={(value) =>
-            handleCategorySelected(categoryPopup.itemId, value)
-          }
-          onClose={() => setCategoryPopup(null)}
-        />
-      )}
-
-      {/* Category Popup — Expense (step 1) */}
-      {categoryPopup && categoryPopup.type === "expense" && (
-        <CategoryPopup
-          title="ประเภทรายจ่าย"
-          options={EXPENSE_CATEGORIES}
-          selectedValue={categoryPopup.currentValue}
-          onSelect={(value) =>
-            handleCategorySelected(categoryPopup.itemId, value)
-          }
-          onClose={() => setCategoryPopup(null)}
-        />
-      )}
-
-      {/* Debt Repayment Popup — Expense (step 2) */}
-      {debtPopup && (
-        <CategoryPopup
-          title="เป็นค่างวด/ชำระหนี้สินหรือไม่?"
-          options={DEBT_REPAYMENT_OPTIONS}
-          selectedValue={debtPopup.currentValue}
-          onSelect={(value) =>
-            handleDebtSelected(debtPopup.itemId, value as DebtRepaymentType)
-          }
-          onClose={() => {
-            const id = debtPopup.itemId;
-            setDebtPopup(null);
-            setEssentialPopup({ itemId: id });
-          }}
-        />
-      )}
-
-      {/* Essential Popup — Expense (step 3) */}
-      {essentialPopup && (
-        <CategoryPopup
-          title="เป็นรายจ่ายจำเป็นหรือไม่?"
-          options={[
-            {
-              value: "essential",
-              label: "จำเป็น",
-              description:
-                "รายจ่ายที่ต้องจ่ายแม้ไม่มีรายได้ เช่น ค่าอาหาร ค่าเช่า",
-            },
-            {
-              value: "non-essential",
-              label: "ไม่จำเป็น",
-              description: "รายจ่ายที่ตัดได้ถ้าจำเป็น เช่น ช้อปปิ้ง ท่องเที่ยว",
-            },
-          ]}
-          selectedValue=""
-          onSelect={(value) => {
-            const expense = expenses.find(
-              (e) => e.id === essentialPopup.itemId,
-            );
-            if (expense) {
-              const wantEssential = value === "essential";
-              if (expense.isEssential !== wantEssential) {
-                toggleEssential(essentialPopup.itemId);
-              }
-            }
-            setEssentialPopup(null);
-          }}
-          onClose={() => setEssentialPopup(null)}
+      {/* Consolidated TagSheet */}
+      {activeTagItem && (
+        <TagSheet
+          item={activeTagItem}
+          onClose={() => setTagSheetId(null)}
+          onRename={updateItemName}
+          onRemove={removeItem}
+          onSetIncomeTaxCategory={setIncomeTaxCategory}
+          onSetExpenseCategory={setExpenseCategory}
+          onSetDebtRepayment={setDebtRepayment}
+          onToggleEssential={toggleEssential}
+          onBulkFillRange={bulkFillRange}
+          onSetRecurring={setRecurring}
+          onSetSalaryPercent={setSalaryPercent}
+          onRecalcSalaryLinked={recalculateSalaryLinked}
         />
       )}
     </div>

@@ -59,6 +59,19 @@ interface CashFlowState {
   clearFromMonthOnwards: (id: string, monthIndex: number) => void;
   makeOnlyThisMonth: (id: string, monthIndex: number) => void;
   makeIncomeOnlyThisMonth: (id: string, monthIndex: number) => void;
+  /**
+   * Bulk-fill months in [fromMonth..toMonth] with `amount`.
+   * If clearOutside = true, zeros out months outside the range too.
+   * Works for both incomes and expenses.
+   */
+  bulkFillRange: (
+    id: string,
+    fromMonth: number,
+    toMonth: number,
+    amount: number,
+    clearOutside?: boolean,
+  ) => void;
+  setRecurring: (id: string, value: boolean) => void;
   updateItemName: (id: string, name: string) => void;
   setIncomeTaxCategory: (id: string, category: IncomeTaxCategory) => void;
   setExpenseCategory: (id: string, category: ExpenseCategory) => void;
@@ -278,6 +291,37 @@ export const useCashFlowStore = create<CashFlowState>()(
               amounts: e.amounts.map((a, i) => (i === monthIndex ? a : 0)),
             };
           }),
+        })),
+
+      bulkFillRange: (id, fromMonth, toMonth, amount, clearOutside = true) =>
+        set((state) => {
+          const lo = Math.max(0, Math.min(fromMonth, toMonth));
+          const hi = Math.min(11, Math.max(fromMonth, toMonth));
+          const updateItems = <T extends { id: string; amounts: number[] }>(
+            items: T[],
+          ): T[] =>
+            items.map((item) => {
+              if (item.id !== id) return item;
+              const newAmounts = item.amounts.map((a, i) => {
+                if (i >= lo && i <= hi) return amount;
+                return clearOutside ? 0 : a;
+              });
+              return { ...item, amounts: newAmounts };
+            });
+          return {
+            incomes: updateItems(state.incomes),
+            expenses: updateItems(state.expenses),
+          };
+        }),
+
+      setRecurring: (id, value) =>
+        set((state) => ({
+          incomes: state.incomes.map((i) =>
+            i.id === id ? { ...i, isRecurring: value } : i,
+          ),
+          expenses: state.expenses.map((e) =>
+            e.id === id ? { ...e, isRecurring: value } : e,
+          ),
         })),
 
       updateItemName: (id, name) =>
