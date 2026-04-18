@@ -22,7 +22,6 @@ import {
   Users,
   Loader2,
   RefreshCw,
-  UserCog,
 } from "lucide-react";
 import {
   listAllFas,
@@ -134,8 +133,8 @@ export default function AdminPage() {
     }
   };
 
-  const handleToggleAdmin = async (row: FaAdminRow) => {
-    const next = row.role === "admin" ? "fa" : "admin";
+  const handleRoleChange = async (row: FaAdminRow, next: "fa" | "admin") => {
+    if (next === row.role) return;
     if (
       !confirm(
         next === "admin"
@@ -281,15 +280,24 @@ export default function AdminPage() {
                           {row.company || "-"}
                         </td>
                         <td className="px-3 py-2.5 text-center">
-                          <span
-                            className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border ${
+                          <select
+                            value={row.role}
+                            disabled={busy}
+                            onChange={(e) =>
+                              handleRoleChange(
+                                row,
+                                e.target.value as "fa" | "admin",
+                              )
+                            }
+                            className={`text-[10px] font-medium rounded-full px-2 py-1 border outline-none focus:ring-2 focus:ring-indigo-300 disabled:opacity-50 cursor-pointer ${
                               row.role === "admin"
                                 ? "bg-indigo-100 text-indigo-700 border-indigo-200"
                                 : "bg-gray-100 text-gray-600 border-gray-200"
                             }`}
                           >
-                            {row.role}
-                          </span>
+                            <option value="fa">fa</option>
+                            <option value="admin">admin</option>
+                          </select>
                         </td>
                         <td className="px-3 py-2.5 text-center">
                           <StatusBadge status={row.status} />
@@ -329,22 +337,6 @@ export default function AdminPage() {
                               className="p-1.5 rounded-lg text-indigo-600 hover:bg-indigo-50 disabled:opacity-40 transition"
                             >
                               <KeyRound size={14} />
-                            </button>
-                            <button
-                              onClick={() => handleToggleAdmin(row)}
-                              disabled={busy}
-                              title={
-                                row.role === "admin"
-                                  ? "ถอดสิทธิ์ admin"
-                                  : "เลื่อนเป็น admin"
-                              }
-                              className={`p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-40 transition ${
-                                row.role === "admin"
-                                  ? "text-indigo-600"
-                                  : "text-gray-500"
-                              }`}
-                            >
-                              <UserCog size={14} />
                             </button>
                             {busy && (
                               <Loader2
