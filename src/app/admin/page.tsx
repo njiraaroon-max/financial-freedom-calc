@@ -34,7 +34,8 @@ import {
 } from "@/lib/supabase/admin";
 import { toast } from "@/store/toast-store";
 
-function formatDate(iso: string): string {
+function formatDate(iso: string | null): string {
+  if (!iso) return "-";
   try {
     return new Date(iso).toLocaleDateString("th-TH", {
       day: "numeric",
@@ -44,6 +45,37 @@ function formatDate(iso: string): string {
   } catch {
     return "-";
   }
+}
+
+function formatRelative(iso: string | null): string {
+  if (!iso) return "ยังไม่มีข้อมูล";
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const day = Math.floor(diffMs / 86400000);
+  if (day < 1) return "วันนี้";
+  if (day < 7) return `${day} วันที่แล้ว`;
+  if (day < 30) return `${Math.floor(day / 7)} สัปดาห์ที่แล้ว`;
+  if (day < 365) return `${Math.floor(day / 30)} เดือนที่แล้ว`;
+  return `${Math.floor(day / 365)} ปีที่แล้ว`;
+}
+
+function ActivityBar({ pct }: { pct: number }) {
+  const color =
+    pct >= 70
+      ? "bg-emerald-500"
+      : pct >= 30
+        ? "bg-amber-500"
+        : "bg-rose-400";
+  return (
+    <div className="flex items-center gap-2">
+      <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+        <div
+          className={`h-full ${color} transition-all`}
+          style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
+        />
+      </div>
+      <span className="text-[10px] text-gray-600 tabular-nums">{pct}%</span>
+    </div>
+  );
 }
 
 function StatusBadge({ status }: { status: FaAdminRow["status"] }) {
@@ -254,6 +286,12 @@ export default function AdminPage() {
                     <th className="text-center px-3 py-2.5 font-medium">
                       Clients
                     </th>
+                    <th className="text-left px-3 py-2.5 font-medium">
+                      Active 30 วัน
+                    </th>
+                    <th className="text-left px-3 py-2.5 font-medium">
+                      กิจกรรมล่าสุด
+                    </th>
                     <th className="text-left px-3 py-2.5 font-medium">สมัคร</th>
                     <th className="text-right px-3 py-2.5 font-medium">
                       การจัดการ
@@ -304,6 +342,16 @@ export default function AdminPage() {
                         </td>
                         <td className="px-3 py-2.5 text-center font-medium text-gray-700">
                           {row.client_count}
+                        </td>
+                        <td className="px-3 py-2.5">
+                          {row.client_count > 0 ? (
+                            <ActivityBar pct={row.active_pct} />
+                          ) : (
+                            <span className="text-[10px] text-gray-400">-</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2.5 text-[11px] text-gray-500">
+                          {formatRelative(row.last_activity)}
                         </td>
                         <td className="px-3 py-2.5 text-gray-500">
                           {formatDate(row.created_at)}

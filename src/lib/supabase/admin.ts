@@ -19,6 +19,9 @@ export interface FaAdminRow {
   status: "pending" | "approved" | "rejected";
   created_at: string;
   client_count: number;
+  active_count: number;          // #clients updated in last 30 days
+  active_pct: number;            // active_count / client_count * 100
+  last_activity: string | null;  // ISO timestamp or null if no clients
 }
 
 export interface AdminStats {
@@ -29,32 +32,56 @@ export interface AdminStats {
   totalClients: number;
 }
 
-/** List every FA (+ client count). Admin-only; RLS enforces. */
+/**
+ * List every FA with aggregate stats per FA. Admin reads
+ * fa_profiles directly (RLS allows); client stats come from the
+ * `admin_fa_stats()` RPC which returns ONLY counts — no PII from
+ * other FAs' clients is exposed.
+ */
 export async function listAllFas(): Promise<FaAdminRow[]> {
   const sb = createClient();
 
-  const [profilesRes, clientsRes] = await Promise.all([
+  const [profilesRes, statsRes] = await Promise.all([
     sb
       .from("fa_profiles")
       .select(
         "user_id, email, display_name, company, license_no, role, status, created_at",
       )
       .order("created_at", { ascending: false }),
-    sb.from("clients").select("fa_user_id"),
+    // The generated DB types don't include our custom RPCs yet —
+    // cast the client locally so TS lets us call rpc("admin_fa_stats").
+    (sb.rpc as unknown as (fn: string) => Promise<{ data: unknown; error: { message: string } | null }>)(
+      "admin_fa_stats",
+    ),
   ]);
 
   if (profilesRes.error) throw new Error(profilesRes.error.message);
-  if (clientsRes.error) throw new Error(clientsRes.error.message);
+  if (statsRes.error) throw new Error(statsRes.error.message);
 
-  const countByFa = new Map<string, number>();
-  for (const c of clientsRes.data ?? []) {
-    countByFa.set(c.fa_user_id, (countByFa.get(c.fa_user_id) ?? 0) + 1);
+  type StatRow = {
+    fa_user_id: string;
+    client_count: number;
+    active_count: number;
+    last_activity: string | null;
+  };
+  const statsByFa = new Map<string, StatRow>();
+  for (const s of (statsRes.data ?? []) as StatRow[]) {
+    statsByFa.set(s.fa_user_id, s);
   }
 
-  return (profilesRes.data ?? []).map((p) => ({
-    ...p,
-    client_count: countByFa.get(p.user_id) ?? 0,
-  }));
+  return (profilesRes.data ?? []).map((p) => {
+    const s = statsByFa.get(p.user_id);
+    const client_count = Number(s?.client_count ?? 0);
+    const active_count = Number(s?.active_count ?? 0);
+    return {
+      ...p,
+      client_count,
+      active_count,
+      active_pct:
+        client_count > 0 ? Math.round((active_count / client_count) * 100) : 0,
+      last_activity: s?.last_activity ?? null,
+    };
+  });
 }
 
 export async function getAdminStats(): Promise<AdminStats> {
