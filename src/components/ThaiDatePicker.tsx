@@ -287,6 +287,21 @@ export default function ThaiDatePicker({
     }
   }, [open, value]);
 
+  // Lock body scroll + ESC-to-close while modal is open.
+  useEffect(() => {
+    if (!open) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
   // Generate items
   const ceYear = selYear - 543;
   const maxDays = daysInMonth(selMonth, ceYear);
@@ -334,7 +349,7 @@ export default function ThaiDatePicker({
       {/* Picker Modal — portal to body to escape any ancestor
           `backdrop-filter` containing block (the glass theme). */}
       {open && mounted && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center">
+        <div className="fixed inset-0 z-[9600] flex items-end md:items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={handleCancel} />
           <div className="relative bg-white w-full md:max-w-sm rounded-t-3xl md:rounded-3xl overflow-hidden shadow-2xl">
             {/* Header */}
