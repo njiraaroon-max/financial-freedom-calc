@@ -65,7 +65,7 @@ function GapRow({
 function SectionHeader({ title, color }: { title: string; color: string }) {
   return (
     <tr>
-      <td colSpan={6} className={`py-1.5 px-2 text-[11px] font-bold text-white ${color} rounded-lg`}>
+      <td colSpan={6} className={`py-1.5 px-2 text-[13px] font-bold text-white ${color} rounded-lg`}>
         {title}
       </td>
     </tr>
@@ -191,7 +191,7 @@ export default function OverviewPage() {
         {(!hasNeeds || !hasExisting) && (
           <div className="bg-amber-50 rounded-2xl p-3 flex gap-2 items-start border border-amber-200">
             <AlertTriangle size={16} className="text-amber-500 shrink-0 mt-0.5" />
-            <div className="text-[11px] text-amber-700">
+            <div className="text-[13px] text-amber-700">
               {!hasNeeds && !hasExisting
                 ? "ยังไม่ได้กรอกข้อมูลความคุ้มครองที่ควรมีและที่มีอยู่ กรุณากรอกก่อนเพื่อให้การวิเคราะห์ถูกต้อง"
                 : !hasNeeds
@@ -216,19 +216,19 @@ export default function OverviewPage() {
         {/* Summary cards */}
         <div className="grid grid-cols-3 gap-2">
           <div className="glass rounded-2xl p-3 text-center">
-            <div className="text-[10px] text-gray-400">กรมธรรม์</div>
+            <div className="text-[12px] text-gray-400">กรมธรรม์</div>
             <div className="text-lg font-extrabold text-gray-800">{policies.length}</div>
-            <div className="text-[10px] text-gray-400">ฉบับ</div>
+            <div className="text-[12px] text-gray-400">ฉบับ</div>
           </div>
           <div className="glass rounded-2xl p-3 text-center">
-            <div className="text-[10px] text-gray-400">ความคุ้มครองพอ</div>
+            <div className="text-[12px] text-gray-400">ความคุ้มครองพอ</div>
             <div className="text-lg font-extrabold text-emerald-600">{okCount}</div>
-            <div className="text-[10px] text-gray-400">รายการ</div>
+            <div className="text-[12px] text-gray-400">รายการ</div>
           </div>
           <div className="glass rounded-2xl p-3 text-center">
-            <div className="text-[10px] text-gray-400">ยังขาด</div>
+            <div className="text-[12px] text-gray-400">ยังขาด</div>
             <div className="text-lg font-extrabold text-red-500">{gapCount}</div>
-            <div className="text-[10px] text-gray-400">รายการ</div>
+            <div className="text-[12px] text-gray-400">รายการ</div>
           </div>
         </div>
 
@@ -236,17 +236,17 @@ export default function OverviewPage() {
         <div className="glass rounded-2xl overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-100">
             <h3 className="text-sm font-extrabold text-gray-800">ช่องว่างความคุ้มครอง</h3>
-            <p className="text-[10px] text-gray-400">เปรียบเทียบความคุ้มครองที่ควรมี vs ที่มีอยู่</p>
+            <p className="text-[12px] text-gray-400">เปรียบเทียบความคุ้มครองที่ควรมี vs ที่มีอยู่</p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[500px]">
               <thead>
                 <tr className="bg-gray-50">
-                  <th className="py-2 px-2 text-[10px] text-gray-500 text-left font-semibold">รายการ</th>
-                  <th className="py-2 px-1 text-[10px] text-gray-500 text-right font-semibold">ควรมี</th>
-                  <th className="py-2 px-1 text-[10px] text-gray-500 text-right font-semibold">สวัสดิการ</th>
-                  <th className="py-2 px-1 text-[10px] text-gray-500 text-right font-semibold">ประกันเอง</th>
-                  <th className="py-2 px-1 text-[10px] text-gray-500 text-right font-semibold">ส่วนต่าง</th>
+                  <th className="py-2 px-2 text-[12px] text-gray-500 text-left font-semibold">รายการ</th>
+                  <th className="py-2 px-1 text-[12px] text-gray-500 text-right font-semibold">ควรมี</th>
+                  <th className="py-2 px-1 text-[12px] text-gray-500 text-right font-semibold">สวัสดิการ</th>
+                  <th className="py-2 px-1 text-[12px] text-gray-500 text-right font-semibold">ประกันเอง</th>
+                  <th className="py-2 px-1 text-[12px] text-gray-500 text-right font-semibold">ส่วนต่าง</th>
                   <th className="py-2 px-1 w-5"></th>
                 </tr>
               </thead>
@@ -329,11 +329,11 @@ export default function OverviewPage() {
             <div className="text-xs opacity-80 mb-1">ส่วนที่ยังขาดความคุ้มครอง</div>
             <div className="text-xl font-extrabold">{fmt(totalShortfall)}</div>
             {roomGap > 0 && (
-              <div className="text-[10px] opacity-70 mt-1">
+              <div className="text-[12px] opacity-70 mt-1">
                 + ค่าห้อง/วัน ยังขาด {fmtUnit(roomGap, " บ./วัน")}
               </div>
             )}
-            <div className="text-[10px] opacity-70 mt-1">
+            <div className="text-[12px] opacity-70 mt-1">
               แนะนำให้ปรึกษาตัวแทนประกันเพื่อวางแผนเพิ่มความคุ้มครอง
             </div>
           </div>
@@ -343,7 +343,7 @@ export default function OverviewPage() {
           <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-4 text-white">
             <div className="text-xs opacity-80 mb-1">สถานะความคุ้มครอง</div>
             <div className="text-lg font-extrabold">ครบถ้วน</div>
-            <div className="text-[10px] opacity-70 mt-1">
+            <div className="text-[12px] opacity-70 mt-1">
               ความคุ้มครองที่มีอยู่เพียงพอตามที่ประเมินไว้
             </div>
           </div>

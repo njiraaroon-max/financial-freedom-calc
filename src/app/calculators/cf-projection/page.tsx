@@ -366,7 +366,7 @@ export default function CFProjectionPage() {
             <Flashlight size={20} />
             <span className="text-sm font-bold">ฉายไฟฉายไปข้างหน้า — ดูอนาคตแบบ Excel</span>
           </div>
-          <p className="text-[11px] opacity-80 leading-relaxed">
+          <p className="text-[13px] opacity-80 leading-relaxed">
             ระบบดึงข้อมูลจากทุก module (Cash Flow, Retirement, Education, Insurance, Tax, Balance Sheet)
             มาคำนวณกระแสเงินสดปีต่อปี — ดูว่าเงินจะมีปัญหาช่วงไหน หรืออุ่นใจได้ไหม
           </p>
@@ -414,7 +414,7 @@ export default function CFProjectionPage() {
                   {insights.title}
                 </div>
                 <div
-                  className={`text-[11px] leading-relaxed mt-1 ${
+                  className={`text-[13px] leading-relaxed mt-1 ${
                     insights.status === "safe"
                       ? "text-emerald-700"
                       : insights.status === "danger"
@@ -429,7 +429,7 @@ export default function CFProjectionPage() {
 
             {insights.milestones.length > 0 && (
               <div className="border-t border-white/60 pt-3 mt-3">
-                <div className="text-[10px] font-bold text-gray-600 mb-2 uppercase tracking-wider">
+                <div className="text-[12px] font-bold text-gray-600 mb-2 uppercase tracking-wider">
                   📍 หลักไมล์สำคัญ
                 </div>
                 <div className="space-y-1.5">
@@ -448,7 +448,7 @@ export default function CFProjectionPage() {
                               : "text-sky-500"
                         }
                       />
-                      <span className="text-[11px] text-gray-600">
+                      <span className="text-[13px] text-gray-600">
                         ปี {m.year} (อายุ {m.age}) — {m.label}
                       </span>
                     </div>
@@ -499,7 +499,7 @@ export default function CFProjectionPage() {
                 <LineIcon size={16} className="text-sky-600" />
                 <h3 className="text-sm font-bold text-gray-800">เส้นทางยอดเงิน</h3>
               </div>
-              <span className="text-[10px] text-gray-400">ค.ศ. {rows[0].year} → {rows[rows.length - 1].year}</span>
+              <span className="text-[12px] text-gray-400">ค.ศ. {rows[0].year} → {rows[rows.length - 1].year}</span>
             </div>
             <BalanceLineChart rows={rows} retireAge={retireAge} />
           </div>
@@ -534,7 +534,7 @@ export default function CFProjectionPage() {
         <div className="glass rounded-2xl p-4 mx-1 space-y-3">
           <div>
             <h3 className="text-sm font-bold text-gray-800 mb-2">ปัจจุบัน (ก่อนเกษียณ)</h3>
-            <div className="grid grid-cols-2 gap-2 text-[11px]">
+            <div className="grid grid-cols-2 gap-2 text-[13px]">
               <DataSource icon={<Wallet size={12} className="text-indigo-600" />} label="รายรับ/ปี" value={fmt(annualIncome)} />
               <DataSource icon={<TrendingDown size={12} className="text-red-500" />} label="รายจ่าย/ปี" value={fmt(annualExpense)} />
               <DataSource icon={<Shield size={12} className="text-emerald-600" />} label="เบี้ยประกัน/ปี" value={fmt(annualInsurancePremiums)} />
@@ -545,7 +545,7 @@ export default function CFProjectionPage() {
           </div>
           <div className="border-t border-gray-100 pt-3">
             <h3 className="text-sm font-bold text-gray-800 mb-2">หลังเกษียณ (รายได้)</h3>
-            <div className="grid grid-cols-2 gap-2 text-[11px]">
+            <div className="grid grid-cols-2 gap-2 text-[13px]">
               <DataSource icon={<Landmark size={12} className="text-cyan-600" />} label="บำนาญ ปสก./เดือน" value={fmt(ssMonthlyPension)} />
               <DataSource icon={<Landmark size={12} className="text-teal-600" />} label="PVD ก้อน@เกษียณ" value={fmt(pvdAtRetireLump)} />
               <DataSource icon={<Landmark size={12} className="text-orange-600" />} label="เงินชดเชย" value={fmt(severanceLump)} />
@@ -585,7 +585,7 @@ export default function CFProjectionPage() {
           <div className="glass rounded-2xl mx-1 overflow-hidden">
             <div className="px-3 py-2.5 border-b border-gray-100 bg-gradient-to-r from-sky-50 to-indigo-50">
               <div className="text-xs font-bold text-slate-800">📊 ตารางรายละเอียดแบบ Excel</div>
-              <div className="text-[10px] text-slate-500 mt-0.5">
+              <div className="text-[12px] text-slate-500 mt-0.5">
                 ทุกรายการจาก Cash Flow + การศึกษาบุตร — ปีเป็นแนวนอน, ปรับเงินเฟ้อต่อรายการได้
               </div>
             </div>
@@ -622,7 +622,7 @@ function SummaryCard({
 }) {
   return (
     <div className="glass rounded-xl p-3">
-      <div className="flex items-center gap-1.5 text-[10px] text-gray-500 mb-1">
+      <div className="flex items-center gap-1.5 text-[12px] text-gray-500 mb-1">
         {icon}
         <span>{label}</span>
       </div>
@@ -662,7 +662,7 @@ function RateInput({
   const display = draft !== null ? draft : Number.isFinite(value) ? String(value) : "";
   return (
     <div>
-      <label className="text-[10px] text-gray-500 block mb-1">{label}</label>
+      <label className="text-[12px] text-gray-500 block mb-1">{label}</label>
       <div className="flex items-center gap-1 bg-gray-50 rounded-lg px-2 py-1.5 border border-gray-200">
         <input
           type="text"
@@ -685,7 +685,7 @@ function RateInput({
           onBlur={() => setDraft(null)}
           className="flex-1 text-sm font-bold text-right bg-transparent outline-none"
         />
-        <span className="text-[10px] text-gray-400">%</span>
+        <span className="text-[12px] text-gray-400">%</span>
       </div>
     </div>
   );
@@ -707,7 +707,7 @@ function FullProjectionTable({
   }
   return (
     <div className="glass rounded-2xl mx-1 overflow-x-auto">
-      <table className="w-full text-[10px]">
+      <table className="w-full text-[12px]">
         <thead className="bg-gray-50 sticky top-0">
           <tr>
             <th className="py-2 px-2 text-left text-gray-600">ปี</th>
@@ -733,7 +733,7 @@ function FullProjectionTable({
                 <td className="py-1.5 px-2 text-gray-700">{r.year}</td>
                 <td className="py-1.5 px-2 text-gray-700">
                   {r.age}
-                  {isRetireYear && <span className="text-[9px] text-amber-600 ml-1">★</span>}
+                  {isRetireYear && <span className="text-[11px] text-amber-600 ml-1">★</span>}
                 </td>
                 <td className="py-1.5 px-2 text-right font-bold text-emerald-700">{fmtShort(r.totalIncome)}</td>
                 <td className="py-1.5 px-2 text-right text-red-600">{fmtShort(r.totalExpense - r.educationCost - r.specialExpense)}</td>
@@ -804,14 +804,14 @@ function CondensedSummary({
                   <div className="text-xs font-bold text-gray-700">
                     {milestone} • อายุ {r.age}
                   </div>
-                  <div className="text-[10px] text-gray-400">ปี {r.year} / พ.ศ. {r.yearBE}</div>
+                  <div className="text-[12px] text-gray-400">ปี {r.year} / พ.ศ. {r.yearBE}</div>
                 </div>
                 <div className={`text-right ${r.endingBalance > 0 ? "text-sky-700" : "text-red-700"}`}>
-                  <div className="text-[9px] text-gray-400">คงเหลือ</div>
+                  <div className="text-[11px] text-gray-400">คงเหลือ</div>
                   <div className="text-base font-extrabold">{fmtShort(r.endingBalance)}</div>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-2 text-[10px]">
+              <div className="grid grid-cols-3 gap-2 text-[12px]">
                 <div>
                   <div className="text-gray-400">รายรับ</div>
                   <div className="font-bold text-emerald-700">{fmtShort(r.totalIncome)}</div>
@@ -1007,7 +1007,7 @@ function SpreadsheetView({
   return (
     <div className="glass rounded-2xl mx-1 overflow-hidden">
       {/* Legend */}
-      <div className="px-3 py-2 border-b border-gray-100 bg-gray-50 flex flex-wrap gap-2 text-[9px]">
+      <div className="px-3 py-2 border-b border-gray-100 bg-gray-50 flex flex-wrap gap-2 text-[11px]">
         <span className="inline-flex items-center gap-1">
           <span className="w-3 h-3 rounded bg-emerald-200" /> ยอดสูงสุด
         </span>
@@ -1024,7 +1024,7 @@ function SpreadsheetView({
 
       {/* Scrollable table */}
       <div className="overflow-x-auto max-h-[70vh] overflow-y-auto relative">
-        <table className="w-full text-[10px] border-collapse">
+        <table className="w-full text-[12px] border-collapse">
           <thead className="sticky top-0 z-10 bg-[#1e3a5f] text-white shadow">
             <tr>
               <th className="py-2 px-2 text-left font-bold sticky left-0 bg-[#1e3a5f] z-20 min-w-[70px]">ปี</th>
@@ -1056,11 +1056,11 @@ function SpreadsheetView({
                 >
                   <td className={`py-1.5 px-2 sticky left-0 z-[5] font-medium ${healthBg[h] || "bg-white"}`}>
                     <div className="text-gray-800 font-bold">{r.year}</div>
-                    <div className="text-[9px] text-gray-400">พ.ศ. {r.yearBE}</div>
+                    <div className="text-[11px] text-gray-400">พ.ศ. {r.yearBE}</div>
                   </td>
                   <td className="py-1.5 px-1 text-center font-bold text-gray-700">
                     {r.age}
-                    {isRetireYear && <div className="text-[8px] text-amber-600">★</div>}
+                    {isRetireYear && <div className="text-[10px] text-amber-600">★</div>}
                   </td>
                   <td className="py-1.5 px-2 text-right text-emerald-700">
                     {r.salaryIncome > 0 ? fmtShort(r.salaryIncome) : "—"}
@@ -1127,7 +1127,7 @@ function SpreadsheetView({
       </div>
 
       {/* Footer explanation */}
-      <div className="px-3 py-2.5 border-t border-gray-100 bg-gray-50 text-[10px] text-gray-500 leading-relaxed">
+      <div className="px-3 py-2.5 border-t border-gray-100 bg-gray-50 text-[12px] text-gray-500 leading-relaxed">
         💡 <strong>วิธีอ่าน:</strong> แถวสีเขียว = ยอดเงินสูงสุด, สีเหลือง = เริ่มตึง (ยอดเหลือ &lt; 2 ปีของรายจ่าย),
         สีแดง = เงินติดลบแล้ว, ★ = ปีเกษียณ, 🚨 = ปีแรกที่เงินเริ่มติดลบ
       </div>

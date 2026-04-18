@@ -651,7 +651,7 @@ export default function ReportPage() {
               </div>
             </div>
 
-            <div className="mt-16 text-[10px] tracking-widest" style={{ color: MUTED }}>
+            <div className="mt-16 text-[12px] tracking-widest" style={{ color: MUTED }}>
               Financial Freedom Calc · Comprehensive Financial Planning
             </div>
           </div>
@@ -841,7 +841,7 @@ export default function ReportPage() {
                             <td className="px-3 py-2" style={{ color: TEXT }}>
                               <div className="font-medium">{g.name}</div>
                               {preset && (
-                                <div className="text-[10px]" style={{ color: MUTED }}>
+                                <div className="text-[12px]" style={{ color: MUTED }}>
                                   {preset.description}
                                 </div>
                               )}
@@ -945,7 +945,7 @@ export default function ReportPage() {
                         ฿{fmt(data.netWorth)}
                       </span>
                     </div>
-                    <div className="text-[10px] mt-1" style={{ color: MUTED }}>
+                    <div className="text-[12px] mt-1" style={{ color: MUTED }}>
                       = สินทรัพย์ − หนี้สิน
                     </div>
                   </div>
@@ -1015,7 +1015,7 @@ export default function ReportPage() {
                   <div className="text-xs font-semibold" style={{ color: MUTED }}>
                     กระแสเงินสดคงเหลือ / ปี
                   </div>
-                  <div className="text-[11px]" style={{ color: MUTED }}>
+                  <div className="text-[13px]" style={{ color: MUTED }}>
                     รายรับ − รายจ่าย
                   </div>
                 </div>
@@ -1542,11 +1542,11 @@ export default function ReportPage() {
               ขออยู่เคียงข้าง และเป็นผู้ช่วยทางการเงินของคุณ
               ตั้งแต่วันนี้จนถึงวันที่บรรลุเป้าหมายที่ตั้งใจไว้
             </div>
-            <div className="mt-12 text-[10px] tracking-widest" style={{ color: MUTED }}>
+            <div className="mt-12 text-[12px] tracking-widest" style={{ color: MUTED }}>
               END OF REPORT · {today}
             </div>
             <div
-              className="mt-2 text-[10px] max-w-md"
+              className="mt-2 text-[12px] max-w-md"
               style={{ color: MUTED }}
             >
               รายงานนี้เป็นภาพสรุปจากข้อมูลที่ป้อน — ไม่ถือเป็นคำแนะนำการลงทุน
@@ -1600,7 +1600,7 @@ function Page({
     >
       {children}
       <div
-        className="absolute bottom-3 right-6 text-[10px] tracking-widest"
+        className="absolute bottom-3 right-6 text-[12px] tracking-widest"
         style={{ color: MUTED }}
       >
         — {pageNum} —
@@ -1624,7 +1624,7 @@ function PageHeader({ title, en }: { title: string; en: string }) {
         </div>
       </div>
       <div
-        className="text-[10px] tracking-[0.3em] px-3 py-1 rounded-full"
+        className="text-[12px] tracking-[0.3em] px-3 py-1 rounded-full"
         style={{ backgroundColor: "white", color: NAVY, border: `1px solid ${NAVY}` }}
       >
         FINANCIAL PLAN
@@ -1740,14 +1740,14 @@ function BSGroup({
       </div>
       <div className="space-y-0.5 pl-3">
         {items.length === 0 ? (
-          <div className="text-[11px]" style={{ color: MUTED }}>
+          <div className="text-[13px]" style={{ color: MUTED }}>
             —
           </div>
         ) : (
           items.map((it) => (
             <div
               key={it.id}
-              className="flex justify-between text-[11px]"
+              className="flex justify-between text-[13px]"
               style={{ color: TEXT }}
             >
               <span style={{ color: MUTED }}>{it.name}</span>
@@ -1778,7 +1778,7 @@ function SummaryBox({
       }}
     >
       <div
-        className="text-[10px] tracking-widest mb-1"
+        className="text-[12px] tracking-widest mb-1"
         style={{ color: highlight ? "#cbd5e1" : MUTED }}
       >
         {label}
@@ -1816,7 +1816,7 @@ function CFColumn({
         style={{ backgroundColor: NAVY, color: "white" }}
       >
         <div className="text-sm font-semibold">{title}</div>
-        <div className="text-[10px] tracking-widest opacity-70">{subtitle}</div>
+        <div className="text-[12px] tracking-widest opacity-70">{subtitle}</div>
       </div>
       <div className="p-4 space-y-2">
         {rows.map(([label, value]) => (
@@ -1894,7 +1894,7 @@ function RatioRow({ r, alt }: { r: HealthRatio; alt: boolean }) {
 function Badge({ color, text }: { color: string; text: string }) {
   return (
     <span
-      className="inline-block px-2 py-0.5 text-[11px] font-semibold rounded"
+      className="inline-block px-2 py-0.5 text-[13px] font-semibold rounded"
       style={{ backgroundColor: color, color: "white" }}
     >
       {text}
@@ -1997,7 +1997,7 @@ function EFCard({
       }}
     >
       <div
-        className="text-[11px] mb-2"
+        className="text-[13px] mb-2"
         style={{ color: highlight ? "#cbd5e1" : MUTED }}
       >
         {label}
@@ -2009,7 +2009,7 @@ function EFCard({
         {value}
       </div>
       <div
-        className="text-[10px]"
+        className="text-[12px]"
         style={{ color: highlight ? "#cbd5e1" : MUTED }}
       >
         {caption}
@@ -2049,7 +2049,7 @@ function FBox({
       >
         {letter}
       </div>
-      <div className="text-[10px]" style={{ color: MUTED }}>
+      <div className="text-[12px]" style={{ color: MUTED }}>
         {label}
       </div>
       <div
@@ -2070,7 +2070,7 @@ function PriorityTag({ priority }: { priority: "high" | "medium" | "low" }) {
   }[priority];
   return (
     <span
-      className="inline-block px-2 py-0.5 text-[11px] font-semibold rounded-full"
+      className="inline-block px-2 py-0.5 text-[13px] font-semibold rounded-full"
       style={{ backgroundColor: map.color, color: "white" }}
     >
       {map.label}

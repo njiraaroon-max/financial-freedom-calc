@@ -241,7 +241,7 @@ function Header({
         )}
       </div>
       {showHint && hintContent && (
-        <div className="bg-blue-50 border border-blue-100 rounded-lg p-2.5 text-[11px] text-blue-900 leading-relaxed space-y-1.5">
+        <div className="bg-blue-50 border border-blue-100 rounded-lg p-2.5 text-[13px] text-blue-900 leading-relaxed space-y-1.5">
           {hintContent}
         </div>
       )}
@@ -263,7 +263,7 @@ function PreviewBox({
   accent: AccentTheme;
 }) {
   return (
-    <div className="border-t border-gray-200 pt-2 space-y-1 text-[10px]">
+    <div className="border-t border-gray-200 pt-2 space-y-1 text-[12px]">
       <div className="flex justify-between">
         <span className="text-gray-500">🕐 {occurLabel}</span>
         <span className="font-semibold text-gray-700">{occurValue}</span>
@@ -351,7 +351,7 @@ function InlineCard({
 
       {/* Age inputs */}
       {kind === "lump" && onUpdateOccurAge && (
-        <div className="flex items-center gap-2 text-[11px] text-gray-600">
+        <div className="flex items-center gap-2 text-[13px] text-gray-600">
           <span>ตอนอายุ</span>
           <AgeInput
             value={occurAge}
@@ -362,7 +362,7 @@ function InlineCard({
         </div>
       )}
       {kind === "recurring" && onUpdateStartAge && onUpdateEndAge && (
-        <div className="flex items-center gap-2 text-[11px] text-gray-600 flex-wrap">
+        <div className="flex items-center gap-2 text-[13px] text-gray-600 flex-wrap">
           <span>อายุ</span>
           <AgeInput
             value={startAge}
@@ -414,7 +414,7 @@ function KindChip({
   return (
     <button
       onClick={onClick}
-      className={`flex-1 px-3 py-1 rounded-lg text-[11px] font-bold transition ${
+      className={`flex-1 px-3 py-1 rounded-lg text-[13px] font-bold transition ${
         active
           ? `${accent.button} text-white`
           : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50"
@@ -509,7 +509,7 @@ function AmountInput({
         onBlur={() => setDraft(null)}
         className={`flex-1 text-sm font-semibold bg-white rounded-lg px-3 py-1.5 outline-none focus:ring-2 ${accent.ring} transition text-right`}
       />
-      <span className="text-[10px] text-gray-400 whitespace-nowrap">
+      <span className="text-[12px] text-gray-400 whitespace-nowrap">
         {kind === "lump" ? "บาท (วันนี้)" : "บาท/ปี (วันนี้)"}
       </span>
     </div>
@@ -546,7 +546,7 @@ function InflationInput({
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <span className="text-[10px] text-gray-400">เงินเฟ้อ:</span>
+      <span className="text-[12px] text-gray-400">เงินเฟ้อ:</span>
       <div className="flex items-center gap-1">
         <input
           type="text"
@@ -568,7 +568,7 @@ function InflationInput({
           onBlur={() => setDraft(null)}
           className={`w-14 text-xs font-semibold bg-white rounded-md px-2 py-1 outline-none focus:ring-2 ${accent.ring} transition text-right`}
         />
-        <span className="text-[10px] text-gray-500">%</span>
+        <span className="text-[12px] text-gray-500">%</span>
       </div>
       <div className="flex items-center gap-1 flex-wrap">
         {INFLATION_HINTS.map((h) => (
@@ -576,7 +576,7 @@ function InflationInput({
             key={h.rate}
             type="button"
             onClick={() => onChange(h.rate)}
-            className={`px-2 py-0.5 rounded-full text-[10px] transition ${
+            className={`px-2 py-0.5 rounded-full text-[12px] transition ${
               Math.abs(inflation - h.rate) < 0.0001
                 ? `${accent.button} text-white font-bold`
                 : "bg-gray-100 text-gray-500 hover:bg-gray-200"
@@ -615,17 +615,17 @@ function LinkedCard({
       <div className="flex items-center gap-2">
         <div className="flex-1 flex items-center gap-1 min-w-0">
           <div className="text-xs font-medium truncate">{item.name}</div>
-          <span className="text-[9px] text-gray-400 shrink-0">🔗</span>
+          <span className="text-[11px] text-gray-400 shrink-0">🔗</span>
         </div>
         <Link
           href={editHref}
-          className={`text-[10px] ${accent.chip} font-bold hover:underline flex items-center gap-0.5 shrink-0`}
+          className={`text-[12px] ${accent.chip} font-bold hover:underline flex items-center gap-0.5 shrink-0`}
         >
           {editLabel ?? "แก้ไข"} <ExternalLink size={10} />
         </Link>
       </div>
 
-      <div className="text-[11px] text-gray-600 leading-relaxed">
+      <div className="text-[13px] text-gray-600 leading-relaxed">
         {hasData ? (
           summary
         ) : (
@@ -649,7 +649,7 @@ function LinkedCard({
         <button
           type="button"
           onClick={() => setShowTable((v) => !v)}
-          className={`w-full flex items-center justify-center gap-1 text-[10px] ${accent.chip} font-bold hover:underline pt-1`}
+          className={`w-full flex items-center justify-center gap-1 text-[12px] ${accent.chip} font-bold hover:underline pt-1`}
         >
           {showTable ? (
             <>
@@ -688,7 +688,7 @@ function YearlyStreamTable({
   return (
     <div className="glass rounded-lg overflow-hidden">
       <div className="max-h-48 overflow-y-auto">
-        <table className="w-full text-[10px]">
+        <table className="w-full text-[12px]">
           <thead className="bg-gray-50 sticky top-0">
             <tr className="text-gray-500">
               <th className="text-left px-2 py-1 font-semibold">อายุ</th>
@@ -779,7 +779,7 @@ function SubCalcCard({
 
       <Link
         href={subCalcHref}
-        className={`flex items-center justify-between ${accent.button} text-white rounded-lg px-3 py-2 text-[11px] font-bold hover:opacity-90 transition`}
+        className={`flex items-center justify-between ${accent.button} text-white rounded-lg px-3 py-2 text-[13px] font-bold hover:opacity-90 transition`}
       >
         <span className="flex items-center gap-1">
           <Settings2 size={12} /> {subCalcLabel ?? "คำนวณรายละเอียด"}
@@ -796,7 +796,7 @@ function SubCalcCard({
           accent={accent}
         />
       ) : (
-        <div className="text-[10px] text-gray-400">ยังไม่มีรายการ</div>
+        <div className="text-[12px] text-gray-400">ยังไม่มีรายการ</div>
       )}
     </>
   );

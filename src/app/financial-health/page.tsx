@@ -22,7 +22,7 @@ function DimensionIcon({ icon: Icon, label }: { icon: React.ElementType; label: 
       <div className="w-10 h-10 bg-[#1e3a5f] rounded-full flex items-center justify-center">
         <Icon size={18} className="text-white" />
       </div>
-      <span className="text-[10px] font-bold text-[#1e3a5f] text-center leading-tight">{label}</span>
+      <span className="text-[12px] font-bold text-[#1e3a5f] text-center leading-tight">{label}</span>
     </div>
   );
 }
@@ -261,7 +261,7 @@ export default function FinancialHealthPage() {
                       <td className="px-3 py-2 text-right font-bold text-gray-800 whitespace-nowrap">
                         {item.value === 0 ? "-" : fmt(item.value)}
                       </td>
-                      <td className="px-2 py-2 text-right text-gray-400 whitespace-nowrap text-[10px]">
+                      <td className="px-2 py-2 text-right text-gray-400 whitespace-nowrap text-[12px]">
                         {item.unit}
                       </td>
                     </tr>
@@ -289,7 +289,7 @@ export default function FinancialHealthPage() {
                   <div className="grid grid-cols-2 gap-1 px-2 pb-4">
                     {dim.rows.map((row, rIdx) => (
                       <div key={rIdx} className="flex flex-col items-center">
-                        <div className="text-[10px] text-gray-600 font-medium text-center px-2 mb-1 leading-tight">
+                        <div className="text-[12px] text-gray-600 font-medium text-center px-2 mb-1 leading-tight">
                           {row.description}
                         </div>
                         {row.gauge}

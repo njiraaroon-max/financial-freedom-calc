@@ -145,7 +145,7 @@ function NumInput({
             </button>
           )}
         </div>
-        {hint && <div className="text-[10px] text-gray-400">{hint}</div>}
+        {hint && <div className="text-[12px] text-gray-400">{hint}</div>}
       </div>
       <div className="shrink-0">
         <MoneyInput
@@ -209,13 +209,13 @@ function GuidePopup({
         <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
           {/* Formula */}
           <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-200">
-            <div className="text-[10px] font-bold text-emerald-600 mb-1">สูตรคำนวณ</div>
+            <div className="text-[12px] font-bold text-emerald-600 mb-1">สูตรคำนวณ</div>
             <div className="text-xs font-bold text-emerald-800">{guide.formula}</div>
           </div>
 
           {/* Explanation */}
           <div>
-            <div className="text-[10px] font-bold text-gray-500 mb-1.5">คำอธิบาย</div>
+            <div className="text-[12px] font-bold text-gray-500 mb-1.5">คำอธิบาย</div>
             <div className="text-xs text-gray-700 leading-relaxed whitespace-pre-line">
               {guide.explanation}
             </div>
@@ -224,15 +224,15 @@ function GuidePopup({
           {/* Example */}
           {guide.example && (
             <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
-              <div className="text-[10px] font-bold text-amber-600 mb-1">ตัวอย่าง</div>
+              <div className="text-[12px] font-bold text-amber-600 mb-1">ตัวอย่าง</div>
               <div className="text-xs font-medium text-amber-800">{guide.example}</div>
             </div>
           )}
 
           {/* CFP Reference */}
           <div className="bg-gray-50 rounded-xl p-3">
-            <div className="text-[10px] font-bold text-gray-500 mb-1">อ้างอิงหลัก CFP</div>
-            <div className="text-[11px] text-gray-600 italic">{guide.cfpRef}</div>
+            <div className="text-[12px] font-bold text-gray-500 mb-1">อ้างอิงหลัก CFP</div>
+            <div className="text-[13px] text-gray-600 italic">{guide.cfpRef}</div>
           </div>
         </div>
       </div>
@@ -286,7 +286,7 @@ export default function NeedsPage() {
         {/* Info */}
         <div className="bg-blue-50 rounded-2xl p-3 flex gap-2 items-start">
           <Info size={16} className="text-blue-500 shrink-0 mt-0.5" />
-          <div className="text-[11px] text-blue-700">
+          <div className="text-[13px] text-blue-700">
             กรอกจำนวนความคุ้มครองที่ควรมีในแต่ละหมวด กดปุ่ม <span className="inline-flex items-center justify-center w-3.5 h-3.5 bg-blue-200 rounded-full mx-0.5"><HelpCircle size={8} className="text-blue-600" /></span> เพื่อดูวิธีคำนวณตามหลัก CFP
           </div>
         </div>

@@ -117,17 +117,17 @@ export default function SocialSecurityPage() {
             <Info size={16} />
           </button>
           <div className="pr-10">
-            <div className="text-[10px] font-bold text-white/70 mb-1">Step 2 · Social Security</div>
+            <div className="text-[12px] font-bold text-white/70 mb-1">Step 2 · Social Security</div>
             <h3 className="text-sm font-bold leading-snug mb-1.5">
               คำนวณบำนาญประกันสังคม (ม.33)
             </h3>
-            <p className="text-[11px] text-white/80 leading-relaxed">
+            <p className="text-[13px] text-white/80 leading-relaxed">
               บำนาญชราภาพ = ค่าเฉลี่ยเงินเดือน 60 เดือนสุดท้าย × อัตรา% ตามจำนวนปีที่ส่ง
               คำนวณตามหลัก CFP Module 4 (Government Pension)
             </p>
             <button
               onClick={() => setShowInfo(true)}
-              className="mt-2 inline-flex items-center gap-1 text-[10px] text-white/90 font-bold hover:text-white underline-offset-2 hover:underline"
+              className="mt-2 inline-flex items-center gap-1 text-[12px] text-white/90 font-bold hover:text-white underline-offset-2 hover:underline"
             >
               <Info size={11} /> ดูวิธีคำนวณตามหลัก CFP
             </button>
@@ -226,7 +226,7 @@ export default function SocialSecurityPage() {
                 <button
                   key={opt.value}
                   onClick={() => updateSSParam("salaryCap", opt.value)}
-                  className={`text-[10px] px-2 py-1 rounded-lg transition-all ${
+                  className={`text-[12px] px-2 py-1 rounded-lg transition-all ${
                     p.salaryCap === opt.value
                       ? "bg-green-500 text-white font-bold"
                       : "bg-gray-100 text-gray-500 hover:bg-gray-200"
@@ -236,7 +236,7 @@ export default function SocialSecurityPage() {
                 </button>
               ))}
             </div>
-            <div className="text-[9px] text-gray-400 mt-1.5 leading-relaxed">
+            <div className="text-[11px] text-gray-400 mt-1.5 leading-relaxed">
               💡 ประกันสังคมปรับเพดานทุก 3 ปี ตั้งแต่ 1 ม.ค. 2569
             </div>
           </div>
@@ -261,7 +261,7 @@ export default function SocialSecurityPage() {
             <span className="text-blue-600">ผลตอบแทนหลังเกษียณ (อัตราคิดลด)</span>
             <span className="font-bold text-blue-800">{(a.postRetireReturn * 100).toFixed(1)}%</span>
           </div>
-          <div className="text-[9px] text-blue-400">แก้ไขได้ที่ แผนเกษียณ → Step 1 สมมติฐาน</div>
+          <div className="text-[11px] text-blue-400">แก้ไขได้ที่ แผนเกษียณ → Step 1 สมมติฐาน</div>
         </div>
 
         {/* Result — live, no button needed */}
@@ -312,25 +312,25 @@ export default function SocialSecurityPage() {
 
             {/* Result */}
             <div className="bg-gradient-to-br from-green-500 to-emerald-700 rounded-2xl p-5 text-white relative">
-              <div className="absolute top-3 right-3 flex items-center gap-1 text-[9px] bg-white/20 rounded-full px-2 py-0.5">
+              <div className="absolute top-3 right-3 flex items-center gap-1 text-[11px] bg-white/20 rounded-full px-2 py-0.5">
                 <CheckCircle2 size={10} /> บันทึกอัตโนมัติ
               </div>
               <div className="grid grid-cols-2 gap-3 mb-3 mt-4">
                 <div className="bg-white/15 rounded-xl p-3 text-center">
-                  <div className="text-[10px] opacity-70">บำนาญ/เดือน</div>
+                  <div className="text-[12px] opacity-70">บำนาญ/เดือน</div>
                   <div className="text-lg font-extrabold">฿{fmt(result.monthlyPension)}</div>
                 </div>
                 <div className="bg-white/15 rounded-xl p-3 text-center">
-                  <div className="text-[10px] opacity-70">บำนาญ/ปี</div>
+                  <div className="text-[12px] opacity-70">บำนาญ/ปี</div>
                   <div className="text-lg font-extrabold">฿{fmt(result.annualPension)}</div>
                 </div>
               </div>
               <div className="bg-white/20 rounded-xl p-3 text-center">
-                <div className="text-[10px] opacity-70">มูลค่าปัจจุบัน (NPV) ณ วันเกษียณ</div>
+                <div className="text-[12px] opacity-70">มูลค่าปัจจุบัน (NPV) ณ วันเกษียณ</div>
                 <div className="text-xl font-extrabold">฿{fmt(result.npv)}</div>
-                <div className="text-[9px] opacity-50">อัตราคิดลด {(a.postRetireReturn * 100).toFixed(1)}% | รับถึงอายุ {a.lifeExpectancy + p.extraYearsBeyondLife} ปี</div>
+                <div className="text-[11px] opacity-50">อัตราคิดลด {(a.postRetireReturn * 100).toFixed(1)}% | รับถึงอายุ {a.lifeExpectancy + p.extraYearsBeyondLife} ปี</div>
               </div>
-              <div className="text-[10px] opacity-70 text-center mt-2">ปรับค่าด้านบนได้เลย ผลลัพธ์จะอัปเดตทันที</div>
+              <div className="text-[12px] opacity-70 text-center mt-2">ปรับค่าด้านบนได้เลย ผลลัพธ์จะอัปเดตทันที</div>
             </div>
 
             {/* Projection Table */}
@@ -346,7 +346,7 @@ export default function SocialSecurityPage() {
                   </HintIcon>
                 </div>
                 <div className="overflow-auto max-h-72 relative">
-                  <table className="w-full text-[10px] border-collapse">
+                  <table className="w-full text-[12px] border-collapse">
                     <thead>
                       <tr className="bg-[#1e3a5f] text-white">
                         <th className="px-2 py-1.5 text-center sticky top-0 left-0 bg-[#1e3a5f] z-30">ปีที่</th>
@@ -374,7 +374,7 @@ export default function SocialSecurityPage() {
                     </tbody>
                   </table>
                 </div>
-                <div className="px-4 py-2 bg-slate-50 border-t border-gray-100 text-[9px] text-gray-500 leading-relaxed">
+                <div className="px-4 py-2 bg-slate-50 border-t border-gray-100 text-[11px] text-gray-500 leading-relaxed">
                   💡 ค่าคิดลด = 1 / (1 + r)<sup>y</sup> · PV ปีนี้ = บำนาญ × ค่าคิดลด · NPV สะสม = Σ PV ทุกปี
                 </div>
               </div>
@@ -406,7 +406,7 @@ export default function SocialSecurityPage() {
                 <p className="text-xs font-bold text-gray-800 leading-relaxed">
                   &ldquo;ส่งเงินเข้าประกันสังคมมาตลอด... หลังเกษียณจะได้รับเท่าไหร่?&rdquo;
                 </p>
-                <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                <p className="text-[13px] text-gray-500 mt-2 leading-relaxed">
                   บำนาญชราภาพ (ม.33) จ่ายเป็นรายเดือนตลอดชีวิต ตามกฎกระทรวงประกันสังคม
                 </p>
               </div>
@@ -417,42 +417,42 @@ export default function SocialSecurityPage() {
 
               <div className="border border-gray-200 rounded-xl p-4 space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-green-100 text-green-700 text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <span className="w-6 h-6 rounded-full bg-green-100 text-green-700 text-[12px] font-bold flex items-center justify-center shrink-0">1</span>
                   <h4 className="text-xs font-bold text-gray-800">คำนวณจำนวนเดือนที่ส่ง</h4>
                 </div>
-                <p className="text-[11px] leading-relaxed">
+                <p className="text-[13px] leading-relaxed">
                   นับเดือนที่ส่งเงินเข้ากองทุนชราภาพ — ต้องส่งครบ 180 เดือน (15 ปี) ขึ้นไป จึงจะได้รับ &ldquo;บำนาญ&rdquo;
                   ถ้าน้อยกว่าจะได้ &ldquo;บำเหน็จ&rdquo; (เงินก้อน)
                 </p>
-                <div className="bg-green-50 rounded-lg px-3 py-2 text-[10px]">
+                <div className="bg-green-50 rounded-lg px-3 py-2 text-[12px]">
                   <div><strong>ต้องการ:</strong> ≥ 180 เดือน</div>
                 </div>
               </div>
 
               <div className="border border-gray-200 rounded-xl p-4 space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-green-100 text-green-700 text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
+                  <span className="w-6 h-6 rounded-full bg-green-100 text-green-700 text-[12px] font-bold flex items-center justify-center shrink-0">2</span>
                   <h4 className="text-xs font-bold text-gray-800">หาค่าเฉลี่ยเงินเดือน (Base)</h4>
                 </div>
-                <p className="text-[11px] leading-relaxed">
+                <p className="text-[13px] leading-relaxed">
                   นำเงินเดือน 60 เดือนสุดท้ายก่อนเกษียณมาเฉลี่ย (ไม่เกินเพดาน 17,500 บาท ตาม ม.33)
                 </p>
-                <div className="bg-green-50 rounded-lg px-3 py-2 text-[10px]">
+                <div className="bg-green-50 rounded-lg px-3 py-2 text-[12px]">
                   <div><strong>Base:</strong> min(เฉลี่ย 60 เดือน, 17,500)</div>
                 </div>
               </div>
 
               <div className="border-2 border-green-500 rounded-xl p-4 space-y-2 bg-green-50/30">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-green-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">3</span>
+                  <span className="w-6 h-6 rounded-full bg-green-600 text-white text-[12px] font-bold flex items-center justify-center shrink-0">3</span>
                   <h4 className="text-xs font-bold text-green-800">คำนวณอัตราบำนาญ (CARE Rate) ⭐</h4>
                 </div>
-                <div className="text-[10px] text-green-700 font-bold bg-green-100 rounded-lg px-2 py-1 inline-block">ใช้ในหน้านี้</div>
-                <p className="text-[11px] leading-relaxed">
+                <div className="text-[12px] text-green-700 font-bold bg-green-100 rounded-lg px-2 py-1 inline-block">ใช้ในหน้านี้</div>
+                <p className="text-[13px] leading-relaxed">
                   CARE = Career Average Rate Earning — อัตราบำนาญเทียบเงินเดือนฐาน
                   {" "}เริ่มต้น 20% (ส่งครบ 180 เดือน) เพิ่ม 1.5% ทุกๆ 12 เดือนถัดไป (= 0.125%/เดือน)
                 </p>
-                <div className="bg-green-100 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                <div className="bg-green-100 rounded-lg px-3 py-2 text-[12px] space-y-1">
                   <div><strong>สูตร:</strong> CARE Rate = 20% + (เดือนเกิน 180) × 0.125%</div>
                   <div><strong>บำนาญ/เดือน:</strong> Base × CARE Rate</div>
                   <div><strong>NPV:</strong> Σ (บำนาญ/ปี) ÷ (1+r)<sup>y</sup> ตลอดช่วงที่รับ</div>
@@ -461,7 +461,7 @@ export default function SocialSecurityPage() {
               </div>
 
               <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
-                <div className="text-[10px] text-amber-700 leading-relaxed">
+                <div className="text-[12px] text-amber-700 leading-relaxed">
                   💡 เพดานเงินเดือนประกันสังคมกำลังปรับจาก 15,000 → 17,500 → 20,000 → 23,000
                   ทำให้เพดานบำนาญเพิ่มตามช่วงเวลา
                 </div>

@@ -201,7 +201,7 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
               className="w-full object-contain drop-shadow-md"
               style={{ maxHeight: "80%" }}
             />
-            <div className="text-[9px] md:text-[11px] font-bold text-gray-600 leading-tight mt-1 whitespace-nowrap">
+            <div className="text-[11px] md:text-[13px] font-bold text-gray-600 leading-tight mt-1 whitespace-nowrap">
               สรุปแผนการเงิน
             </div>
           </Link>
@@ -228,7 +228,7 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
               >
                 {/* "เริ่มต้น" label above Personal Info */}
                 {isPersonalInfo && (
-                  <div className="text-[9px] md:text-[11px] font-bold text-[var(--color-primary)] text-center mb-0.5 whitespace-nowrap">
+                  <div className="text-[11px] md:text-[13px] font-bold text-[var(--color-primary)] text-center mb-0.5 whitespace-nowrap">
                     เริ่มต้น ▼
                   </div>
                 )}
@@ -283,11 +283,11 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
                     </div>
 
                     {/* Name */}
-                    <div className="text-[10px] md:text-[12px] font-bold text-gray-700 mt-1 text-center leading-tight whitespace-nowrap">
+                    <div className="text-[12px] md:text-[14px] font-bold text-gray-700 mt-1 text-center leading-tight whitespace-nowrap">
                       {piece.name}
                     </div>
                     {/* Description */}
-                    <div className="text-[8px] md:text-[10px] text-gray-400 text-center leading-tight whitespace-nowrap">
+                    <div className="text-[10px] md:text-[12px] text-gray-400 text-center leading-tight whitespace-nowrap">
                       {piece.description}
                     </div>
                   </div>
@@ -301,7 +301,7 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
       {/* Bottom Module Selector — only unselected modules */}
       {unselectedPieces.length > 0 && (
         <div className="glass rounded-2xl p-2 mt-1">
-          <div className="text-[9px] text-gray-400 text-center mb-1.5">กดเพื่อเพิ่มแผนที่ต้องการ</div>
+          <div className="text-[11px] text-gray-400 text-center mb-1.5">กดเพื่อเพิ่มแผนที่ต้องการ</div>
           <div className="flex flex-wrap justify-center gap-1.5 md:gap-2">
             {unselectedPieces.map((piece) => {
               const Icon = piece.icon;
@@ -335,7 +335,7 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
                       <Plus size={8} className="text-white" strokeWidth={3} />
                     </div>
                   </div>
-                  <span className="text-[7px] md:text-[8px] font-medium text-gray-500 text-center leading-tight whitespace-nowrap">
+                  <span className="text-[9px] md:text-[10px] font-medium text-gray-500 text-center leading-tight whitespace-nowrap">
                     {piece.description}
                   </span>
                 </button>
@@ -348,7 +348,7 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
       {/* All selected indicator */}
       {unselectedPieces.length === 0 && selectedPieces.length > 0 && (
         <div className="text-center mt-2">
-          <span className="text-[10px] text-emerald-500 font-medium">✓ เพิ่มแผนครบทุกด้านแล้ว</span>
+          <span className="text-[12px] text-emerald-500 font-medium">✓ เพิ่มแผนครบทุกด้านแล้ว</span>
         </div>
       )}
     </div>

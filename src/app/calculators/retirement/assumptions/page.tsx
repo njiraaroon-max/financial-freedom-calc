@@ -132,7 +132,7 @@ export default function AssumptionsPage() {
           <div className="flex items-center justify-between pt-3 border-t border-gray-100">
             <div>
               <div className="text-sm text-gray-600">เงินออมเริ่มต้น (ปัจจุบัน)</div>
-              <div className="text-[10px] text-gray-400 mt-0.5">baseline สำหรับ Wealth Journey</div>
+              <div className="text-[12px] text-gray-400 mt-0.5">baseline สำหรับ Wealth Journey</div>
             </div>
             <NumberInput
               value={a.currentSavings || 0}

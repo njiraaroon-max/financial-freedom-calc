@@ -89,7 +89,7 @@ export default function EmergencyFundPage() {
 
           <div className="space-y-3 max-w-xs mx-auto text-left">
             <div>
-              <label className="text-[11px] text-gray-500 mb-1 block">รายจ่ายจำเป็น/เดือน</label>
+              <label className="text-[13px] text-gray-500 mb-1 block">รายจ่ายจำเป็น/เดือน</label>
               <MoneyInput
                 value={manualExpense}
                 onChange={setManualExpense}
@@ -97,7 +97,7 @@ export default function EmergencyFundPage() {
               />
             </div>
             <div>
-              <label className="text-[11px] text-gray-500 mb-1 block">สินทรัพย์สภาพคล่องปัจจุบัน</label>
+              <label className="text-[13px] text-gray-500 mb-1 block">สินทรัพย์สภาพคล่องปัจจุบัน</label>
               <MoneyInput
                 value={manualLiquid}
                 onChange={setManualLiquid}
@@ -130,7 +130,7 @@ export default function EmergencyFundPage() {
             <span className="text-xs text-gray-500">สินทรัพย์สภาพคล่อง</span>
             <span className="text-sm font-bold text-gray-800">฿{fmt(effectiveLiquid)}</span>
           </div>
-          <div className="flex items-center gap-1 text-[10px] text-gray-400">
+          <div className="flex items-center gap-1 text-[12px] text-gray-400">
             {hasCFData && <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-600 rounded">จาก Cash Flow</span>}
             {hasBSData && <span className="px-1.5 py-0.5 bg-purple-100 text-purple-600 rounded">จาก Balance Sheet</span>}
           </div>
@@ -162,7 +162,7 @@ export default function EmergencyFundPage() {
                         <tr key={i} className="border-t border-gray-100 hover:bg-slate-50 transition">
                           <td className="px-3 py-2 text-gray-800">{item.name}</td>
                           <td className="px-2 py-2 text-center">
-                            <span className={`px-1.5 py-0.5 rounded text-[9px] font-medium ${
+                            <span className={`px-1.5 py-0.5 rounded text-[11px] font-medium ${
                               item.category === "fixed" ? "bg-red-50 text-red-500"
                               : item.category === "variable" ? "bg-amber-50 text-amber-600"
                               : "bg-blue-50 text-blue-500"
@@ -232,21 +232,21 @@ export default function EmergencyFundPage() {
           {/* Two columns */}
           <div className="grid grid-cols-2 gap-0.5 px-3">
             <div className="bg-white/10 rounded-xl p-4 text-white text-center">
-              <div className="text-[10px] opacity-70 mb-1">เงินสำรองที่ต้องมี</div>
+              <div className="text-[12px] opacity-70 mb-1">เงินสำรองที่ต้องมี</div>
               <div className="text-xl font-extrabold">฿{fmt(targetAmount)}</div>
-              <div className="text-[10px] opacity-50 mt-1">{fmt(effectiveExpense)} × {targetMonths} เดือน</div>
+              <div className="text-[12px] opacity-50 mt-1">{fmt(effectiveExpense)} × {targetMonths} เดือน</div>
             </div>
             <div className="bg-white/10 rounded-xl p-4 text-white text-center">
-              <div className="text-[10px] opacity-70 mb-1">เงินสำรองที่มี</div>
+              <div className="text-[12px] opacity-70 mb-1">เงินสำรองที่มี</div>
               <div className="text-xl font-extrabold">฿{fmt(effectiveLiquid)}</div>
-              <div className="text-[10px] opacity-50 mt-1">สินทรัพย์สภาพคล่อง</div>
+              <div className="text-[12px] opacity-50 mt-1">สินทรัพย์สภาพคล่อง</div>
             </div>
           </div>
 
           {/* Progress Bar */}
           <div className="px-5 pt-4 pb-2">
             <div className="flex justify-between items-center mb-1.5">
-              <span className="text-[11px] text-white/70 font-medium">ความคืบหน้า</span>
+              <span className="text-[13px] text-white/70 font-medium">ความคืบหน้า</span>
               <span className="text-sm font-extrabold text-white">{progressPercent.toFixed(0)}%</span>
             </div>
             <div className="h-4 bg-black/20 rounded-full overflow-hidden">
@@ -265,12 +265,12 @@ export default function EmergencyFundPage() {
             <div className="bg-white/20 backdrop-blur rounded-xl p-4 text-center">
               {isEnough ? (
                 <>
-                  <div className="text-[11px] text-white/70">เกินมา</div>
+                  <div className="text-[13px] text-white/70">เกินมา</div>
                   <div className="text-2xl font-extrabold text-white">+฿{fmt(surplus)}</div>
                 </>
               ) : (
                 <>
-                  <div className="text-[11px] text-white/70">ขาดอีก</div>
+                  <div className="text-[13px] text-white/70">ขาดอีก</div>
                   <div className="text-2xl font-extrabold text-white">-฿{fmt(Math.abs(surplus))}</div>
                 </>
               )}
@@ -299,16 +299,16 @@ export default function EmergencyFundPage() {
                 onChange={(e) => setMonthlySaving(Number(e.target.value))}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-primary)]"
               />
-              <div className="flex justify-between text-[9px] text-gray-400 mt-1">
+              <div className="flex justify-between text-[11px] text-gray-400 mt-1">
                 <span>฿1,000</span>
                 <span>฿50,000</span>
               </div>
             </div>
 
             <div className="bg-indigo-50 rounded-xl p-3 text-center">
-              <div className="text-[10px] text-indigo-500 mb-1">จะมีเงินสำรองครบใน</div>
+              <div className="text-[12px] text-indigo-500 mb-1">จะมีเงินสำรองครบใน</div>
               <div className="text-2xl font-bold text-indigo-700">{monthsToGoal} เดือน</div>
-              <div className="text-[10px] text-indigo-400">
+              <div className="text-[12px] text-indigo-400">
                 ({monthsToGoal >= 12 ? `${Math.floor(monthsToGoal / 12)} ปี ${monthsToGoal % 12} เดือน` : `${monthsToGoal} เดือน`})
               </div>
             </div>

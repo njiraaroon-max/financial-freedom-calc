@@ -181,17 +181,17 @@ export default function PVDPage() {
             <Info size={16} />
           </button>
           <div className="pr-10">
-            <div className="text-[10px] font-bold text-white/70 mb-1">Step 2 · Provident Fund</div>
+            <div className="text-[12px] font-bold text-white/70 mb-1">Step 2 · Provident Fund</div>
             <h3 className="text-sm font-bold leading-snug mb-1.5">
               คำนวณเงิน PVD ณ วันเกษียณ
             </h3>
-            <p className="text-[11px] text-white/80 leading-relaxed">
+            <p className="text-[13px] text-white/80 leading-relaxed">
               เงินสะสม (พนักงาน) + เงินสมทบ (นายจ้าง) พร้อมผลตอบแทนทบต้น
               คำนวณตามหลัก CFP Module 4 (Future Value Projection)
             </p>
             <button
               onClick={() => setShowInfo(true)}
-              className="mt-2 inline-flex items-center gap-1 text-[10px] text-white/90 font-bold hover:text-white underline-offset-2 hover:underline"
+              className="mt-2 inline-flex items-center gap-1 text-[12px] text-white/90 font-bold hover:text-white underline-offset-2 hover:underline"
             >
               <Info size={11} /> ดูวิธีคำนวณตามหลัก CFP
             </button>
@@ -205,7 +205,7 @@ export default function PVDPage() {
             {hasCFData && (
               <button
                 onClick={pullFromCF}
-                className="text-[10px] px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-lg font-medium hover:bg-indigo-100 transition"
+                className="text-[12px] px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-lg font-medium hover:bg-indigo-100 transition"
               >
                 ↻ ดึงค่าจาก Cash Flow
               </button>
@@ -218,7 +218,7 @@ export default function PVDPage() {
                   <span>{f.label}</span>
                   {f.detail && <HintIcon text={f.detail} />}
                 </div>
-                {f.hint && <div className="text-[9px] text-gray-400 mt-0.5 leading-tight">{f.hint}</div>}
+                {f.hint && <div className="text-[11px] text-gray-400 mt-0.5 leading-tight">{f.hint}</div>}
               </div>
               {f.type === "percent" ? (
                 <div className="flex items-center gap-1">
@@ -269,18 +269,18 @@ export default function PVDPage() {
             <span className="text-blue-600">ระยะเวลาสะสม</span>
             <span className="font-bold text-blue-800">{assumptions.retireAge - assumptions.currentAge} ปี</span>
           </div>
-          <div className="text-[9px] text-blue-400">แก้ไขได้ที่ แผนเกษียณ → Step 1 สมมติฐาน</div>
+          <div className="text-[11px] text-blue-400">แก้ไขได้ที่ แผนเกษียณ → Step 1 สมมติฐาน</div>
         </div>
 
         {/* Result — live, no button needed */}
         {hasValidInput ? (
           <div className="bg-gradient-to-br from-blue-500 to-indigo-700 rounded-2xl p-5 text-white text-center relative">
-            <div className="absolute top-3 right-3 flex items-center gap-1 text-[9px] bg-white/15 rounded-full px-2 py-0.5">
+            <div className="absolute top-3 right-3 flex items-center gap-1 text-[11px] bg-white/15 rounded-full px-2 py-0.5">
               <CheckCircle2 size={10} /> บันทึกอัตโนมัติ
             </div>
             <div className="text-xs opacity-70 mb-1">มูลค่า PVD ณ วันเกษียณ (อายุ {assumptions.retireAge})</div>
             <div className="text-2xl font-extrabold">฿{fmt(atRetire)}</div>
-            <div className="text-[10px] opacity-60 mt-1">ปรับค่าด้านบนได้เลย ผลลัพธ์จะอัปเดตทันที</div>
+            <div className="text-[12px] opacity-60 mt-1">ปรับค่าด้านบนได้เลย ผลลัพธ์จะอัปเดตทันที</div>
           </div>
         ) : (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center text-xs text-amber-700">
@@ -295,7 +295,7 @@ export default function PVDPage() {
               <div className="text-xs font-bold text-white">ตาราง Projection</div>
             </div>
             <div className="overflow-auto max-h-72 relative">
-              <table className="w-full text-[10px] border-collapse">
+              <table className="w-full text-[12px] border-collapse">
                 <thead>
                   <tr className="bg-[#1e3a5f] text-white">
                     {/* Top-left corner: sticky on BOTH axes, highest z */}
@@ -348,7 +348,7 @@ export default function PVDPage() {
                 <p className="text-xs font-bold text-gray-800 leading-relaxed">
                   &ldquo;สะสมทุกเดือน... 30 ปีข้างหน้าจะมีเท่าไหร่?&rdquo;
                 </p>
-                <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                <p className="text-[13px] text-gray-500 mt-2 leading-relaxed">
                   พลังของดอกเบี้ยทบต้น (Compound Interest) ทำให้เงินเดือนละไม่กี่พัน กลายเป็นเงินก้อนใหญ่
                 </p>
               </div>
@@ -359,48 +359,48 @@ export default function PVDPage() {
 
               <div className="border border-gray-200 rounded-xl p-4 space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[12px] font-bold flex items-center justify-center shrink-0">1</span>
                   <h4 className="text-xs font-bold text-gray-800">เงินสะสม (Employee)</h4>
                 </div>
-                <p className="text-[11px] leading-relaxed">
+                <p className="text-[13px] leading-relaxed">
                   เงินที่พนักงานจ่ายเข้ากองทุนทุกเดือน เป็น % ของเงินเดือน (2–15%)
                 </p>
-                <div className="bg-blue-50 rounded-lg px-3 py-2 text-[10px]">
+                <div className="bg-blue-50 rounded-lg px-3 py-2 text-[12px]">
                   <div><strong>สูตร:</strong> เงินสะสมรายปี = เงินเดือน × 12 × อัตราสะสม%</div>
                 </div>
               </div>
 
               <div className="border border-gray-200 rounded-xl p-4 space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
+                  <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-[12px] font-bold flex items-center justify-center shrink-0">2</span>
                   <h4 className="text-xs font-bold text-gray-800">เงินสมทบ (Employer)</h4>
                 </div>
-                <p className="text-[11px] leading-relaxed">
+                <p className="text-[13px] leading-relaxed">
                   เงินที่นายจ้างสมทบให้ เป็น % ของเงินเดือน (ปกติเท่าหรือใกล้เคียงอัตราสะสม)
                 </p>
-                <div className="bg-purple-50 rounded-lg px-3 py-2 text-[10px]">
+                <div className="bg-purple-50 rounded-lg px-3 py-2 text-[12px]">
                   <div><strong>สูตร:</strong> เงินสมทบรายปี = เงินเดือน × 12 × อัตราสมทบ%</div>
                 </div>
               </div>
 
               <div className="border-2 border-blue-400 rounded-xl p-4 space-y-2 bg-blue-50/30">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">3</span>
+                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-[12px] font-bold flex items-center justify-center shrink-0">3</span>
                   <h4 className="text-xs font-bold text-blue-800">Compound Growth (ทบต้น) ⭐</h4>
                 </div>
-                <div className="text-[10px] text-blue-600 font-bold bg-blue-100 rounded-lg px-2 py-1 inline-block">ใช้ในหน้านี้</div>
-                <p className="text-[11px] leading-relaxed">
+                <div className="text-[12px] text-blue-600 font-bold bg-blue-100 rounded-lg px-2 py-1 inline-block">ใช้ในหน้านี้</div>
+                <p className="text-[13px] leading-relaxed">
                   ยอดสะสมของแต่ละปี นำไปลงทุนรับผลตอบแทนต่อเนื่องจนถึงวันเกษียณ
                   พร้อมคำนึงถึงการขึ้นเงินเดือนปีละ X%
                 </p>
-                <div className="bg-blue-100 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                <div className="bg-blue-100 rounded-lg px-3 py-2 text-[12px] space-y-1">
                   <div><strong>สูตร:</strong> Balance<sub>t+1</sub> = (Balance<sub>t</sub> + สะสม + สมทบ) × (1 + return)</div>
                   <div className="text-green-700">✓ เห็นยอดทบต้นทุกปีแบบตาราง (Projection)</div>
                 </div>
               </div>
 
               <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
-                <div className="text-[10px] text-amber-700 leading-relaxed">
+                <div className="text-[12px] text-amber-700 leading-relaxed">
                   💡 PVD ได้สิทธิลดหย่อนภาษีสูงสุด 15% ของเงินเดือน (แต่ไม่เกิน 500,000 บาท/ปี)
                   เมื่อรวมกับ RMF/SSF/ประกันบำนาญ
                 </div>

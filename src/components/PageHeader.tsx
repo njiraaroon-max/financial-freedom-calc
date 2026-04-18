@@ -39,7 +39,7 @@ export default function PageHeader({
           <div>
             <h1 className="text-lg font-bold">{title}</h1>
             {subtitle && (
-              <p className="text-[10px] text-gray-400">{subtitle}</p>
+              <p className="text-[12px] text-gray-400">{subtitle}</p>
             )}
           </div>
         </div>

@@ -281,24 +281,24 @@ function TaxDeductionSection({ policies, currentYear }: { policies: InsurancePol
     <div className="glass rounded-2xl overflow-hidden">
       <div className="px-4 py-3 border-b border-gray-100 bg-amber-50">
         <h3 className="text-sm font-extrabold text-amber-800">การใช้สิทธิลดหย่อนภาษีหมวดประกัน</h3>
-        <p className="text-[10px] text-amber-600">ปีภาษี {currentYear + 543}</p>
+        <p className="text-[12px] text-amber-600">ปีภาษี {currentYear + 543}</p>
       </div>
       <div className="px-4 py-3 space-y-3">
         {/* ประกันชีวิต + สุขภาพ */}
         <div>
-          <div className="text-[11px] font-bold text-gray-600 mb-2">ประกันชีวิตและสุขภาพ สูงสุด 100,000 บาท/ปี</div>
+          <div className="text-[13px] font-bold text-gray-600 mb-2">ประกันชีวิตและสุขภาพ สูงสุด 100,000 บาท/ปี</div>
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs">
               <span className="text-gray-500">เบี้ยประกันชีวิต</span>
               <span className="font-semibold text-gray-800">฿{fmt(lifePremium)}</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-gray-500">เบี้ยประกันสุขภาพ <span className="text-[10px] text-gray-400">(สูงสุด 25,000)</span></span>
+              <span className="text-gray-500">เบี้ยประกันสุขภาพ <span className="text-[12px] text-gray-400">(สูงสุด 25,000)</span></span>
               <span className="font-semibold text-gray-800">฿{fmt(healthPremium)}</span>
             </div>
             {/* Progress bar */}
             <div className="mt-1">
-              <div className="flex justify-between text-[10px] text-gray-400 mb-0.5">
+              <div className="flex justify-between text-[12px] text-gray-400 mb-0.5">
                 <span>ใช้สิทธิแล้ว</span>
                 <span>฿{fmt(combinedDeduction)} / 100,000</span>
               </div>
@@ -310,11 +310,11 @@ function TaxDeductionSection({ policies, currentYear }: { policies: InsurancePol
               </div>
             </div>
             <div className="bg-amber-50 rounded-lg p-2 mt-1">
-              <div className="text-[10px] text-amber-700">
+              <div className="text-[12px] text-amber-700">
                 สามารถลดหย่อนได้ <span className="font-bold">฿{fmt(combinedDeduction)}</span>
               </div>
               {healthPremium > 25000 && (
-                <div className="text-[10px] text-red-500 mt-0.5">
+                <div className="text-[12px] text-red-500 mt-0.5">
                   *ประกันสุขภาพ สูงสุดไม่เกิน 25,000 บาท/ปี
                 </div>
               )}
@@ -324,13 +324,13 @@ function TaxDeductionSection({ policies, currentYear }: { policies: InsurancePol
 
         {/* ประกันบำนาญ */}
         <div className="border-t border-gray-100 pt-3">
-          <div className="text-[11px] font-bold text-gray-600 mb-2">ประกันบำนาญ สูงสุด 200,000 บาท/ปี</div>
+          <div className="text-[13px] font-bold text-gray-600 mb-2">ประกันบำนาญ สูงสุด 200,000 บาท/ปี</div>
           <div className="flex justify-between text-xs">
             <span className="text-gray-500">เบี้ยประกันสะสมทรัพย์/บำนาญ</span>
             <span className="font-semibold text-gray-800">฿{fmt(pensionPremium)}</span>
           </div>
           <div className="mt-1">
-            <div className="flex justify-between text-[10px] text-gray-400 mb-0.5">
+            <div className="flex justify-between text-[12px] text-gray-400 mb-0.5">
               <span>ใช้สิทธิแล้ว</span>
               <span>฿{fmt(pensionDeduction)} / 200,000</span>
             </div>
@@ -423,15 +423,15 @@ export default function InsuranceSummaryPage() {
         <div className="glass rounded-2xl p-4">
           <div className="grid grid-cols-3 gap-3 text-center">
             <div>
-              <div className="text-[10px] text-gray-400">ชื่อผู้เอาประกัน</div>
+              <div className="text-[12px] text-gray-400">ชื่อผู้เอาประกัน</div>
               <div className="text-sm font-bold text-gray-800">{profile.name || "-"}</div>
             </div>
             <div>
-              <div className="text-[10px] text-gray-400">อายุปัจจุบัน</div>
+              <div className="text-[12px] text-gray-400">อายุปัจจุบัน</div>
               <div className="text-sm font-bold text-gray-800">{currentAge > 0 ? `${currentAge} ปี` : "-"}</div>
             </div>
             <div>
-              <div className="text-[10px] text-gray-400">ปีปัจจุบัน</div>
+              <div className="text-[12px] text-gray-400">ปีปัจจุบัน</div>
               <div className="text-sm font-bold text-gray-800">{currentYear + 543}</div>
             </div>
           </div>
@@ -441,15 +441,15 @@ export default function InsuranceSummaryPage() {
         {sorted.length > 0 && (
           <div className="grid grid-cols-3 gap-2">
             <div className="glass rounded-2xl p-3 text-center">
-              <div className="text-[10px] text-gray-400">ทุนประกันรวม</div>
+              <div className="text-[12px] text-gray-400">ทุนประกันรวม</div>
               <div className="text-sm font-extrabold text-emerald-600">฿{fmt(totalSumInsured)}</div>
             </div>
             <div className="glass rounded-2xl p-3 text-center">
-              <div className="text-[10px] text-gray-400">มูลค่าเวนคืนรวม</div>
+              <div className="text-[12px] text-gray-400">มูลค่าเวนคืนรวม</div>
               <div className="text-sm font-extrabold text-gray-700">฿{fmt(totalCashValue)}</div>
             </div>
             <div className="glass rounded-2xl p-3 text-center">
-              <div className="text-[10px] text-gray-400">เบี้ยรวม/ปี</div>
+              <div className="text-[12px] text-gray-400">เบี้ยรวม/ปี</div>
               <div className="text-sm font-extrabold text-orange-600">฿{fmt(totalPremium)}</div>
             </div>
           </div>
@@ -474,22 +474,22 @@ export default function InsuranceSummaryPage() {
               <div className="flex gap-3 mt-1.5">
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-2 bg-blue-500 rounded-sm" />
-                  <span className="text-[9px] text-gray-400">ระยะเวลาที่ผ่านมา</span>
+                  <span className="text-[11px] text-gray-400">ระยะเวลาที่ผ่านมา</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-2 bg-blue-500 opacity-40 rounded-sm" />
-                  <span className="text-[9px] text-gray-400">ชำระเบี้ย</span>
+                  <span className="text-[11px] text-gray-400">ชำระเบี้ย</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-2 bg-blue-100 opacity-60 rounded-sm" />
-                  <span className="text-[9px] text-gray-400">คุ้มครอง</span>
+                  <span className="text-[11px] text-gray-400">คุ้มครอง</span>
                 </div>
               </div>
             </div>
 
             {/* Gantt year scale */}
             <div className="px-4 pt-2">
-              <div className="flex justify-between text-[8px] text-gray-400 border-b border-gray-100 pb-1">
+              <div className="flex justify-between text-[10px] text-gray-400 border-b border-gray-100 pb-1">
                 {ganttYearLabels.map((yr) => (
                   <span key={yr}>{yr + 543}</span>
                 ))}
@@ -511,21 +511,21 @@ export default function InsuranceSummaryPage() {
                   <div key={p.id} className="px-4 py-2.5">
                     {/* Row 1: Info */}
                     <div className="flex items-start gap-2">
-                      <div className="text-[10px] font-bold text-gray-400 pt-0.5 w-4 shrink-0">{idx + 1}</div>
+                      <div className="text-[12px] font-bold text-gray-400 pt-0.5 w-4 shrink-0">{idx + 1}</div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className={`text-[8px] px-1.5 py-0.5 rounded-full ${colors.bg} ${colors.text} font-bold`}>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${colors.bg} ${colors.text} font-bold`}>
                             {getGroupLabel(p.group)}
                           </span>
-                          <span className="text-[11px] font-bold text-gray-800 truncate">{p.planName}</span>
-                          {p.company && <span className="text-[9px] text-gray-400">({p.company})</span>}
+                          <span className="text-[13px] font-bold text-gray-800 truncate">{p.planName}</span>
+                          {p.company && <span className="text-[11px] text-gray-400">({p.company})</span>}
                         </div>
-                        <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-[10px]">
+                        <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-[12px]">
                           <span><span className="text-gray-400">ทุน </span><span className="font-bold text-gray-700">฿{fmt(p.sumInsured)}</span></span>
                           <span><span className="text-gray-400">เบี้ย </span><span className="font-bold text-orange-600">฿{fmt(p.premium)}</span></span>
                           <span className="text-gray-400">{shortDate(p.startDate)} — {shortDate(p.endDate)}</span>
                           <span className="text-gray-400">({coverageYears || "?"} ปี)</span>
-                          <span className={`px-1.5 py-0 rounded-full text-white font-bold text-[8px] ${status.color}`}>
+                          <span className={`px-1.5 py-0 rounded-full text-white font-bold text-[10px] ${status.color}`}>
                             {pct > 0 ? `${pct}%` : status.label}
                           </span>
                         </div>
@@ -555,7 +555,7 @@ export default function InsuranceSummaryPage() {
           <div className="glass rounded-2xl overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-100">
               <h3 className="text-sm font-extrabold text-gray-800">สรุปเบี้ยประกันตามประเภท</h3>
-              <p className="text-[10px] text-gray-400">การกระจายเบี้ยประกันแต่ละหมวด</p>
+              <p className="text-[12px] text-gray-400">การกระจายเบี้ยประกันแต่ละหมวด</p>
             </div>
             <div className="px-4 py-3 space-y-2.5">
               {premiumByGroup.map(({ group, label, total, pct, colors }) => (
@@ -588,7 +588,7 @@ export default function InsuranceSummaryPage() {
           <div className="glass rounded-2xl overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-100">
               <h3 className="text-sm font-extrabold text-gray-800">สัดส่วนเบี้ยต่อรายได้</h3>
-              <p className="text-[10px] text-gray-400">เบี้ยประกันรวมเทียบกับรายได้ต่อปี</p>
+              <p className="text-[12px] text-gray-400">เบี้ยประกันรวมเทียบกับรายได้ต่อปี</p>
             </div>
             <div className="px-4 py-3 space-y-2">
               <div className="flex justify-between text-xs">
@@ -611,7 +611,7 @@ export default function InsuranceSummaryPage() {
                   style={{ width: `${Math.min(premiumRatioPct * 5, 100)}%` }}
                 />
               </div>
-              <div className="flex justify-between text-[10px] mt-0.5">
+              <div className="flex justify-between text-[12px] mt-0.5">
                 <span className="text-gray-400">0%</span>
                 <span
                   className={`font-bold ${
@@ -627,7 +627,7 @@ export default function InsuranceSummaryPage() {
                 <span className="text-gray-400">20%+</span>
               </div>
               <div
-                className={`mt-1 text-[10px] rounded-lg p-2 ${
+                className={`mt-1 text-[12px] rounded-lg p-2 ${
                   premiumRatioPct <= 10
                     ? "bg-emerald-50 text-emerald-700"
                     : premiumRatioPct <= 15
@@ -655,7 +655,7 @@ export default function InsuranceSummaryPage() {
           <div className="glass rounded-2xl overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-100">
               <h3 className="text-sm font-extrabold text-gray-800">ทุนคุ้มครองชีวิตตามช่วงอายุ</h3>
-              <p className="text-[10px] text-gray-400">แสดงทุนประกันชีวิตรวมที่แต่ละช่วงอายุ (เฉพาะกรมธรรม์ชีวิต/สะสมทรัพย์/อุบัติเหตุ/โรคร้ายแรง)</p>
+              <p className="text-[12px] text-gray-400">แสดงทุนประกันชีวิตรวมที่แต่ละช่วงอายุ (เฉพาะกรมธรรม์ชีวิต/สะสมทรัพย์/อุบัติเหตุ/โรคร้ายแรง)</p>
             </div>
             <div className="px-4 py-3">
               <CoverageByAgeChart policies={sorted} currentAge={currentAge} />

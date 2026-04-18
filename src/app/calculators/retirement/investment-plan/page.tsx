@@ -305,7 +305,7 @@ function InvestmentPlanPageInner() {
         {yLabels.map((v, i) => (
           <g key={i}>
             <line x1={leftPad} y1={valToY(v)} x2={chartW - rightPad} y2={valToY(v)} stroke="#e5e7eb" strokeWidth={0.5} />
-            <text x={leftPad - 5} y={valToY(v) + 3} textAnchor="end" className="text-[7px] fill-gray-400">
+            <text x={leftPad - 5} y={valToY(v) + 3} textAnchor="end" className="text-[9px] fill-gray-400">
               {fmtM(v)}
             </text>
           </g>
@@ -313,7 +313,7 @@ function InvestmentPlanPageInner() {
 
         {/* X-axis labels */}
         {investResult.map((r, i) => (
-            <text key={i} x={idxToX(i)} y={chartH - 8} textAnchor="middle" className="text-[6px] fill-gray-400">
+            <text key={i} x={idxToX(i)} y={chartH - 8} textAnchor="middle" className="text-[8px] fill-gray-400">
               {r.age}
             </text>
         ))}
@@ -336,7 +336,7 @@ function InvestmentPlanPageInner() {
                     stroke="white"
                     strokeWidth={3}
                     paintOrder="stroke"
-                    className="text-[8px] fill-red-500 font-bold"
+                    className="text-[10px] fill-red-500 font-bold"
                   >
                     {labelText}
                   </text>
@@ -360,25 +360,25 @@ function InvestmentPlanPageInner() {
 
         {/* End-point dots and labels (value + scenario name on the right) */}
         <circle cx={endX} cy={valToY(last.goodCase)} r={3} fill="#10b981" />
-        <text x={endX + 5} y={valToY(last.goodCase) + 3} className="text-[6px] fill-emerald-600 font-bold">
+        <text x={endX + 5} y={valToY(last.goodCase) + 3} className="text-[8px] fill-emerald-600 font-bold">
           {fmtM(last.goodCase)}
           <tspan className="fill-emerald-500 font-bold" dx="3">Good Case</tspan>
         </text>
 
         <circle cx={endX} cy={valToY(last.baseCase)} r={3} fill="#3b82f6" />
-        <text x={endX + 5} y={valToY(last.baseCase) + 3} className="text-[6px] fill-blue-600 font-bold">
+        <text x={endX + 5} y={valToY(last.baseCase) + 3} className="text-[8px] fill-blue-600 font-bold">
           {fmtM(last.baseCase)}
           <tspan className="fill-blue-500 font-bold" dx="3">Base Case</tspan>
         </text>
 
         <circle cx={endX} cy={valToY(last.badCase)} r={3} fill="#f59e0b" />
-        <text x={endX + 5} y={valToY(last.badCase) + 3} className="text-[6px] fill-amber-600 font-bold">
+        <text x={endX + 5} y={valToY(last.badCase) + 3} className="text-[8px] fill-amber-600 font-bold">
           {fmtM(last.badCase)}
           <tspan className="fill-amber-500 font-bold" dx="3">Bad Case</tspan>
         </text>
 
         <circle cx={endX} cy={valToY(last.cost)} r={3} fill="#9ca3af" />
-        <text x={endX + 5} y={valToY(last.cost) + 3} className="text-[6px] fill-gray-500 font-bold">
+        <text x={endX + 5} y={valToY(last.cost) + 3} className="text-[8px] fill-gray-500 font-bold">
           {fmtM(last.cost)}
           <tspan className="fill-gray-400 font-bold" dx="3">ต้นทุน</tspan>
         </text>
@@ -417,30 +417,30 @@ function InvestmentPlanPageInner() {
                 stroke="#0f172a"
                 strokeWidth={0.5}
               />
-              <text x={6} y={11} className="text-[7px] font-bold fill-white">
+              <text x={6} y={11} className="text-[9px] font-bold fill-white">
                 อายุ {hoverRow.age} (ปีที่ {hoverRow.year})
               </text>
               <g transform="translate(6, 20)">
                 <circle cx={2} cy={4} r={2} fill="#10b981" />
-                <text x={8} y={6} className="text-[7px] fill-emerald-200">
+                <text x={8} y={6} className="text-[9px] fill-emerald-200">
                   Good: {fmtM(hoverRow.goodCase)}
                 </text>
               </g>
               <g transform="translate(6, 30)">
                 <circle cx={2} cy={4} r={2} fill="#3b82f6" />
-                <text x={8} y={6} className="text-[7px] fill-blue-200 font-bold">
+                <text x={8} y={6} className="text-[9px] fill-blue-200 font-bold">
                   Base: {fmtM(hoverRow.baseCase)}
                 </text>
               </g>
               <g transform="translate(6, 40)">
                 <circle cx={2} cy={4} r={2} fill="#f59e0b" />
-                <text x={8} y={6} className="text-[7px] fill-amber-200">
+                <text x={8} y={6} className="text-[9px] fill-amber-200">
                   Bad: {fmtM(hoverRow.badCase)}
                 </text>
               </g>
               <g transform="translate(6, 50)">
                 <circle cx={2} cy={4} r={2} fill="#9ca3af" />
-                <text x={8} y={6} className="text-[7px] fill-slate-300">
+                <text x={8} y={6} className="text-[9px] fill-slate-300">
                   ต้นทุน: {fmtM(hoverRow.cost)}
                 </text>
               </g>
@@ -466,7 +466,7 @@ function InvestmentPlanPageInner() {
           <div className="text-2xl font-extrabold">
             {shortage > 0 ? `฿${fmt(shortage)}` : `เหลือ ฿${fmt(Math.abs(shortage))}`}
           </div>
-          <div className="text-[10px] opacity-60 mt-1">
+          <div className="text-[12px] opacity-60 mt-1">
             ทุนเกษียณ ฿{fmt(totalRetireFund)} - แหล่งเงินทุน ฿{fmt(totalSavingFund)}
           </div>
         </div>
@@ -496,7 +496,7 @@ function InvestmentPlanPageInner() {
 
                 {/* Age range inputs */}
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-[10px] text-gray-500 w-12 shrink-0">อายุ</span>
+                  <span className="text-[12px] text-gray-500 w-12 shrink-0">อายุ</span>
                   <AgeInput
                     value={plan.yearStart}
                     onChange={(v) => store.updateInvestmentPlan(plan.id, { yearStart: v })}
@@ -515,13 +515,13 @@ function InvestmentPlanPageInner() {
                       )
                     }
                   />
-                  <span className="text-[10px] text-gray-400">({Math.max(plan.yearEnd - plan.yearStart + 1, 0)} ปี)</span>
+                  <span className="text-[12px] text-gray-400">({Math.max(plan.yearEnd - plan.yearStart + 1, 0)} ปี)</span>
                 </div>
 
                 {/* Monthly amount slider */}
                 <div className="mb-3">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] text-gray-500">ออม/เดือน</span>
+                    <span className="text-[12px] text-gray-500">ออม/เดือน</span>
                     <MoneyInput
                       value={plan.monthlyAmount}
                       onChange={(v) => store.updateInvestmentPlan(plan.id, { monthlyAmount: v })}
@@ -539,7 +539,7 @@ function InvestmentPlanPageInner() {
                     onChange={(e) => store.updateInvestmentPlan(plan.id, { monthlyAmount: Number(e.target.value) })}
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#1e3a5f]"
                   />
-                  <div className="flex justify-between text-[8px] text-gray-400 mt-0.5">
+                  <div className="flex justify-between text-[10px] text-gray-400 mt-0.5">
                     <span>0</span>
                     <span>50,000</span>
                     <span>100,000</span>
@@ -549,7 +549,7 @@ function InvestmentPlanPageInner() {
                 {/* Expected return slider */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] text-gray-500">ผลตอบแทนที่คาดหวัง</span>
+                    <span className="text-[12px] text-gray-500">ผลตอบแทนที่คาดหวัง</span>
                     <span className="text-xs font-bold text-[#1e3a5f]">{(plan.expectedReturn * 100).toFixed(1)}%</span>
                   </div>
                   <input
@@ -561,7 +561,7 @@ function InvestmentPlanPageInner() {
                     onChange={(e) => store.updateInvestmentPlan(plan.id, { expectedReturn: Number(e.target.value) })}
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#1e3a5f]"
                   />
-                  <div className="flex justify-between text-[8px] text-gray-400 mt-0.5">
+                  <div className="flex justify-between text-[10px] text-gray-400 mt-0.5">
                     <span>0%</span>
                     <span>7.5%</span>
                     <span>15%</span>
@@ -575,12 +575,12 @@ function InvestmentPlanPageInner() {
                   return (
                     <div className="mt-3 pt-3 border-t border-indigo-100 bg-indigo-50/40 rounded-lg px-2.5 py-2.5 -mx-0.5 space-y-2.5">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-indigo-700">🎲 การจำลอง Monte Carlo</span>
+                        <span className="text-[12px] font-bold text-indigo-700">🎲 การจำลอง Monte Carlo</span>
                       </div>
 
                       {/* Preset picker */}
                       <div>
-                        <div className="text-[9px] text-gray-500 mb-1">รูปแบบพอร์ต</div>
+                        <div className="text-[11px] text-gray-500 mb-1">รูปแบบพอร์ต</div>
                         <RiskPresetPicker
                           value={profile}
                           onPick={(p) => {
@@ -604,7 +604,7 @@ function InvestmentPlanPageInner() {
                       {/* Volatility + min/max */}
                       <div className="grid grid-cols-3 gap-2">
                         <div>
-                          <div className="text-[9px] text-gray-500 mb-0.5">SD (%)</div>
+                          <div className="text-[11px] text-gray-500 mb-0.5">SD (%)</div>
                           <input
                             type="text"
                             inputMode="decimal"
@@ -621,7 +621,7 @@ function InvestmentPlanPageInner() {
                           />
                         </div>
                         <div>
-                          <div className="text-[9px] text-gray-500 mb-0.5">ขาดทุนสูงสุด (%)</div>
+                          <div className="text-[11px] text-gray-500 mb-0.5">ขาดทุนสูงสุด (%)</div>
                           <input
                             type="text"
                             inputMode="decimal"
@@ -638,7 +638,7 @@ function InvestmentPlanPageInner() {
                           />
                         </div>
                         <div>
-                          <div className="text-[9px] text-gray-500 mb-0.5">กำไรสูงสุด (%)</div>
+                          <div className="text-[11px] text-gray-500 mb-0.5">กำไรสูงสุด (%)</div>
                           <input
                             type="text"
                             inputMode="decimal"
@@ -655,7 +655,7 @@ function InvestmentPlanPageInner() {
                           />
                         </div>
                       </div>
-                      <div className="text-[9px] text-gray-500 leading-relaxed">
+                      <div className="text-[11px] text-gray-500 leading-relaxed">
                         ผลตอบแทนจะถูกสุ่มจากช่วง ({(mc.minReturn * 100).toFixed(0)}% ถึง {(mc.maxReturn * 100).toFixed(0)}%)
                         · ค่าเฉลี่ย {(mc.expectedReturn * 100).toFixed(1)}% · ผันผวน {(mc.volatility * 100).toFixed(1)}%
                       </div>
@@ -713,24 +713,24 @@ function InvestmentPlanPageInner() {
                 <div className="flex flex-wrap items-center justify-center gap-3 mt-3">
                   <div className="flex items-center gap-1">
                     <div className="w-3 h-0.5 bg-emerald-500 rounded" />
-                    <span className="text-[9px] text-gray-500">Good Case</span>
+                    <span className="text-[11px] text-gray-500">Good Case</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <div className="w-3 h-0.5 bg-blue-500 rounded" />
-                    <span className="text-[9px] text-gray-500">Base Case</span>
+                    <span className="text-[11px] text-gray-500">Base Case</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <div className="w-3 h-0.5 bg-amber-500 rounded" />
-                    <span className="text-[9px] text-gray-500">Bad Case</span>
+                    <span className="text-[11px] text-gray-500">Bad Case</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <div className="w-3 h-[1px] bg-gray-400 border-dashed border-t" />
-                    <span className="text-[9px] text-gray-500">ต้นทุน</span>
+                    <span className="text-[11px] text-gray-500">ต้นทุน</span>
                   </div>
                   {shortage > 0 && (
                     <div className="flex items-center gap-1">
                       <div className="w-3 h-[1px] bg-red-500 border-dashed border-t" />
-                      <span className="text-[9px] text-gray-500">เป้าหมาย</span>
+                      <span className="text-[11px] text-gray-500">เป้าหมาย</span>
                     </div>
                   )}
                 </div>
@@ -746,7 +746,7 @@ function InvestmentPlanPageInner() {
                   </div>
                   <button
                     onClick={() => setMcSeed((s) => (s * 1664525 + 1013904223) >>> 0)}
-                    className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition font-semibold"
+                    className="flex items-center gap-1 text-[12px] px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition font-semibold"
                   >
                     <RefreshCw size={11} /> สุ่มใหม่
                   </button>
@@ -765,14 +765,14 @@ function InvestmentPlanPageInner() {
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="text-[11px] opacity-80">
+                        <div className="text-[13px] opacity-80">
                           โอกาสที่จะถึงเป้าหมาย ฿{fmt(mcTargetAmount)}
                         </div>
                         <div className="text-3xl font-extrabold mt-0.5">
                           {(mcResult.successRate * 100).toFixed(1)}%
                         </div>
                       </div>
-                      <div className="text-right text-[10px] opacity-80 leading-relaxed">
+                      <div className="text-right text-[12px] opacity-80 leading-relaxed">
                         <div>
                           สำเร็จ:{" "}
                           {Math.round(mcResult.successRate * 10000).toLocaleString("th-TH")} /
@@ -786,7 +786,7 @@ function InvestmentPlanPageInner() {
 
                 {/* MC Chart */}
                 <div>
-                  <div className="text-[10px] text-gray-500 mb-1">เส้นจำลองพอร์ต (500 จาก 10,000) + แถบ P5-P95</div>
+                  <div className="text-[12px] text-gray-500 mb-1">เส้นจำลองพอร์ต (500 จาก 10,000) + แถบ P5-P95</div>
                   <MonteCarloChart
                     result={mcResult}
                     targetAmount={mcTargetAmount > 0 ? mcTargetAmount : undefined}
@@ -804,7 +804,7 @@ function InvestmentPlanPageInner() {
                     { label: "P95 ดีสุด", value: mcResult.p95[mcResult.p95.length - 1], color: "text-emerald-700" },
                   ].map((s) => (
                     <div key={s.label} className="bg-gray-50 rounded-lg p-2 text-center border border-gray-100">
-                      <div className="text-[9px] text-gray-500">{s.label}</div>
+                      <div className="text-[11px] text-gray-500">{s.label}</div>
                       <div className={`text-xs font-extrabold ${s.color}`}>฿{fmtM(s.value)}</div>
                     </div>
                   ))}
@@ -813,17 +813,17 @@ function InvestmentPlanPageInner() {
                 {/* Summary numbers */}
                 <div className="grid grid-cols-3 gap-2">
                   <div className="bg-red-50 border border-red-100 rounded-lg p-2.5">
-                    <div className="flex items-center gap-1 text-[9px] text-red-600">
+                    <div className="flex items-center gap-1 text-[11px] text-red-600">
                       <TrendingDown size={10} /> แย่สุด
                     </div>
                     <div className="text-sm font-bold text-red-600">฿{fmtM(mcResult.finalMin)}</div>
                   </div>
                   <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-2.5">
-                    <div className="text-[9px] text-indigo-600">เฉลี่ย</div>
+                    <div className="text-[11px] text-indigo-600">เฉลี่ย</div>
                     <div className="text-sm font-bold text-indigo-700">฿{fmtM(mcResult.finalMean)}</div>
                   </div>
                   <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-2.5">
-                    <div className="flex items-center gap-1 text-[9px] text-emerald-600">
+                    <div className="flex items-center gap-1 text-[11px] text-emerald-600">
                       <TrendingUp size={10} /> ดีสุด
                     </div>
                     <div className="text-sm font-bold text-emerald-600">฿{fmtM(mcResult.finalMax)}</div>
@@ -832,7 +832,7 @@ function InvestmentPlanPageInner() {
 
                 {/* Histogram */}
                 <div>
-                  <div className="text-[10px] text-gray-500 mb-1">
+                  <div className="text-[12px] text-gray-500 mb-1">
                     การกระจายของพอร์ต ณ วันเกษียณ (10,000 sim)
                   </div>
                   <MonteCarloHistogram
@@ -843,16 +843,16 @@ function InvestmentPlanPageInner() {
                   <div className="flex items-center justify-center gap-3 mt-1">
                     <div className="flex items-center gap-1">
                       <div className="w-3 h-2 bg-red-500 opacity-75 rounded-sm" />
-                      <span className="text-[9px] text-gray-500">ต่ำกว่าเป้า</span>
+                      <span className="text-[11px] text-gray-500">ต่ำกว่าเป้า</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <div className="w-3 h-2 bg-emerald-600 opacity-75 rounded-sm" />
-                      <span className="text-[9px] text-gray-500">ถึงเป้า</span>
+                      <span className="text-[11px] text-gray-500">ถึงเป้า</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="text-[9px] text-gray-400 leading-relaxed bg-gray-50 rounded-lg p-2.5">
+                <div className="text-[11px] text-gray-400 leading-relaxed bg-gray-50 rounded-lg p-2.5">
                   💡 Monte Carlo จำลอง 10,000 กรณี โดยสุ่มผลตอบแทนแต่ละปีจากการแจกแจงปกติ
                   (mean = ผลตอบแทนคาดหวัง, SD = ความผันผวน) แล้ว clip ด้วยช่วง min/max
                   ของแต่ละพอร์ต · เปลี่ยนรูปแบบพอร์ตและปรับ SD ได้ในแต่ละ Phase ด้านบน
@@ -866,7 +866,7 @@ function InvestmentPlanPageInner() {
         {store.investmentPlans.length > 0 && (
           <div className="rounded-2xl border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-[10px] md:text-xs border-collapse">
+              <table className="w-full text-[12px] md:text-xs border-collapse">
                 <thead>
                   <tr className="bg-[#1e3a5f] text-white">
                     <th className="px-3 py-2.5 text-left sticky left-0 bg-[#1e3a5f] z-10 font-bold min-w-[140px]">สรุปแผนการลงทุน</th>
@@ -907,15 +907,15 @@ function InvestmentPlanPageInner() {
 
             <div className="grid grid-cols-3 gap-3 mb-4">
               <div className="bg-white/10 rounded-xl p-2.5 text-center">
-                <div className="text-[9px] opacity-70">Bad Case</div>
+                <div className="text-[11px] opacity-70">Bad Case</div>
                 <div className="text-sm font-extrabold text-amber-300">฿{fmtM(investAtRetireBad)}</div>
               </div>
               <div className="bg-white/20 rounded-xl p-2.5 text-center border border-white/30">
-                <div className="text-[9px] opacity-70">Base Case</div>
+                <div className="text-[11px] opacity-70">Base Case</div>
                 <div className="text-sm font-extrabold">฿{fmtM(investAtRetire)}</div>
               </div>
               <div className="bg-white/10 rounded-xl p-2.5 text-center">
-                <div className="text-[9px] opacity-70">Good Case</div>
+                <div className="text-[11px] opacity-70">Good Case</div>
                 <div className="text-sm font-extrabold text-emerald-300">฿{fmtM(investAtRetireGood)}</div>
               </div>
             </div>

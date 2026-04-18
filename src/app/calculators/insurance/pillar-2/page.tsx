@@ -188,7 +188,7 @@ function MoneyField({ label, value, onChange, hint, suffix = "บาท", disabl
 }) {
   return (
     <div>
-      {label && <label className="text-[11px] text-gray-500 font-semibold block mb-1">{label}</label>}
+      {label && <label className="text-[13px] text-gray-500 font-semibold block mb-1">{label}</label>}
       <MoneyInput
         value={value}
         onChange={onChange}
@@ -197,7 +197,7 @@ function MoneyField({ label, value, onChange, hint, suffix = "บาท", disabl
         className={`flex-1 text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 border border-gray-200 text-right font-bold ${disabled ? "opacity-50" : ""}`}
         ringClass="focus:ring-teal-400"
       />
-      {hint && <div className="text-[9px] text-gray-400 mt-0.5 pl-1">{hint}</div>}
+      {hint && <div className="text-[11px] text-gray-400 mt-0.5 pl-1">{hint}</div>}
     </div>
   );
 }
@@ -381,7 +381,7 @@ export default function Pillar2Page() {
             <HeartPulse size={20} />
             <span className="text-sm font-bold">ถ้าวันนี้เจ็บป่วยเข้า รพ...ใครจ่าย?</span>
           </div>
-          <p className="text-[11px] opacity-80 leading-relaxed">
+          <p className="text-[13px] opacity-80 leading-relaxed">
             ประเมินความคุ้มครองสุขภาพ อุบัติเหตุ และโรคร้ายแรง เทียบกับ
             benchmark โรงพยาบาลเป้าหมาย พร้อมคำนวณ Medical Inflation
           </p>
@@ -408,9 +408,9 @@ export default function Pillar2Page() {
                   }`}>
                     {step.n}
                   </div>
-                  <div className="text-[10px] font-bold text-gray-700 mt-1.5 text-center leading-tight">Step {step.n}</div>
-                  <div className="text-[9px] font-bold text-gray-500 text-center">{step.label}</div>
-                  <div className="text-[8px] text-gray-400 text-center">{step.sub}</div>
+                  <div className="text-[12px] font-bold text-gray-700 mt-1.5 text-center leading-tight">Step {step.n}</div>
+                  <div className="text-[11px] font-bold text-gray-500 text-center">{step.label}</div>
+                  <div className="text-[10px] text-gray-400 text-center">{step.sub}</div>
                 </button>
                 {i < 2 && <div className="flex-1 h-0.5 bg-gray-200 mt-[18px]" />}
               </React.Fragment>
@@ -422,7 +422,7 @@ export default function Pillar2Page() {
         <div className="glass rounded-2xl mx-1">
           <button onClick={() => toggleStep(1)} className="w-full p-4 md:p-6 pb-0 flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-teal-500 text-white text-[10px] font-bold flex items-center justify-center">1</span>
+              <span className="w-6 h-6 rounded-full bg-teal-500 text-white text-[12px] font-bold flex items-center justify-center">1</span>
               Step 1: มูลค่าความคุ้มครองที่ควรมี
             </h3>
             <div className="flex items-center gap-2">
@@ -463,8 +463,8 @@ export default function Pillar2Page() {
                   >
                     <div className="text-lg mb-1">{b.icon}</div>
                     <div className={`text-xs font-bold ${selected ? b.color : "text-gray-700"}`}>{b.label}</div>
-                    <div className="text-[9px] text-gray-400 mt-0.5">{b.examples}</div>
-                    <div className="text-[9px] text-gray-500 mt-1">
+                    <div className="text-[11px] text-gray-400 mt-0.5">{b.examples}</div>
+                    <div className="text-[11px] text-gray-500 mt-1">
                       ค่าห้อง {fmt(b.roomRate[0])}-{fmt(b.roomRate[1])}/วัน
                     </div>
                   </button>
@@ -476,7 +476,7 @@ export default function Pillar2Page() {
           {/* Coverage categories — เจ็บป่วย 4 หมวดหลัก */}
           <div className="border border-teal-100 rounded-xl overflow-hidden">
             <div className="bg-teal-50 px-3 py-2 border-b border-teal-100">
-              <span className="text-[10px] font-bold text-teal-700">หมวดเจ็บป่วย — ความคุ้มครองที่ควรมี</span>
+              <span className="text-[12px] font-bold text-teal-700">หมวดเจ็บป่วย — ความคุ้มครองที่ควรมี</span>
             </div>
             <div className="p-3 space-y-3">
               {/* Room Rate */}
@@ -488,7 +488,7 @@ export default function Pillar2Page() {
                     onChange={(v) => update({ desiredRoomRate: v })}
                     hint={`Benchmark: ${fmt(benchmark.roomRate[0])}-${fmt(benchmark.roomRate[1])} บาท/วัน`}
                   />
-                  <div className="text-[9px] text-teal-600 mt-1 pl-1 leading-relaxed">
+                  <div className="text-[11px] text-teal-600 mt-1 pl-1 leading-relaxed">
                     รวม: ค่าห้อง + ค่าอาหาร + ค่าบริการพยาบาล + ค่าบริการ รพ. (เหมาจ่าย) — กดปุ่ม (i) ดูรายละเอียด
                   </div>
                 </div>
@@ -544,7 +544,7 @@ export default function Pillar2Page() {
 
               {/* Secondary: OPD + PA */}
               <details className="group">
-                <summary className="text-[10px] text-teal-600 font-bold cursor-pointer flex items-center gap-1 hover:underline">
+                <summary className="text-[12px] text-teal-600 font-bold cursor-pointer flex items-center gap-1 hover:underline">
                   <ChevronRight size={12} className="group-open:rotate-90 transition-transform" />
                   ความคุ้มครองเสริม (OPD + PA)
                 </summary>
@@ -572,7 +572,7 @@ export default function Pillar2Page() {
             <summary className="bg-orange-50 px-3 py-2 border-b border-orange-100 flex items-center justify-between cursor-pointer hover:bg-orange-100/70 transition">
               <div className="flex items-center gap-2">
                 <TrendingUp size={14} className="text-orange-600" />
-                <span className="text-[10px] font-bold text-orange-700">คาดการณ์ค่ารักษาตาม Medical Inflation</span>
+                <span className="text-[12px] font-bold text-orange-700">คาดการณ์ค่ารักษาตาม Medical Inflation</span>
                 <ChevronDown size={14} className="text-orange-400 group-open:rotate-180 transition-transform" />
               </div>
               <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
@@ -580,7 +580,7 @@ export default function Pillar2Page() {
                   <button
                     key={rate}
                     onClick={() => update({ medicalInflationRate: rate })}
-                    className={`text-[9px] px-2 py-0.5 rounded-full border transition-all ${
+                    className={`text-[11px] px-2 py-0.5 rounded-full border transition-all ${
                       (p2.medicalInflationRate ?? 7) === rate
                         ? "border-orange-400 bg-orange-100 text-orange-700 font-bold"
                         : "border-gray-200 text-gray-500"
@@ -594,10 +594,10 @@ export default function Pillar2Page() {
             <div className="p-3 space-y-2">
               {/* Toggle view */}
               <div className="flex items-center justify-between">
-                <div className="text-[9px] text-gray-500">
+                <div className="text-[11px] text-gray-500">
                   อายุ {currentAge} → 90 ปี | Healthcare Inflation = <span className="font-bold text-orange-600">{p2.medicalInflationRate ?? 7}%</span>/ปี
                 </div>
-                <div className="flex text-[9px]">
+                <div className="flex text-[11px]">
                   <button onClick={() => setInflationMode("summary")} className={`px-2 py-0.5 rounded-l-md border ${inflationMode === "summary" ? "bg-orange-50 border-orange-300 text-orange-700 font-bold" : "border-gray-200 text-gray-500"}`}>ย่อ</button>
                   <button onClick={() => setInflationMode("full")} className={`px-2 py-0.5 rounded-r-md border-t border-r border-b ${inflationMode === "full" ? "bg-orange-50 border-orange-300 text-orange-700 font-bold" : "border-gray-200 text-gray-500"}`}>เต็ม</button>
                 </div>
@@ -605,7 +605,7 @@ export default function Pillar2Page() {
 
               {/* Table */}
               <div className="border border-gray-100 rounded-lg overflow-hidden max-h-[400px] overflow-y-auto">
-                <div className="grid grid-cols-4 gap-1 px-2 py-1.5 bg-gray-50 text-[8px] font-bold text-gray-500 uppercase sticky top-0 z-10">
+                <div className="grid grid-cols-4 gap-1 px-2 py-1.5 bg-gray-50 text-[10px] font-bold text-gray-500 uppercase sticky top-0 z-10">
                   <div>อายุ</div>
                   <div className="text-right">ค่าห้อง/วัน</div>
                   <div className="text-right">IPD/ปี</div>
@@ -624,19 +624,19 @@ export default function Pillar2Page() {
                           isCurrent ? "bg-teal-50" : isRetire ? "bg-orange-50 font-bold" : isHighlight ? "bg-red-50/50" : ""
                         }`}
                       >
-                        <div className={`text-[10px] ${isCurrent ? "text-teal-700 font-bold" : isRetire ? "text-orange-700" : "text-gray-600"}`}>
+                        <div className={`text-[12px] ${isCurrent ? "text-teal-700 font-bold" : isRetire ? "text-orange-700" : "text-gray-600"}`}>
                           {row.age} {isCurrent ? "(ปัจจุบัน)" : isRetire ? "(เกษียณ)" : ""}
                         </div>
-                        <div className={`text-[10px] text-right font-bold ${isRetire ? "text-orange-700" : "text-gray-700"}`}>{fmt(row.roomRate)}</div>
-                        <div className={`text-[10px] text-right font-bold ${isRetire ? "text-orange-700" : "text-gray-700"}`}>{fmt(row.ipd)}</div>
-                        <div className={`text-[10px] text-right font-bold ${isRetire ? "text-orange-700" : "text-gray-700"}`}>{fmt(row.criticalTreatment)}</div>
+                        <div className={`text-[12px] text-right font-bold ${isRetire ? "text-orange-700" : "text-gray-700"}`}>{fmt(row.roomRate)}</div>
+                        <div className={`text-[12px] text-right font-bold ${isRetire ? "text-orange-700" : "text-gray-700"}`}>{fmt(row.ipd)}</div>
+                        <div className={`text-[12px] text-right font-bold ${isRetire ? "text-orange-700" : "text-gray-700"}`}>{fmt(row.criticalTreatment)}</div>
                       </div>
                     );
                   })}
               </div>
 
               {/* Inflation warning */}
-              <div className="bg-orange-50 rounded-lg p-2.5 text-[9px] text-orange-700 leading-relaxed">
+              <div className="bg-orange-50 rounded-lg p-2.5 text-[11px] text-orange-700 leading-relaxed">
                 <span className="font-bold">ผลกระทบ Medical Inflation ({p2.medicalInflationRate ?? 7}%/ปี):</span>{" "}
                 ค่ารักษา IPD จะเพิ่มจาก {fmt(p2.desiredIPDPerYear)} เป็น{" "}
                 <span className="font-bold">{fmt(inflationTable.find((r) => r.age === retireAge)?.ipd || 0)}</span> ณ วันเกษียณ
@@ -653,7 +653,7 @@ export default function Pillar2Page() {
         <div className="glass rounded-2xl mx-1">
           <button onClick={() => toggleStep(2)} className="w-full p-4 md:p-6 pb-0 flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-teal-500 text-white text-[10px] font-bold flex items-center justify-center">2</span>
+              <span className="w-6 h-6 rounded-full bg-teal-500 text-white text-[12px] font-bold flex items-center justify-center">2</span>
               Step 2: มูลค่าความคุ้มครองที่มีอยู่แล้ว
             </h3>
             <div className="flex items-center gap-2">
@@ -665,7 +665,7 @@ export default function Pillar2Page() {
 
           {/* Government scheme */}
           <div>
-            <label className="text-[11px] text-gray-500 font-semibold block mb-2">สิทธิสวัสดิการรัฐ</label>
+            <label className="text-[13px] text-gray-500 font-semibold block mb-2">สิทธิสวัสดิการรัฐ</label>
             <div className="flex flex-wrap gap-2">
               {([
                 { value: "none", label: "ไม่มี", icon: "—" },
@@ -690,11 +690,11 @@ export default function Pillar2Page() {
           {/* Gold Card (i) info */}
           {p2.governmentScheme === "gold_card" && (
             <details className="group">
-              <summary className="inline-flex items-center gap-1 cursor-pointer text-[10px] text-gray-400 hover:text-blue-500 transition list-none [&::-webkit-details-marker]:hidden">
-                <span className="w-4 h-4 rounded-full border border-gray-300 group-open:border-blue-400 group-open:bg-blue-50 flex items-center justify-center text-[9px] font-bold text-gray-400 group-open:text-blue-500">i</span>
+              <summary className="inline-flex items-center gap-1 cursor-pointer text-[12px] text-gray-400 hover:text-blue-500 transition list-none [&::-webkit-details-marker]:hidden">
+                <span className="w-4 h-4 rounded-full border border-gray-300 group-open:border-blue-400 group-open:bg-blue-50 flex items-center justify-center text-[11px] font-bold text-gray-400 group-open:text-blue-500">i</span>
                 <span className="group-open:text-blue-500">สิทธิบัตรทอง 30 บาท ครอบคลุมอะไรบ้าง?</span>
               </summary>
-              <div className="mt-1.5 ml-5 p-2.5 bg-gray-50 rounded-lg text-[10px] text-gray-600 leading-relaxed space-y-1">
+              <div className="mt-1.5 ml-5 p-2.5 bg-gray-50 rounded-lg text-[12px] text-gray-600 leading-relaxed space-y-1">
                 <div className="font-bold text-gray-700">สิทธิประโยชน์หลัก:</div>
                 <div>• OPD: รักษาได้ไม่จำกัดครั้ง ที่หน่วยบริการปฐมภูมิ</div>
                 <div>• IPD: นอน รพ. ได้ตามความจำเป็น (ห้องรวม)</div>
@@ -715,11 +715,11 @@ export default function Pillar2Page() {
           {/* Government Officer (i) info */}
           {p2.governmentScheme === "government_officer" && (
             <details className="group">
-              <summary className="inline-flex items-center gap-1 cursor-pointer text-[10px] text-gray-400 hover:text-purple-500 transition list-none [&::-webkit-details-marker]:hidden">
-                <span className="w-4 h-4 rounded-full border border-gray-300 group-open:border-purple-400 group-open:bg-purple-50 flex items-center justify-center text-[9px] font-bold text-gray-400 group-open:text-purple-500">i</span>
+              <summary className="inline-flex items-center gap-1 cursor-pointer text-[12px] text-gray-400 hover:text-purple-500 transition list-none [&::-webkit-details-marker]:hidden">
+                <span className="w-4 h-4 rounded-full border border-gray-300 group-open:border-purple-400 group-open:bg-purple-50 flex items-center justify-center text-[11px] font-bold text-gray-400 group-open:text-purple-500">i</span>
                 <span className="group-open:text-purple-500">สิทธิข้าราชการ ครอบคลุมอะไรบ้าง?</span>
               </summary>
-              <div className="mt-1.5 ml-5 p-2.5 bg-gray-50 rounded-lg text-[10px] text-gray-600 leading-relaxed space-y-1">
+              <div className="mt-1.5 ml-5 p-2.5 bg-gray-50 rounded-lg text-[12px] text-gray-600 leading-relaxed space-y-1">
                 <div className="font-bold text-gray-700">สิทธิประโยชน์หลัก (เบิกจ่ายตรง):</div>
                 <div>• ค่าห้อง: ห้องพิเศษ ไม่เกิน 1,500 บ./วัน (ICU 4,500 บ./วัน)</div>
                 <div>• ค่าอาหาร: ไม่เกิน 200 บ./วัน (ห้องพิเศษ 400 บ./วัน)</div>
@@ -751,11 +751,11 @@ export default function Pillar2Page() {
           {/* Social Security (i) info */}
           {p2.hasSocialSecurity && (
             <details className="group">
-              <summary className="inline-flex items-center gap-1 cursor-pointer text-[10px] text-gray-400 hover:text-teal-500 transition list-none [&::-webkit-details-marker]:hidden">
-                <span className="w-4 h-4 rounded-full border border-gray-300 group-open:border-teal-400 group-open:bg-teal-50 flex items-center justify-center text-[9px] font-bold text-gray-400 group-open:text-teal-500">i</span>
+              <summary className="inline-flex items-center gap-1 cursor-pointer text-[12px] text-gray-400 hover:text-teal-500 transition list-none [&::-webkit-details-marker]:hidden">
+                <span className="w-4 h-4 rounded-full border border-gray-300 group-open:border-teal-400 group-open:bg-teal-50 flex items-center justify-center text-[11px] font-bold text-gray-400 group-open:text-teal-500">i</span>
                 <span className="group-open:text-teal-500">ประกันสังคม ม.33/39 ครอบคลุมอะไรบ้าง?</span>
               </summary>
-              <div className="mt-1.5 ml-5 p-2.5 bg-gray-50 rounded-lg text-[10px] text-gray-600 leading-relaxed space-y-1">
+              <div className="mt-1.5 ml-5 p-2.5 bg-gray-50 rounded-lg text-[12px] text-gray-600 leading-relaxed space-y-1">
                 <div className="font-bold text-gray-700">กรณีเจ็บป่วย:</div>
                 <div>• OPD: รักษาฟรีที่ รพ.ตามสิทธิ ไม่จำกัดครั้ง</div>
                 <div>• IPD: นอน รพ.ตามสิทธิ ไม่เสียค่าใช้จ่าย</div>
@@ -778,7 +778,7 @@ export default function Pillar2Page() {
           <div className="border border-teal-100 rounded-xl overflow-hidden">
             <div className="bg-teal-50 px-3 py-2 border-b border-teal-100 flex items-center gap-2">
               <ShieldCheck size={14} className="text-teal-600" />
-              <span className="text-[10px] font-bold text-teal-700">สวัสดิการที่ทำงาน (Group Insurance)</span>
+              <span className="text-[12px] font-bold text-teal-700">สวัสดิการที่ทำงาน (Group Insurance)</span>
             </div>
             <div className="p-3 space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -799,7 +799,7 @@ export default function Pillar2Page() {
           {/* ── ประกันที่ทำไว้เอง ── */}
           <div className="border border-cyan-100 rounded-xl overflow-hidden">
             <div className="bg-cyan-50 px-3 py-2 border-b border-cyan-100 flex items-center justify-between">
-              <span className="text-[10px] font-bold text-cyan-700">ประกันที่ทำไว้เอง (Personal)</span>
+              <span className="text-[12px] font-bold text-cyan-700">ประกันที่ทำไว้เอง (Personal)</span>
               <label className="flex items-center gap-1.5 cursor-pointer">
                 <input
                   type="checkbox"
@@ -807,7 +807,7 @@ export default function Pillar2Page() {
                   onChange={(e) => update({ usePersonalFromPolicies: e.target.checked })}
                   className="w-3 h-3 rounded border-gray-300 text-cyan-500 focus:ring-0"
                 />
-                <span className="text-[9px] text-cyan-600">ดึงจากกรมธรรม์</span>
+                <span className="text-[11px] text-cyan-600">ดึงจากกรมธรรม์</span>
               </label>
             </div>
             <div className="p-3">
@@ -817,7 +817,7 @@ export default function Pillar2Page() {
                     <>
                       <div className="space-y-1">
                         {healthPolicies.map((p) => (
-                          <div key={p.id} className="flex items-center justify-between text-[10px]">
+                          <div key={p.id} className="flex items-center justify-between text-[12px]">
                             <span className="text-cyan-700">
                               {p.planName}
                               <span className="text-cyan-400 ml-1">
@@ -828,7 +828,7 @@ export default function Pillar2Page() {
                           </div>
                         ))}
                       </div>
-                      <div className="border-t border-cyan-200 pt-2 grid grid-cols-3 gap-2 text-[9px]">
+                      <div className="border-t border-cyan-200 pt-2 grid grid-cols-3 gap-2 text-[11px]">
                         <div className="text-center">
                           <div className="text-cyan-500">ค่าห้อง</div>
                           <div className="font-bold text-cyan-700">{fmt(policyRoom)}</div>
@@ -844,7 +844,7 @@ export default function Pillar2Page() {
                       </div>
                     </>
                   ) : (
-                    <div className="text-[10px] text-cyan-400">ยังไม่มีกรมธรรม์สุขภาพ — เพิ่มได้ที่หน้าสรุปกรมธรรม์</div>
+                    <div className="text-[12px] text-cyan-400">ยังไม่มีกรมธรรม์สุขภาพ — เพิ่มได้ที่หน้าสรุปกรมธรรม์</div>
                   )}
                 </div>
               ) : (
@@ -873,7 +873,7 @@ export default function Pillar2Page() {
         <div className="glass rounded-2xl mx-1">
           <button onClick={() => toggleStep(3)} className="w-full p-4 md:p-6 pb-0 flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-              <span className={`w-6 h-6 rounded-full text-white text-[10px] font-bold flex items-center justify-center ${
+              <span className={`w-6 h-6 rounded-full text-white text-[12px] font-bold flex items-center justify-center ${
                 analysis.adequateCount >= 5 ? "bg-emerald-500" : "bg-red-500"
               }`}>3</span>
               Step 3: ส่วนต่าง (The Gap)
@@ -889,7 +889,7 @@ export default function Pillar2Page() {
 
           {/* Gap summary table */}
           <div className="overflow-visible">
-            <table className="w-full text-[10px] border-collapse" style={{ tableLayout: "fixed" }}>
+            <table className="w-full text-[12px] border-collapse" style={{ tableLayout: "fixed" }}>
               <colgroup>
                 <col style={{ width: "44px" }} />
                 <col />
@@ -904,23 +904,23 @@ export default function Pillar2Page() {
                 <tr>
                   <td className="pb-2"></td>
                   <td colSpan={2} className="pb-2 px-0.5">
-                    <div className="bg-red-700 text-white text-[11px] font-bold text-center py-2.5 rounded-lg shadow-lg">
+                    <div className="bg-red-700 text-white text-[13px] font-bold text-center py-2.5 rounded-lg shadow-lg">
                       มูลค่าความคุ้มครองที่ควรมี
                     </div>
                   </td>
                   <td colSpan={2} className="pb-2 px-0.5">
-                    <div className="bg-green-700 text-white text-[11px] font-bold text-center py-2.5 rounded-lg shadow-lg">
+                    <div className="bg-green-700 text-white text-[13px] font-bold text-center py-2.5 rounded-lg shadow-lg">
                       มูลค่าความคุ้มครองที่มีอยู่แล้ว
                     </div>
                   </td>
                   <td colSpan={2} className="pb-2 px-0.5">
-                    <div className="bg-blue-900 text-white text-[11px] font-bold text-center py-2.5 rounded-lg shadow-lg">
+                    <div className="bg-blue-900 text-white text-[13px] font-bold text-center py-2.5 rounded-lg shadow-lg">
                       ส่วนต่าง
                     </div>
                   </td>
                 </tr>
                 {/* Sub-header row */}
-                <tr className="text-[8px] font-bold uppercase tracking-wider border border-gray-200">
+                <tr className="text-[10px] font-bold uppercase tracking-wider border border-gray-200">
                   <th colSpan={2} className="py-1.5 px-2 bg-red-50 text-red-400 text-left border-r border-gray-200">ประเภท</th>
                   <th className="py-1.5 px-2 bg-red-50 text-red-400 text-right border-r border-gray-200">ต้องการ</th>
                   <th className="py-1.5 px-2 bg-green-100/60 text-green-600 text-right border-r border-gray-100">สวัสดิการ</th>
@@ -936,14 +936,14 @@ export default function Pillar2Page() {
                   return (
                     <tr key={cat.key} className="border-t border-gray-100">
                       {idx === 0 && (
-                        <td rowSpan={6} className="bg-blue-950 text-white text-[11px] font-bold text-center align-middle border-r border-gray-200">
+                        <td rowSpan={6} className="bg-blue-950 text-white text-[13px] font-bold text-center align-middle border-r border-gray-200">
                           เจ็บป่วย
                         </td>
                       )}
                       <td className="py-2.5 px-2 text-gray-700 font-medium bg-red-50/30 border-r border-gray-100">
                         {cat.labelShort}
                         {cat.key === "criticalTreatment" && (
-                          <div className="text-[9px] text-gray-400 font-normal mt-0.5 leading-tight">
+                          <div className="text-[11px] text-gray-400 font-normal mt-0.5 leading-tight">
                             ปกติใช้วงเงินเดียวกับ IPD — แผนทั่วไปไม่แยกวงเงินโรคร้าย
                           </div>
                         )}
@@ -952,11 +952,11 @@ export default function Pillar2Page() {
                       <td className="py-2.5 px-2 text-right text-gray-600 bg-green-100/25 border-r border-gray-100">{fmt(analysis.employer[cat.key])}</td>
                       <td className="py-2.5 px-2 text-right text-gray-600 bg-green-50/40 border-r border-gray-200">{fmt(analysis.personal[cat.key])}</td>
                       <td className="py-2.5 px-2 text-center bg-blue-100/20 border-r border-gray-100">
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isOk ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
+                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${isOk ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
                           {isOk ? "พอ" : "ขาด"}
                         </span>
                       </td>
-                      <td className={`py-2.5 px-2 text-right font-bold text-[11px] bg-blue-50/30 ${isOk ? "text-emerald-600" : "text-red-600"}`}>
+                      <td className={`py-2.5 px-2 text-right font-bold text-[13px] bg-blue-50/30 ${isOk ? "text-emerald-600" : "text-red-600"}`}>
                         {isOk ? `+${fmt(Math.abs(g))}` : `-${fmt(g)}`}
                       </td>
                     </tr>
@@ -979,12 +979,12 @@ export default function Pillar2Page() {
             <div className="flex items-center justify-between bg-red-50 rounded-xl px-4 py-3 border border-red-100">
               <div>
                 <div className="text-xs font-bold text-red-700">ยังไม่ผ่าน {6 - analysis.adequateCount} หมวด</div>
-                <div className="text-[10px] text-gray-500 mt-0.5">
+                <div className="text-[12px] text-gray-500 mt-0.5">
                   {categories.filter((c) => analysis.gap[c.key] > 0).map((c) => c.labelShort).join(", ")}
                 </div>
               </div>
               <a href="/calculators/insurance/policies?add=true"
-                className="px-4 py-2 rounded-lg bg-teal-500 text-white text-[10px] font-bold hover:bg-teal-600 active:scale-[0.98] transition shadow-sm whitespace-nowrap">
+                className="px-4 py-2 rounded-lg bg-teal-500 text-white text-[12px] font-bold hover:bg-teal-600 active:scale-[0.98] transition shadow-sm whitespace-nowrap">
                 + เพิ่มกรมธรรม์
               </a>
             </div>
@@ -1006,13 +1006,13 @@ export default function Pillar2Page() {
             </div>
           </button>
           {openPremium && <div className="px-4 md:px-6 pb-4 md:pb-6 space-y-4">
-          <p className="text-[10px] text-gray-500 leading-relaxed">
+          <p className="text-[12px] text-gray-500 leading-relaxed">
             เบี้ยประกันสุขภาพปรับตามอายุ ยิ่งอายุมากยิ่งแพง — ใส่ประมาณการเบี้ยตามช่วงอายุเพื่อคำนวณเงินที่ต้องเตรียมหลังเกษียณ
           </p>
 
           {/* Premium brackets */}
           <div className="space-y-2">
-            <div className="text-[11px] font-bold text-gray-600">เบี้ยประกันสุขภาพตามช่วงอายุ</div>
+            <div className="text-[13px] font-bold text-gray-600">เบี้ยประกันสุขภาพตามช่วงอายุ</div>
             {(p2.premiumBrackets || []).map((bracket: PremiumBracket, idx: number) => (
               <div key={idx} className="flex items-center gap-2">
                 <div className="flex items-center gap-1 shrink-0">
@@ -1026,7 +1026,7 @@ export default function Pillar2Page() {
                       update({ premiumBrackets: brackets });
                     }}
                   />
-                  <span className="text-[9px] text-gray-400">—</span>
+                  <span className="text-[11px] text-gray-400">—</span>
                   <input
                     type="text" inputMode="numeric"
                     className="w-12 text-xs text-center bg-gray-50 border border-gray-200 rounded-lg px-1 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-400 font-bold"
@@ -1037,7 +1037,7 @@ export default function Pillar2Page() {
                       update({ premiumBrackets: brackets });
                     }}
                   />
-                  <span className="text-[9px] text-gray-400 shrink-0">ปี</span>
+                  <span className="text-[11px] text-gray-400 shrink-0">ปี</span>
                 </div>
                 <div className="flex items-center flex-1 min-w-0">
                   <MoneyInput
@@ -1073,7 +1073,7 @@ export default function Pillar2Page() {
                   brackets.push({ ageFrom: lastTo, ageTo: Math.min(lastTo + 4, 90), annualPremium: 0 });
                   update({ premiumBrackets: brackets });
                 }}
-                className="text-[11px] text-teal-600 font-bold hover:underline flex items-center gap-1"
+                className="text-[13px] text-teal-600 font-bold hover:underline flex items-center gap-1"
               >
                 + เพิ่มช่วงอายุ
               </button>
@@ -1088,7 +1088,7 @@ export default function Pillar2Page() {
                     const filtered = defaults.filter((b) => b.ageTo >= currentAge && b.ageFrom <= 90);
                     update({ premiumBrackets: filtered });
                   }}
-                  className="text-[11px] text-gray-400 hover:text-teal-600 hover:underline"
+                  className="text-[13px] text-gray-400 hover:text-teal-600 hover:underline"
                 >
                   สร้างช่วงอายุอัตโนมัติ
                 </button>
@@ -1099,12 +1099,12 @@ export default function Pillar2Page() {
           {/* NPV params */}
           {(p2.premiumBrackets || []).length > 0 && (
             <div className="bg-gray-50 rounded-xl p-3 space-y-3 border border-gray-100">
-              <div className="text-[11px] font-bold text-gray-600">สมมติฐาน NPV</div>
+              <div className="text-[13px] font-bold text-gray-600">สมมติฐาน NPV</div>
 
               {/* Retire age selector */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="text-[10px] text-gray-500 font-semibold">อายุเกษียณ</label>
+                  <label className="text-[12px] text-gray-500 font-semibold">อายุเกษียณ</label>
                   <label className="flex items-center gap-1 cursor-pointer">
                     <input
                       type="checkbox"
@@ -1112,7 +1112,7 @@ export default function Pillar2Page() {
                       onChange={(e) => update({ useProfileRetireAge: e.target.checked })}
                       className="rounded border-gray-300 text-teal-600 focus:ring-teal-500 w-3 h-3"
                     />
-                    <span className="text-[9px] text-gray-600">ใช้จาก Personal Info ({profileRetireAge} ปี)</span>
+                    <span className="text-[11px] text-gray-600">ใช้จาก Personal Info ({profileRetireAge} ปี)</span>
                   </label>
                 </div>
                 <div className="flex gap-1.5 items-center">
@@ -1164,7 +1164,7 @@ export default function Pillar2Page() {
                             disabled ? "text-gray-300 cursor-not-allowed" : ageIsCustom ? "text-teal-700 font-bold" : ""
                           }`}
                         />
-                        <span className={`text-[9px] shrink-0 ${disabled ? "text-gray-300" : ageIsCustom ? "text-teal-600" : "text-gray-400"}`}>ปี</span>
+                        <span className={`text-[11px] shrink-0 ${disabled ? "text-gray-300" : ageIsCustom ? "text-teal-600" : "text-gray-400"}`}>ปี</span>
                       </label>
                     );
                   })()}
@@ -1173,7 +1173,7 @@ export default function Pillar2Page() {
 
               {/* Discount rate */}
               <div>
-                <label className="text-[10px] text-gray-500 font-semibold block mb-1">ผลตอบแทนหลังเกษียณ (%/ปี)</label>
+                <label className="text-[12px] text-gray-500 font-semibold block mb-1">ผลตอบแทนหลังเกษียณ (%/ปี)</label>
                 <div className="flex gap-1.5 items-center">
                   {[2, 3, 4, 5].map((rate) => (
                     <button
@@ -1209,7 +1209,7 @@ export default function Pillar2Page() {
                           placeholder=""
                           className={`w-full text-xs text-center outline-none bg-transparent ${rateIsCustom ? "text-teal-700 font-bold" : ""}`}
                         />
-                        <span className={`text-[9px] shrink-0 ${rateIsCustom ? "text-teal-600" : "text-gray-400"}`}>%</span>
+                        <span className={`text-[11px] shrink-0 ${rateIsCustom ? "text-teal-600" : "text-gray-400"}`}>%</span>
                       </label>
                     );
                   })()}
@@ -1219,8 +1219,8 @@ export default function Pillar2Page() {
               {/* Extra years beyond life expectancy */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="text-[10px] text-gray-500 font-semibold">ปีเผื่อเกินอายุขัย</label>
-                  <span className="text-[9px] text-gray-400">อายุขัย {lifeExpectancy} + เผื่อ {p2.premiumExtraYears || 0} = {lifeExpectancy + (p2.premiumExtraYears || 0)} ปี</span>
+                  <label className="text-[12px] text-gray-500 font-semibold">ปีเผื่อเกินอายุขัย</label>
+                  <span className="text-[11px] text-gray-400">อายุขัย {lifeExpectancy} + เผื่อ {p2.premiumExtraYears || 0} = {lifeExpectancy + (p2.premiumExtraYears || 0)} ปี</span>
                 </div>
                 <div className="flex gap-1.5 items-center">
                   {[0, 3, 5, 10].map((y) => (
@@ -1255,7 +1255,7 @@ export default function Pillar2Page() {
                           placeholder=""
                           className={`w-full text-xs text-center outline-none bg-transparent ${extraIsCustom ? "text-teal-700 font-bold" : ""}`}
                         />
-                        <span className={`text-[9px] shrink-0 ${extraIsCustom ? "text-teal-600" : "text-gray-400"}`}>ปี</span>
+                        <span className={`text-[11px] shrink-0 ${extraIsCustom ? "text-teal-600" : "text-gray-400"}`}>ปี</span>
                       </label>
                     );
                   })()}
@@ -1270,35 +1270,35 @@ export default function Pillar2Page() {
               {/* Pre/Post retire */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="bg-teal-50 rounded-xl p-3 border border-teal-100">
-                  <div className="text-[9px] text-teal-600 font-semibold">ก่อนเกษียณ (อายุ {currentAge}-{retireAge - 1})</div>
+                  <div className="text-[11px] text-teal-600 font-semibold">ก่อนเกษียณ (อายุ {currentAge}-{retireAge - 1})</div>
                   <div className="text-lg font-extrabold text-teal-700 mt-1">{fmt(premiumCalc.preRetireTotal)}</div>
-                  <div className="text-[9px] text-teal-500">รวมเบี้ยทั้งหมด (nominal)</div>
+                  <div className="text-[11px] text-teal-500">รวมเบี้ยทั้งหมด (nominal)</div>
                 </div>
                 <div className="bg-orange-50 rounded-xl p-3 border border-orange-100">
-                  <div className="text-[9px] text-orange-600 font-semibold">หลังเกษียณ (อายุ {retireAge}-{premiumCalc.maxAge})</div>
+                  <div className="text-[11px] text-orange-600 font-semibold">หลังเกษียณ (อายุ {retireAge}-{premiumCalc.maxAge})</div>
                   <div className="text-lg font-extrabold text-orange-700 mt-1">{fmt(premiumCalc.postRetireTotal)}</div>
-                  <div className="text-[9px] text-orange-500">รวมเบี้ยทั้งหมด (nominal)</div>
+                  <div className="text-[11px] text-orange-500">รวมเบี้ยทั้งหมด (nominal)</div>
                 </div>
               </div>
 
               {/* Post-retire blocks */}
               {premiumCalc.blocks.length > 0 && (
                 <div className="border border-gray-100 rounded-xl overflow-hidden">
-                  <div className="grid grid-cols-3 gap-1 px-3 py-1.5 bg-gray-50 text-[8px] font-bold text-gray-500 uppercase">
+                  <div className="grid grid-cols-3 gap-1 px-3 py-1.5 bg-gray-50 text-[10px] font-bold text-gray-500 uppercase">
                     <div>ช่วงอายุ</div>
                     <div className="text-right">เบี้ยรวม</div>
                     <div className="text-right">NPV</div>
                   </div>
                   {premiumCalc.blocks.map((block) => (
                     <div key={block.label} className="grid grid-cols-3 gap-1 px-3 py-2 border-t border-gray-50">
-                      <div className="text-[10px] text-gray-600">{block.label}</div>
-                      <div className="text-[10px] text-right font-bold text-gray-700">{fmt(block.total)}</div>
-                      <div className="text-[10px] text-right font-bold text-teal-700">{fmt(Math.round(block.npv))}</div>
+                      <div className="text-[12px] text-gray-600">{block.label}</div>
+                      <div className="text-[12px] text-right font-bold text-gray-700">{fmt(block.total)}</div>
+                      <div className="text-[12px] text-right font-bold text-teal-700">{fmt(Math.round(block.npv))}</div>
                     </div>
                   ))}
                   <div className="grid grid-cols-3 gap-1 px-3 py-2.5 border-t-2 border-teal-200 bg-teal-50">
-                    <div className="text-[10px] font-bold text-teal-700">NPV รวม</div>
-                    <div className="text-[10px] text-right font-bold text-gray-500">{fmt(premiumCalc.postRetireTotal)}</div>
+                    <div className="text-[12px] font-bold text-teal-700">NPV รวม</div>
+                    <div className="text-[12px] text-right font-bold text-gray-500">{fmt(premiumCalc.postRetireTotal)}</div>
                     <div className="text-sm text-right font-extrabold text-teal-700">{fmt(premiumCalc.npvPostRetire)}</div>
                   </div>
                 </div>
@@ -1306,9 +1306,9 @@ export default function Pillar2Page() {
 
               {/* NPV result + send to retirement */}
               <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl p-4 border border-teal-200 text-center space-y-2">
-                <div className="text-[10px] text-teal-600 font-semibold">มูลค่าปัจจุบัน (NPV) ของเบี้ยประกันสุขภาพหลังเกษียณ</div>
+                <div className="text-[12px] text-teal-600 font-semibold">มูลค่าปัจจุบัน (NPV) ของเบี้ยประกันสุขภาพหลังเกษียณ</div>
                 <div className="text-2xl font-extrabold text-teal-700">{fmt(premiumCalc.npvPostRetire)}</div>
-                <div className="text-[9px] text-gray-500">Discount Rate: {p2.postRetireReturn ?? 4}% | เบี้ยรวม nominal: {fmt(premiumCalc.postRetireTotal)}</div>
+                <div className="text-[11px] text-gray-500">Discount Rate: {p2.postRetireReturn ?? 4}% | เบี้ยรวม nominal: {fmt(premiumCalc.postRetireTotal)}</div>
                 <div className="mt-2 flex items-center justify-center gap-2 flex-wrap">
                   <button
                     onClick={handleSendNPV}
@@ -1334,7 +1334,7 @@ export default function Pillar2Page() {
                   )}
                 </div>
                 {npvSent && (
-                  <div className="text-[9px] text-emerald-600 mt-1">
+                  <div className="text-[11px] text-emerald-600 mt-1">
                     อัปเดตแล้ว: ค่าใช้จ่ายพิเศษ &quot;เบี้ยประกันสุขภาพหลังเกษียณ&quot; = {fmt(premiumCalc.npvPostRetire)} บาท
                   </div>
                 )}
@@ -1342,12 +1342,12 @@ export default function Pillar2Page() {
 
               {/* Year detail (expandable) */}
               <details>
-                <summary className="text-[10px] text-teal-600 font-bold cursor-pointer flex items-center gap-1 hover:underline">
+                <summary className="text-[12px] text-teal-600 font-bold cursor-pointer flex items-center gap-1 hover:underline">
                   <ChevronRight size={12} className="inline" />
                   ดูรายละเอียดเบี้ยรายปี
                 </summary>
                 <div className="mt-2 border border-gray-100 rounded-lg overflow-hidden max-h-[300px] overflow-y-auto">
-                  <div className="grid grid-cols-4 gap-1 px-2 py-1.5 bg-gray-50 text-[8px] font-bold text-gray-500 uppercase sticky top-0">
+                  <div className="grid grid-cols-4 gap-1 px-2 py-1.5 bg-gray-50 text-[10px] font-bold text-gray-500 uppercase sticky top-0">
                     <div>อายุ</div>
                     <div className="text-right">เบี้ย/ปี</div>
                     <div className="text-right">ช่วง</div>
@@ -1355,10 +1355,10 @@ export default function Pillar2Page() {
                   </div>
                   {premiumCalc.yearDetails.filter((y) => y.premium > 0).map((y) => (
                     <div key={y.age} className={`grid grid-cols-4 gap-1 px-2 py-1 border-t border-gray-50 ${y.age === retireAge ? "bg-orange-50 font-bold" : ""}`}>
-                      <div className="text-[9px] text-gray-600">{y.age} {y.age === retireAge ? "🔶" : ""}</div>
-                      <div className="text-[9px] text-right font-bold text-gray-700">{fmt(y.premium)}</div>
-                      <div className="text-[9px] text-right text-gray-400">{y.isPostRetire ? "หลังเกษียณ" : "ก่อน"}</div>
-                      <div className="text-[9px] text-right font-bold text-teal-600">{y.isPostRetire ? fmt(Math.round(y.pv)) : "—"}</div>
+                      <div className="text-[11px] text-gray-600">{y.age} {y.age === retireAge ? "🔶" : ""}</div>
+                      <div className="text-[11px] text-right font-bold text-gray-700">{fmt(y.premium)}</div>
+                      <div className="text-[11px] text-right text-gray-400">{y.isPostRetire ? "หลังเกษียณ" : "ก่อน"}</div>
+                      <div className="text-[11px] text-right font-bold text-teal-600">{y.isPostRetire ? fmt(Math.round(y.pv)) : "—"}</div>
                     </div>
                   ))}
                 </div>
@@ -1406,18 +1406,18 @@ export default function Pillar2Page() {
               <p className="text-xs text-gray-600 leading-relaxed">{HEALTH_INFO[showInfoKey].description}</p>
 
               <div className={`${benchmark.bgColor} rounded-xl p-3 border ${benchmark.borderColor}`}>
-                <div className={`text-[11px] font-bold ${benchmark.color} mb-2`}>
+                <div className={`text-[13px] font-bold ${benchmark.color} mb-2`}>
                   {benchmark.icon} สถิติสำหรับ{benchmark.label}
                 </div>
                 <div className="space-y-1">
                   {HEALTH_INFO[showInfoKey].stats[p2.hospitalTier].map((stat, i) => (
-                    <div key={i} className="text-[11px] text-gray-700">• {stat}</div>
+                    <div key={i} className="text-[13px] text-gray-700">• {stat}</div>
                   ))}
                 </div>
               </div>
 
               <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
-                <div className="text-[10px] text-amber-700 leading-relaxed">
+                <div className="text-[12px] text-amber-700 leading-relaxed">
                   <span className="font-bold">คำแนะนำ:</span> {HEALTH_INFO[showInfoKey].tip}
                 </div>
               </div>

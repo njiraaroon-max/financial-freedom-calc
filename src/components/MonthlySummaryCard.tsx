@@ -36,7 +36,7 @@ export default function MonthlySummaryCard({ summary, monthIndex }: MonthlySumma
           <div className="bg-white/15 rounded-xl p-3">
             <div className="flex items-center gap-1.5 mb-1">
               <TrendingUp size={13} className="text-green-300" />
-              <span className="text-[11px] opacity-80">รายรับ</span>
+              <span className="text-[13px] opacity-80">รายรับ</span>
             </div>
             <div className="text-base font-bold text-green-300">
               +{fmt(summary.totalIncome)}
@@ -45,7 +45,7 @@ export default function MonthlySummaryCard({ summary, monthIndex }: MonthlySumma
           <div className="bg-white/15 rounded-xl p-3">
             <div className="flex items-center gap-1.5 mb-1">
               <TrendingDown size={13} className="text-red-300" />
-              <span className="text-[11px] opacity-80">รายจ่าย</span>
+              <span className="text-[13px] opacity-80">รายจ่าย</span>
             </div>
             <div className="text-base font-bold text-red-300">
               -{fmt(summary.totalExpense)}
@@ -73,14 +73,14 @@ export default function MonthlySummaryCard({ summary, monthIndex }: MonthlySumma
               <Wallet size={16} className={isPositive ? "text-green-300" : "text-red-300"} />
             </div>
             <div>
-              <div className="text-[10px] opacity-60">คงเหลือ</div>
+              <div className="text-[12px] opacity-60">คงเหลือ</div>
               <div className={`text-lg font-bold ${isPositive ? "text-green-300" : "text-red-300"}`}>
                 {isPositive ? "+" : ""}{fmt(summary.netCashFlow)}
               </div>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-[10px] opacity-60">จำเป็น / ไม่จำเป็น</div>
+            <div className="text-[12px] opacity-60">จำเป็น / ไม่จำเป็น</div>
             <div className="text-xs font-semibold">
               {fmt(summary.totalEssentialExpense)} / {fmt(summary.totalNonEssentialExpense)}
             </div>

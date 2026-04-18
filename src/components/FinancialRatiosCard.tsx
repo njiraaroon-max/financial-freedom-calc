@@ -67,7 +67,7 @@ export default function FinancialRatiosCard({ ratios }: FinancialRatiosCardProps
                     {ratio.name}
                   </span>
                 </div>
-                <div className="text-[10px] text-gray-500">{ratio.benchmark}</div>
+                <div className="text-[12px] text-gray-500">{ratio.benchmark}</div>
               </div>
               <div className="text-right shrink-0">
                 <div className="text-sm font-bold text-gray-800">

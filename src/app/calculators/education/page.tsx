@@ -149,7 +149,7 @@ export default function EducationPage() {
             <BookOpen size={20} />
             <span className="text-sm font-bold">วางแผนค่าเล่าเรียนแบบปีต่อปี</span>
           </div>
-          <p className="text-[11px] opacity-80 leading-relaxed">
+          <p className="text-[13px] opacity-80 leading-relaxed">
             กรอกข้อมูลลูก → กำหนดระดับชั้นและค่าเทอมปัจจุบัน → ดูประมาณการค่าเรียนในอนาคต
             → วางแผน port ลงทุนเพื่อเตรียมทุน
           </p>
@@ -168,7 +168,7 @@ export default function EducationPage() {
             <div className="text-2xl font-extrabold text-blue-600">
               {fmt(aggregated.grandTotal)} <span className="text-sm font-bold text-gray-400">บาท</span>
             </div>
-            <div className="text-[10px] text-gray-400 mt-1">
+            <div className="text-[12px] text-gray-400 mt-1">
               ปรับตามเงินเฟ้อ {inflationRate}%/ปี • คงที่ในแต่ละระดับชั้น • รวมค่าเทอม+เรียนพิเศษ
             </div>
           </div>
@@ -206,7 +206,7 @@ export default function EducationPage() {
                       <div className="text-sm font-bold text-gray-800">
                         {child.name || "ลูก (ยังไม่ระบุชื่อ)"}
                       </div>
-                      <div className="text-[10px] text-gray-500">
+                      <div className="text-[12px] text-gray-500">
                         อายุ {age} ปี • {levelText}
                       </div>
                     </div>
@@ -249,14 +249,14 @@ export default function EducationPage() {
         >
           {/* Inflation input */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
-            <label className="text-[11px] font-bold text-amber-800 block mb-1">
+            <label className="text-[13px] font-bold text-amber-800 block mb-1">
               อัตราเงินเฟ้อการศึกษา (% ต่อปี)
             </label>
             <div className="flex items-center gap-2">
               <InflationInput value={inflationRate} onChange={setInflationRate} />
               <span className="text-xs text-amber-700">%</span>
             </div>
-            <div className="text-[9px] text-amber-600 mt-1">
+            <div className="text-[11px] text-amber-600 mt-1">
               เฉลี่ยโรงเรียนไทย 4-6%/ปี • มหาวิทยาลัย 3-5%
             </div>
           </div>
@@ -283,7 +283,7 @@ export default function EducationPage() {
                     <div className="flex-1">
                       <div className="text-sm font-bold text-gray-800">
                         {lv.label}{" "}
-                        <span className="text-[10px] text-gray-400 font-normal">
+                        <span className="text-[12px] text-gray-400 font-normal">
                           ({lv.defaultYears} ปี)
                         </span>
                       </div>
@@ -293,27 +293,27 @@ export default function EducationPage() {
                   {lv.enabled && (
                     <div className="space-y-2 ml-6">
                       <div className="flex items-center gap-2">
-                        <label className="text-[10px] text-gray-600 w-28 shrink-0">ค่าเทอม/ปี:</label>
+                        <label className="text-[12px] text-gray-600 w-28 shrink-0">ค่าเทอม/ปี:</label>
                         <MoneyInput
                           value={lv.tuitionPerYear}
                           onChange={(v) => updateLevel(key, { tuitionPerYear: v })}
                           className="glass flex-1 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 text-right font-bold"
                           ringClass="focus:ring-blue-400"
                         />
-                        <span className="text-[10px] text-gray-500 w-8">บาท</span>
+                        <span className="text-[12px] text-gray-500 w-8">บาท</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <label className="text-[10px] text-gray-600 w-28 shrink-0">เรียนพิเศษ/ปี:</label>
+                        <label className="text-[12px] text-gray-600 w-28 shrink-0">เรียนพิเศษ/ปี:</label>
                         <MoneyInput
                           value={lv.tutoringPerYear || 0}
                           onChange={(v) => updateLevel(key, { tutoringPerYear: v })}
                           className="glass flex-1 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 text-right font-bold"
                           ringClass="focus:ring-teal-400"
                         />
-                        <span className="text-[10px] text-gray-500 w-8">บาท</span>
+                        <span className="text-[12px] text-gray-500 w-8">บาท</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <label className="text-[10px] text-gray-600 w-28 shrink-0">ชื่อโรงเรียน:</label>
+                        <label className="text-[12px] text-gray-600 w-28 shrink-0">ชื่อโรงเรียน:</label>
                         <input
                           type="text"
                           value={lv.schoolName}
@@ -340,7 +340,7 @@ export default function EducationPage() {
             onToggle={() => setOpenSection(openSection === "projection" ? "" : "projection")}
           >
             <div className="overflow-x-auto">
-              <table className="w-full text-[11px]">
+              <table className="w-full text-[13px]">
                 <thead>
                   <tr className="border-b border-gray-200">
                     <th className="py-2 px-2 text-left font-semibold text-gray-600">พ.ศ.</th>
@@ -371,7 +371,7 @@ export default function EducationPage() {
                             {entry && style ? (
                               <div className={`${style.cellBg} rounded-md px-2 py-1 inline-block min-w-[92px] text-right`}>
                                 <div className={`font-bold ${style.cellText}`}>{fmt(entry.tuition)}</div>
-                                <div className={`text-[9px] ${style.cellSubText} font-medium`}>
+                                <div className={`text-[11px] ${style.cellSubText} font-medium`}>
                                   {entry.levelLabel} • อายุ {entry.age}
                                 </div>
                               </div>
@@ -405,7 +405,7 @@ export default function EducationPage() {
             <div className="mt-5 pt-4 border-t border-gray-100">
               <div className="flex items-center gap-2 mb-3">
                 <BookOpen size={14} className="text-indigo-600" />
-                <h4 className="text-[13px] font-bold text-gray-800">
+                <h4 className="text-[15px] font-bold text-gray-800">
                   สรุปค่าใช้จ่ายแยกตามระดับชั้น
                 </h4>
               </div>
@@ -439,13 +439,13 @@ export default function EducationPage() {
                           >
                             {child.gender === "male" ? "👦" : "👧"}
                           </div>
-                          <span className="text-[13px] font-bold text-gray-800">
+                          <span className="text-[15px] font-bold text-gray-800">
                             {child.name || "ลูก"}
                           </span>
                         </div>
                         <div className="text-right">
-                          <div className="text-[9px] text-gray-400 leading-none">รวม</div>
-                          <div className="text-[13px] font-extrabold text-blue-600 leading-tight">
+                          <div className="text-[11px] text-gray-400 leading-none">รวม</div>
+                          <div className="text-[15px] font-extrabold text-blue-600 leading-tight">
                             {fmtShort(childTotal)}
                           </div>
                         </div>
@@ -458,13 +458,13 @@ export default function EducationPage() {
                           const sharePct = (e.data.total / childTotal) * 100;
                           return (
                             <div key={e.key}>
-                              <div className="flex items-center justify-between gap-2 text-[11px]">
+                              <div className="flex items-center justify-between gap-2 text-[13px]">
                                 <div className="flex items-center gap-1.5 min-w-0 flex-1">
                                   <span className={`w-2 h-2 rounded-full ${st.dot} shrink-0`}></span>
                                   <span className={`${st.chipText} font-bold truncate`}>
                                     {e.data.levelLabel}
                                   </span>
-                                  <span className="text-[9px] text-gray-400 shrink-0">
+                                  <span className="text-[11px] text-gray-400 shrink-0">
                                     {e.data.years} ปี
                                   </span>
                                 </div>
@@ -472,7 +472,7 @@ export default function EducationPage() {
                                   <span className="font-bold text-gray-800">
                                     {fmt(e.data.total)}
                                   </span>
-                                  <span className="text-[9px] text-gray-400 ml-1">
+                                  <span className="text-[11px] text-gray-400 ml-1">
                                     ({sharePct.toFixed(0)}%)
                                   </span>
                                 </div>
@@ -493,7 +493,7 @@ export default function EducationPage() {
               </div>
 
               {/* Legend */}
-              <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-x-3 gap-y-1 text-[10px]">
+              <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-x-3 gap-y-1 text-[12px]">
                 <span className="text-gray-500 font-medium mr-1">ระดับชั้น:</span>
                 {LEVEL_SEQUENCE.filter((k) =>
                   Array.from(levelBreakdown.values()).some((m) => m.has(k)),
@@ -549,14 +549,14 @@ export default function EducationPage() {
                       </div>
                       <button
                         onClick={() => addPortfolio(child.id)}
-                        className="glass text-[10px] text-indigo-600 font-bold border border-indigo-300 rounded-lg px-2 py-1 hover:bg-indigo-100 flex items-center gap-1"
+                        className="glass text-[12px] text-indigo-600 font-bold border border-indigo-300 rounded-lg px-2 py-1 hover:bg-indigo-100 flex items-center gap-1"
                       >
                         <Plus size={12} /> เพิ่มพอร์ต
                       </button>
                     </div>
 
                     {childPorts.length === 0 ? (
-                      <div className="text-[10px] text-gray-400 italic text-center py-2">
+                      <div className="text-[12px] text-gray-400 italic text-center py-2">
                         ยังไม่มีพอร์ตลงทุน — กด "เพิ่มพอร์ต" เพื่อเริ่มวางแผน
                       </div>
                     ) : (
@@ -607,7 +607,7 @@ function SectionCard({
           {icon}
           <div className="text-left">
             <div className="text-sm font-bold text-gray-800">{title}</div>
-            {subtitle && <div className="text-[10px] text-gray-400">{subtitle}</div>}
+            {subtitle && <div className="text-[12px] text-gray-400">{subtitle}</div>}
           </div>
         </div>
         <ChevronDown size={18} className={`text-gray-400 transition-transform ${open ? "rotate-180" : ""}`} />
@@ -663,7 +663,7 @@ function ChildEditor({
       {/* Name + Gender */}
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="text-[10px] text-gray-500 block mb-1">ชื่อเล่น</label>
+          <label className="text-[12px] text-gray-500 block mb-1">ชื่อเล่น</label>
           <input
             type="text"
             value={child.name}
@@ -673,7 +673,7 @@ function ChildEditor({
           />
         </div>
         <div>
-          <label className="text-[10px] text-gray-500 block mb-1">เพศ</label>
+          <label className="text-[12px] text-gray-500 block mb-1">เพศ</label>
           <div className="flex bg-gray-100 rounded-lg p-0.5">
             <button
               type="button"
@@ -699,13 +699,13 @@ function ChildEditor({
 
       {/* Birth year */}
       <div>
-        <label className="text-[10px] text-gray-500 block mb-1">ปีเกิด (ค.ศ.)</label>
+        <label className="text-[12px] text-gray-500 block mb-1">ปีเกิด (ค.ศ.)</label>
         <YearInput
           value={child.birthYear}
           onChange={(v) => onChange({ birthYear: v })}
           placeholder={String(CURRENT_YEAR - 5)}
         />
-        <div className="text-[9px] text-gray-400 mt-0.5">
+        <div className="text-[11px] text-gray-400 mt-0.5">
           {child.birthYear > CURRENT_YEAR
             ? `จะเกิดปี พ.ศ. ${child.birthYear + BE_OFFSET}`
             : `อายุ ${age} ปี • พ.ศ. ${child.birthYear + BE_OFFSET}`}
@@ -741,7 +741,7 @@ function ChildEditor({
           <div className="space-y-2 bg-blue-50/50 border border-blue-200 rounded-xl p-3">
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[10px] text-gray-500 block mb-1">จะเข้าเรียนปี (ค.ศ.)</label>
+                <label className="text-[12px] text-gray-500 block mb-1">จะเข้าเรียนปี (ค.ศ.)</label>
                 <YearInput
                   value={child.plannedStartYear || CURRENT_YEAR}
                   onChange={(v) => onChange({ plannedStartYear: v })}
@@ -749,7 +749,7 @@ function ChildEditor({
                 />
               </div>
               <div>
-                <label className="text-[10px] text-gray-500 block mb-1">เริ่มระดับชั้น</label>
+                <label className="text-[12px] text-gray-500 block mb-1">เริ่มระดับชั้น</label>
                 <select
                   value={child.plannedStartLevel || "nursery"}
                   onChange={(e) =>
@@ -768,14 +768,14 @@ function ChildEditor({
                 </select>
               </div>
             </div>
-            <div className="text-[9px] text-blue-600">
+            <div className="text-[11px] text-blue-600">
               💡 ระบบจะเริ่มประมาณการค่าเรียนตั้งแต่ปีที่วางแผนไว้
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="text-[10px] text-gray-500 block mb-1">ระดับปัจจุบัน</label>
+              <label className="text-[12px] text-gray-500 block mb-1">ระดับปัจจุบัน</label>
               <select
                 value={child.currentLevelKey}
                 onChange={(e) =>
@@ -797,7 +797,7 @@ function ChildEditor({
               </select>
             </div>
             <div>
-              <label className="text-[10px] text-gray-500 block mb-1">ปีที่</label>
+              <label className="text-[12px] text-gray-500 block mb-1">ปีที่</label>
               <YearInLevelSelector
                 level={levels.find((l) => l.key === child.currentLevelKey)}
                 customBachelorYears={child.bachelorYears}
@@ -813,7 +813,7 @@ function ChildEditor({
       {/* Bachelor / Master years */}
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="text-[10px] text-gray-500 block mb-1">ป.ตรี (ปี)</label>
+          <label className="text-[12px] text-gray-500 block mb-1">ป.ตรี (ปี)</label>
           <select
             value={child.bachelorYears}
             onChange={(e) => onChange({ bachelorYears: parseInt(e.target.value) })}
@@ -825,7 +825,7 @@ function ChildEditor({
           </select>
         </div>
         <div>
-          <label className="text-[10px] text-gray-500 block mb-1">ป.โท (ปี)</label>
+          <label className="text-[12px] text-gray-500 block mb-1">ป.โท (ปี)</label>
           <select
             value={child.masterYears}
             onChange={(e) => onChange({ masterYears: parseInt(e.target.value) })}
@@ -971,7 +971,7 @@ function PortfolioEditor({
 
       {/* Covered levels (multi-select chips) */}
       <div>
-        <label className="text-[10px] text-gray-500 block mb-1">ใช้เป็นทุนสำหรับระดับ</label>
+        <label className="text-[12px] text-gray-500 block mb-1">ใช้เป็นทุนสำหรับระดับ</label>
         <div className="flex flex-wrap gap-1">
           {LEVEL_SEQUENCE.map((k) => {
             const lv = levels.find((l) => l.key === k);
@@ -982,7 +982,7 @@ function PortfolioEditor({
                 key={k}
                 type="button"
                 onClick={() => toggleLevel(k)}
-                className={`px-2 py-1 rounded-lg text-[10px] font-medium transition border ${
+                className={`px-2 py-1 rounded-lg text-[12px] font-medium transition border ${
                   active
                     ? "bg-indigo-500 text-white border-indigo-500"
                     : "bg-white text-gray-500 border-gray-200 hover:border-indigo-300"
@@ -998,21 +998,21 @@ function PortfolioEditor({
       {/* Horizon + Return + Current */}
       <div className="grid grid-cols-3 gap-2">
         <div>
-          <label className="text-[10px] text-gray-500 block mb-1">ลงทุน (ปี)</label>
+          <label className="text-[12px] text-gray-500 block mb-1">ลงทุน (ปี)</label>
           <YearInput
             value={portfolio.yearsToInvest}
             onChange={(v) => onChange({ yearsToInvest: v })}
           />
         </div>
         <div>
-          <label className="text-[10px] text-gray-500 block mb-1">ผลตอบแทน%</label>
+          <label className="text-[12px] text-gray-500 block mb-1">ผลตอบแทน%</label>
           <DecimalInput
             value={portfolio.expectedReturn}
             onChange={(v) => onChange({ expectedReturn: v })}
           />
         </div>
         <div>
-          <label className="text-[10px] text-gray-500 block mb-1">ยอดมีอยู่</label>
+          <label className="text-[12px] text-gray-500 block mb-1">ยอดมีอยู่</label>
           <MoneyInput
             value={portfolio.currentAmount}
             onChange={(v) => onChange({ currentAmount: v })}
@@ -1033,17 +1033,17 @@ function PortfolioEditor({
         }`}
       >
         {calc.targetAmount === 0 ? (
-          <div className="text-[10px] text-gray-500 text-center italic py-1">
+          <div className="text-[12px] text-gray-500 text-center italic py-1">
             เลือกระดับที่ต้องการให้พอร์ตนี้ดูแลก่อน
           </div>
         ) : (
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] text-gray-600">เป้าหมายทุน</span>
+              <span className="text-[12px] text-gray-600">เป้าหมายทุน</span>
               <span className="text-sm font-bold text-gray-800">{fmt(calc.targetAmount)}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[10px] text-gray-600">ยอดมีอยู่ × ผลตอบแทน ({portfolio.yearsToInvest} ปี)</span>
+              <span className="text-[12px] text-gray-600">ยอดมีอยู่ × ผลตอบแทน ({portfolio.yearsToInvest} ปี)</span>
               <span className="text-sm font-bold text-gray-800">{fmt(calc.futureCurrentAmount)}</span>
             </div>
             {calc.onTrack ? (
@@ -1053,18 +1053,18 @@ function PortfolioEditor({
             ) : (
               <div className="border-t border-amber-200 pt-2 mt-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-amber-700 font-bold">ต้องเก็บเพิ่ม/เดือน</span>
+                  <span className="text-[12px] text-amber-700 font-bold">ต้องเก็บเพิ่ม/เดือน</span>
                   <span className="text-base font-extrabold text-amber-700">
                     {fmt(calc.monthlyContribution)} บาท
                   </span>
                 </div>
-                <div className="text-[9px] text-amber-600 text-right mt-0.5">
+                <div className="text-[11px] text-amber-600 text-right mt-0.5">
                   (ปีละ {fmt(calc.annualContribution)} บาท เป็นเวลา {portfolio.yearsToInvest} ปี)
                 </div>
               </div>
             )}
             {calc.firstTargetYear && (
-              <div className="text-[9px] text-gray-500 text-right">
+              <div className="text-[11px] text-gray-500 text-right">
                 ใช้ครั้งแรกปี {calc.firstTargetYear}
               </div>
             )}

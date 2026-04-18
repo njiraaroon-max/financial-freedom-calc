@@ -239,21 +239,21 @@ export default function RetirementDiagram({
       {/* Age labels */}
       <div className="flex items-center mb-2">
         <div
-          className="text-[8px] text-[#c5cae9] font-bold text-center"
+          className="text-[10px] text-[#c5cae9] font-bold text-center"
           style={{ width: `${BOX_W}px`, flexShrink: 0 }}
         >
           อายุปัจจุบัน
         </div>
         <div style={{ flex: workYears }} />
         <div
-          className="text-[8px] text-[#1e3a5f] font-bold text-center"
+          className="text-[10px] text-[#1e3a5f] font-bold text-center"
           style={{ width: `${BOX_W}px`, flexShrink: 0 }}
         >
           อายุเกษียณ
         </div>
         <div style={{ flex: retireYears }} />
         <div
-          className="text-[8px] text-gray-400 font-bold text-center"
+          className="text-[10px] text-gray-400 font-bold text-center"
           style={{ width: `${BOX_W}px`, flexShrink: 0 }}
         >
           อายุขัย
@@ -270,7 +270,7 @@ export default function RetirementDiagram({
         </div>
         <div className="relative mx-0.5" style={{ flex: workYears }}>
           <div className="border-t-2 border-dashed border-[#1e3a5f]" />
-          <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-[9px] font-bold text-[#1e3a5f] bg-white px-1 whitespace-nowrap">
+          <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-[11px] font-bold text-[#1e3a5f] bg-white px-1 whitespace-nowrap">
             {workYears} ปี
           </div>
         </div>
@@ -282,7 +282,7 @@ export default function RetirementDiagram({
         </div>
         <div className="relative mx-0.5" style={{ flex: retireYears }}>
           <div className="border-t-2 border-dashed border-gray-400" />
-          <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-[9px] font-bold text-gray-500 bg-white px-1 whitespace-nowrap">
+          <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-[11px] font-bold text-gray-500 bg-white px-1 whitespace-nowrap">
             {retireYears} ปี
           </div>
         </div>
@@ -301,7 +301,7 @@ export default function RetirementDiagram({
           className="mx-1 py-1 px-2 rounded-md bg-gradient-to-r from-[#e0e7ff]/40 via-[#c5cae9]/70 to-[#e0e7ff]/40 text-center"
           style={{ flex: workYears }}
         >
-          <span className="text-[9px] font-bold text-[#1e3a5f]">
+          <span className="text-[11px] font-bold text-[#1e3a5f]">
             📈 ช่วงสะสม (ทำงาน)
           </span>
         </div>
@@ -310,7 +310,7 @@ export default function RetirementDiagram({
           className="mx-1 py-1 px-2 rounded-md bg-gradient-to-r from-amber-50 via-amber-100 to-amber-50 text-center"
           style={{ flex: retireYears }}
         >
-          <span className="text-[9px] font-bold text-amber-800">
+          <span className="text-[11px] font-bold text-amber-800">
             📉 ช่วงใช้จ่าย (เกษียณ)
           </span>
         </div>
@@ -892,17 +892,17 @@ export default function RetirementDiagram({
                       className="glass absolute pointer-events-none rounded-lg px-3 py-2 text-xs z-20"
                       style={{ left, top, minWidth: 180, maxWidth: 230 }}
                     >
-                      <div className="font-bold text-[#1e3a5f] mb-1 text-[11px]">
+                      <div className="font-bold text-[#1e3a5f] mb-1 text-[13px]">
                         {tooltip.title}
                       </div>
                       <div className="space-y-0.5">
                         {tooltip.lines.map((l, i) => (
                           <div key={i} className="flex justify-between gap-4">
-                            <span className="text-gray-500 text-[10px]">
+                            <span className="text-gray-500 text-[12px]">
                               {l.label}
                             </span>
                             <span
-                              className="font-bold text-[10px]"
+                              className="font-bold text-[12px]"
                               style={{ color: l.color ?? "#374151" }}
                             >
                               {l.value}
@@ -954,7 +954,7 @@ export default function RetirementDiagram({
                 </div>
               </div>
 
-              <div className="text-[9px] text-gray-400 text-center mt-2">
+              <div className="text-[11px] text-gray-400 text-center mt-2">
                 สมมติฐาน: เงินเฟ้อ {(generalInflation * 100).toFixed(1)}% |
                 ผลตอบแทนหลังเกษียณ {(postRetireReturn * 100).toFixed(1)}%
               </div>

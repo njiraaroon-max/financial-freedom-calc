@@ -140,17 +140,17 @@ export default function BasicExpensesPage() {
             <Info size={16} />
           </button>
           <div className="pr-10">
-            <div className="text-[10px] font-bold text-white/70 mb-1">Step 1 · Basic Expenses</div>
+            <div className="text-[12px] font-bold text-white/70 mb-1">Step 1 · Basic Expenses</div>
             <h3 className="text-sm font-bold leading-snug mb-1.5">
               ประเมินค่าใช้จ่ายพื้นฐานหลังเกษียณ
             </h3>
-            <p className="text-[11px] text-white/80 leading-relaxed">
+            <p className="text-[13px] text-white/80 leading-relaxed">
               จะใช้เงินเดือนละเท่าไหร่หลังเกษียณ? เรานำค่าใช้จ่ายวันนี้ × เงินเฟ้อ แล้วแปลงเป็น
               <b> ทุนเกษียณ (A)</b> ที่ต้องเตรียม ตามหลัก CFP Module 4 (Needs-Based Approach)
             </p>
             <button
               onClick={() => setShowInfo(true)}
-              className="mt-2 inline-flex items-center gap-1 text-[10px] text-white/90 font-bold hover:text-white underline-offset-2 hover:underline"
+              className="mt-2 inline-flex items-center gap-1 text-[12px] text-white/90 font-bold hover:text-white underline-offset-2 hover:underline"
             >
               <Info size={11} /> ดูวิธีคำนวณตามหลัก CFP
             </button>
@@ -161,7 +161,7 @@ export default function BasicExpensesPage() {
             for the whole list. Default OFF = pure input mode (legacy).
             ON = show ปัจจุบัน (CF baseline) + arrow for every item. */}
         <div className="flex items-center justify-between gap-2 px-1 mb-2">
-          <div className="text-[11px] text-gray-500 flex items-center gap-1.5 leading-tight">
+          <div className="text-[13px] text-gray-500 flex items-center gap-1.5 leading-tight">
             <Lightbulb size={12} className="text-amber-400 shrink-0" />
             <span>
               {store.showCfReference
@@ -200,7 +200,7 @@ export default function BasicExpensesPage() {
               vertical dividers between columns (right border on each
               cell except the last). */}
           {store.showCfReference ? (
-            <div className="grid grid-cols-[1fr_72px_96px_32px_28px] items-stretch text-[9px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-200">
+            <div className="grid grid-cols-[1fr_72px_96px_32px_28px] items-stretch text-[11px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-200">
               <div className="px-2 py-1.5 border-r border-gray-100">รายการ</div>
               <div className="px-2 py-1.5 text-right border-r border-gray-100">ปัจจุบัน</div>
               <div className="px-2 py-1.5 text-right border-r border-gray-100">วางแผน</div>
@@ -208,7 +208,7 @@ export default function BasicExpensesPage() {
               <div></div>
             </div>
           ) : (
-            <div className="grid grid-cols-[1fr_104px_28px] items-stretch text-[9px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-200">
+            <div className="grid grid-cols-[1fr_104px_28px] items-stretch text-[11px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-200">
               <div className="px-2 py-1.5 border-r border-gray-100">รายการ</div>
               <div className="px-2 py-1.5 text-right border-r border-gray-100">จำนวน/เดือน</div>
               <div></div>
@@ -329,7 +329,7 @@ export default function BasicExpensesPage() {
             <span className="text-gray-600">มูลค่า ณ วันเกษียณ/เดือน</span>
             <span className="font-bold text-cyan-700">฿{fmt(basicMonthlyFV)}</span>
           </div>
-          <div className="text-[10px] text-gray-400">
+          <div className="text-[12px] text-gray-400">
             สมมติฐาน: เงินเฟ้อ {(a.generalInflation * 100).toFixed(1)}% × {yearsToRetire} ปี
           </div>
           <div className="border-t border-cyan-200 pt-2 flex justify-between text-sm">
@@ -359,7 +359,7 @@ export default function BasicExpensesPage() {
                     const y = 170 - (i / steps) * 150;
                     return (
                       <g key={i}>
-                        <text x="55" y={y + 3} textAnchor="end" className="text-[9px]" fill="#9ca3af">{fmt(Math.round(val))}</text>
+                        <text x="55" y={y + 3} textAnchor="end" className="text-[11px]" fill="#9ca3af">{fmt(Math.round(val))}</text>
                         <line x1="60" y1={y} x2="260" y2={y} stroke="#e5e7eb" strokeWidth="0.5" />
                       </g>
                     );
@@ -376,12 +376,12 @@ export default function BasicExpensesPage() {
                   return (
                     <>
                       <rect x="90" y={170 - h1} width="55" height={h1} fill="#c7d2fe" rx="4" />
-                      <text x="117" y={170 - h1 - 8} textAnchor="middle" className="text-[11px]" fontWeight="bold" fill="#374151">{fmt(totalBasicMonthly)}</text>
-                      <text x="117" y="190" textAnchor="middle" className="text-[10px]" fill="#6b7280">ปัจจุบัน</text>
+                      <text x="117" y={170 - h1 - 8} textAnchor="middle" className="text-[13px]" fontWeight="bold" fill="#374151">{fmt(totalBasicMonthly)}</text>
+                      <text x="117" y="190" textAnchor="middle" className="text-[12px]" fill="#6b7280">ปัจจุบัน</text>
 
                       <rect x="175" y={170 - h2} width="55" height={h2} fill="#1e3a5f" rx="4" />
-                      <text x="202" y={170 - h2 - 8} textAnchor="middle" className="text-[11px]" fontWeight="bold" fill="#1e3a5f">{fmt(Math.round(basicMonthlyFV))}</text>
-                      <text x="202" y="190" textAnchor="middle" className="text-[10px]" fill="#6b7280">อนาคต</text>
+                      <text x="202" y={170 - h2 - 8} textAnchor="middle" className="text-[13px]" fontWeight="bold" fill="#1e3a5f">{fmt(Math.round(basicMonthlyFV))}</text>
+                      <text x="202" y="190" textAnchor="middle" className="text-[12px]" fill="#6b7280">อนาคต</text>
                     </>
                   );
                 })()}
@@ -393,7 +393,7 @@ export default function BasicExpensesPage() {
               x{(basicMonthlyFV / totalBasicMonthly).toFixed(2)} เท่า
             </div>
 
-            <div className="text-[9px] text-gray-400 text-center mt-2">
+            <div className="text-[11px] text-gray-400 text-center mt-2">
               [ สมมติฐาน อัตราเงินเฟ้อ = {(a.generalInflation * 100).toFixed(1)}% ]
             </div>
           </div>
@@ -459,11 +459,11 @@ export default function BasicExpensesPage() {
                         <table className="w-full text-xs">
                           <thead className="sticky top-0 bg-gray-50 border-b border-gray-200 z-10">
                             <tr>
-                              <th className="px-3 py-2 text-left font-bold text-gray-500 text-[10px] uppercase tracking-wide">อายุ</th>
-                              <th className="px-3 py-2 text-left font-bold text-gray-500 text-[10px] uppercase tracking-wide">พ.ศ.</th>
-                              <th className="px-3 py-2 text-right font-bold text-gray-500 text-[10px] uppercase tracking-wide">/เดือน</th>
-                              <th className="px-3 py-2 text-right font-bold text-gray-500 text-[10px] uppercase tracking-wide">/ปี</th>
-                              <th className="px-3 py-2 text-right font-bold text-gray-500 text-[10px] uppercase tracking-wide">× PV</th>
+                              <th className="px-3 py-2 text-left font-bold text-gray-500 text-[12px] uppercase tracking-wide">อายุ</th>
+                              <th className="px-3 py-2 text-left font-bold text-gray-500 text-[12px] uppercase tracking-wide">พ.ศ.</th>
+                              <th className="px-3 py-2 text-right font-bold text-gray-500 text-[12px] uppercase tracking-wide">/เดือน</th>
+                              <th className="px-3 py-2 text-right font-bold text-gray-500 text-[12px] uppercase tracking-wide">/ปี</th>
+                              <th className="px-3 py-2 text-right font-bold text-gray-500 text-[12px] uppercase tracking-wide">× PV</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -480,12 +480,12 @@ export default function BasicExpensesPage() {
                                   <td className="px-3 py-1.5 font-bold text-[#1e3a5f] tabular-nums">
                                     {r.age}
                                     {isFirst && (
-                                      <span className="ml-1 text-[9px] font-normal text-cyan-600">
+                                      <span className="ml-1 text-[11px] font-normal text-cyan-600">
                                         เกษียณ
                                       </span>
                                     )}
                                     {isLast && (
-                                      <span className="ml-1 text-[9px] font-normal text-amber-600">
+                                      <span className="ml-1 text-[11px] font-normal text-amber-600">
                                         สิ้นอายุขัย
                                       </span>
                                     )}
@@ -499,7 +499,7 @@ export default function BasicExpensesPage() {
                                   <td className="px-3 py-1.5 text-right tabular-nums font-bold text-red-600">
                                     {fmt(r.yearly)}
                                   </td>
-                                  <td className="px-3 py-1.5 text-right tabular-nums text-gray-400 text-[10px]">
+                                  <td className="px-3 py-1.5 text-right tabular-nums text-gray-400 text-[12px]">
                                     {r.multiplier.toFixed(2)}×
                                   </td>
                                 </tr>
@@ -508,10 +508,10 @@ export default function BasicExpensesPage() {
                           </tbody>
                           <tfoot>
                             <tr className="bg-gray-100 font-bold border-t-2 border-gray-300">
-                              <td colSpan={3} className="px-3 py-2 text-gray-700 text-[11px]">
+                              <td colSpan={3} className="px-3 py-2 text-gray-700 text-[13px]">
                                 รวม {rows.length} ปี (Nominal)
                               </td>
-                              <td className="px-3 py-2 text-right tabular-nums text-red-700 text-[11px]">
+                              <td className="px-3 py-2 text-right tabular-nums text-red-700 text-[13px]">
                                 ฿{fmt(totalNominal)}
                               </td>
                               <td></td>
@@ -519,10 +519,10 @@ export default function BasicExpensesPage() {
                           </tfoot>
                         </table>
                       </div>
-                      <div className="px-3 py-2 bg-gray-50 text-[10px] text-gray-500 border-t border-gray-200 flex items-start gap-1.5">
+                      <div className="px-3 py-2 bg-gray-50 text-[12px] text-gray-500 border-t border-gray-200 flex items-start gap-1.5">
                         <Info size={11} className="text-gray-400 shrink-0 mt-0.5" />
                         <div className="leading-relaxed">
-                          สูตร: <code className="text-[10px] bg-white px-1 rounded">฿{fmt(totalBasicMonthly)} × 12 × (1 + {(a.generalInflation * 100).toFixed(1)}%)<sup>n</sup></code>
+                          สูตร: <code className="text-[12px] bg-white px-1 rounded">฿{fmt(totalBasicMonthly)} × 12 × (1 + {(a.generalInflation * 100).toFixed(1)}%)<sup>n</sup></code>
                           &nbsp;— ค่านี้คือ <b>outflow รายปี</b> ที่ Wealth Journey ใช้จริง
                           ทบเงินเฟ้อจากวันนี้ปีต่อปี (ไม่ใช่ NPV รวม)
                         </div>
@@ -598,7 +598,7 @@ export default function BasicExpensesPage() {
                             const isLast = idx === residuals.length - 1;
                             return (
                               <th key={r} className={`text-center px-2 py-1.5 font-bold ${!isLast ? "border-r border-white/25" : ""} ${isCustom ? "bg-emerald-600/30" : ""}`}>
-                                {isCustom && <div className="text-[8px] font-normal text-emerald-200">ตามแผนของคุณ</div>}
+                                {isCustom && <div className="text-[10px] font-normal text-emerald-200">ตามแผนของคุณ</div>}
                                 {r === 0 ? "0" : fmt(r)}
                               </th>
                             );
@@ -642,9 +642,9 @@ export default function BasicExpensesPage() {
                                   >
                                     {isSelected ? (
                                       <span className="inline-flex items-center justify-center gap-1.5">
-                                        <span className="text-[#1e3a5f] text-[11px] leading-none">▶</span>
+                                        <span className="text-[#1e3a5f] text-[13px] leading-none">▶</span>
                                         <span>{fmt(Math.round(fund))}</span>
-                                        <span className="text-[#1e3a5f] text-[11px] leading-none">◀</span>
+                                        <span className="text-[#1e3a5f] text-[13px] leading-none">◀</span>
                                       </span>
                                     ) : (
                                       fmt(Math.round(fund))
@@ -658,7 +658,7 @@ export default function BasicExpensesPage() {
                       </tbody>
                     </table>
                   </div>
-                  <div className="px-3 py-2 text-[9px] text-gray-400 flex items-center justify-between gap-2 flex-wrap">
+                  <div className="px-3 py-2 text-[11px] text-gray-400 flex items-center justify-between gap-2 flex-wrap">
                     <span>* ค่าใช้จ่ายรายปี ณ วันเกษียณ = ฿{fmt(Math.round(annualExpFV))} | เงินเฟ้อ {(inflation * 100).toFixed(1)}% | หลังเกษียณ {n} ปี</span>
                     <span className="text-[#1e3a5f] font-medium">💡 คลิกเซลล์เพื่อใช้ค่านั้นในแผน</span>
                   </div>
@@ -706,7 +706,7 @@ export default function BasicExpensesPage() {
                   &ldquo;รู้ค่าใช้จ่าย/เดือน ณ วันเกษียณแล้ว ฿{fmt(basicMonthlyFV)}...
                   ต้องมีเงินก้อนเท่าไหร่ถึงจะพอใช้ {a.lifeExpectancy - a.retireAge} ปี?&rdquo;
                 </p>
-                <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                <p className="text-[13px] text-gray-500 mt-2 leading-relaxed">
                   เงินก้อน ณ วันเกษียณต้อง &ldquo;รองรับ&rdquo; ค่าใช้จ่ายที่โตขึ้นทุกปีจากเงินเฟ้อ
                   ในขณะที่ตัวเงินก้อนเองก็ได้รับผลตอบแทนจากการลงทุน
                 </p>
@@ -720,13 +720,13 @@ export default function BasicExpensesPage() {
               {/* Step 1 — FV monthly → annual */}
               <div className="border border-gray-200 rounded-xl p-4 space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[12px] font-bold flex items-center justify-center shrink-0">1</span>
                   <h4 className="text-xs font-bold text-gray-800">แปลง FV/เดือน → PMT/ปี</h4>
                 </div>
-                <p className="text-[11px] leading-relaxed">
+                <p className="text-[13px] leading-relaxed">
                   นำค่าใช้จ่ายรายเดือน ณ วันเกษียณ × 12 ได้เป็น <strong>PMT</strong> (Payment รายปี)
                 </p>
-                <div className="bg-blue-50 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                <div className="bg-blue-50 rounded-lg px-3 py-2 text-[12px] space-y-1">
                   <div><strong>PMT</strong> = FV/เดือน × 12</div>
                   <div className="text-gray-500">= ฿{fmt(basicMonthlyFV)} × 12 = <b>฿{fmt(basicMonthlyFV * 12)}</b> /ปี</div>
                 </div>
@@ -735,14 +735,14 @@ export default function BasicExpensesPage() {
               {/* Step 2 — Real rate */}
               <div className="border border-gray-200 rounded-xl p-4 space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
+                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[12px] font-bold flex items-center justify-center shrink-0">2</span>
                   <h4 className="text-xs font-bold text-gray-800">ปรับ Inflation-Adjusted Return (Real Rate)</h4>
                 </div>
-                <p className="text-[11px] leading-relaxed">
+                <p className="text-[13px] leading-relaxed">
                   เพราะค่าใช้จ่ายจะโตขึ้นทุกปีตามเงินเฟ้อ ขณะที่เงินก้อนได้ผลตอบแทนลงทุน
                   จึงต้องคิดลดด้วย <strong>Real Rate</strong> (ผลตอบแทนสุทธิหลังหักเงินเฟ้อ)
                 </p>
-                <div className="bg-blue-50 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                <div className="bg-blue-50 rounded-lg px-3 py-2 text-[12px] space-y-1">
                   <div><strong>r*</strong> = (1 + r) ÷ (1 + i) − 1</div>
                   <div className="text-gray-500">
                     = (1 + {(a.postRetireReturn * 100).toFixed(1)}%) ÷ (1 + {(a.generalInflation * 100).toFixed(1)}%) − 1
@@ -755,17 +755,17 @@ export default function BasicExpensesPage() {
               {/* Step 3 — Annuity Due PV */}
               <div className="border-2 border-blue-400 rounded-xl p-4 space-y-2 bg-blue-50/30">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">3</span>
+                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-[12px] font-bold flex items-center justify-center shrink-0">3</span>
                   <h4 className="text-xs font-bold text-blue-800">PV ของ Annuity Due (เงินพอใช้ตลอดชีพ) ⭐</h4>
                 </div>
-                <div className="text-[10px] text-blue-600 font-bold bg-blue-100 rounded-lg px-2 py-1 inline-block">หัวใจของการคำนวณ</div>
-                <p className="text-[11px] leading-relaxed">
+                <div className="text-[12px] text-blue-600 font-bold bg-blue-100 rounded-lg px-2 py-1 inline-block">หัวใจของการคำนวณ</div>
+                <p className="text-[13px] leading-relaxed">
                   คำนวณเงินก้อน ณ วันเกษียณที่จ่าย PMT ต้นงวด (Annuity Due) ได้ต่อเนื่อง m ปี
                 </p>
-                <div className="bg-blue-100 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                <div className="bg-blue-100 rounded-lg px-3 py-2 text-[12px] space-y-1">
                   <div className="font-bold">สูตร:</div>
                   <div className="pl-2">PV<sub>A</sub> = PMT × [(1 − (1 + r*)<sup>−m</sup>) ÷ r*] × (1 + r*)</div>
-                  <div className="text-gray-500 text-[9px] pl-2">
+                  <div className="text-gray-500 text-[11px] pl-2">
                     โดย m = {a.lifeExpectancy - a.retireAge} ปี (ช่วงหลังเกษียณ)
                   </div>
                   <div className="text-green-700">✓ × (1 + r*) ท้ายสูตร คือ &ldquo;ต้นงวด&rdquo; (เบิกเงินต้นปี)</div>
@@ -775,14 +775,14 @@ export default function BasicExpensesPage() {
               {/* Step 4 — Residual */}
               <div className="border border-gray-200 rounded-xl p-4 space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0">4</span>
+                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[12px] font-bold flex items-center justify-center shrink-0">4</span>
                   <h4 className="text-xs font-bold text-gray-800">บวก PV ของเงินคงเหลือ (ถ้ามี)</h4>
                 </div>
-                <p className="text-[11px] leading-relaxed">
+                <p className="text-[13px] leading-relaxed">
                   ถ้าตั้งเป้าทิ้งเงินไว้เป็นมรดก ณ สิ้นอายุขัย ต้องคิดลดกลับมาที่วันเกษียณ
                   (ใช้ r ปกติ ไม่ใช่ r* เพราะเงินก้อนไม่ได้เฟ้อ)
                 </p>
-                <div className="bg-gray-50 rounded-lg px-3 py-2 text-[10px]">
+                <div className="bg-gray-50 rounded-lg px-3 py-2 text-[12px]">
                   <div><strong>PV<sub>residual</sub></strong> = Residual ÷ (1 + r)<sup>m</sup></div>
                 </div>
               </div>
@@ -790,9 +790,9 @@ export default function BasicExpensesPage() {
               {/* Final Formula */}
               <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl p-4 border-2 border-cyan-300">
                 <div className="text-xs font-bold text-cyan-800 mb-2">🎯 ทุนเกษียณ (A) ที่ต้องมี ณ วันเกษียณ</div>
-                <div className="glass rounded-lg px-3 py-2 text-[11px] space-y-1">
+                <div className="glass rounded-lg px-3 py-2 text-[13px] space-y-1">
                   <div className="font-bold text-[#1e3a5f]">A = PV<sub>A</sub> + PV<sub>residual</sub></div>
-                  <div className="text-gray-500 text-[10px]">
+                  <div className="text-gray-500 text-[12px]">
                     = {fmt(basicRetireFund - a.residualFund / Math.pow(1 + a.postRetireReturn, a.lifeExpectancy - a.retireAge))} + {fmt(a.residualFund / Math.pow(1 + a.postRetireReturn, a.lifeExpectancy - a.retireAge))}
                   </div>
                   <div className="border-t border-gray-200 pt-1 mt-1 font-bold text-cyan-700 text-xs">
@@ -802,7 +802,7 @@ export default function BasicExpensesPage() {
               </div>
 
               <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
-                <div className="text-[10px] text-amber-700 leading-relaxed">
+                <div className="text-[12px] text-amber-700 leading-relaxed">
                   💡 การใช้ Real Rate (r*) ทำให้สูตรใช้ PMT คงที่ได้ แทนที่จะต้องเติบโต PMT ทุกปีตามเงินเฟ้อ
                   ซึ่งเป็นเทคนิคมาตรฐานที่ CFP Module 4 ใช้ในการวางแผนเกษียณ
                 </div>
@@ -846,7 +846,7 @@ export default function BasicExpensesPage() {
                 <p className="text-xs font-bold text-gray-800 leading-relaxed">
                   &ldquo;ถ้าผลตอบแทนต่างกันนิดหน่อย ทุนเกษียณจะเปลี่ยนไปแค่ไหน?&rdquo;
                 </p>
-                <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                <p className="text-[13px] text-gray-500 mt-2 leading-relaxed">
                   ตารางนี้ช่วยให้เห็นภาพว่า <b>ผลตอบแทน</b> และ <b>เงินสำรองเผื่อความอุ่นใจ</b> มีผลต่อทุนเกษียณอย่างไร —
                   เพื่อวางแผนแบบ conservative vs aggressive ได้
                 </p>
@@ -855,10 +855,10 @@ export default function BasicExpensesPage() {
               {/* Click to select — highlight feature */}
               <div className="bg-[#1e3a5f]/5 rounded-xl p-4 border-2 border-[#1e3a5f]/30 space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-[10px] font-bold flex items-center justify-center shrink-0">✓</span>
+                  <span className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-[12px] font-bold flex items-center justify-center shrink-0">✓</span>
                   <h4 className="text-xs font-bold text-[#1e3a5f]">คลิกเซลล์เพื่อเลือกใช้ค่านั้นในแผน</h4>
                 </div>
-                <p className="text-[11px] leading-relaxed">
+                <p className="text-[13px] leading-relaxed">
                   เซลล์ที่ <b>highlight สีน้ำเงินเข้ม</b> = ค่าที่คุณเลือกอยู่ตอนนี้ (ตรงกับ &ldquo;สมมติฐาน&rdquo; ด้านบน)
                   — คลิกเซลล์อื่นเพื่อเปลี่ยนทั้ง <b>ผลตอบแทนหลังเกษียณ</b> และ <b>เงินสำรอง</b> ในแผนทันที
                 </p>
@@ -868,13 +868,13 @@ export default function BasicExpensesPage() {
               <div className="space-y-3">
                 <div className="border border-gray-200 rounded-xl p-4 space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0">↕</span>
+                    <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[12px] font-bold flex items-center justify-center shrink-0">↕</span>
                     <h4 className="text-xs font-bold text-gray-800">แกนตั้ง — ผลตอบแทนหลังเกษียณ</h4>
                   </div>
-                  <p className="text-[11px] leading-relaxed">
+                  <p className="text-[13px] leading-relaxed">
                     สมมติฐานผลตอบแทนจากการลงทุน <b>หลังเกษียณ</b> (พอร์ตเงินก้อนที่เก็บสะสมไว้)
                   </p>
-                  <div className="bg-blue-50 rounded-lg px-3 py-2 text-[10px] space-y-0.5">
+                  <div className="bg-blue-50 rounded-lg px-3 py-2 text-[12px] space-y-0.5">
                     <div><b>0.0%</b> = ไม่ลงทุนเลย / เก็บใต้หมอน (worst case)</div>
                     <div><b>3.0%</b> = Conservative (เน้นตราสารหนี้, เงินฝาก)</div>
                     <div><b>4.5%</b> = Balanced (ผสมหุ้น + ตราสารหนี้)</div>
@@ -883,15 +883,15 @@ export default function BasicExpensesPage() {
 
                 <div className="border border-gray-200 rounded-xl p-4 space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0">↔</span>
+                    <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[12px] font-bold flex items-center justify-center shrink-0">↔</span>
                     <h4 className="text-xs font-bold text-gray-800">แกนนอน — เงินสำรองเผื่อความอุ่นใจ ณ สิ้นอายุขัย</h4>
                   </div>
-                  <p className="text-[11px] leading-relaxed">
+                  <p className="text-[13px] leading-relaxed">
                     เงินก้อน <b>ที่อยากเหลือไว้</b> ณ สิ้นอายุขัย —
                     ไม่ใช่ &ldquo;มรดก&rdquo; แต่เป็น <b>safety buffer</b> เผื่อกรณีอายุยืนเกินคาด
                     หรือค่ารักษาปลายชีวิตที่ประมาณยาก
                   </p>
-                  <div className="bg-blue-50 rounded-lg px-3 py-2 text-[10px] space-y-0.5">
+                  <div className="bg-blue-50 rounded-lg px-3 py-2 text-[12px] space-y-0.5">
                     <div><b>0</b> = ใช้เงินจนหมดพอดี ณ สิ้นอายุขัย (ไม่มี buffer)</div>
                     <div><b>5,000,000</b> = สำรองเล็กน้อย พอให้อุ่นใจ</div>
                     <div><b>10,000,000</b> = สำรองใหญ่ อุ่นใจมาก</div>
@@ -900,10 +900,10 @@ export default function BasicExpensesPage() {
 
                 <div className="border border-emerald-200 rounded-xl p-4 space-y-2 bg-emerald-50/30">
                   <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">✦</span>
+                    <span className="w-6 h-6 rounded-full bg-emerald-500 text-white text-[12px] font-bold flex items-center justify-center shrink-0">✦</span>
                     <h4 className="text-xs font-bold text-emerald-800">คอลัมน์ &ldquo;ตามแผนของคุณ&rdquo;</h4>
                   </div>
-                  <p className="text-[11px] leading-relaxed">
+                  <p className="text-[13px] leading-relaxed">
                     ถ้าคุณตั้ง <b>เงินคงเหลือ</b> ใน &ldquo;สมมติฐาน&rdquo; เป็นค่าอื่น (ไม่ใช่ 0 / 5M / 10M) —
                     ระบบจะเพิ่ม column พิเศษสีเขียวเพื่อให้เห็นค่าตามแผนจริงของคุณ
                   </p>
@@ -913,13 +913,13 @@ export default function BasicExpensesPage() {
               {/* พอใช้อีก row */}
               <div className="border-2 border-amber-400 rounded-xl p-4 space-y-2 bg-amber-50/30">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">⏳</span>
+                  <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-[12px] font-bold flex items-center justify-center shrink-0">⏳</span>
                   <h4 className="text-xs font-bold text-amber-800">แถว &ldquo;พอใช้อีก =&gt;&rdquo;</h4>
                 </div>
-                <p className="text-[11px] leading-relaxed">
+                <p className="text-[13px] leading-relaxed">
                   ถ้าไม่ใช้เงินสำรองก้อนนี้เลย แต่ใช้เป็นค่าใช้จ่ายต่อ — จะยืดอายุใช้เงินได้อีก <b>กี่ปี</b>
                 </p>
-                <div className="bg-amber-100 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                <div className="bg-amber-100 rounded-lg px-3 py-2 text-[12px] space-y-1">
                   <div><b>สูตร:</b> เงินสำรอง ÷ ค่าใช้จ่ายรายปี ณ สิ้นอายุขัย</div>
                   <div className="text-gray-600">เช่น &ldquo;3.3&rdquo; = ถ้ามีสำรอง 5M ใช้ต่อได้อีก ~3.3 ปี</div>
                 </div>
@@ -928,7 +928,7 @@ export default function BasicExpensesPage() {
               {/* วิธีใช้ตาราง */}
               <div>
                 <h4 className="text-xs font-bold text-gray-800 mb-2">🎯 วิธีใช้ตาราง</h4>
-                <div className="bg-gray-50 rounded-xl p-3 text-[11px] space-y-2">
+                <div className="bg-gray-50 rounded-xl p-3 text-[13px] space-y-2">
                   <div className="flex items-start gap-2">
                     <span className="text-[#1e3a5f] font-bold">1.</span>
                     <span>สังเกตเซลล์ที่ <b>highlight สีน้ำเงินเข้ม</b> = ค่าปัจจุบันตามสมมติฐาน</span>
@@ -950,7 +950,7 @@ export default function BasicExpensesPage() {
 
               {/* Insight */}
               <div className="bg-teal-50 rounded-xl p-3 border border-teal-200">
-                <div className="text-[10px] text-teal-700 leading-relaxed space-y-1">
+                <div className="text-[12px] text-teal-700 leading-relaxed space-y-1">
                   <div>💡 <b>ข้อสังเกต:</b></div>
                   <div>• ผลตอบแทนสูงขึ้น → ทุนเกษียณ &ldquo;น้อยลง&rdquo; (เพราะเงินโตเองได้)</div>
                   <div>• เงินสำรองสูงขึ้น → ทุนเกษียณ &ldquo;มากขึ้น&rdquo; (ต้องเก็บมากกว่าที่ใช้)</div>
@@ -959,7 +959,7 @@ export default function BasicExpensesPage() {
               </div>
 
               <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
-                <div className="text-[10px] text-amber-700 leading-relaxed">
+                <div className="text-[12px] text-amber-700 leading-relaxed">
                   ⚠️ ตัวเลขผลตอบแทนในตารางเป็นเพียง <b>สมมติฐาน</b> ตลาดจริงอาจผันผวน —
                   แนะนำเลือกค่าที่ &ldquo;realistic&rdquo; ไม่ optimistic เกินไป
                 </div>
@@ -1005,7 +1005,7 @@ export default function BasicExpensesPage() {
                 <p className="text-xs font-bold text-gray-800 leading-relaxed">
                   &ldquo;หลังเกษียณ เราจะใช้เงินเดือนละเท่าไหร่... แล้วต้องมีเงินก้อนเท่าไหร่ถึงจะพอใช้จนสิ้นอายุขัย?&rdquo;
                 </p>
-                <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                <p className="text-[13px] text-gray-500 mt-2 leading-relaxed">
                   มาคำนวณ <b>ทุนเกษียณ (A)</b> — เงินก้อนที่จำเป็น เพื่อจ่ายค่าใช้จ่ายพื้นฐานในช่วงเกษียณ
                 </p>
               </div>
@@ -1018,14 +1018,14 @@ export default function BasicExpensesPage() {
               {/* Step 1 */}
               <div className="border border-gray-200 rounded-xl p-4 space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[12px] font-bold flex items-center justify-center shrink-0">1</span>
                   <h4 className="text-xs font-bold text-gray-800">ประเมินค่าใช้จ่าย/เดือน ณ ปัจจุบัน (PV)</h4>
                 </div>
-                <p className="text-[11px] leading-relaxed">
+                <p className="text-[13px] leading-relaxed">
                   รวบรวมรายจ่ายจำเป็นทั้งหมดที่ยังจะมีต่อเนื่องหลังเกษียณ (อาหาร, สาธารณูปโภค,
                   ค่าใช้จ่ายทั่วไป) — สามารถดึงจาก Cash Flow ที่ทำไว้แล้ว
                 </p>
-                <div className="bg-blue-50 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                <div className="bg-blue-50 rounded-lg px-3 py-2 text-[12px] space-y-1">
                   <div><strong>ตัวแปร:</strong> รายจ่ายจำเป็น/เดือน (PV)</div>
                   <div className="text-green-700">✓ ใช้รายจ่ายจริงของตัวเอง ไม่ใช่ค่าเฉลี่ย</div>
                 </div>
@@ -1034,17 +1034,17 @@ export default function BasicExpensesPage() {
               {/* Step 2 */}
               <div className="border-2 border-blue-400 rounded-xl p-4 space-y-2 bg-blue-50/30">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
+                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-[12px] font-bold flex items-center justify-center shrink-0">2</span>
                   <h4 className="text-xs font-bold text-blue-800">ปรับเป็นมูลค่า ณ วันเกษียณ (FV) ⭐</h4>
                 </div>
-                <div className="text-[10px] text-blue-600 font-bold bg-blue-100 rounded-lg px-2 py-1 inline-block">ใช้ในหน้านี้</div>
-                <p className="text-[11px] leading-relaxed">
+                <div className="text-[12px] text-blue-600 font-bold bg-blue-100 rounded-lg px-2 py-1 inline-block">ใช้ในหน้านี้</div>
+                <p className="text-[13px] leading-relaxed">
                   เนื่องจากเงินเฟ้อ (Inflation) ทำให้ค่าครองชีพในอนาคตสูงกว่าวันนี้ —
                   ต้องทบเงินเฟ้อตามจำนวนปีที่เหลือก่อนเกษียณ
                 </p>
-                <div className="bg-blue-100 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                <div className="bg-blue-100 rounded-lg px-3 py-2 text-[12px] space-y-1">
                   <div><strong>สูตร:</strong> FV = PV × (1 + inflation)<sup>n</sup></div>
-                  <div><code className="text-[9px]">n = ปีก่อนเกษียณ</code></div>
+                  <div><code className="text-[11px]">n = ปีก่อนเกษียณ</code></div>
                   <div className="text-green-700">✓ ค่าใช้จ่ายจริงที่ต้องจ่ายในอนาคต ไม่ใช่ราคาวันนี้</div>
                 </div>
               </div>
@@ -1052,16 +1052,16 @@ export default function BasicExpensesPage() {
               {/* Step 3 */}
               <div className="border border-gray-200 rounded-xl p-4 space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0">3</span>
+                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[12px] font-bold flex items-center justify-center shrink-0">3</span>
                   <h4 className="text-xs font-bold text-gray-800">คำนวณทุนเกษียณ (Annuity Due + Residual)</h4>
                 </div>
-                <p className="text-[11px] leading-relaxed">
+                <p className="text-[13px] leading-relaxed">
                   เงินก้อน ณ วันเกษียณที่สามารถจ่ายค่าใช้จ่ายรายปีได้ต่อเนื่องจนสิ้นอายุขัย
                   โดยคำนึงถึงผลตอบแทนจากการลงทุนหลังเกษียณและเงินคงเหลือที่อยากทิ้งไว้เป็นมรดก
                 </p>
-                <div className="bg-gray-50 rounded-lg px-3 py-2 text-[10px] space-y-1">
+                <div className="bg-gray-50 rounded-lg px-3 py-2 text-[12px] space-y-1">
                   <div><strong>สูตร:</strong> A = PVA(real_rate, n, FV×12) + PV(rate, n, residual)</div>
-                  <div><code className="text-[9px]">real_rate = (1+rate) ÷ (1+inflation) − 1</code></div>
+                  <div><code className="text-[11px]">real_rate = (1+rate) ÷ (1+inflation) − 1</code></div>
                   <div className="text-green-700">✓ สะท้อนทั้งเงินเฟ้อ, ผลตอบแทน และอายุยืน</div>
                 </div>
               </div>
@@ -1069,7 +1069,7 @@ export default function BasicExpensesPage() {
               {/* Flow summary */}
               <div>
                 <h4 className="text-xs font-bold text-gray-800 mb-2">สรุปขั้นตอน</h4>
-                <div className="bg-gray-50 rounded-xl p-3 text-[11px] space-y-1.5">
+                <div className="bg-gray-50 rounded-xl p-3 text-[13px] space-y-1.5">
                   <div className="flex items-center gap-2">
                     <span className="text-[#1e3a5f] font-bold">PV/เดือน</span>
                     <span className="text-gray-400">→</span>
@@ -1089,7 +1089,7 @@ export default function BasicExpensesPage() {
               </div>
 
               <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
-                <div className="text-[10px] text-amber-700 leading-relaxed">
+                <div className="text-[12px] text-amber-700 leading-relaxed">
                   💡 ตามมาตรฐาน CFP การวางแผนเกษียณใช้ <strong>Needs-Based Approach</strong> —
                   เริ่มจากค่าใช้จ่ายจริง แล้วย้อนกลับไปดูว่าต้องเก็บเงินเท่าไหร่
                   จึงเห็นภาพชัดและปรับได้ตามไลฟ์สไตล์ของแต่ละคน

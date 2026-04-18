@@ -160,7 +160,7 @@ export default function ClientsPage() {
               onClick={handleMigrate}
               disabled={migrating}
               title="คัดลอกข้อมูลจาก browser เข้าสู่ client นี้ (ใช้สำหรับย้ายข้อมูลเก่าครั้งเดียว)"
-              className="inline-flex items-center gap-1 text-[10px] font-medium text-indigo-700 bg-white border border-indigo-200 rounded-lg px-2 py-1 hover:bg-indigo-100 disabled:opacity-50 transition"
+              className="inline-flex items-center gap-1 text-[12px] font-medium text-indigo-700 bg-white border border-indigo-200 rounded-lg px-2 py-1 hover:bg-indigo-100 disabled:opacity-50 transition"
             >
               {migrating ? (
                 <Loader2 size={12} className="animate-spin" />
@@ -171,7 +171,7 @@ export default function ClientsPage() {
             </button>
             <button
               onClick={clearActive}
-              className="text-[10px] text-indigo-600 hover:text-indigo-800 font-medium"
+              className="text-[12px] text-indigo-600 hover:text-indigo-800 font-medium"
             >
               ยกเลิกเลือก
             </button>
@@ -205,7 +205,7 @@ export default function ClientsPage() {
               <div className="text-sm font-bold text-gray-700 mb-1">
                 ยังไม่มี client
               </div>
-              <div className="text-[11px] text-gray-500 mb-4">
+              <div className="text-[13px] text-gray-500 mb-4">
                 เริ่มต้นด้วยการเพิ่ม client คนแรกของคุณ
               </div>
               <button
@@ -231,7 +231,7 @@ export default function ClientsPage() {
                     }`}
                   >
                     {isActive && (
-                      <div className="absolute -top-2 -right-2 bg-indigo-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+                      <div className="absolute -top-2 -right-2 bg-indigo-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full">
                         กำลังใช้งาน
                       </div>
                     )}
@@ -254,11 +254,11 @@ export default function ClientsPage() {
                           {c.name}
                         </div>
                         {c.nickname && (
-                          <div className="text-[10px] text-gray-500 truncate">
+                          <div className="text-[12px] text-gray-500 truncate">
                             {c.nickname}
                           </div>
                         )}
-                        <div className="text-[10px] text-gray-400">
+                        <div className="text-[12px] text-gray-400">
                           อัพเดท {formatDate(c.updated_at)}
                         </div>
                       </div>
@@ -321,7 +321,7 @@ export default function ClientsPage() {
             <div className="text-sm font-bold text-gray-700 mb-1">
               เพิ่ม client ใหม่
             </div>
-            <div className="text-[10px] text-gray-400 mb-3">
+            <div className="text-[12px] text-gray-400 mb-3">
               กรอกชื่อเพื่อเริ่มต้น (แก้ไขรายละเอียดเพิ่มภายหลังได้)
             </div>
             <input

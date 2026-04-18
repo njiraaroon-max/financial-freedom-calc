@@ -32,8 +32,16 @@ html, body {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    "Noto Sans Thai", "IBM Plex Sans Thai", "Sarabun", sans-serif;
   color: var(--color-text);
+  /* Improve Thai + Latin rendering on high-DPI displays (iPad, Retina). */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /* Roomier default leading — Thai needs extra space for tone marks. */
+  line-height: 1.55;
+  font-size: 15px;
   margin: 0 auto;
   min-height: 100dvh;
   /* Below lg: keep old 1024px cap for the current tablet-portrait layout.
@@ -76,6 +84,17 @@ body::before {
 /* Desktop: remove the 1024px cap so the sidebar + content span the viewport */
 @media (min-width: 1024px) {
   body { max-width: none; }
+}
+
+/* iPad + laptop: bump base font-size so Tailwind's rem-based utilities
+   (text-xs, text-sm, text-base, ...) scale up proportionally. Literal
+   pixel sizes like text-[11px] keep their px size — by design, since
+   we already bumped those via a separate audit. */
+@media (min-width: 768px) {
+  body { font-size: 16px; line-height: 1.6; }
+}
+@media (min-width: 1024px) {
+  body { font-size: 17px; }
 }
 
 input[type="number"]::-webkit-inner-spin-button,

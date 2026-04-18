@@ -100,7 +100,7 @@ export default function TravelPlanPage() {
             <Plane size={18} />
             <h3 className="text-sm font-bold">วางแผนท่องเที่ยวแบบละเอียด</h3>
           </div>
-          <p className="text-[11px] text-white/80 leading-relaxed">
+          <p className="text-[13px] text-white/80 leading-relaxed">
             เพิ่มทริปหลายรายการได้ — ก้อนเดียว (ทริปใหญ่ เช่น ยุโรป)
             หรือรายปีต่อเนื่อง (งบประจำ) ระบบคำนวณ NPV รวม +
             ตารางรายปีให้อัตโนมัติ
@@ -110,7 +110,7 @@ export default function TravelPlanPage() {
         {/* Hint */}
         <div className="bg-amber-50 rounded-xl p-3 mb-4 flex items-start gap-2">
           <Info size={14} className="text-amber-500 mt-0.5 shrink-0" />
-          <div className="text-[10px] text-amber-700 leading-relaxed">
+          <div className="text-[12px] text-amber-700 leading-relaxed">
             ตัวอย่าง:
             <ul className="list-disc pl-4 mt-1 space-y-0.5">
               <li>ทริปยุโรปกับครอบครัว 200,000 บาท · ก้อนเดียว อายุ 62</li>
@@ -125,7 +125,7 @@ export default function TravelPlanPage() {
             รายการท่องเที่ยว
           </div>
           {items.length === 0 && (
-            <div className="text-center py-6 text-[11px] text-gray-400">
+            <div className="text-center py-6 text-[13px] text-gray-400">
               ยังไม่มีรายการ — กด &ldquo;เพิ่มรายการ&rdquo; ด้านล่าง
             </div>
           )}
@@ -200,17 +200,17 @@ export default function TravelPlanPage() {
         <div className="glass mt-4 rounded-2xl overflow-hidden">
           <div className="bg-[#1e3a5f] px-4 py-2.5 flex items-center justify-between">
             <span className="text-xs font-bold text-white">ตารางรายปี</span>
-            <span className="text-[10px] text-white/80 font-medium">
+            <span className="text-[12px] text-white/80 font-medium">
               มูลค่า ณ ปีนั้น (nominal)
             </span>
           </div>
           {yearlyTable.length === 0 ? (
-            <div className="py-6 text-center text-[11px] text-gray-400">
+            <div className="py-6 text-center text-[13px] text-gray-400">
               ยังไม่มีข้อมูล
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-[11px]">
+              <table className="w-full text-[13px]">
                 <thead className="bg-gray-50 text-gray-500">
                   <tr>
                     <th className="px-3 py-2 text-left font-bold">อายุ</th>
@@ -249,13 +249,13 @@ export default function TravelPlanPage() {
         {/* Summary */}
         <div className="mt-4 grid grid-cols-2 gap-3">
           <div className="bg-sky-50 rounded-xl p-3">
-            <div className="text-[10px] text-gray-500">รวมตลอดชีพ (nominal)</div>
+            <div className="text-[12px] text-gray-500">รวมตลอดชีพ (nominal)</div>
             <div className="text-lg font-extrabold text-sky-700 mt-0.5">
               ฿{fmtM(totalLifetime)}
             </div>
           </div>
           <div className="bg-rose-50 rounded-xl p-3">
-            <div className="text-[10px] text-gray-500">NPV ณ วันเกษียณ</div>
+            <div className="text-[12px] text-gray-500">NPV ณ วันเกษียณ</div>
             <div className="text-lg font-extrabold text-rose-700 mt-0.5">
               ฿{fmtM(npvAll)}
             </div>

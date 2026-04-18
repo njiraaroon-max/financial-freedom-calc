@@ -118,7 +118,7 @@ export default function PersonalInfoPage() {
           </div>
 
           <div>
-            <label className="text-[11px] text-gray-500 mb-1 block">ชื่อ-นามสกุล</label>
+            <label className="text-[13px] text-gray-500 mb-1 block">ชื่อ-นามสกุล</label>
             <input
               type="text"
               value={draft.name}
@@ -129,7 +129,7 @@ export default function PersonalInfoPage() {
           </div>
 
           <div>
-            <label className="text-[11px] text-gray-500 mb-1 block">
+            <label className="text-[13px] text-gray-500 mb-1 block">
               <Calendar size={11} className="inline mr-1" />
               วันเกิด
             </label>
@@ -142,14 +142,14 @@ export default function PersonalInfoPage() {
               maxYear={2569}
             />
             {draftAge > 0 && (
-              <div className="text-[10px] text-[var(--color-primary)] font-medium mt-1">
+              <div className="text-[12px] text-[var(--color-primary)] font-medium mt-1">
                 อายุปัจจุบัน: {draftAge} ปี
               </div>
             )}
           </div>
 
           <div>
-            <label className="text-[11px] text-gray-500 mb-2 block">
+            <label className="text-[13px] text-gray-500 mb-2 block">
               <Heart size={11} className="inline mr-1" />
               สถานภาพ
             </label>
@@ -172,7 +172,7 @@ export default function PersonalInfoPage() {
 
           {draft.maritalStatus === "married_with_children" && (
             <div>
-              <label className="text-[11px] text-gray-500 mb-1 block">จำนวนบุตร</label>
+              <label className="text-[13px] text-gray-500 mb-1 block">จำนวนบุตร</label>
               <div className="flex items-center gap-3">
                 {[1, 2, 3, 4].map((n) => (
                   <button
@@ -200,7 +200,7 @@ export default function PersonalInfoPage() {
           </div>
 
           <div>
-            <label className="text-[11px] text-gray-500 mb-2 block">ประเภทอาชีพ</label>
+            <label className="text-[13px] text-gray-500 mb-2 block">ประเภทอาชีพ</label>
             <div className="space-y-2">
               {OCCUPATION_OPTIONS.map((opt) => (
                 <button
@@ -223,7 +223,7 @@ export default function PersonalInfoPage() {
                   </div>
                   <div>
                     <div className="text-xs font-bold text-gray-700">{opt.label}</div>
-                    <div className="text-[10px] text-gray-400">{opt.description}</div>
+                    <div className="text-[12px] text-gray-400">{opt.description}</div>
                   </div>
                 </button>
               ))}
@@ -231,7 +231,7 @@ export default function PersonalInfoPage() {
           </div>
 
           <div>
-            <label className="text-[11px] text-gray-500 mb-1 block">
+            <label className="text-[13px] text-gray-500 mb-1 block">
               <Banknote size={11} className="inline mr-1" />
               เงินเดือน (บาท/เดือน)
             </label>
@@ -243,7 +243,7 @@ export default function PersonalInfoPage() {
           </div>
 
           <div>
-            <label className="text-[11px] text-gray-500 mb-1 block">
+            <label className="text-[13px] text-gray-500 mb-1 block">
               เพดานเงินเดือนสูงสุด (บาท/เดือน)
             </label>
             <MoneyInput
@@ -251,11 +251,11 @@ export default function PersonalInfoPage() {
               onChange={(n) => updateDraft("salaryCap", n)}
               placeholder="ไม่มีเพดาน (ว่างไว้)"
             />
-            <div className="text-[9px] text-gray-400 mt-1">ถ้าไม่มีเพดาน ไม่ต้องกรอก</div>
+            <div className="text-[11px] text-gray-400 mt-1">ถ้าไม่มีเพดาน ไม่ต้องกรอก</div>
           </div>
 
           <div>
-            <label className="text-[11px] text-gray-500 mb-1 block">อายุที่ต้องการเกษียณ</label>
+            <label className="text-[13px] text-gray-500 mb-1 block">อายุที่ต้องการเกษียณ</label>
             <div className="flex items-center gap-2">
               {[55, 60, 65].map((a) => (
                 <button
@@ -281,7 +281,7 @@ export default function PersonalInfoPage() {
           </div>
 
           <div>
-            <label className="text-[11px] text-gray-500 mb-1 block">
+            <label className="text-[13px] text-gray-500 mb-1 block">
               <Clock size={11} className="inline mr-1" />
               ทำงานมาแล้ว (ปี)
             </label>
@@ -296,7 +296,7 @@ export default function PersonalInfoPage() {
 
           {draft.occupation === "private" && (
             <div>
-              <label className="text-[11px] text-gray-500 mb-1 block">
+              <label className="text-[13px] text-gray-500 mb-1 block">
                 <ShieldCheck size={11} className="inline mr-1" />
                 ส่งประกันสังคมมาแล้ว (เดือน)
               </label>
@@ -310,7 +310,7 @@ export default function PersonalInfoPage() {
               {draft.yearsWorked > 0 && draft.socialSecurityMonths === 0 && (
                 <button
                   onClick={() => updateDraft("socialSecurityMonths", draft.yearsWorked * 12)}
-                  className="mt-1 text-[10px] text-indigo-500 hover:text-indigo-700"
+                  className="mt-1 text-[12px] text-indigo-500 hover:text-indigo-700"
                 >
                   ≈ ประมาณ {draft.yearsWorked * 12} เดือน (กดเพื่อใช้ค่านี้)
                 </button>
@@ -325,19 +325,19 @@ export default function PersonalInfoPage() {
             <div className="text-xs opacity-70 mb-2">สรุปข้อมูล {hasChanges && !hasSaved ? "(ยังไม่ได้บันทึก)" : ""}</div>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="bg-white/15 rounded-lg p-2">
-                <div className="opacity-70 text-[10px]">อายุ</div>
+                <div className="opacity-70 text-[12px]">อายุ</div>
                 <div className="font-bold">{draftAge} ปี</div>
               </div>
               <div className="bg-white/15 rounded-lg p-2">
-                <div className="opacity-70 text-[10px]">เกษียณ</div>
+                <div className="opacity-70 text-[12px]">เกษียณ</div>
                 <div className="font-bold">{draft.retireAge} ปี (อีก {draft.retireAge - draftAge} ปี)</div>
               </div>
               <div className="bg-white/15 rounded-lg p-2">
-                <div className="opacity-70 text-[10px]">อาชีพ</div>
+                <div className="opacity-70 text-[12px]">อาชีพ</div>
                 <div className="font-bold">{OCCUPATION_OPTIONS.find((o) => o.value === draft.occupation)?.label}</div>
               </div>
               <div className="bg-white/15 rounded-lg p-2">
-                <div className="opacity-70 text-[10px]">เงินเดือน</div>
+                <div className="opacity-70 text-[12px]">เงินเดือน</div>
                 <div className="font-bold">฿{fmt(draft.salary)}</div>
               </div>
             </div>

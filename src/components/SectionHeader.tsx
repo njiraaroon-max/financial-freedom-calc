@@ -41,7 +41,7 @@ export default function SectionHeader({
         <div>
           <div className="text-sm font-bold">{title}</div>
           {subtitle && (
-            <div className="text-[10px] opacity-60 mt-0.5">{subtitle}</div>
+            <div className="text-[12px] opacity-60 mt-0.5">{subtitle}</div>
           )}
         </div>
       </div>

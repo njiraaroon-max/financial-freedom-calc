@@ -38,7 +38,7 @@ function MoneyField({ label, value, onChange, hint, suffix = "บาท" }: {
 }) {
   return (
     <div>
-      <label className="text-[11px] text-gray-500 font-semibold block mb-1">{label}</label>
+      <label className="text-[13px] text-gray-500 font-semibold block mb-1">{label}</label>
       <MoneyInput
         value={value}
         onChange={onChange}
@@ -46,7 +46,7 @@ function MoneyField({ label, value, onChange, hint, suffix = "บาท" }: {
         className="flex-1 text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 border border-gray-200 text-right font-bold"
         ringClass="focus:ring-amber-400"
       />
-      {hint && <div className="text-[9px] text-gray-400 mt-0.5 pl-1">{hint}</div>}
+      {hint && <div className="text-[11px] text-gray-400 mt-0.5 pl-1">{hint}</div>}
     </div>
   );
 }
@@ -119,7 +119,7 @@ export default function Pillar3Page() {
             <Home size={20} />
             <span className="text-sm font-bold">บ้าน รถ ทรัพย์สิน...คุ้มครองเพียงพอไหม?</span>
           </div>
-          <p className="text-[11px] opacity-80 leading-relaxed">
+          <p className="text-[13px] opacity-80 leading-relaxed">
             ประเมินความคุ้มครองทรัพย์สินและความรับผิดต่อบุคคลภายนอก
             เพื่อป้องกันความเสียหายที่อาจเกิดขึ้น
           </p>
@@ -128,7 +128,7 @@ export default function Pillar3Page() {
         {/* ─── SECTION 1: บ้าน/ที่อยู่อาศัย ──────────────────────────── */}
         <div className="glass rounded-2xl p-4 md:p-6 mx-1 space-y-4">
           <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">1</span>
+            <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-[12px] font-bold flex items-center justify-center">1</span>
             <Home size={14} className="text-amber-600" />
             บ้าน / ที่อยู่อาศัย
           </h3>
@@ -145,7 +145,7 @@ export default function Pillar3Page() {
             <>
               {/* Home type */}
               <div>
-                <label className="text-[11px] text-gray-500 font-semibold block mb-2">ประเภทที่อยู่อาศัย</label>
+                <label className="text-[13px] text-gray-500 font-semibold block mb-2">ประเภทที่อยู่อาศัย</label>
                 <div className="flex gap-2">
                   {HOME_TYPES.map((ht) => (
                     <button key={ht.value}
@@ -204,7 +204,7 @@ export default function Pillar3Page() {
                     <div className={`h-full rounded-full transition-all ${analysis.homeGap <= 0 ? "bg-emerald-400" : "bg-red-400"}`}
                       style={{ width: `${Math.min((p3.homeInsuredAmount / p3.homeReplacementCost) * 100, 100)}%` }} />
                   </div>
-                  <div className="flex items-center justify-between text-[9px] text-gray-400 mt-1">
+                  <div className="flex items-center justify-between text-[11px] text-gray-400 mt-1">
                     <span>ทุนประกัน {fmt(p3.homeInsuredAmount)}</span>
                     <span>ต้นทุนสร้างใหม่ {fmt(p3.homeReplacementCost)}</span>
                   </div>
@@ -213,7 +213,7 @@ export default function Pillar3Page() {
 
               {/* CFP tip for home */}
               <div className="bg-amber-50 rounded-xl p-3 border border-amber-100">
-                <div className="text-[9px] text-amber-700 leading-relaxed">
+                <div className="text-[11px] text-amber-700 leading-relaxed">
                   <strong>หลักการ:</strong> ทุนประกันอัคคีภัยควร = <strong>Replacement Cost</strong> (ต้นทุนสร้างใหม่) ไม่ใช่ราคาซื้อขาย
                   เพราะไม่รวมมูลค่าที่ดินซึ่งไม่เสียหายจากไฟ
                 </div>
@@ -225,7 +225,7 @@ export default function Pillar3Page() {
         {/* ─── SECTION 2: ยานพาหนะ ──────────────────────────────────── */}
         <div className="glass rounded-2xl p-4 md:p-6 mx-1 space-y-4">
           <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">2</span>
+            <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-[12px] font-bold flex items-center justify-center">2</span>
             <Car size={14} className="text-amber-600" />
             ยานพาหนะ
           </h3>
@@ -247,7 +247,7 @@ export default function Pillar3Page() {
 
               {/* Insurance type selector */}
               <div>
-                <label className="text-[11px] text-gray-500 font-semibold block mb-2">ประเภทประกันรถยนต์</label>
+                <label className="text-[13px] text-gray-500 font-semibold block mb-2">ประเภทประกันรถยนต์</label>
                 <div className="space-y-1.5">
                   {VEHICLE_TYPES.map((vt) => (
                     <button key={vt.value}
@@ -259,7 +259,7 @@ export default function Pillar3Page() {
                       }`}>
                       <div className="flex items-center justify-between">
                         <span className={p3.vehicleInsuranceType === vt.value ? vt.color : "text-gray-700"}>{vt.label}</span>
-                        <span className="text-[9px] text-gray-400">{vt.desc}</span>
+                        <span className="text-[11px] text-gray-400">{vt.desc}</span>
                       </div>
                     </button>
                   ))}
@@ -298,7 +298,7 @@ export default function Pillar3Page() {
               )}
 
               {p3.vehicleInsuranceType === "none" && (
-                <div className="bg-red-50 rounded-xl p-3 border border-red-200 text-[10px] text-red-700">
+                <div className="bg-red-50 rounded-xl p-3 border border-red-200 text-[12px] text-red-700">
                   <strong>คำเตือน:</strong> ไม่มีประกันรถ (มีแค่ พ.ร.บ.) — หากเกิดอุบัติเหตุต้องรับผิดชอบค่าเสียหายเอง
                   ทั้งรถตัวเอง และบุคคลภายนอก
                 </div>
@@ -310,7 +310,7 @@ export default function Pillar3Page() {
         {/* ─── SECTION 3: ความรับผิดต่อบุคคลภายนอก ───────────────── */}
         <div className="glass rounded-2xl p-4 md:p-6 mx-1 space-y-4">
           <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">3</span>
+            <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-[12px] font-bold flex items-center justify-center">3</span>
             <ShieldAlert size={14} className="text-amber-600" />
             ความรับผิดต่อบุคคลภายนอก (Liability)
           </h3>
@@ -329,7 +329,7 @@ export default function Pillar3Page() {
             hint="จากประกันรถ + พ.ร.บ. + ประกันความรับผิดอื่น"
           />
 
-          <div className="bg-orange-50 rounded-xl p-3 border border-orange-100 text-[10px] text-orange-700 leading-relaxed">
+          <div className="bg-orange-50 rounded-xl p-3 border border-orange-100 text-[12px] text-orange-700 leading-relaxed">
             <strong>ทำไมต้องสนใจ Liability?</strong>
             <p className="mt-1">หากรถชนคนเสียชีวิต ศาลอาจสั่งชดเชย 2-10 ล้านบาท
             วงเงินจาก พ.ร.บ. คุ้มครองแค่ 500,000 บาท — ส่วนที่เหลือต้องจ่ายเอง</p>
@@ -339,7 +339,7 @@ export default function Pillar3Page() {
         {/* ─── SECTION 4: ทรัพย์สินอื่นๆ ────────────────────────────── */}
         <div className="glass rounded-2xl p-4 md:p-6 mx-1 space-y-4">
           <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">4</span>
+            <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-[12px] font-bold flex items-center justify-center">4</span>
             <Package size={14} className="text-amber-600" />
             ทรัพย์สินอื่นๆ (Optional)
           </h3>
@@ -358,7 +358,7 @@ export default function Pillar3Page() {
                 onChange={(v) => update({ otherAssetInsured: v })}
               />
               <div>
-                <label className="text-[11px] text-gray-500 font-semibold block mb-1">รายละเอียด</label>
+                <label className="text-[13px] text-gray-500 font-semibold block mb-1">รายละเอียด</label>
                 <input type="text" value={p3.otherAssetDescription}
                   onChange={(e) => update({ otherAssetDescription: e.target.value })}
                   className="w-full text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-amber-400 border border-gray-200"
@@ -371,7 +371,7 @@ export default function Pillar3Page() {
         {/* ─── SECTION 5: Gap Analysis ────────────────────────────────── */}
         <div className="glass rounded-2xl p-4 md:p-6 mx-1 space-y-4">
           <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">5</span>
+            <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-[12px] font-bold flex items-center justify-center">5</span>
             วิเคราะห์ช่องว่าง (Gap Analysis)
           </h3>
 
@@ -383,7 +383,7 @@ export default function Pillar3Page() {
             <>
               {/* Gap items */}
               <div className="border border-gray-100 rounded-xl overflow-hidden">
-                <div className="grid grid-cols-4 gap-1 px-3 py-2 bg-gray-50 text-[9px] font-bold text-gray-500 uppercase">
+                <div className="grid grid-cols-4 gap-1 px-3 py-2 bg-gray-50 text-[11px] font-bold text-gray-500 uppercase">
                   <div>ทรัพย์สิน</div>
                   <div className="text-right">มูลค่า</div>
                   <div className="text-right">ทุนประกัน</div>
@@ -393,10 +393,10 @@ export default function Pillar3Page() {
                   const isOk = item.gap <= 0;
                   return (
                     <div key={item.label} className="grid grid-cols-4 gap-1 px-3 py-2.5 border-t border-gray-50 items-center">
-                      <div className="text-[10px] text-gray-700 font-medium">{item.label}</div>
-                      <div className="text-[10px] text-right font-bold text-gray-600">{fmtShort(item.need)}</div>
-                      <div className="text-[10px] text-right font-bold text-amber-600">{fmtShort(item.have)}</div>
-                      <div className={`text-[10px] text-right font-bold ${isOk ? "text-emerald-600" : "text-red-600"}`}>
+                      <div className="text-[12px] text-gray-700 font-medium">{item.label}</div>
+                      <div className="text-[12px] text-right font-bold text-gray-600">{fmtShort(item.need)}</div>
+                      <div className="text-[12px] text-right font-bold text-amber-600">{fmtShort(item.have)}</div>
+                      <div className={`text-[12px] text-right font-bold ${isOk ? "text-emerald-600" : "text-red-600"}`}>
                         {isOk ? "✓ OK" : `-${fmtShort(item.gap)}`}
                       </div>
                     </div>
@@ -418,7 +418,7 @@ export default function Pillar3Page() {
                   const isOk = item.gap <= 0;
                   return (
                     <div key={item.label}>
-                      <div className="flex items-center justify-between text-[10px] mb-1">
+                      <div className="flex items-center justify-between text-[12px] mb-1">
                         <span className="text-gray-600 font-medium">{item.label}</span>
                         <span className={`font-bold ${isOk ? "text-emerald-600" : "text-red-600"}`}>
                           {item.pct.toFixed(0)}%
@@ -456,7 +456,7 @@ export default function Pillar3Page() {
             <div className="bg-amber-50 rounded-xl p-3">
               <div className="text-xs font-bold text-amber-800 mb-2">กรมธรรม์ทรัพย์สิน (จาก Portfolio)</div>
               {propPolicies.map((p) => (
-                <div key={p.id} className="flex items-center justify-between text-[10px] py-1">
+                <div key={p.id} className="flex items-center justify-between text-[12px] py-1">
                   <span className="text-amber-700">{p.planName}</span>
                   <span className="font-bold text-amber-600">{fmt(p.sumInsured)}</span>
                 </div>
@@ -467,8 +467,8 @@ export default function Pillar3Page() {
 
         {/* ─── CFP Tips ───────────────────────────────────────────────── */}
         <div className="bg-amber-50 rounded-xl p-3 border border-amber-200 mx-1">
-          <div className="text-[10px] font-bold text-amber-800 mb-1">💡 คำแนะนำจาก CFP</div>
-          <div className="text-[10px] text-amber-700 leading-relaxed space-y-1">
+          <div className="text-[12px] font-bold text-amber-800 mb-1">💡 คำแนะนำจาก CFP</div>
+          <div className="text-[12px] text-amber-700 leading-relaxed space-y-1">
             <p>• ประกันอัคคีภัยควรใช้ <strong>Replacement Cost</strong> ไม่ใช่ราคาซื้อขาย</p>
             <p>• คอนโดส่วนกลางมีประกันอาคาร — แต่ควรมี <strong>ประกันของใช้ภายในห้อง</strong> เพิ่ม</p>
             <p>• รถใหม่ 1-3 ปีแรก → ชั้น 1 / รถ 4+ ปี → พิจารณา ชั้น 2+ หรือ 3+</p>

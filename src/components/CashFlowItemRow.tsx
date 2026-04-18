@@ -117,7 +117,7 @@ export default function CashFlowItemRow({
               {onCategoryClick && (
                 <button
                   onClick={onCategoryClick}
-                  className={`flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded transition ${
+                  className={`flex items-center gap-1 text-[12px] px-1.5 py-0.5 rounded transition ${
                     recurringType === "income"
                       ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
                       : "bg-red-100 text-red-600 hover:bg-red-200"
@@ -130,7 +130,7 @@ export default function CashFlowItemRow({
               {secondaryLabel && onSecondaryLabelClick && (
                 <button
                   onClick={onSecondaryLabelClick}
-                  className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 hover:bg-amber-200 transition"
+                  className="flex items-center gap-1 text-[12px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 hover:bg-amber-200 transition"
                 >
                   <Tag size={9} />
                   {secondaryLabel}
@@ -254,7 +254,7 @@ export default function CashFlowItemRow({
               }`}
             />
           </button>
-          <span className={`text-[11px] ${isEssential ? "text-red-600 font-medium" : "text-gray-400"}`}>
+          <span className={`text-[13px] ${isEssential ? "text-red-600 font-medium" : "text-gray-400"}`}>
             {isEssential ? "รายจ่ายจำเป็น" : "ไม่จำเป็น"}
           </span>
         </div>
@@ -263,12 +263,12 @@ export default function CashFlowItemRow({
       {/* Salary % picker */}
       {salaryPercent !== undefined && onSalaryPercentChange && (
         <div className="flex items-center gap-1.5 px-3 pb-2 pt-0 flex-wrap">
-          <span className="text-[10px] text-gray-500 mr-1">{percentLabel || "หัก % เงินเดือน:"}</span>
+          <span className="text-[12px] text-gray-500 mr-1">{percentLabel || "หัก % เงินเดือน:"}</span>
           {(percentOptions || [2, 3, 4, 5, 6, 7, 8, 9, 10, 15]).map((pct) => (
             <button
               key={pct}
               onClick={() => onSalaryPercentChange(salaryPercent === pct ? 0 : pct)}
-              className={`text-[11px] px-1.5 py-0.5 rounded-full transition-all ${
+              className={`text-[13px] px-1.5 py-0.5 rounded-full transition-all ${
                 salaryPercent === pct
                   ? "bg-indigo-500 text-white font-medium"
                   : "bg-gray-100 text-gray-500 hover:bg-gray-200"

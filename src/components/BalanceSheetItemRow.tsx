@@ -46,7 +46,7 @@ export default function BalanceSheetItemRow({
           {onCategoryClick && (
             <button
               onClick={onCategoryClick}
-              className={`flex items-center gap-1 mt-0.5 text-[10px] px-1.5 py-0.5 rounded transition ${
+              className={`flex items-center gap-1 mt-0.5 text-[12px] px-1.5 py-0.5 rounded transition ${
                 isAsset
                   ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
                   : "bg-red-100 text-red-600 hover:bg-red-200"

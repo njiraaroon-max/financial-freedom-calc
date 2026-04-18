@@ -187,7 +187,7 @@ export default function ResetPasswordPage() {
               />
             </div>
             {passwordsDiffer && (
-              <div className="mt-1 text-[11px] text-rose-600">
+              <div className="mt-1 text-[13px] text-rose-600">
                 รหัสผ่านไม่ตรงกัน
               </div>
             )}

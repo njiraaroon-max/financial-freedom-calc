@@ -28,7 +28,7 @@ function NumInput({
     <div className="flex items-center gap-2">
       <div className="flex-1 min-w-0">
         <div className="text-xs font-semibold text-gray-700">{label}</div>
-        {hint && <div className="text-[10px] text-gray-400">{hint}</div>}
+        {hint && <div className="text-[12px] text-gray-400">{hint}</div>}
       </div>
       <div className="shrink-0">
         <MoneyInput
@@ -72,7 +72,7 @@ function SubSection({
 }) {
   return (
     <div className="space-y-2">
-      <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wide border-b border-gray-100 pb-1">
+      <div className="text-[13px] font-bold text-gray-500 uppercase tracking-wide border-b border-gray-100 pb-1">
         {title}
       </div>
       <div className="space-y-2.5">{children}</div>
@@ -109,7 +109,7 @@ export default function ExistingCoveragePage() {
         {/* Info */}
         <div className="bg-blue-50 rounded-2xl p-3 flex gap-2 items-start">
           <Info size={16} className="text-blue-500 shrink-0 mt-0.5" />
-          <div className="text-[11px] text-blue-700">
+          <div className="text-[13px] text-blue-700">
             กรอกความคุ้มครองที่มีอยู่แล้วจากสวัสดิการที่ทำงาน ประกันที่ทำเอง และสินทรัพย์ส่วนตัว เพื่อนำไปเปรียบเทียบกับความคุ้มครองที่ควรมี
           </div>
         </div>

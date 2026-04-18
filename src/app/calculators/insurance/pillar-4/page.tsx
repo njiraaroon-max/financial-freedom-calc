@@ -95,7 +95,7 @@ export default function TaxOptimizationPage() {
     const contributing = list.filter((p) => (p.premium ?? 0) > 0);
     if (contributing.length === 0) return null;
     return (
-      <div className="text-[9px] text-gray-400 mt-1 leading-relaxed">
+      <div className="text-[11px] text-gray-400 mt-1 leading-relaxed">
         จาก:{" "}
         {contributing
           .map((p) => `${p.planName || "กรมธรรม์"} (${fmt(p.premium)})`)
@@ -133,7 +133,7 @@ export default function TaxOptimizationPage() {
             <Receipt size={20} />
             <span className="text-sm font-bold">วางแผนลดหย่อนภาษีจากเบี้ยประกัน</span>
           </div>
-          <p className="text-[11px] opacity-80 leading-relaxed">
+          <p className="text-[13px] opacity-80 leading-relaxed">
             คำนวณสิทธิลดหย่อนภาษีจากกรมธรรม์ที่มีอยู่ และประเมินผลกระทบต่อกระแสเงินสด
           </p>
         </div>
@@ -142,13 +142,13 @@ export default function TaxOptimizationPage() {
         <div className="glass rounded-2xl p-4 md:p-6 mx-1 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-[10px] font-bold flex items-center justify-center">1</span>
+              <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-[12px] font-bold flex items-center justify-center">1</span>
               <TrendingDown size={14} className="text-purple-600" />
               สิทธิลดหย่อนภาษี (Tax Deduction)
             </h3>
             <button
               onClick={handlePushToTax}
-              className="text-[10px] text-indigo-600 font-medium bg-indigo-50 px-2.5 py-1.5 rounded-lg hover:bg-indigo-100 transition"
+              className="text-[12px] text-indigo-600 font-medium bg-indigo-50 px-2.5 py-1.5 rounded-lg hover:bg-indigo-100 transition"
             >
               ส่งค่าไปแผนภาษี →
             </button>
@@ -158,7 +158,7 @@ export default function TaxOptimizationPage() {
           {taxAnalysis.allPremiumsZero && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 flex items-start gap-2">
               <span className="text-base leading-none">⚠️</span>
-              <div className="text-[10px] text-amber-800 leading-relaxed">
+              <div className="text-[12px] text-amber-800 leading-relaxed">
                 กรมธรรม์ที่เพิ่มไว้ยังไม่ได้ระบุเบี้ยประกัน ({taxAnalysis.lifePolicies.length + taxAnalysis.healthPolicies.length + taxAnalysis.pensionPolicies.length} เล่ม ที่เกี่ยวข้องกับสิทธิลดหย่อน) —
                 เพิ่ม "เบี้ยที่จ่าย/ปี" ได้ที่{" "}
                 <a href="/calculators/insurance/policies" className="underline font-bold">
@@ -172,15 +172,15 @@ export default function TaxOptimizationPage() {
             {/* Life */}
             <div className="px-3 py-2.5 border-b border-gray-50">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] text-gray-600 font-medium">เบี้ยประกันชีวิต (10ปี+)</span>
-                <span className="text-[10px] font-bold text-gray-700">{fmt(taxAnalysis.lifeDeductible)} / {fmt(TAX_LIMITS.lifePremium)}</span>
+                <span className="text-[12px] text-gray-600 font-medium">เบี้ยประกันชีวิต (10ปี+)</span>
+                <span className="text-[12px] font-bold text-gray-700">{fmt(taxAnalysis.lifeDeductible)} / {fmt(TAX_LIMITS.lifePremium)}</span>
               </div>
               <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div className="h-full rounded-full bg-blue-400 transition-all"
                   style={{ width: `${Math.min((taxAnalysis.lifeDeductible / TAX_LIMITS.lifePremium) * 100, 100)}%` }} />
               </div>
               {taxAnalysis.lifePremiumTotal > 0 && (
-                <div className="text-[9px] text-gray-400 mt-0.5">เบี้ยจริง {fmt(taxAnalysis.lifePremiumTotal)} บาท</div>
+                <div className="text-[11px] text-gray-400 mt-0.5">เบี้ยจริง {fmt(taxAnalysis.lifePremiumTotal)} บาท</div>
               )}
               {renderSource(taxAnalysis.lifePolicies)}
             </div>
@@ -188,44 +188,44 @@ export default function TaxOptimizationPage() {
             {/* Health */}
             <div className="px-3 py-2.5 border-b border-gray-50">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] text-gray-600 font-medium">เบี้ยประกันสุขภาพตนเอง</span>
-                <span className="text-[10px] font-bold text-gray-700">{fmt(taxAnalysis.healthDeductible)} / {fmt(TAX_LIMITS.healthPremium)}</span>
+                <span className="text-[12px] text-gray-600 font-medium">เบี้ยประกันสุขภาพตนเอง</span>
+                <span className="text-[12px] font-bold text-gray-700">{fmt(taxAnalysis.healthDeductible)} / {fmt(TAX_LIMITS.healthPremium)}</span>
               </div>
               <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div className="h-full rounded-full bg-teal-400 transition-all"
                   style={{ width: `${Math.min((taxAnalysis.healthDeductible / TAX_LIMITS.healthPremium) * 100, 100)}%` }} />
               </div>
-              <div className="text-[9px] text-gray-400 mt-0.5">รวมเบี้ยสุขภาพ + โรคร้าย (CI) + อุบัติเหตุ (PA)</div>
+              <div className="text-[11px] text-gray-400 mt-0.5">รวมเบี้ยสุขภาพ + โรคร้าย (CI) + อุบัติเหตุ (PA)</div>
               {renderSource(taxAnalysis.healthPolicies)}
             </div>
 
             {/* Life + Health combined */}
             <div className="px-3 py-2.5 border-b border-gray-50 bg-blue-50">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-blue-700 font-bold">ชีวิต+สุขภาพ (รวมไม่เกิน {fmt(TAX_LIMITS.lifeAndHealth)})</span>
-                <span className="text-[10px] font-bold text-blue-700">{fmt(taxAnalysis.lifeHealthCombined)}</span>
+                <span className="text-[12px] text-blue-700 font-bold">ชีวิต+สุขภาพ (รวมไม่เกิน {fmt(TAX_LIMITS.lifeAndHealth)})</span>
+                <span className="text-[12px] font-bold text-blue-700">{fmt(taxAnalysis.lifeHealthCombined)}</span>
               </div>
             </div>
 
             {/* Pension */}
             <div className="px-3 py-2.5 border-b border-gray-50">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] text-gray-600 font-medium">เบี้ยประกันบำนาญ</span>
-                <span className="text-[10px] font-bold text-gray-700">{fmt(taxAnalysis.pensionDeductible)} / {fmt(TAX_LIMITS.pensionPremium)}</span>
+                <span className="text-[12px] text-gray-600 font-medium">เบี้ยประกันบำนาญ</span>
+                <span className="text-[12px] font-bold text-gray-700">{fmt(taxAnalysis.pensionDeductible)} / {fmt(TAX_LIMITS.pensionPremium)}</span>
               </div>
               <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div className="h-full rounded-full bg-purple-400 transition-all"
                   style={{ width: `${TAX_LIMITS.pensionPremium > 0 ? Math.min((taxAnalysis.pensionDeductible / TAX_LIMITS.pensionPremium) * 100, 100) : 0}%` }} />
               </div>
-              <div className="text-[9px] text-gray-400 mt-0.5">เพดาน 15% ของรายได้ (รวม RMF/SSF ไม่เกิน 500,000)</div>
+              <div className="text-[11px] text-gray-400 mt-0.5">เพดาน 15% ของรายได้ (รวม RMF/SSF ไม่เกิน 500,000)</div>
               {renderSource(taxAnalysis.pensionPolicies)}
             </div>
 
             {/* Parent health */}
             <div className="px-3 py-2.5 border-b border-gray-50">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] text-gray-600 font-medium">เบี้ยสุขภาพพ่อแม่</span>
-                <span className="text-[10px] font-bold text-gray-700">{fmt(taxAnalysis.parentHealthDeductible)} / {fmt(TAX_LIMITS.parentHealth)}</span>
+                <span className="text-[12px] text-gray-600 font-medium">เบี้ยสุขภาพพ่อแม่</span>
+                <span className="text-[12px] font-bold text-gray-700">{fmt(taxAnalysis.parentHealthDeductible)} / {fmt(TAX_LIMITS.parentHealth)}</span>
               </div>
               <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div className="h-full rounded-full bg-amber-400 transition-all"
@@ -240,7 +240,7 @@ export default function TaxOptimizationPage() {
                 <span className="text-base font-extrabold text-emerald-600">{fmt(taxAnalysis.totalDeductible)} บาท</span>
               </div>
               {annualIncome > 0 && taxAnalysis.estimatedTaxSaving > 0 && (
-                <div className="text-[10px] text-emerald-600 mt-1 text-right">
+                <div className="text-[12px] text-emerald-600 mt-1 text-right">
                   ประหยัดภาษีประมาณ <strong>{fmt(taxAnalysis.estimatedTaxSaving)}</strong> บาท
                   <span className="text-emerald-500"> (อัตราขั้น {(taxAnalysis.estimatedTaxRate * 100).toFixed(0)}%)</span>
                 </div>
@@ -251,8 +251,8 @@ export default function TaxOptimizationPage() {
           {/* Unused opportunities */}
           {(taxAnalysis.unusedLifeHealth > 0 || taxAnalysis.unusedPension > 0) && (
             <div className="bg-purple-50 rounded-xl p-3 border border-purple-200">
-              <div className="text-[10px] font-bold text-purple-800 mb-1">🎯 โอกาสลดหย่อนเพิ่ม</div>
-              <div className="text-[10px] text-purple-700 space-y-1">
+              <div className="text-[12px] font-bold text-purple-800 mb-1">🎯 โอกาสลดหย่อนเพิ่ม</div>
+              <div className="text-[12px] text-purple-700 space-y-1">
                 {taxAnalysis.unusedLifeHealth > 0 && (
                   <p>• เบี้ยชีวิต+สุขภาพ ใช้สิทธิได้อีก <strong>{fmt(taxAnalysis.unusedLifeHealth)}</strong> บาท</p>
                 )}
@@ -270,7 +270,7 @@ export default function TaxOptimizationPage() {
         {/* ─── SECTION 2: Cash Flow Impact ─────────────────────────────── */}
         <div className="glass rounded-2xl p-4 md:p-6 mx-1 space-y-4">
           <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-[10px] font-bold flex items-center justify-center">2</span>
+            <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-[12px] font-bold flex items-center justify-center">2</span>
             ผลกระทบต่อกระแสเงินสด
           </h3>
 
@@ -278,17 +278,17 @@ export default function TaxOptimizationPage() {
             <>
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-gray-50 rounded-xl p-3 text-center">
-                  <div className="text-[9px] text-gray-500">รายได้สุทธิ/เดือน</div>
+                  <div className="text-[11px] text-gray-500">รายได้สุทธิ/เดือน</div>
                   <div className="text-sm font-bold text-gray-800">{fmt(Math.round(annualIncome / 12))}</div>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-3 text-center">
-                  <div className="text-[9px] text-gray-500">เบี้ยประกัน/เดือน</div>
+                  <div className="text-[11px] text-gray-500">เบี้ยประกัน/เดือน</div>
                   <div className="text-sm font-bold text-purple-600">{fmt(Math.round(totalPremium / 12))}</div>
                 </div>
               </div>
 
               <div className="bg-gray-50 rounded-xl p-3">
-                <div className="text-[10px] text-gray-500 mb-2">รายได้หลังหักเบี้ยประกัน/เดือน</div>
+                <div className="text-[12px] text-gray-500 mb-2">รายได้หลังหักเบี้ยประกัน/เดือน</div>
                 <div className="text-lg font-extrabold text-gray-800">
                   {fmt(Math.round((annualIncome - totalPremium) / 12))} บาท
                 </div>
@@ -296,7 +296,7 @@ export default function TaxOptimizationPage() {
                   <div className="h-full rounded-full bg-purple-400"
                     style={{ width: `${annualIncome > 0 ? Math.min((totalPremium / annualIncome) * 100, 100) : 0}%` }} />
                 </div>
-                <div className="flex items-center justify-between text-[9px] text-gray-400 mt-1">
+                <div className="flex items-center justify-between text-[11px] text-gray-400 mt-1">
                   <span>เบี้ย {annualIncome > 0 ? ((totalPremium / annualIncome) * 100).toFixed(1) : 0}%</span>
                   <span>คงเหลือ {annualIncome > 0 ? ((1 - totalPremium / annualIncome) * 100).toFixed(1) : 100}%</span>
                 </div>
@@ -304,12 +304,12 @@ export default function TaxOptimizationPage() {
 
               {taxAnalysis.estimatedTaxSaving > 0 && (
                 <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-200">
-                  <div className="text-[10px] text-emerald-700">
+                  <div className="text-[12px] text-emerald-700">
                     <strong>ต้นทุนสุทธิ (หลังหักภาษี):</strong>
                     <div className="text-sm font-bold mt-1">
                       เบี้ย {fmt(totalPremium)} - ภาษี {fmt(taxAnalysis.estimatedTaxSaving)} = <strong>{fmt(totalPremium - taxAnalysis.estimatedTaxSaving)}</strong> บาท/ปี
                     </div>
-                    <div className="text-[10px] mt-1">
+                    <div className="text-[12px] mt-1">
                       = เดือนละ <strong>{fmt(Math.round((totalPremium - taxAnalysis.estimatedTaxSaving) / 12))}</strong> บาท
                     </div>
                   </div>
