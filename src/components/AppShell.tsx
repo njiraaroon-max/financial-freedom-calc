@@ -25,15 +25,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="relative min-h-dvh">
-      <Sidebar />
+    <div className="relative min-h-dvh isolate">
       {/* Main padding follows the pinned sidebar width (default 17rem / 272px).
           Hover-expand is overlay-only so content does NOT shift when hovering. */}
       <main
-        className="min-h-dvh transition-[padding] duration-200 ease-out lg:pl-[var(--sidebar-w,17rem)]"
+        className="relative z-0 min-h-dvh transition-[padding] duration-200 ease-out lg:pl-[var(--sidebar-w,17rem)]"
       >
         {children}
       </main>
+      <Sidebar />
     </div>
   );
 }

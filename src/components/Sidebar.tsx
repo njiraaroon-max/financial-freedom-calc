@@ -121,7 +121,7 @@ export default function Sidebar() {
       }}
       aria-label="Main navigation"
       data-expanded={expanded}
-      className={`hidden lg:flex fixed left-0 top-0 h-dvh glass-strong border-r border-white/40 flex-col z-30 overflow-y-auto overflow-x-hidden transition-[width] duration-200 ease-out ${
+      className={`hidden lg:flex fixed left-0 top-0 h-dvh glass-strong border-r border-white/40 flex-col z-[9000] overflow-y-auto overflow-x-hidden transition-[width] duration-200 ease-out ${
         collapsed && hovered ? "shadow-2xl shadow-indigo-900/20" : ""
       }`}
       style={{ width: expanded ? EXPANDED_W : COLLAPSED_W }}

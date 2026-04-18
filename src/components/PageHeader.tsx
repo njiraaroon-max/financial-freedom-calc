@@ -19,7 +19,7 @@ export default function PageHeader({
   rightElement,
 }: PageHeaderProps) {
   return (
-    <div className="sticky top-0 z-40 glass-strong border-b border-white/50">
+    <div className="sticky top-0 z-20 glass-strong border-b border-white/50">
       <div className={`flex items-center ${rightElement ? "justify-between" : "gap-3"} px-4 md:px-8 py-3`}>
         <div className="flex items-center gap-3">
           <Link
