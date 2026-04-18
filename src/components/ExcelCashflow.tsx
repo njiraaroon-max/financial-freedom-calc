@@ -30,6 +30,9 @@ interface Props {
   getAnnualTotal: (id: string) => number;
   getCommonRatio: (id: string) => number;
   onUpdateAmount: (id: string, monthIndex: number, value: number) => void;
+  /** Fill months [from..to] of one row with `value`, leaving other
+      months untouched. Used by drag-to-fill. */
+  onFillRange: (id: string, from: number, to: number, value: number) => void;
   onRename: (id: string, name: string) => void;
   onRemove: (id: string) => void;
   /** Open the consolidated TagSheet for this row (handles income + expense) */
@@ -56,6 +59,7 @@ export default function ExcelCashflow({
   getAnnualTotal,
   getCommonRatio,
   onUpdateAmount,
+  onFillRange,
   onRename,
   onRemove,
   onOpenTag,
@@ -80,6 +84,70 @@ export default function ExcelCashflow({
   const menuRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+
+  // ── Drag-to-fill state (Excel-like) ─────────────────────────────
+  // When the user presses the bottom-right fill handle of a cell and
+  // drags sideways, we highlight the target range and, on release,
+  // copy the source cell's value across the range.
+  const [drag, setDrag] = useState<{
+    itemId: string;
+    sourceMonth: number;
+    targetMonth: number;
+    sourceValue: number;
+  } | null>(null);
+  const dragRef = useRef<typeof drag>(null);
+  dragRef.current = drag;
+
+  const inDragRange = (itemId: string, monthIndex: number) => {
+    const d = drag;
+    if (!d || d.itemId !== itemId) return false;
+    const lo = Math.min(d.sourceMonth, d.targetMonth);
+    const hi = Math.max(d.sourceMonth, d.targetMonth);
+    return monthIndex >= lo && monthIndex <= hi;
+  };
+
+  // During drag: walk elementFromPoint to find which cell the pointer
+  // is over. Each data cell tags itself with data-item-id + data-month.
+  const startDragFill = (
+    e: React.PointerEvent,
+    itemId: string,
+    sourceMonth: number,
+    sourceValue: number,
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    setDrag({ itemId, sourceMonth, targetMonth: sourceMonth, sourceValue });
+  };
+
+  const moveDragFill = (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    if (!d) return;
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    if (!el) return;
+    const cell = (el as HTMLElement).closest<HTMLElement>(
+      "[data-item-id][data-month-index]",
+    );
+    if (!cell) return;
+    const itemId = cell.getAttribute("data-item-id");
+    const monthStr = cell.getAttribute("data-month-index");
+    if (itemId !== d.itemId || monthStr === null) return;
+    const month = Number(monthStr);
+    if (!Number.isNaN(month) && month !== d.targetMonth) {
+      setDrag({ ...d, targetMonth: month });
+    }
+  };
+
+  const endDragFill = () => {
+    const d = dragRef.current;
+    if (!d) return;
+    if (d.sourceMonth !== d.targetMonth) {
+      const lo = Math.min(d.sourceMonth, d.targetMonth);
+      const hi = Math.max(d.sourceMonth, d.targetMonth);
+      onFillRange(d.itemId, lo, hi, d.sourceValue);
+    }
+    setDrag(null);
+  };
 
   // Close row menu when clicking elsewhere, scrolling, or resizing
   useEffect(() => {
@@ -237,22 +305,52 @@ export default function ExcelCashflow({
           </button>
         </td>
 
-        {item.amounts.map((a, i) => (
-          <td
-            key={i}
-            className={`${dataCell} cursor-pointer hover:bg-indigo-50 active:bg-indigo-100`}
-            onClick={() => {
-              setEditCell({
-                itemId: item.id,
-                itemName: item.name,
-                monthIndex: i,
-              });
-              setEditValue(a);
-            }}
-          >
-            {fmt(a)}
-          </td>
-        ))}
+        {item.amounts.map((a, i) => {
+          const isSource =
+            drag?.itemId === item.id && drag.sourceMonth === i;
+          const isInRange = inDragRange(item.id, i);
+          const showHandle = a !== 0 && !drag; // only on non-empty source cells, and never while dragging
+          return (
+            <td
+              key={i}
+              data-item-id={item.id}
+              data-month-index={i}
+              className={`${dataCell} relative cursor-pointer ${
+                isInRange
+                  ? isSource
+                    ? "bg-indigo-200 ring-2 ring-indigo-500 ring-inset"
+                    : "bg-indigo-100"
+                  : "hover:bg-indigo-50 active:bg-indigo-100"
+              } ${drag ? "group/cell" : "group/cell"}`}
+              onClick={() => {
+                if (drag) return; // ignore the click that ends a drag
+                setEditCell({
+                  itemId: item.id,
+                  itemName: item.name,
+                  monthIndex: i,
+                });
+                setEditValue(a);
+              }}
+            >
+              {isInRange && !isSource ? fmt(drag!.sourceValue) : fmt(a)}
+              {/* Fill handle — bottom-right, only on cells that have data */}
+              {showHandle && (
+                <span
+                  onPointerDown={(e) =>
+                    startDragFill(e, item.id, i, a)
+                  }
+                  onPointerMove={moveDragFill}
+                  onPointerUp={endDragFill}
+                  onPointerCancel={endDragFill}
+                  className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-indigo-500 rounded-sm cursor-crosshair opacity-0 group-hover/cell:opacity-100 hover:scale-125 transition touch-none"
+                  style={{ touchAction: "none" }}
+                  aria-label="ลากเพื่อคัดลอกข้ามเดือน"
+                  title="ลากไปยังเดือนอื่นเพื่อคัดลอกค่า"
+                />
+              )}
+            </td>
+          );
+        })}
         <td className={`${dataCell} ${totalColSticky} font-bold bg-gray-200/90`}>
           {fmt(getAnnualTotal(item.id))}
         </td>

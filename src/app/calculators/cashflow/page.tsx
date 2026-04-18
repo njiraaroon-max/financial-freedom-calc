@@ -254,6 +254,15 @@ export default function CashFlowPage() {
         getAnnualTotal={getAnnualTotal}
         getCommonRatio={getCommonRatio}
         onUpdateAmount={onUpdateAmountWithSync}
+        onFillRange={(id, from, to, value) => {
+          // Only write to [from..to]; leave other months untouched.
+          bulkFillRange(id, from, to, value, false);
+          // Salary-linked recalc if this was a 40(1) recurring income
+          const income = incomes.find((i) => i.id === id);
+          if (income?.taxCategory === "40(1)" && income.isRecurring) {
+            setTimeout(() => recalculateSalaryLinked(), 0);
+          }
+        }}
         onRename={updateItemName}
         onRemove={removeItem}
         onOpenTag={onOpenTag}
