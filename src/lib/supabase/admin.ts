@@ -17,6 +17,7 @@ export interface FaAdminRow {
   license_no: string | null;
   role: "fa" | "admin";
   status: "pending" | "approved" | "rejected";
+  expires_at: string | null;
   created_at: string;
   client_count: number;
   active_count: number;          // #clients updated in last 30 days
@@ -45,7 +46,7 @@ export async function listAllFas(): Promise<FaAdminRow[]> {
     sb
       .from("fa_profiles")
       .select(
-        "user_id, email, display_name, company, license_no, role, status, created_at",
+        "user_id, email, display_name, company, license_no, role, status, expires_at, created_at",
       )
       .order("created_at", { ascending: false }),
     // The generated DB types don't include our custom RPCs yet —
@@ -115,6 +116,23 @@ export async function setFaRole(
   const { error } = await sb
     .from("fa_profiles")
     .update({ role })
+    .eq("user_id", userId);
+  if (error) throw new Error(error.message);
+}
+
+/**
+ * Set or clear the expiration date for a FA. Pass null to remove the
+ * expiration (account never expires). Admins are exempt from the check
+ * in middleware regardless of this value.
+ */
+export async function setFaExpiresAt(
+  userId: string,
+  expiresAt: string | null,
+): Promise<void> {
+  const sb = createClient();
+  const { error } = await sb
+    .from("fa_profiles")
+    .update({ expires_at: expiresAt })
     .eq("user_id", userId);
   if (error) throw new Error(error.message);
 }

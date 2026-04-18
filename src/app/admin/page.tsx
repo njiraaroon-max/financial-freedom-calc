@@ -28,6 +28,7 @@ import {
   getAdminStats,
   setFaStatus,
   setFaRole,
+  setFaExpiresAt,
   sendResetEmail,
   type FaAdminRow,
   type AdminStats,
@@ -45,6 +46,54 @@ function formatDate(iso: string | null): string {
   } catch {
     return "-";
   }
+}
+
+/** Convert ISO timestamp to yyyy-MM-dd for <input type="date"> */
+function toDateInputValue(iso: string | null): string {
+  if (!iso) return "";
+  try {
+    const d = new Date(iso);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  } catch {
+    return "";
+  }
+}
+
+/** Days remaining until ISO date (negative if past). null if no date. */
+function daysUntil(iso: string | null): number | null {
+  if (!iso) return null;
+  const diff = new Date(iso).getTime() - Date.now();
+  return Math.ceil(diff / 86400000);
+}
+
+function ExpiryBadge({ iso }: { iso: string | null }) {
+  const days = daysUntil(iso);
+  if (days === null)
+    return (
+      <span className="text-[10px] text-gray-400">ไม่หมดอายุ</span>
+    );
+  if (days < 0)
+    return (
+      <span className="text-[10px] font-medium text-rose-700 bg-rose-100 border border-rose-200 px-1.5 py-0.5 rounded-full">
+        หมดอายุแล้ว
+      </span>
+    );
+  const cls =
+    days <= 7
+      ? "text-rose-700 bg-rose-100 border-rose-200"
+      : days <= 30
+        ? "text-amber-700 bg-amber-100 border-amber-200"
+        : "text-emerald-700 bg-emerald-100 border-emerald-200";
+  return (
+    <span
+      className={`text-[10px] font-medium border px-1.5 py-0.5 rounded-full ${cls}`}
+    >
+      เหลือ {days} วัน
+    </span>
+  );
 }
 
 function formatRelative(iso: string | null): string {
@@ -160,6 +209,25 @@ export default function AdminPage() {
       toast.success(`ส่งลิงก์ไปที่ ${row.email} แล้ว`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "ส่งไม่สำเร็จ");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleExpiryChange = async (row: FaAdminRow, value: string) => {
+    // value = "" → clear (never expires); else yyyy-MM-dd → end of day UTC
+    const nextIso = value ? new Date(value + "T23:59:59").toISOString() : null;
+    setBusyId(row.user_id);
+    try {
+      await setFaExpiresAt(row.user_id, nextIso);
+      toast.success(
+        nextIso
+          ? `ตั้งวันหมดอายุ ${row.email}`
+          : `ยกเลิกวันหมดอายุ ${row.email}`,
+      );
+      await refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "ตั้งวันหมดอายุไม่สำเร็จ");
     } finally {
       setBusyId(null);
     }
@@ -293,6 +361,9 @@ export default function AdminPage() {
                       กิจกรรมล่าสุด
                     </th>
                     <th className="text-left px-3 py-2.5 font-medium">สมัคร</th>
+                    <th className="text-left px-3 py-2.5 font-medium">
+                      วันหมดอายุ
+                    </th>
                     <th className="text-right px-3 py-2.5 font-medium">
                       การจัดการ
                     </th>
@@ -355,6 +426,31 @@ export default function AdminPage() {
                         </td>
                         <td className="px-3 py-2.5 text-gray-500">
                           {formatDate(row.created_at)}
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <div className="flex flex-col gap-1">
+                            <input
+                              type="date"
+                              value={toDateInputValue(row.expires_at)}
+                              disabled={busy || row.role === "admin"}
+                              onChange={(e) =>
+                                handleExpiryChange(row, e.target.value)
+                              }
+                              className="text-[10px] px-1.5 py-0.5 rounded border border-gray-200 bg-white text-gray-700 disabled:opacity-50 focus:ring-2 focus:ring-indigo-300 outline-none"
+                              title={
+                                row.role === "admin"
+                                  ? "Admin ไม่ใช้วันหมดอายุ"
+                                  : "เลือกวันหมดอายุ"
+                              }
+                            />
+                            {row.role === "admin" ? (
+                              <span className="text-[10px] text-indigo-500">
+                                Admin (ไม่หมดอายุ)
+                              </span>
+                            ) : (
+                              <ExpiryBadge iso={row.expires_at} />
+                            )}
+                          </div>
                         </td>
                         <td className="px-3 py-2.5">
                           <div className="flex items-center justify-end gap-1">

@@ -73,32 +73,35 @@ export async function updateSession(request: NextRequest) {
   if (user) {
     const { data: profile } = await supabase
       .from("fa_profiles")
-      .select("role, status")
+      .select("role, status, expires_at")
       .eq("user_id", user.id)
       .maybeSingle();
 
     const status = profile?.status ?? "pending";
     const role = profile?.role ?? "fa";
+    const expiresAt = profile?.expires_at
+      ? new Date(profile.expires_at)
+      : null;
+    // Admins are exempt from expiration — prevents accidental lockout.
+    const isExpired =
+      role !== "admin" && expiresAt !== null && expiresAt.getTime() < Date.now();
 
     const isPendingPage = pathname.startsWith("/pending-approval");
     const isSignout = pathname.startsWith("/auth/signout");
     const isAuthCallback = pathname.startsWith("/auth/callback");
 
-    // Not approved → force /pending-approval (unless already there)
-    if (
-      status !== "approved" &&
-      !isPendingPage &&
-      !isSignout &&
-      !isAuthCallback
-    ) {
+    const blockedByStatus = status !== "approved" || isExpired;
+
+    // Not approved or expired → force /pending-approval (unless already there)
+    if (blockedByStatus && !isPendingPage && !isSignout && !isAuthCallback) {
       const url = request.nextUrl.clone();
       url.pathname = "/pending-approval";
       url.search = "";
       return NextResponse.redirect(url);
     }
 
-    // Approved user shouldn't linger on /pending-approval
-    if (status === "approved" && isPendingPage) {
+    // Approved + not expired user shouldn't linger on /pending-approval
+    if (!blockedByStatus && isPendingPage) {
       const url = request.nextUrl.clone();
       url.pathname = "/";
       url.search = "";
