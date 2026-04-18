@@ -17,6 +17,7 @@
  */
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { MoreVertical, Pencil, Tag, Trash2, Plus, Eye, EyeOff } from "lucide-react";
 import { MONTH_NAMES_TH, INCOME_TAX_CATEGORIES, EXPENSE_CATEGORIES } from "@/types/cashflow";
 import type { IncomeItem, ExpenseItem, ExpenseCategory } from "@/types/cashflow";
@@ -68,22 +69,36 @@ export default function ExcelCashflow({
     monthIndex: number;
   } | null>(null);
   const [editValue, setEditValue] = useState(0);
-  const [rowMenuId, setRowMenuId] = useState<string | null>(null);
+  const [rowMenu, setRowMenu] = useState<{
+    id: string;
+    isIncome: boolean;
+    x: number; // viewport-x (right edge)
+    y: number; // viewport-y (below button)
+  } | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
-  // Close row menu when clicking elsewhere
+  // Close row menu when clicking elsewhere, scrolling, or resizing
   useEffect(() => {
-    if (!rowMenuId) return;
-    const handler = (e: MouseEvent) => {
+    if (!rowMenu) return;
+    const handleClick = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setRowMenuId(null);
+        setRowMenu(null);
       }
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [rowMenuId]);
+    const handleDismiss = () => setRowMenu(null);
+    document.addEventListener("mousedown", handleClick);
+    window.addEventListener("scroll", handleDismiss, true);
+    window.addEventListener("resize", handleDismiss);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      window.removeEventListener("scroll", handleDismiss, true);
+      window.removeEventListener("resize", handleDismiss);
+    };
+  }, [rowMenu]);
 
   // Group expenses
   const fixedExpenses = expenses.filter((e) => e.expenseCategory === "fixed");
@@ -126,7 +141,7 @@ export default function ExcelCashflow({
   const startRename = (id: string, currentName: string) => {
     setRenamingId(id);
     setRenameValue(currentName);
-    setRowMenuId(null);
+    setRowMenu(null);
   };
 
   const commitRename = () => {
@@ -142,7 +157,7 @@ export default function ExcelCashflow({
     isIncome: boolean,
   ) => {
     const isRenaming = renamingId === item.id;
-    const menuOpen = rowMenuId === item.id;
+    const menuOpen = rowMenu?.id === item.id;
 
     return (
       <tr
@@ -175,50 +190,29 @@ export default function ExcelCashflow({
               </button>
             )}
 
-            {/* Row menu — 3-dot button */}
-            <div className="relative shrink-0">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setRowMenuId(menuOpen ? null : item.id);
-                }}
-                className="p-1 rounded hover:bg-gray-200 opacity-0 group-hover:opacity-100 transition text-gray-500"
-                aria-label="เมนูแถว"
-              >
-                <MoreVertical size={14} />
-              </button>
-              {menuOpen && (
-                <div
-                  ref={menuRef}
-                  className="absolute right-0 top-full mt-1 z-30 glass rounded-xl shadow-xl w-44 py-1 overflow-hidden"
-                >
-                  <button
-                    onClick={() => startRename(item.id, item.name)}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-white/60 text-gray-700"
-                  >
-                    <Pencil size={13} /> เปลี่ยนชื่อ
-                  </button>
-                  <button
-                    onClick={() => {
-                      onOpenTag(item.id);
-                      setRowMenuId(null);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-white/60 text-gray-700"
-                  >
-                    <Tag size={13} /> ตั้งค่ารายการ...
-                  </button>
-                  <button
-                    onClick={() => {
-                      onRemove(item.id);
-                      setRowMenuId(null);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-red-50 text-red-600 border-t border-white/40"
-                  >
-                    <Trash2 size={13} /> ลบรายการ
-                  </button>
-                </div>
-              )}
-            </div>
+            {/* Row menu — 3-dot button (menu itself is portalled, see below) */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (menuOpen) {
+                  setRowMenu(null);
+                } else {
+                  const rect = (
+                    e.currentTarget as HTMLButtonElement
+                  ).getBoundingClientRect();
+                  setRowMenu({
+                    id: item.id,
+                    isIncome,
+                    x: rect.right,
+                    y: rect.bottom + 4,
+                  });
+                }
+              }}
+              className="shrink-0 p-1 rounded hover:bg-gray-200 opacity-0 group-hover:opacity-100 focus:opacity-100 transition text-gray-500"
+              aria-label="เมนูแถว"
+            >
+              <MoreVertical size={14} />
+            </button>
           </div>
 
           {/* Tag label line — click to open TagSheet */}
@@ -613,6 +607,54 @@ export default function ExcelCashflow({
           </table>
         </div>
       </div>
+
+      {/* Row menu — portalled so it escapes the table's overflow clipping
+          and the sticky-cell stacking context. Solid bg so it never
+          renders behind subtotal rows. */}
+      {mounted && rowMenu &&
+        createPortal(
+          <div
+            ref={menuRef}
+            className="fixed z-[9500] bg-white rounded-xl shadow-2xl ring-1 ring-black/5 w-44 py-1 overflow-hidden"
+            style={{
+              top: rowMenu.y,
+              left: Math.max(8, rowMenu.x - 176 /* w-44 */),
+            }}
+          >
+            <button
+              onClick={() => {
+                const id = rowMenu.id;
+                const item =
+                  incomes.find((i) => i.id === id) ||
+                  expenses.find((e) => e.id === id);
+                if (item) startRename(item.id, item.name);
+                setRowMenu(null);
+              }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-gray-50 text-gray-700"
+            >
+              <Pencil size={13} /> เปลี่ยนชื่อ
+            </button>
+            <button
+              onClick={() => {
+                onOpenTag(rowMenu.id);
+                setRowMenu(null);
+              }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-gray-50 text-gray-700"
+            >
+              <Tag size={13} /> ตั้งค่ารายการ...
+            </button>
+            <button
+              onClick={() => {
+                onRemove(rowMenu.id);
+                setRowMenu(null);
+              }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-rose-50 text-rose-600 border-t border-gray-100"
+            >
+              <Trash2 size={13} /> ลบรายการ
+            </button>
+          </div>,
+          document.body,
+        )}
 
       {/* Edit Cell Popup */}
       {editCell && (
