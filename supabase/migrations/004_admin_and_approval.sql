@@ -88,6 +88,13 @@ security definer
 set search_path = public
 as $$
 begin
+  -- Skip the check when running outside an auth context (auth.uid()
+  -- is null). This lets DB owners promote the first admin via the
+  -- Supabase SQL Editor without getting blocked by their own trigger.
+  if auth.uid() is null then
+    return new;
+  end if;
+
   if (
     old.role is distinct from new.role
     or old.status is distinct from new.status
