@@ -12,14 +12,22 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { LogOut, UserCircle, ChevronDown } from "lucide-react";
+import Link from "next/link";
+import {
+  LogOut,
+  UserCircle,
+  ChevronDown,
+  Users,
+} from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
+import { useActiveClientStore } from "@/store/active-client-store";
 
 export default function UserMenu() {
   const [user, setUser] = useState<User | null>(null);
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const activeClientName = useActiveClientStore((s) => s.activeClientName);
 
   useEffect(() => {
     const supabase = createClient();
@@ -54,8 +62,20 @@ export default function UserMenu() {
   return (
     <div
       ref={menuRef}
-      className="fixed top-3 right-3 z-[9400] print:hidden"
+      className="fixed top-3 right-3 z-[9400] print:hidden flex items-center gap-2"
     >
+      {/* Active client chip — visible when an FA has selected a client */}
+      {activeClientName && (
+        <Link
+          href="/clients"
+          className="flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full bg-indigo-500 text-white shadow-sm text-xs font-medium hover:bg-indigo-600 transition max-w-[180px]"
+          title="เปลี่ยน client"
+        >
+          <Users size={13} className="shrink-0" />
+          <span className="truncate">{activeClientName}</span>
+        </Link>
+      )}
+
       <button
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full bg-white shadow-sm border border-gray-200 hover:border-gray-300 hover:shadow transition text-xs"
@@ -78,10 +98,18 @@ export default function UserMenu() {
               {user.email}
             </div>
           </div>
+          <Link
+            href="/clients"
+            onClick={() => setOpen(false)}
+            className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-gray-700 hover:bg-gray-50 transition"
+          >
+            <Users size={13} />
+            จัดการ Clients
+          </Link>
           <form action="/auth/signout" method="POST">
             <button
               type="submit"
-              className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-rose-600 hover:bg-rose-50 transition"
+              className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-rose-600 hover:bg-rose-50 transition border-t border-gray-100"
             >
               <LogOut size={13} />
               ออกจากระบบ

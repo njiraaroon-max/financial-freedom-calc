@@ -52,6 +52,7 @@ export interface Database {
           avatar_url?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["fa_profiles"]["Insert"]>;
+        Relationships: [];
       };
 
       clients: {
@@ -94,6 +95,7 @@ export interface Database {
           notes?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["clients"]["Insert"]>;
+        Relationships: [];
       };
 
       cashflow_items: {
@@ -132,6 +134,7 @@ export interface Database {
           sort_order?: number;
         };
         Update: Partial<Database["public"]["Tables"]["cashflow_items"]["Insert"]>;
+        Relationships: [];
       };
 
       plan_data: {
@@ -147,11 +150,13 @@ export interface Database {
           data?: Json;
         };
         Update: Partial<Database["public"]["Tables"]["plan_data"]["Insert"]>;
+        Relationships: [];
       };
     };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
-    Enums: Record<string, never>;
+    Views: { [_ in never]: never };
+    Functions: { [_ in never]: never };
+    Enums: { [_ in never]: never };
+    CompositeTypes: { [_ in never]: never };
   };
 }
 
