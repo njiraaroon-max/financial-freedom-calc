@@ -75,6 +75,10 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [mounted, setMounted] = useState(false);
+  // When the user clicks the toggle to collapse, their cursor is still
+  // inside the sidebar so `hovered` stays true and the rail would refuse
+  // to shrink. Suppress hover-expand until the mouse leaves once.
+  const [suppressHover, setSuppressHover] = useState(false);
 
   // Read persisted pin state on mount
   useEffect(() => {
@@ -101,8 +105,8 @@ export default function Sidebar() {
     );
   }, [collapsed, mounted]);
 
-  // Visual expansion = pinned-open OR mouse hovering over the rail
-  const expanded = !collapsed || hovered;
+  // Visual expansion = pinned-open OR (mouse hovering AND not just-collapsed)
+  const expanded = !collapsed || (hovered && !suppressHover);
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
@@ -110,7 +114,11 @@ export default function Sidebar() {
   return (
     <aside
       onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseLeave={() => {
+        setHovered(false);
+        // Mouse left the rail — future hovers should expand again
+        setSuppressHover(false);
+      }}
       aria-label="Main navigation"
       data-expanded={expanded}
       className={`hidden lg:flex fixed left-0 top-0 h-dvh glass-strong border-r border-white/40 flex-col z-30 overflow-y-auto overflow-x-hidden transition-[width] duration-200 ease-out ${
@@ -143,7 +151,12 @@ export default function Sidebar() {
           </div>
         </Link>
         <button
-          onClick={() => setCollapsed((c) => !c)}
+          onClick={() => {
+            // If we're about to collapse, suppress hover so the rail
+            // visually shrinks even though the mouse is still on it.
+            if (!collapsed) setSuppressHover(true);
+            setCollapsed((c) => !c);
+          }}
           aria-label={collapsed ? "ขยาย sidebar" : "ยุบ sidebar"}
           title={collapsed ? "ขยาย sidebar" : "ยุบ sidebar"}
           className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-white/60 transition ${
