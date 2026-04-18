@@ -35,7 +35,7 @@ import type {
   ExpenseCategory,
   DebtRepaymentType,
 } from "@/types/cashflow";
-import MoneyInput from "./MoneyInput";
+import FormulaInput from "./FormulaInput";
 
 type Item = IncomeItem | ExpenseItem;
 
@@ -351,11 +351,13 @@ export default function TagSheet({
               <label className="text-[11px] text-gray-500 mb-1 block">
                 จำนวนต่อเดือน (บาท)
               </label>
-              <MoneyInput
+              <FormulaInput
                 value={amount}
+                onCommit={setAmountDirty}
                 onChange={setAmountDirty}
                 placeholder="0"
                 ringClass="focus:ring-indigo-400"
+                className="w-full text-sm font-semibold bg-white/60 backdrop-blur-sm rounded-xl px-4 py-2.5 outline-none focus:ring-2 text-right border border-white/60"
               />
             </div>
             <button

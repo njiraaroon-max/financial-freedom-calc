@@ -21,7 +21,7 @@ import { createPortal } from "react-dom";
 import { MoreVertical, Pencil, Tag, Trash2, Plus, Eye, EyeOff } from "lucide-react";
 import { MONTH_NAMES_TH, INCOME_TAX_CATEGORIES, EXPENSE_CATEGORIES } from "@/types/cashflow";
 import type { IncomeItem, ExpenseItem, ExpenseCategory } from "@/types/cashflow";
-import MoneyInput from "@/components/MoneyInput";
+import FormulaInput from "@/components/FormulaInput";
 import PieChart, { INCOME_COLORS, EXPENSE_COLORS } from "@/components/PieChart";
 
 interface Props {
@@ -672,8 +672,9 @@ export default function ExcelCashflow({
             <div className="text-xs text-gray-400 mb-3">
               {MONTH_NAMES_TH[editCell.monthIndex]}
             </div>
-            <MoneyInput
+            <FormulaInput
               value={editValue}
+              onCommit={setEditValue}
               onChange={setEditValue}
               autoFocus
               onKeyDown={(e) => {
