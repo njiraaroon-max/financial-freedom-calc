@@ -67,6 +67,27 @@ export default function ClientDataSync() {
             store.reset();
           }
         }
+
+        // Seed profile.name from the active client's display name when
+        // it's still empty. Saves the FA from retyping the same name
+        // they just used on the "เพิ่ม client" popup — and also
+        // back-fills old clients that never set a profile name.
+        // Only fires when the field is empty, so a user who typed a
+        // different name in personal-info never gets overwritten.
+        const profileSync = SYNCED_STORES.find((s) => s.domain === "profile");
+        if (profileSync) {
+          const p = profileSync.getState() as { name?: unknown };
+          const currentName =
+            typeof p.name === "string" ? p.name.trim() : "";
+          if (!currentName) {
+            const { activeClientName } =
+              useActiveClientStore.getState();
+            if (activeClientName) {
+              profileSync.setState({ name: activeClientName });
+            }
+          }
+        }
+
         prevIdRef.current = activeClientId;
       } catch (err) {
         console.error("[ClientDataSync] load failed", err);
