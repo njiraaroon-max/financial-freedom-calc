@@ -163,7 +163,9 @@ export default function BalanceSheetTable({
   const darkBlue = "bg-[#1e3a5f]"; // header (same as CF)
   const subHeader = "bg-[#2c5282]"; // sub-header (same as CF income header)
   const darkRed = "bg-[#c53030]"; // expense header (same as CF)
-  const greenBg = "bg-[#276749]"; // green for net worth
+  // Fresh emerald green — Tailwind emerald-500 tone. Brighter than the
+  // previous forest-green so the netWorth block pops on the dashboard.
+  const greenBg = "bg-[#10b981]";
   const hWhite = "px-3 py-2 text-xs font-bold text-white";
   const stickyCol = "sticky left-0 z-10"; // first column stays fixed
   const item = "px-3 py-1.5 text-xs border-b border-gray-100";
@@ -454,12 +456,49 @@ export default function BalanceSheetTable({
                 </td>
               </tr>
 
-              {/* Personal assets + ความมั่งคั่งสุทธิ (rowSpan covers assets + add row) */}
+              {/* Personal assets + ความมั่งคั่งสุทธิ.
+                  Keep the netWorth cells per-row (no rowSpan crossing the
+                  add row) so the green block is guaranteed contiguous even
+                  when the browser collapses borders oddly. The label is
+                  placed on the first asset row; remaining asset rows and
+                  the add row just fill the right side with solid green. */}
               {(() => {
                 const pLen = personalAssets.length;
-                // rowSpan includes all personal asset rows + 1 add row
-                const spanLen = pLen + 1;
                 const rows = [];
+
+                if (pLen === 0) {
+                  // No personal assets yet — render ONE combined row: add
+                  // button on the left, netWorth block on the right.
+                  rows.push(
+                    <tr key="p-add" className="bg-white">
+                      {addBtnCell(
+                        "เพิ่มสินทรัพย์ใช้ส่วนตัว",
+                        () => onAddAsset("personal"),
+                        "asset",
+                        true,
+                      )}
+                      <td
+                        className={`px-3 py-2 text-xs font-bold text-white ${greenBg} align-middle`}
+                      >
+                        ความมั่งคั่งสุทธิ
+                      </td>
+                      <td
+                        className={`px-3 py-2 text-xs font-bold text-right text-white ${greenBg} align-middle`}
+                      >
+                        {fmt(netWorth)}
+                      </td>
+                      <td
+                        className={`px-3 py-2 text-xs font-bold text-right text-white ${greenBg} align-middle`}
+                      >
+                        {pct(netWorth, totalAssets)}
+                      </td>
+                    </tr>,
+                  );
+                  return rows;
+                }
+
+                // rowSpan here only covers the asset rows — the add row
+                // below gets its own green filler cells.
                 for (let i = 0; i < pLen; i++) {
                   const asset = personalAssets[i];
                   rows.push(
@@ -477,19 +516,19 @@ export default function BalanceSheetTable({
                         <>
                           <td
                             className={`px-3 py-2 text-xs font-bold text-white ${greenBg} align-middle`}
-                            rowSpan={spanLen}
+                            rowSpan={pLen}
                           >
                             ความมั่งคั่งสุทธิ
                           </td>
                           <td
                             className={`px-3 py-2 text-xs font-bold text-right text-white ${greenBg} align-middle`}
-                            rowSpan={spanLen}
+                            rowSpan={pLen}
                           >
                             {fmt(netWorth)}
                           </td>
                           <td
                             className={`px-3 py-2 text-xs font-bold text-right text-white ${greenBg} align-middle`}
-                            rowSpan={spanLen}
+                            rowSpan={pLen}
                           >
                             {pct(netWorth, totalAssets)}
                           </td>
@@ -498,7 +537,10 @@ export default function BalanceSheetTable({
                     </tr>,
                   );
                 }
-                // Add-personal row — lives inside the netWorth rowSpan
+
+                // Add row — add button on left; solid green filler on right
+                // so the netWorth block visually continues down to the
+                // subtotal boundary with no white gap.
                 rows.push(
                   <tr key="p-add" className="bg-white">
                     {addBtnCell(
@@ -507,25 +549,9 @@ export default function BalanceSheetTable({
                       "asset",
                       true,
                     )}
-                    {pLen === 0 ? (
-                      <>
-                        <td
-                          className={`px-3 py-2 text-xs font-bold text-white ${greenBg} align-middle`}
-                        >
-                          ความมั่งคั่งสุทธิ
-                        </td>
-                        <td
-                          className={`px-3 py-2 text-xs font-bold text-right text-white ${greenBg} align-middle`}
-                        >
-                          {fmt(netWorth)}
-                        </td>
-                        <td
-                          className={`px-3 py-2 text-xs font-bold text-right text-white ${greenBg} align-middle`}
-                        >
-                          {pct(netWorth, totalAssets)}
-                        </td>
-                      </>
-                    ) : null}
+                    <td className={`${greenBg}`} />
+                    <td className={`${greenBg}`} />
+                    <td className={`${greenBg}`} />
                   </tr>,
                 );
                 return rows;
