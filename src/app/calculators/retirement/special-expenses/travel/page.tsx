@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Plus, Save, Plane, Info } from "lucide-react";
+import { Plus, Save, Plane, Info, ChevronDown, ChevronUp } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 import CashflowItemCard from "@/components/CashflowItemCard";
@@ -33,6 +33,8 @@ export default function TravelPlanPage() {
   const a = store.assumptions;
   const items = store.travelPlanItems;
   const [hasSaved, setHasSaved] = useState(false);
+  // Yearly breakdown table is heavy for long lifespans — collapsed by default.
+  const [showYearlyTable, setShowYearlyTable] = useState(false);
 
   const ctx: CashflowContext = {
     currentAge: a.currentAge,
@@ -196,15 +198,26 @@ export default function TravelPlanPage() {
           </div>
         </div>
 
-        {/* Yearly breakdown */}
+        {/* Yearly breakdown — collapsed by default */}
         <div className="glass mt-4 rounded-2xl overflow-hidden">
-          <div className="bg-[#1e3a5f] px-4 py-2.5 flex items-center justify-between">
-            <span className="text-xs font-bold text-white">ตารางรายปี</span>
-            <span className="text-[13px] text-white/80 font-medium">
-              มูลค่า ณ ปีนั้น (nominal)
+          <button
+            onClick={() => setShowYearlyTable((v) => !v)}
+            className="w-full bg-[#1e3a5f] px-4 py-2.5 flex items-center justify-between active:bg-[#182f4d] transition"
+            aria-expanded={showYearlyTable}
+          >
+            <span className="flex items-center gap-2 text-xs font-bold text-white">
+              ตารางรายปี
+              {showYearlyTable ? (
+                <ChevronUp size={14} className="text-white/80" />
+              ) : (
+                <ChevronDown size={14} className="text-white/80" />
+              )}
             </span>
-          </div>
-          {yearlyTable.length === 0 ? (
+            <span className="text-[13px] text-white/80 font-medium">
+              {showYearlyTable ? "มูลค่า ณ ปีนั้น (nominal)" : "แตะเพื่อเปิดดู"}
+            </span>
+          </button>
+          {showYearlyTable && (yearlyTable.length === 0 ? (
             <div className="py-6 text-center text-[14px] text-gray-400">
               ยังไม่มีข้อมูล
             </div>
@@ -243,7 +256,7 @@ export default function TravelPlanPage() {
                 </tbody>
               </table>
             </div>
-          )}
+          ))}
         </div>
 
         {/* Summary */}
