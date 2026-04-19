@@ -9,7 +9,7 @@
  */
 
 import { useState, useEffect, useRef } from "react";
-import { Save, Trash2 } from "lucide-react";
+import { Save, Trash2, BarChart2, ChevronDown, ChevronUp } from "lucide-react";
 import { useCashFlowStore } from "@/store/cashflow-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
@@ -19,6 +19,7 @@ import { useProfileStore } from "@/store/profile-store";
 import type { ExpenseCategory } from "@/types/cashflow";
 import ExcelCashflow from "@/components/ExcelCashflow";
 import TagSheet from "@/components/TagSheet";
+import CashFlowSankey from "@/components/CashFlowSankey";
 
 export default function CashFlowPage() {
   const {
@@ -67,6 +68,10 @@ export default function CashFlowPage() {
   }, []);
 
   const [hasSaved, setHasSaved] = useState(false);
+  const [showSankey, setShowSankey] = useState(false);
+
+  // ─── Current year (BE) ─────────────────────────────────────────────────────
+  const currentYearBE = new Date().getFullYear() + 543;
 
   // ─── Single TagSheet state (replaces 3-popup chain) ─────────────
   const [tagSheetId, setTagSheetId] = useState<string | null>(null);
@@ -269,6 +274,43 @@ export default function CashFlowPage() {
         onAddIncome={onAddIncome}
         onAddExpense={onAddExpense}
       />
+
+      {/* ─── Sankey Diagram Card ─────────────────────────────────────── */}
+      <div className="px-4 pt-4 pb-2">
+        {/* Toggle button */}
+        <button
+          onClick={() => setShowSankey((v) => !v)}
+          className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-md active:scale-[0.98] transition"
+        >
+          <span className="flex items-center gap-2 text-sm font-bold">
+            <BarChart2 size={18} />
+            ดูภาพรวม Cash Flow Diagram
+          </span>
+          <span className="flex items-center gap-1 text-[13px] opacity-80">
+            {showSankey ? <><ChevronUp size={16} /> ซ่อน</> : <><ChevronDown size={16} /> เปิดดู</>}
+          </span>
+        </button>
+
+        {/* Sankey panel — animate open/close */}
+        <div
+          style={{
+            maxHeight: showSankey ? "600px" : "0px",
+            overflow: "hidden",
+            transition: "max-height 0.4s cubic-bezier(0.4,0,0.2,1)",
+          }}
+        >
+          <div className="mt-3 glass rounded-2xl p-4">
+            {showSankey && (
+              <CashFlowSankey
+                incomes={incomes}
+                expenses={expenses}
+                getAnnualTotal={getAnnualTotal}
+                year={currentYearBE}
+              />
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Save & Clear Buttons */}
       <div className="px-4 pb-32 pt-2 space-y-3">
