@@ -14,7 +14,6 @@ import {
   Sparkles,
   Undo2,
   RotateCcw,
-  Power,
 } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import { useProfileStore } from "@/store/profile-store";
@@ -212,16 +211,18 @@ export default function SpecialExpensesPage() {
           e.stopPropagation();
           store.toggleSpecialExpenseEnabled(item.id);
         }}
-        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm border transition active:scale-95 ${
-          enabled
-            ? "bg-emerald-500 text-white border-emerald-500"
-            : "bg-white text-gray-400 border-gray-300"
+        className={`relative w-9 h-5 rounded-full transition shadow-sm ring-2 ring-white/90 shrink-0 ${
+          enabled ? "bg-emerald-500" : "bg-gray-300"
         }`}
         title={enabled ? "กดเพื่อไม่รวมรายการนี้ในแผน" : "กดเพื่อรวมรายการนี้ในแผน"}
         aria-label={enabled ? "ปิดรายการ" : "เปิดรายการ"}
+        aria-pressed={enabled}
       >
-        <Power size={10} />
-        {enabled ? "รวมในแผน" : "ปิด"}
+        <span
+          className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${
+            enabled ? "left-[18px]" : "left-0.5"
+          }`}
+        />
       </button>
     );
   };
