@@ -23,6 +23,7 @@ import {
   Loader2,
   Archive,
   Upload,
+  Pencil,
 } from "lucide-react";
 import { useClients } from "@/hooks/useClients";
 import { useActiveClientStore } from "@/store/active-client-store";
@@ -55,6 +56,46 @@ export default function ClientsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<Client | null>(null);
   const [migrating, setMigrating] = useState(false);
+
+  // Rename popup state — opens when the user clicks the pencil icon on a
+  // client card. `editName` / `editNickname` are drafts; saving goes through
+  // the standard `update()` mutator so activeClient name label refreshes too.
+  const [renameTarget, setRenameTarget] = useState<Client | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editNickname, setEditNickname] = useState("");
+  const [renaming, setRenaming] = useState(false);
+
+  const openRename = (c: Client) => {
+    setRenameTarget(c);
+    setEditName(c.name);
+    setEditNickname(c.nickname || "");
+  };
+
+  const handleRename = async () => {
+    if (!renameTarget) return;
+    const trimmed = editName.trim();
+    if (!trimmed) {
+      toast.error("กรุณาใส่ชื่อ");
+      return;
+    }
+    setRenaming(true);
+    try {
+      const updated = await update(renameTarget.id, {
+        name: trimmed,
+        nickname: editNickname.trim() || null,
+      });
+      // Keep the active-client label in sync so the top-right chip refreshes.
+      if (activeClientId === renameTarget.id) {
+        setActive(updated.id, updated.name);
+      }
+      toast.success(`เปลี่ยนชื่อเป็น ${trimmed}`);
+      setRenameTarget(null);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "เปลี่ยนชื่อไม่สำเร็จ");
+    } finally {
+      setRenaming(false);
+    }
+  };
 
   /**
    * Pick a default name for a new client — "ลูกค้า N" where N is
@@ -296,6 +337,13 @@ export default function ClientsPage() {
                         เปิด
                       </button>
                       <button
+                        onClick={() => openRename(c)}
+                        className="p-2 rounded-lg text-gray-300 hover:text-indigo-600 hover:bg-indigo-50 transition"
+                        title="เปลี่ยนชื่อ"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      <button
                         onClick={() => handleArchive(c)}
                         className="p-2 rounded-lg text-gray-300 hover:text-amber-600 hover:bg-amber-50 transition"
                         title="จัดเก็บ"
@@ -389,6 +437,73 @@ export default function ClientsPage() {
                 }`}
               >
                 {submitting && <Loader2 size={14} className="animate-spin" />}
+                บันทึก
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rename Client Popup */}
+      {renameTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+          onClick={() => !renaming && setRenameTarget(null)}
+        >
+          <div
+            className="glass rounded-2xl p-5 mx-6 w-full max-w-xs md:max-w-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-sm font-bold text-gray-700 mb-1">
+              เปลี่ยนชื่อ client
+            </div>
+            <div className="text-[13px] text-gray-400 mb-3">
+              แก้ชื่อหรือชื่อเล่นได้ตามต้องการ
+            </div>
+            <input
+              type="text"
+              autoFocus
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              onFocus={(e) => e.target.select()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleRename();
+                if (e.key === "Escape") setRenameTarget(null);
+              }}
+              className="w-full text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-400 transition mb-2"
+              placeholder="ชื่อ-นามสกุล"
+              disabled={renaming}
+            />
+            <input
+              type="text"
+              value={editNickname}
+              onChange={(e) => setEditNickname(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleRename();
+                if (e.key === "Escape") setRenameTarget(null);
+              }}
+              className="w-full text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-400 transition mb-3"
+              placeholder="ชื่อเล่น (ไม่บังคับ)"
+              disabled={renaming}
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => setRenameTarget(null)}
+                disabled={renaming}
+                className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-500 text-sm font-medium hover:bg-gray-200 disabled:opacity-50 transition"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={handleRename}
+                disabled={renaming}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition flex items-center justify-center gap-1.5 ${
+                  renaming
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-indigo-500 text-white hover:bg-indigo-600"
+                }`}
+              >
+                {renaming && <Loader2 size={14} className="animate-spin" />}
                 บันทึก
               </button>
             </div>

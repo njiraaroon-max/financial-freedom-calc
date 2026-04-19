@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Save, Scale, Trash2, Table, LayoutList } from "lucide-react";
+import { Plus, Save, Trash2, Table, LayoutList, Eye, EyeOff } from "lucide-react";
 import { useBalanceSheetStore } from "@/store/balance-sheet-store";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
@@ -12,16 +12,21 @@ import type { AssetCategory, LiabilityCategory } from "@/types/balance-sheet";
 import BalanceSheetItemRow from "@/components/BalanceSheetItemRow";
 import BalanceSheetTable from "@/components/BalanceSheetTable";
 import CategoryPopup from "@/components/CategoryPopup";
-import MoneyInput from "@/components/MoneyInput";
 
 function formatCurrency(n: number): string {
   return `฿${n.toLocaleString("th-TH")}`;
 }
 
-function parseNum(s: string): number {
-  const cleaned = s.replace(/[^0-9.-]/g, "");
-  return Number(cleaned) || 0;
-}
+// Default names shown when a user adds a fresh row. Users can rename inline.
+const ASSET_DEFAULT_NAMES: Record<AssetCategory, string> = {
+  liquid: "สินทรัพย์สภาพคล่อง",
+  investment: "สินทรัพย์ลงทุน",
+  personal: "สินทรัพย์ใช้ส่วนตัว",
+};
+const LIABILITY_DEFAULT_NAMES: Record<LiabilityCategory, string> = {
+  short_term: "หนี้สินระยะสั้น",
+  long_term: "หนี้สินระยะยาว",
+};
 
 export default function BalanceSheetPage() {
   const {
@@ -42,7 +47,7 @@ export default function BalanceSheetPage() {
     getNetWorth,
   } = useBalanceSheetStore();
 
-  const { setVariable, variables } = useVariableStore();
+  const { setVariable } = useVariableStore();
 
   const [hasSaved, setHasSaved] = useState(false);
   const [showTable, setShowTable] = useState(true);
@@ -51,10 +56,10 @@ export default function BalanceSheetPage() {
     itemId: string;
     currentValue: string;
   } | null>(null);
-  const [addPopup, setAddPopup] = useState<"asset" | "liability" | null>(null);
-  const [newItemEdit, setNewItemEdit] = useState<{ id: string; name: string } | null>(null);
-  const [newItemValue, setNewItemValue] = useState(0);
-  const [newItemName, setNewItemName] = useState("");
+
+  // Card-view-only optimize toggle (mobile). The table view manages its
+  // own optimize state internally — both patterns land on the same UX.
+  const [cardOptimize, setCardOptimize] = useState(false);
 
   const totalAssets = getTotalAssets();
   const totalLiabilities = getTotalLiabilities();
@@ -65,6 +70,15 @@ export default function BalanceSheetPage() {
   const personalTotal = getTotalByAssetType("personal");
   const shortTermTotal = getTotalByLiabilityType("short_term");
   const longTermTotal = getTotalByLiabilityType("long_term");
+
+  // Wrapped add handlers — tag the item with its category right away so the
+  // table's inline "+ เพิ่ม..." buttons can skip the old CategoryPopup flow.
+  const handleAddAsset = (type: AssetCategory) => {
+    addAsset(ASSET_DEFAULT_NAMES[type], type);
+  };
+  const handleAddLiability = (type: LiabilityCategory) => {
+    addLiability(LIABILITY_DEFAULT_NAMES[type], type);
+  };
 
   const handleSaveVariables = () => {
     setVariable({ key: "total_assets", label: "สินทรัพย์รวม", value: totalAssets, source: "balance-sheet" });
@@ -146,39 +160,61 @@ export default function BalanceSheetPage() {
             shortTermTotal={shortTermTotal}
             longTermTotal={longTermTotal}
             onUpdateValue={(id, value) => updateValue(id, value)}
+            onUpdateName={(id, name) => updateName(id, name)}
+            onRemoveItem={(id) => removeItem(id)}
+            onAddAsset={handleAddAsset}
+            onAddLiability={handleAddLiability}
           />
-
-          {/* spacer for FAB */}
-          <div className="h-4" />
         </div>
       </div>
 
       {/* === CARD VIEW === (hide on iPad) */}
       {!showTable && (
         <div className="md:hidden">
-          {/* Assets Section */}
-          <div className="px-4 md:px-8 mt-4">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-sm font-bold text-gray-700">สินทรัพย์</h2>
-              <button
-                onClick={() => setAddPopup("asset")}
-                className="flex items-center gap-1 text-xs text-[var(--color-primary)] font-medium px-2 py-1 rounded-lg hover:bg-indigo-50 transition"
-              >
-                <Plus size={14} />
-                เพิ่ม
-              </button>
-            </div>
+          {/* Optimize toolbar — mirrors the table-view toolbar */}
+          <div className="px-4 mt-3 flex items-center justify-end">
+            <button
+              onClick={() => setCardOptimize((v) => !v)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition ${
+                cardOptimize
+                  ? "bg-indigo-500 text-white shadow-sm"
+                  : "bg-white border border-gray-200 text-gray-600 hover:border-indigo-300"
+              }`}
+              title={cardOptimize ? "แสดงทุกรายการ" : "ซ่อนรายการที่เป็น 0"}
+            >
+              {cardOptimize ? <EyeOff size={13} /> : <Eye size={13} />}
+              {cardOptimize ? "Optimize: เปิด" : "Optimize"}
+            </button>
+          </div>
+
+          {/* Assets Section — one sub-section per category with embedded + row */}
+          <div className="px-4 md:px-8 mt-3">
+            <h2 className="text-sm font-bold text-gray-700 mb-2">สินทรัพย์</h2>
 
             {(["liquid", "investment", "personal"] as const).map((type) => {
-              const items = assets.filter((a) => a.assetType === type);
-              const totals = { liquid: liquidTotal, investment: investmentTotal, personal: personalTotal };
-              const labels = { liquid: "สินทรัพย์สภาพคล่อง", investment: "สินทรัพย์ลงทุน", personal: "สินทรัพย์ใช้ส่วนตัว" };
-              if (items.length === 0) return null;
+              const allItems = assets.filter((a) => a.assetType === type);
+              const items = cardOptimize
+                ? allItems.filter((x) => x.value > 0)
+                : allItems;
+              const totals = {
+                liquid: liquidTotal,
+                investment: investmentTotal,
+                personal: personalTotal,
+              };
+              const labels = {
+                liquid: "สินทรัพย์สภาพคล่อง",
+                investment: "สินทรัพย์ลงทุน",
+                personal: "สินทรัพย์ใช้ส่วนตัว",
+              };
               return (
                 <div key={type} className="mb-3">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[14px] font-medium text-emerald-600">{labels[type]}</span>
-                    <span className="text-[14px] font-bold text-emerald-700">{formatCurrency(totals[type])}</span>
+                    <span className="text-[14px] font-medium text-emerald-600">
+                      {labels[type]}
+                    </span>
+                    <span className="text-[14px] font-bold text-emerald-700">
+                      {formatCurrency(totals[type])}
+                    </span>
                   </div>
                   {items.map((item) => (
                     <BalanceSheetItemRow
@@ -186,13 +222,30 @@ export default function BalanceSheetPage() {
                       name={item.name}
                       value={item.value}
                       colorType="asset"
-                      categoryLabel={ASSET_CATEGORIES.find((c) => c.value === item.assetType)?.label}
+                      categoryLabel={
+                        ASSET_CATEGORIES.find((c) => c.value === item.assetType)
+                          ?.label
+                      }
                       onValueChange={(val) => updateValue(item.id, val)}
                       onNameChange={(name) => updateName(item.id, name)}
                       onRemove={() => removeItem(item.id)}
-                      onCategoryClick={() => setCategoryPopup({ type: "asset", itemId: item.id, currentValue: item.assetType })}
+                      onCategoryClick={() =>
+                        setCategoryPopup({
+                          type: "asset",
+                          itemId: item.id,
+                          currentValue: item.assetType,
+                        })
+                      }
                     />
                   ))}
+                  {/* Inline add row, per category */}
+                  <button
+                    onClick={() => handleAddAsset(type)}
+                    className="mt-1 w-full flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium text-emerald-600 border border-dashed border-emerald-200 bg-emerald-50/40 hover:bg-emerald-50 transition"
+                  >
+                    <Plus size={14} />
+                    เพิ่ม{labels[type]}
+                  </button>
                 </div>
               );
             })}
@@ -200,27 +253,32 @@ export default function BalanceSheetPage() {
 
           {/* Liabilities Section */}
           <div className="px-4 md:px-8 mt-4">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-sm font-bold text-gray-700">หนี้สิน</h2>
-              <button
-                onClick={() => setAddPopup("liability")}
-                className="flex items-center gap-1 text-xs text-[var(--color-primary)] font-medium px-2 py-1 rounded-lg hover:bg-indigo-50 transition"
-              >
-                <Plus size={14} />
-                เพิ่ม
-              </button>
-            </div>
+            <h2 className="text-sm font-bold text-gray-700 mb-2">หนี้สิน</h2>
 
             {(["short_term", "long_term"] as const).map((type) => {
-              const items = liabilities.filter((l) => l.liabilityType === type);
-              const totals = { short_term: shortTermTotal, long_term: longTermTotal };
-              const labels = { short_term: "หนี้สินระยะสั้น", long_term: "หนี้สินระยะยาว" };
-              if (items.length === 0) return null;
+              const allItems = liabilities.filter(
+                (l) => l.liabilityType === type,
+              );
+              const items = cardOptimize
+                ? allItems.filter((x) => x.value > 0)
+                : allItems;
+              const totals = {
+                short_term: shortTermTotal,
+                long_term: longTermTotal,
+              };
+              const labels = {
+                short_term: "หนี้สินระยะสั้น",
+                long_term: "หนี้สินระยะยาว",
+              };
               return (
                 <div key={type} className="mb-3">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[14px] font-medium text-red-600">{labels[type]}</span>
-                    <span className="text-[14px] font-bold text-red-700">{formatCurrency(totals[type])}</span>
+                    <span className="text-[14px] font-medium text-red-600">
+                      {labels[type]}
+                    </span>
+                    <span className="text-[14px] font-bold text-red-700">
+                      {formatCurrency(totals[type])}
+                    </span>
                   </div>
                   {items.map((item) => (
                     <BalanceSheetItemRow
@@ -228,13 +286,31 @@ export default function BalanceSheetPage() {
                       name={item.name}
                       value={item.value}
                       colorType="liability"
-                      categoryLabel={LIABILITY_CATEGORIES.find((c) => c.value === item.liabilityType)?.label}
+                      categoryLabel={
+                        LIABILITY_CATEGORIES.find(
+                          (c) => c.value === item.liabilityType,
+                        )?.label
+                      }
                       onValueChange={(val) => updateValue(item.id, val)}
                       onNameChange={(name) => updateName(item.id, name)}
                       onRemove={() => removeItem(item.id)}
-                      onCategoryClick={() => setCategoryPopup({ type: "liability", itemId: item.id, currentValue: item.liabilityType })}
+                      onCategoryClick={() =>
+                        setCategoryPopup({
+                          type: "liability",
+                          itemId: item.id,
+                          currentValue: item.liabilityType,
+                        })
+                      }
                     />
                   ))}
+                  {/* Inline add row, per category */}
+                  <button
+                    onClick={() => handleAddLiability(type)}
+                    className="mt-1 w-full flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium text-red-600 border border-dashed border-red-200 bg-red-50/40 hover:bg-red-50 transition"
+                  >
+                    <Plus size={14} />
+                    เพิ่ม{labels[type]}
+                  </button>
                 </div>
               );
             })}
@@ -269,115 +345,7 @@ export default function BalanceSheetPage() {
         />
       </div>
 
-      {/* Floating Action Buttons */}
-      <div className="fixed bottom-6 right-4 z-30 flex flex-col gap-2">
-        <button
-          onClick={() => setAddPopup("asset")}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-200 hover:bg-emerald-600 active:scale-95 transition-all"
-        >
-          <Plus size={14} />
-          เพิ่มสินทรัพย์
-        </button>
-        <button
-          onClick={() => setAddPopup("liability")}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-red-500 text-white text-xs font-bold shadow-lg shadow-red-200 hover:bg-red-600 active:scale-95 transition-all"
-        >
-          <Plus size={14} />
-          เพิ่มหนี้สิน
-        </button>
-      </div>
-
-      {/* Add Asset Popup — choose category */}
-      {addPopup === "asset" && (
-        <CategoryPopup
-          title="เพิ่มสินทรัพย์ประเภท"
-          options={ASSET_CATEGORIES}
-          selectedValue=""
-          onSelect={(value) => {
-            const defaultNames: Record<string, string> = { liquid: "สินทรัพย์สภาพคล่อง", investment: "สินทรัพย์ลงทุน", personal: "สินทรัพย์ส่วนตัว" };
-            const name = defaultNames[value] || "สินทรัพย์ใหม่";
-            const id = addAsset(name, value as AssetCategory);
-            setAddPopup(null);
-            setNewItemName(name);
-            setNewItemValue(0);
-            setNewItemEdit({ id, name });
-          }}
-          onClose={() => setAddPopup(null)}
-        />
-      )}
-
-      {/* Add Liability Popup — choose category */}
-      {addPopup === "liability" && (
-        <CategoryPopup
-          title="เพิ่มหนี้สินประเภท"
-          options={LIABILITY_CATEGORIES}
-          selectedValue=""
-          onSelect={(value) => {
-            const defaultNames: Record<string, string> = { short_term: "หนี้สินระยะสั้น", long_term: "หนี้สินระยะยาว" };
-            const name = defaultNames[value] || "หนี้สินใหม่";
-            const id = addLiability(name, value as LiabilityCategory);
-            setAddPopup(null);
-            setNewItemName(name);
-            setNewItemValue(0);
-            setNewItemEdit({ id, name });
-          }}
-          onClose={() => setAddPopup(null)}
-        />
-      )}
-
-      {/* New Item — Name + Value Popup */}
-      {newItemEdit && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
-          onClick={() => {
-            setNewItemEdit(null);
-          }}
-        >
-          <div
-            className="glass rounded-2xl p-5 mx-6 w-full max-w-xs md:max-w-sm"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="text-sm font-bold text-gray-700 mb-3">
-              เพิ่มรายการ
-            </div>
-            <input
-              type="text"
-              autoFocus
-              value={newItemName}
-              onChange={(e) => setNewItemName(e.target.value)}
-              className="w-full text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition mb-3"
-              placeholder="ชื่อรายการ"
-            />
-            <MoneyInput
-              value={newItemValue}
-              onChange={setNewItemValue}
-              placeholder="มูลค่า"
-              unit="บาท"
-              className="w-full text-center text-lg font-bold bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 transition"
-            />
-            <div className="flex gap-2 mt-4">
-              <button
-                onClick={() => setNewItemEdit(null)}
-                className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-500 text-sm font-medium hover:bg-gray-200 transition"
-              >
-                ยกเลิก
-              </button>
-              <button
-                onClick={() => {
-                  updateName(newItemEdit.id, newItemName);
-                  updateValue(newItemEdit.id, newItemValue);
-                  setNewItemEdit(null);
-                }}
-                className="flex-1 py-2.5 rounded-xl bg-[var(--color-primary)] text-white text-sm font-bold hover:bg-[var(--color-primary-dark)] transition"
-              >
-                ตกลง
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Category Popups (card view) */}
+      {/* Category Popups (card view — for reassigning existing item's category) */}
       {categoryPopup && categoryPopup.type === "asset" && (
         <CategoryPopup
           title="ประเภทสินทรัพย์"
@@ -396,7 +364,10 @@ export default function BalanceSheetPage() {
           options={LIABILITY_CATEGORIES}
           selectedValue={categoryPopup.currentValue}
           onSelect={(value) => {
-            setLiabilityCategory(categoryPopup.itemId, value as LiabilityCategory);
+            setLiabilityCategory(
+              categoryPopup.itemId,
+              value as LiabilityCategory,
+            );
             setCategoryPopup(null);
           }}
           onClose={() => setCategoryPopup(null)}
