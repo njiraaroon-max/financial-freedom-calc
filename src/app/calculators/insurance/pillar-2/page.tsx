@@ -1074,7 +1074,7 @@ export default function Pillar2Page() {
                 onClick={() => {
                   const brackets = [...(p2.premiumBrackets || [])];
                   const lastTo = brackets.length > 0 ? brackets[brackets.length - 1].ageTo + 1 : currentAge;
-                  brackets.push({ ageFrom: lastTo, ageTo: Math.min(lastTo + 4, 90), annualPremium: 0 });
+                  brackets.push({ ageFrom: lastTo, ageTo: Math.min(lastTo + 4, 99), annualPremium: 0 });
                   update({ premiumBrackets: brackets });
                 }}
                 className="text-[14px] text-teal-600 font-bold hover:underline flex items-center gap-1"
@@ -1086,10 +1086,10 @@ export default function Pillar2Page() {
                   onClick={() => {
                     const defaults: PremiumBracket[] = [];
                     const startAge = Math.floor(currentAge / 5) * 5;
-                    for (let a = startAge; a <= 85; a += 5) {
-                      defaults.push({ ageFrom: Math.max(a, currentAge), ageTo: Math.min(a + 4, 90), annualPremium: 0 });
+                    for (let a = startAge; a <= 95; a += 5) {
+                      defaults.push({ ageFrom: Math.max(a, currentAge), ageTo: Math.min(a + 4, 99), annualPremium: 0 });
                     }
-                    const filtered = defaults.filter((b) => b.ageTo >= currentAge && b.ageFrom <= 90);
+                    const filtered = defaults.filter((b) => b.ageTo >= currentAge && b.ageFrom <= 99);
                     update({ premiumBrackets: filtered });
                   }}
                   className="text-[14px] text-gray-400 hover:text-teal-600 hover:underline"
