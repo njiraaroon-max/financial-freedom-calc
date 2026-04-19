@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { Save, Plus, Trash2, TrendingUp, Dice5, BarChart3, RefreshCw, TrendingDown } from "lucide-react";
+import { Save, Plus, Trash2, TrendingUp, Dice5, BarChart3, RefreshCw, TrendingDown, Lightbulb } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import { useInsuranceStore } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
@@ -100,6 +100,66 @@ function AgeInput({
   );
 }
 
+// Compact percentage editor with draft-buffer semantics so users can freely
+// edit digits / decimal points without the rendered value snapping back.
+// `value` is in decimal form (0.05 = 5%); `onChange` emits decimal form.
+function PercentInput({
+  value,
+  onChange,
+  min = 0,
+  max = 100,
+  widthClass = "w-14",
+  ringClass = "focus:ring-[var(--color-primary)]",
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  min?: number;
+  max?: number;
+  widthClass?: string;
+  ringClass?: string;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const pct = value * 100;
+  // Trim trailing .0 for a cleaner display (3 instead of 3.0).
+  const committedDisplay = Number.isFinite(pct)
+    ? String(Math.round(pct * 10) / 10)
+    : "";
+  const display = draft !== null ? draft : committedDisplay;
+
+  return (
+    <span className="inline-flex items-center gap-0.5 align-middle">
+      <input
+        type="text"
+        inputMode="decimal"
+        value={display}
+        onFocus={(e) => {
+          setDraft(committedDisplay);
+          e.currentTarget.select();
+        }}
+        onChange={(e) => {
+          // allow digits + single dot
+          let raw = e.target.value.replace(/[^\d.]/g, "").slice(0, 6);
+          const firstDot = raw.indexOf(".");
+          if (firstDot !== -1) {
+            raw =
+              raw.slice(0, firstDot + 1) +
+              raw.slice(firstDot + 1).replace(/\./g, "");
+          }
+          setDraft(raw);
+          if (raw === "" || raw === ".") return;
+          const n = parseFloat(raw);
+          if (!Number.isFinite(n)) return;
+          const clamped = Math.max(min, Math.min(max, n));
+          onChange(clamped / 100);
+        }}
+        onBlur={() => setDraft(null)}
+        className={`glass ${widthClass} text-xs font-semibold rounded-lg px-1.5 py-0.5 outline-none focus:ring-2 ${ringClass} text-right`}
+      />
+      <span className="text-[13px] text-gray-500">%</span>
+    </span>
+  );
+}
+
 export default function InvestmentPlanPage() {
   return (
     <Suspense fallback={null}>
@@ -124,6 +184,9 @@ function InvestmentPlanPageInner() {
     if (searchParams?.get("mode") === "mc") setSimMode("montecarlo");
   }, [searchParams]);
   const [mcSeed, setMcSeed] = useState<number>(0xC0FFEE);
+  // Shortcut-hint return rate (in decimal). Default 5% — user can edit to see
+  // how required monthly savings change with return assumptions.
+  const [hintReturn, setHintReturn] = useState<number>(0.05);
 
   const a = store.assumptions;
 
@@ -192,6 +255,28 @@ function InvestmentPlanPageInner() {
   const investAtRetireGood = investResult.length > 0 ? investResult[investResult.length - 1].goodCase : 0;
   const investAtRetireCost = investResult.length > 0 ? investResult[investResult.length - 1].cost : 0;
   const finalShortage = shortage - investAtRetire;
+
+  // ---- Shortcut hint: required monthly/yearly savings to close the gap ----
+  // Model: starting balance `P` (currentSavings) grows at `hintReturn` for `n`
+  // years; monthly savings `m` added as an ordinary annuity approximated with
+  // annual compounding:
+  //     S = P * (1+r)^n + 12*m * [((1+r)^n - 1) / r]
+  // Solving for m gives the required monthly contribution.
+  const hintN = Math.max(0, yearsToRetire);
+  const hintS = Math.max(0, shortage);
+  const hintP = initialAmount;
+  const hintMonthly = (() => {
+    if (hintN <= 0 || hintS <= 0) return 0;
+    if (hintReturn === 0) {
+      return Math.max(0, (hintS - hintP) / (12 * hintN));
+    }
+    const growth = Math.pow(1 + hintReturn, hintN);
+    const numerator = hintS - hintP * growth;
+    if (numerator <= 0) return 0; // existing savings + growth already cover
+    return (numerator * hintReturn) / (12 * (growth - 1));
+  })();
+  const hintYearly = hintMonthly * 12;
+  const hintAlreadyCovered = hintN > 0 && hintS > 0 && hintMonthly === 0;
 
   // ---- Monte Carlo simulation (10,000 sims; recomputed only เมื่ออยู่ใน MC tab) ----
   const mcTargetAmount = shortage > 0 ? shortage : 0;
@@ -483,6 +568,73 @@ function InvestmentPlanPageInner() {
           </div>
         </div>
 
+        {/* Shortcut hint — required monthly/yearly savings to hit the target */}
+        {shortage > 0 && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3.5">
+            <div className="flex items-start gap-2">
+              <Lightbulb size={14} className="text-amber-500 mt-0.5 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-[10px] font-bold tracking-wide uppercase text-amber-700 mb-1.5">
+                  แผนออมอย่างง่าย · Shortcut
+                </div>
+                {hintN <= 0 ? (
+                  <div className="text-[12px] text-red-600">
+                    เหลือเวลาถึงเกษียณ 0 ปี — ตั้งอายุเกษียณก่อน
+                  </div>
+                ) : hintAlreadyCovered ? (
+                  <div className="text-[12px] text-emerald-700 leading-relaxed">
+                    เงินต้นปัจจุบัน ฿{fmt(hintP)} เติบโตที่{" "}
+                    <PercentInput
+                      value={hintReturn}
+                      onChange={setHintReturn}
+                      min={0}
+                      max={20}
+                      ringClass="focus:ring-amber-400"
+                    />{" "}
+                    นาน {hintN} ปี ก็ครอบคลุมเป้าแล้ว ✓ ไม่ต้องออมเพิ่ม
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-[12px] text-gray-700 leading-relaxed">
+                      เพื่อบรรลุเป้าทุนเกษียณ{" "}
+                      <b className="text-red-600">฿{fmt(hintS)}</b> ใน{" "}
+                      <b>{hintN} ปี</b> ที่ผลตอบแทน{" "}
+                      <PercentInput
+                        value={hintReturn}
+                        onChange={setHintReturn}
+                        min={0}
+                        max={20}
+                        ringClass="focus:ring-amber-400"
+                      />{" "}
+                      ต้องออมคงที่:
+                    </div>
+                    <div className="flex items-baseline flex-wrap gap-x-3 gap-y-1 mt-2">
+                      <div>
+                        <span className="text-[11px] text-gray-500">เดือนละ</span>{" "}
+                        <span className="text-lg font-extrabold text-[#1e3a5f] tabular-nums">
+                          ฿{fmt(hintMonthly)}
+                        </span>
+                      </div>
+                      <div className="text-gray-300">·</div>
+                      <div>
+                        <span className="text-[11px] text-gray-500">ปีละ</span>{" "}
+                        <span className="text-[13px] font-bold text-[#1e3a5f] tabular-nums">
+                          ฿{fmt(hintYearly)}
+                        </span>
+                      </div>
+                    </div>
+                    {hintP > 0 && (
+                      <div className="text-[10.5px] text-gray-400 mt-1.5 leading-relaxed">
+                        คำนวณจากเงินต้น ฿{fmt(hintP)} เติบโตด้วยผลตอบแทนเดียวกัน
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Investment plan phases */}
         <div className="glass rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-3">
@@ -530,53 +682,37 @@ function InvestmentPlanPageInner() {
                   <span className="text-[13px] text-gray-400">({Math.max(plan.yearEnd - plan.yearStart + 1, 0)} ปี)</span>
                 </div>
 
-                {/* Monthly amount slider */}
-                <div className="mb-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[13px] text-gray-500">ออม/เดือน</span>
+                {/* Monthly savings + expected return — compact single row.
+                    Number inputs only (sliders removed) to save vertical space
+                    and let users type exact values directly. */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[13px] text-gray-500 whitespace-nowrap">
+                      ออม/เดือน
+                    </span>
                     <MoneyInput
                       value={plan.monthlyAmount}
-                      onChange={(v) => store.updateInvestmentPlan(plan.id, { monthlyAmount: v })}
+                      onChange={(v) =>
+                        store.updateInvestmentPlan(plan.id, { monthlyAmount: v })
+                      }
                       unit="บาท"
-                      className="glass w-24 text-xs font-semibold rounded-lg px-2 py-1 outline-none focus:ring-2 text-right"
+                      className="glass w-28 text-xs font-semibold rounded-lg px-2 py-1 outline-none focus:ring-2 text-right"
                       ringClass="focus:ring-[var(--color-primary)]"
                     />
                   </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={100000}
-                    step={1000}
-                    value={plan.monthlyAmount}
-                    onChange={(e) => store.updateInvestmentPlan(plan.id, { monthlyAmount: Number(e.target.value) })}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#1e3a5f]"
-                  />
-                  <div className="flex justify-between text-[12px] text-gray-400 mt-0.5">
-                    <span>0</span>
-                    <span>50,000</span>
-                    <span>100,000</span>
-                  </div>
-                </div>
-
-                {/* Expected return slider */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[13px] text-gray-500">ผลตอบแทนที่คาดหวัง</span>
-                    <span className="text-xs font-bold text-[#1e3a5f]">{(plan.expectedReturn * 100).toFixed(1)}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={0.15}
-                    step={0.005}
-                    value={plan.expectedReturn}
-                    onChange={(e) => store.updateInvestmentPlan(plan.id, { expectedReturn: Number(e.target.value) })}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#1e3a5f]"
-                  />
-                  <div className="flex justify-between text-[12px] text-gray-400 mt-0.5">
-                    <span>0%</span>
-                    <span>7.5%</span>
-                    <span>15%</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[13px] text-gray-500 whitespace-nowrap">
+                      ผลตอบแทน
+                    </span>
+                    <PercentInput
+                      value={plan.expectedReturn}
+                      onChange={(v) =>
+                        store.updateInvestmentPlan(plan.id, { expectedReturn: v })
+                      }
+                      min={0}
+                      max={15}
+                      widthClass="w-16"
+                    />
                   </div>
                 </div>
 
