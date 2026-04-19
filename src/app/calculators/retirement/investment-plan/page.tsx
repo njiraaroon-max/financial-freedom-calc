@@ -865,14 +865,14 @@ function InvestmentPlanPageInner() {
                           <span className="text-[12px] text-gray-500 whitespace-nowrap">
                             ออม
                           </span>
-                          <div className="inline-flex rounded-md border border-gray-200 bg-gray-50 p-0.5 text-[10.5px] font-semibold">
+                          <div className="inline-flex rounded-lg border border-gray-200 bg-gray-100 p-0.5 text-[11px] font-bold">
                             <button
                               type="button"
                               onClick={() => setMode("monthly")}
-                              className={`px-1.5 py-0.5 rounded transition ${
+                              className={`px-2 py-0.5 rounded-md transition ${
                                 mode === "monthly"
-                                  ? "bg-white text-[#1e3a5f] shadow-sm"
-                                  : "text-gray-400 hover:text-gray-600"
+                                  ? "bg-indigo-600 text-white shadow-sm"
+                                  : "text-gray-500 hover:text-gray-700"
                               }`}
                               aria-pressed={mode === "monthly"}
                             >
@@ -881,10 +881,10 @@ function InvestmentPlanPageInner() {
                             <button
                               type="button"
                               onClick={() => setMode("yearly")}
-                              className={`px-1.5 py-0.5 rounded transition ${
+                              className={`px-2 py-0.5 rounded-md transition ${
                                 mode === "yearly"
-                                  ? "bg-white text-[#1e3a5f] shadow-sm"
-                                  : "text-gray-400 hover:text-gray-600"
+                                  ? "bg-indigo-600 text-white shadow-sm"
+                                  : "text-gray-500 hover:text-gray-700"
                               }`}
                               aria-pressed={mode === "yearly"}
                             >
@@ -944,7 +944,7 @@ function InvestmentPlanPageInner() {
                             }
                           }}
                           aria-label={`ปรับ % ผลตอบแทน Phase ${idx + 1}`}
-                          className="w-full h-1 accent-indigo-500 cursor-pointer"
+                          className="slider-return-bicolor w-full h-1.5 cursor-pointer"
                         />
                         <div className="flex justify-between text-[9px] text-gray-400 mt-0.5 tabular-nums">
                           <span>−10%</span>
