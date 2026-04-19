@@ -287,7 +287,7 @@ function InvestmentPlanPageInner() {
   const hintN = Math.max(0, yearsToRetire);
   const hintS = Math.max(0, shortage);
   const hintP = initialAmount;
-  const hintMonthly = (() => {
+  const hintMonthlyRaw = (() => {
     if (hintN <= 0 || hintS <= 0) return 0;
     if (hintReturn === 0) {
       return Math.max(0, (hintS - hintP) / (12 * hintN));
@@ -297,6 +297,9 @@ function InvestmentPlanPageInner() {
     if (numerator <= 0) return 0; // existing savings + growth already cover
     return (numerator * hintReturn) / (12 * (growth - 1));
   })();
+  // Round monthly first, then derive yearly from the rounded value so that the
+  // two displayed numbers stay consistent (monthly × 12 must equal yearly).
+  const hintMonthly = Math.round(hintMonthlyRaw);
   const hintYearly = hintMonthly * 12;
   const hintAlreadyCovered = hintN > 0 && hintS > 0 && hintMonthly === 0;
 
