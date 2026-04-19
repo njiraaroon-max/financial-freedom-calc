@@ -21,13 +21,13 @@ import type { IncomeItem, ExpenseItem } from "@/types/cashflow";
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
 const W        = 1000;
-const H        = 470;
+const H        = 560;
 const NW_SMALL = 14;   // col 0, 3 (individual items)
 const NW_BIG   = 72;   // col 1, 2 (aggregate nodes) — wide enough for labels
 const GAP      = 15;   // gap between stacked items — more breathing room
 const GAP_CAT  = 48;   // extra gap between categories (fixed | variable+invest)
-const PAD_T    = 60;   // top space — room for floating category labels above col-2 nodes
-const PAD_B    = 54;   // bottom space so chart doesn't touch edge
+const PAD_T    = 90;   // top space — room for the "above" floating category pill
+const PAD_B    = 90;   // bottom space — room for the "below" floating category pill
 const plotH    = H - PAD_T - PAD_B;
 
 // Left edge of each column
@@ -340,7 +340,10 @@ export default function CashFlowSankey({ incomes, expenses, getAnnualTotal, year
       </div>
 
       {/* SVG Sankey */}
-      <div className="overflow-x-auto rounded-xl">
+      {/* `relative` makes this the positioning context for the floating
+          labels + tooltip — their `%` math is relative to SVG height, so
+          they need to anchor to the SVG's direct wrapper, not outer div. */}
+      <div className="relative overflow-x-auto rounded-xl">
         <svg
           viewBox={`0 0 ${W} ${H}`}
           style={{ minWidth: 720, width: "100%", display: "block" }}
@@ -540,45 +543,73 @@ export default function CashFlowSankey({ incomes, expenses, getAnnualTotal, year
           </g>
         </svg>
 
-        {/* ── Persistent category labels (col 2) — floating tooltip-style pills ── */}
+        {/* ── Persistent category labels (col 2) — floating tooltip-style pills.
+            First node (fixed, on top) → label ABOVE, arrow pointing DOWN.
+            Second node (variable+save, below) → label BELOW, arrow pointing UP.
+            Splitting above/below avoids the two pills crowding each other. ── */}
         {col2Nodes.map((n, i) => {
           const pctOfExp = (n.v / Math.max(totalExp, 1)) * 100;
           const displayName = n.name.replace("+", " + ");
+          const placeBelow = i > 0;   // first = above, rest = below
           return (
             <div
               key={`cat-label-${i}`}
               className="absolute pointer-events-none"
               style={{
                 left:       `${((n.x + n.w / 2) / W) * 100}%`,
-                top:        `${(n.y / H) * 100}%`,
-                transform:  "translate(-50%, calc(-100% - 8px))",
+                top:        placeBelow
+                  ? `${((n.y + n.h) / H) * 100}%`
+                  : `${(n.y / H) * 100}%`,
+                transform:  placeBelow
+                  ? "translate(-50%, 10px)"
+                  : "translate(-50%, calc(-100% - 10px))",
                 opacity:    revealed ? 1 : 0,
                 transition: `opacity 0.5s ease ${2 * 0.12 + 0.15}s`,
                 zIndex:     1,
               }}
             >
+              {/* Arrow — rendered first when below (so it sits on TOP of pill) */}
+              {placeBelow && (
+                <div
+                  className="w-0 h-0 mx-auto"
+                  style={{
+                    borderLeft:   "6px solid transparent",
+                    borderRight:  "6px solid transparent",
+                    borderBottom: `6px solid ${n.color}`,
+                  }}
+                />
+              )}
               <div
-                className="px-2.5 py-1.5 rounded-lg text-white text-[11px] whitespace-nowrap"
+                className="font-display px-3 py-2 rounded-xl text-white whitespace-nowrap"
                 style={{
                   background: n.color,
-                  boxShadow:  "0 4px 10px rgba(0,0,0,0.18)",
+                  boxShadow:  "0 6px 14px -2px rgba(0,0,0,0.22)",
+                  letterSpacing: "0.01em",
                 }}
               >
-                <div className="font-bold leading-tight">{displayName}</div>
-                <div className="flex items-center gap-1.5 mt-0.5 leading-tight">
-                  <span className="font-semibold">฿{fmtFull(n.v)}</span>
-                  <span className="opacity-85">{pctOfExp.toFixed(1)}% ของรายจ่ายรวม</span>
+                <div className="font-bold text-[13px] md:text-[14px] leading-tight">
+                  {displayName}
+                </div>
+                <div className="flex items-center gap-2 mt-1 leading-tight">
+                  <span className="font-semibold text-[12px] md:text-[13px]">
+                    ฿{fmtFull(n.v)}
+                  </span>
+                  <span className="opacity-85 text-[11px] md:text-[12px]">
+                    {pctOfExp.toFixed(1)}% ของรายจ่ายรวม
+                  </span>
                 </div>
               </div>
-              {/* Arrow pointing down to node */}
-              <div
-                className="w-0 h-0 mx-auto"
-                style={{
-                  borderLeft:  "5px solid transparent",
-                  borderRight: "5px solid transparent",
-                  borderTop:   `5px solid ${n.color}`,
-                }}
-              />
+              {/* Arrow — rendered last when above (so it sits BELOW pill) */}
+              {!placeBelow && (
+                <div
+                  className="w-0 h-0 mx-auto"
+                  style={{
+                    borderLeft:  "6px solid transparent",
+                    borderRight: "6px solid transparent",
+                    borderTop:   `6px solid ${n.color}`,
+                  }}
+                />
+              )}
             </div>
           );
         })}
