@@ -203,6 +203,8 @@ export default function WealthJourneyPage() {
     // ─── Expenses: expand every special expense (calc-link + sub-calc + inline) ───
     const specialExpensesExpanded: WealthProjectionInputs["specialExpenses"] = [];
     for (const item of retire.specialExpenses) {
+      // User-disabled items contribute nothing to the wealth projection.
+      if (item.enabled === false) continue;
       const srcKind = item.sourceKind ?? "inline";
       let yearlyRows: YearlyFlowRow[] = [];
       if (

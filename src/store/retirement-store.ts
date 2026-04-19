@@ -83,6 +83,7 @@ interface RetirementState {
   updateSpecialExpenseStartAge: (id: string, startAge: number | undefined) => void;
   updateSpecialExpenseEndAge: (id: string, endAge: number | undefined) => void;
   updateSpecialExpenseOccurAge: (id: string, occurAge: number | undefined) => void;
+  toggleSpecialExpenseEnabled: (id: string) => void;
   removeSpecialExpense: (id: string) => void;
   restoreSpecialExpense: (item: SpecialExpenseItem, index?: number) => void;
   restoreDefaultSpecialExpenses: () => void;
@@ -259,6 +260,13 @@ export const useRetirementStore = create<RetirementState>()(
         set((s) => ({
           specialExpenses: s.specialExpenses.map((e) =>
             e.id === id ? { ...e, occurAge } : e,
+          ),
+        })),
+      toggleSpecialExpenseEnabled: (id) =>
+        set((s) => ({
+          specialExpenses: s.specialExpenses.map((e) =>
+            // Undefined legacy → treat as enabled; toggle flips to false.
+            e.id === id ? { ...e, enabled: e.enabled === false ? true : false } : e,
           ),
         })),
       removeSpecialExpense: (id) =>

@@ -14,6 +14,7 @@ import {
   Sparkles,
   Undo2,
   RotateCcw,
+  Power,
 } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
 import { useProfileStore } from "@/store/profile-store";
@@ -190,6 +191,8 @@ export default function SpecialExpensesPage() {
 
   // Per-item NPV — for calc-link / sub-calc items, use registry; for inline, compute directly
   const itemNPV = (item: SpecialExpenseItem): number => {
+    // Respect user-disabled toggle: excluded from all totals/summary.
+    if (item.enabled === false) return 0;
     const srcKind = item.sourceKind ?? "inline";
     if (srcKind === "inline") return npvItemAtRetire(item, ctx);
     const key = item.calcSourceKey as Parameters<
@@ -197,6 +200,30 @@ export default function SpecialExpensesPage() {
     >[0];
     const contrib = getCashflowContribution(key, registryCtx);
     return contrib?.npvAtRetire ?? 0;
+  };
+
+  // Shared toggle pill — overlays top-right of each item card.
+  // Disabled items are dimmed but the toggle stays bright so user can re-enable.
+  const EnableToggle = ({ item }: { item: SpecialExpenseItem }) => {
+    const enabled = item.enabled !== false;
+    return (
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          store.toggleSpecialExpenseEnabled(item.id);
+        }}
+        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm border transition active:scale-95 ${
+          enabled
+            ? "bg-emerald-500 text-white border-emerald-500"
+            : "bg-white text-gray-400 border-gray-300"
+        }`}
+        title={enabled ? "กดเพื่อไม่รวมรายการนี้ในแผน" : "กดเพื่อรวมรายการนี้ในแผน"}
+        aria-label={enabled ? "ปิดรายการ" : "เปิดรายการ"}
+      >
+        <Power size={10} />
+        {enabled ? "รวมในแผน" : "ปิด"}
+      </button>
+    );
   };
 
   const totalSpecial = store.specialExpenses.reduce(
@@ -289,6 +316,11 @@ export default function SpecialExpensesPage() {
                 ? confirmDeleteId === item.id
                 : true;
               const confirmLabel = confirmDeleteId === item.id;
+              const isDisabled = item.enabled === false;
+              // Dim the card when disabled; toggle pill stays full-opacity.
+              const cardDimClass = isDisabled
+                ? "opacity-50 saturate-50"
+                : "";
 
               if (srcKind === "calc-link") {
                 const contrib = item.calcSourceKey
@@ -307,8 +339,11 @@ export default function SpecialExpensesPage() {
                       : "/calculators/retirement";
                 return (
                   <div key={item.id} className="relative">
+                    <div className="absolute -top-2 right-3 z-10">
+                      <EnableToggle item={item} />
+                    </div>
                     {confirmLabel && (
-                      <div className="absolute -top-2 right-2 z-10">
+                      <div className="absolute -top-2 left-3 z-10">
                         <button
                           onClick={() => handleRequestDelete(item.id)}
                           className="px-2 py-1 bg-red-500 text-white rounded-md text-[13px] font-bold"
@@ -317,17 +352,19 @@ export default function SpecialExpensesPage() {
                         </button>
                       </div>
                     )}
-                    <CashflowItemCard
-                      mode="calc-link"
-                      direction="expense"
-                      item={item}
-                      ctx={ctx}
-                      contribution={contrib}
-                      editHref={editHref}
-                      editLabel="ไปคำนวณ"
-                      onRemove={() => handleRequestDelete(item.id)}
-                      canRemove={canRemove}
-                    />
+                    <div className={cardDimClass}>
+                      <CashflowItemCard
+                        mode="calc-link"
+                        direction="expense"
+                        item={item}
+                        ctx={ctx}
+                        contribution={contrib}
+                        editHref={editHref}
+                        editLabel="ไปคำนวณ"
+                        onRemove={() => handleRequestDelete(item.id)}
+                        canRemove={canRemove}
+                      />
+                    </div>
                   </div>
                 );
               }
@@ -343,8 +380,11 @@ export default function SpecialExpensesPage() {
                   : null;
                 return (
                   <div key={item.id} className="relative">
+                    <div className="absolute -top-2 right-3 z-10">
+                      <EnableToggle item={item} />
+                    </div>
                     {confirmLabel && (
-                      <div className="absolute -top-2 right-2 z-10">
+                      <div className="absolute -top-2 left-3 z-10">
                         <button
                           onClick={() => handleRequestDelete(item.id)}
                           className="px-2 py-1 bg-red-500 text-white rounded-md text-[13px] font-bold"
@@ -353,17 +393,19 @@ export default function SpecialExpensesPage() {
                         </button>
                       </div>
                     )}
-                    <CashflowItemCard
-                      mode="sub-calc"
-                      direction="expense"
-                      item={item}
-                      ctx={ctx}
-                      contribution={contrib}
-                      subCalcHref="/calculators/retirement/special-expenses/travel"
-                      subCalcLabel="คำนวณรายละเอียด"
-                      onRemove={() => handleRequestDelete(item.id)}
-                      canRemove={canRemove}
-                    />
+                    <div className={cardDimClass}>
+                      <CashflowItemCard
+                        mode="sub-calc"
+                        direction="expense"
+                        item={item}
+                        ctx={ctx}
+                        contribution={contrib}
+                        subCalcHref="/calculators/retirement/special-expenses/travel"
+                        subCalcLabel="คำนวณรายละเอียด"
+                        onRemove={() => handleRequestDelete(item.id)}
+                        canRemove={canRemove}
+                      />
+                    </div>
                   </div>
                 );
               }
@@ -371,8 +413,11 @@ export default function SpecialExpensesPage() {
               // Inline
               return (
                 <div key={item.id} className="relative">
+                  <div className="absolute -top-2 right-3 z-10">
+                    <EnableToggle item={item} />
+                  </div>
                   {confirmLabel && (
-                    <div className="absolute -top-2 right-2 z-10">
+                    <div className="absolute -top-2 left-3 z-10">
                       <button
                         onClick={() => handleRequestDelete(item.id)}
                         className="px-2 py-1 bg-red-500 text-white rounded-md text-[13px] font-bold"
@@ -381,6 +426,7 @@ export default function SpecialExpensesPage() {
                       </button>
                     </div>
                   )}
+                  <div className={cardDimClass}>
                   <CashflowItemCard
                     mode="inline"
                     direction="expense"
@@ -414,6 +460,7 @@ export default function SpecialExpensesPage() {
                     onRemove={() => handleRequestDelete(item.id)}
                     canRemove={canRemove}
                   />
+                  </div>
                 </div>
               );
             })}
@@ -438,6 +485,7 @@ export default function SpecialExpensesPage() {
           </div>
           <div className="divide-y divide-gray-100">
             {store.specialExpenses.map((item) => {
+              const isDisabled = item.enabled === false;
               const npv = itemNPV(item);
               const meta = ITEM_META[item.id] || {
                 icon: Sparkles,
@@ -445,7 +493,10 @@ export default function SpecialExpensesPage() {
               };
               const Icon = meta.icon;
               return (
-                <div key={item.id} className="flex items-stretch">
+                <div
+                  key={item.id}
+                  className={`flex items-stretch ${isDisabled ? "opacity-50" : ""}`}
+                >
                   <div className="w-14 shrink-0 flex items-center justify-center bg-[#1e3a5f]/5 border-r border-gray-100">
                     <div className="w-10 h-10 rounded-full bg-[#1e3a5f] text-white flex items-center justify-center shadow-sm">
                       <Icon size={18} />
@@ -453,15 +504,24 @@ export default function SpecialExpensesPage() {
                   </div>
                   <div className="flex-1 flex items-center justify-between gap-3 px-4 py-3 min-w-0">
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-bold text-gray-800 truncate">
+                      <div className="text-xs font-bold text-gray-800 truncate flex items-center gap-1.5">
                         {item.name}
+                        {isDisabled && (
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-gray-200 text-gray-500 text-[10px] font-bold">
+                            ปิด
+                          </span>
+                        )}
                       </div>
                       <div className="text-[13px] text-gray-400 mt-0.5 leading-snug">
                         {meta.desc}
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
-                      {npv > 0 ? (
+                      {isDisabled ? (
+                        <div className="text-xs text-gray-400 italic">
+                          ไม่รวมในแผน
+                        </div>
+                      ) : npv > 0 ? (
                         <div className="text-sm font-bold text-[#1e3a5f]">
                           ฿{fmt(npv)}
                         </div>

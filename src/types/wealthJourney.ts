@@ -72,6 +72,7 @@ export interface WealthProjectionInputs {
     startAge?: number;             // for kind="annual": first age to apply outflow (default = retireAge)
     endAge?: number;               // for kind="annual": last age to apply outflow (default = lifeExpectancy + extraYears)
     occurAge?: number;             // for kind="lump": age to execute (default = retireAge)
+    enabled?: boolean;             // false = user disabled; excluded from projection
   }[];
 
   // post-retire inflows

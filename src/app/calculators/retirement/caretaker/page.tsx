@@ -2,6 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { RotateCcw, Info, X, HeartPulse, ArrowUpFromLine } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
@@ -10,6 +11,7 @@ import { useRetirementStore } from "@/store/retirement-store";
 import { useProfileStore } from "@/store/profile-store";
 import { useVariableStore } from "@/store/variable-store";
 import { calcCaretakerNPV } from "@/types/retirement";
+import { flushAllStores } from "@/lib/sync/flush-all";
 
 function fmt(n: number): string {
   return Math.round(n).toLocaleString("th-TH");
@@ -33,6 +35,7 @@ const INFLATION_OPTIONS = [
 const PROBABILITY_OPTIONS = [0.5, 0.7, 0.85, 1.0];
 
 export default function CaretakerPage() {
+  const router = useRouter();
   const store = useRetirementStore();
   const profile = useProfileStore();
   const { setVariable } = useVariableStore();
@@ -85,7 +88,7 @@ export default function CaretakerPage() {
     store.updateCaretakerParam("postRetireReturn", sourcePostRetireReturn);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setVariable({
       key: "caretaker_npv",
       label: "ค่าคนดูแลหลังเกษียณ (NPV ณ วันเกษียณ)",
@@ -93,7 +96,14 @@ export default function CaretakerPage() {
       source: "retirement-caretaker",
     });
     setHasSaved(true);
-    setTimeout(() => setHasSaved(false), 2500);
+    // Flush pending writes to Supabase before we navigate away — otherwise an
+    // in-flight autosave request can be cancelled by the route change.
+    await flushAllStores();
+    // Short delay so the "บันทึกแล้ว" success label briefly shows before
+    // the route change — matches the UX of the special-expenses save button.
+    setTimeout(() => {
+      router.push("/calculators/retirement/special-expenses");
+    }, 600);
   };
 
   return (

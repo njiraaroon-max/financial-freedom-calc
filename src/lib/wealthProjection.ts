@@ -157,6 +157,7 @@ function buildRows(
 
       // Split annual vs lump special expenses
       const specialAnnual = specialExpenses
+        .filter((s) => s.enabled !== false)
         .filter((s) => (s.kind ?? "annual") === "annual")
         .filter((s) => age >= (s.startAge ?? retireAge))
         .filter((s) => age <= (s.endAge ?? endAge))
@@ -168,6 +169,7 @@ function buildRows(
           0,
         );
       const specialLump = specialExpenses
+        .filter((s) => s.enabled !== false)
         .filter((s) => s.kind === "lump")
         .filter((s) => age === (s.occurAge ?? retireAge))
         .reduce((sum, s) => {
@@ -388,6 +390,7 @@ export function runMonteCarloProjection(
         const basicAnnual =
           inputs.basicMonthlyToday * 12 * Math.pow(1 + inputs.generalInflation, yearsFromNow);
         const specialAnnual = inputs.specialExpenses
+          .filter((s) => s.enabled !== false)
           .filter((s) => (s.kind ?? "annual") === "annual")
           .filter((s) => age >= (s.startAge ?? inputs.retireAge))
           .filter((s) => age <= (s.endAge ?? endAge))
@@ -399,6 +402,7 @@ export function runMonteCarloProjection(
             0,
           );
         const specialLump = inputs.specialExpenses
+          .filter((s) => s.enabled !== false)
           .filter((s) => s.kind === "lump")
           .filter((s) => age === (s.occurAge ?? inputs.retireAge))
           .reduce((sum, s) => {

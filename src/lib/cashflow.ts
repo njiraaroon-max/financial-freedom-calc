@@ -140,6 +140,10 @@ export function expandToYearly(
   ctx: CashflowContext,
   label?: string,
 ): YearlyFlowRow[] {
+  // User-disabled special-expense items contribute nothing to any stream.
+  if ("enabled" in item && (item as SpecialExpenseItem).enabled === false) {
+    return [];
+  }
   let n: NormalizedItem;
   if ("direction" in item) {
     n = normalizeCashflow(item as CashflowItem, ctx);
@@ -225,6 +229,8 @@ export function specialExpenseNpvAtRetire(
   ctx: CashflowContext,
   registryCtx?: CashflowRegistryContext,
 ): number {
+  // User-disabled items are excluded from any NPV aggregate.
+  if (item.enabled === false) return 0;
   const srcKind = item.sourceKind ?? "inline";
   if ((srcKind === "calc-link" || srcKind === "sub-calc") && item.calcSourceKey) {
     if (!registryCtx) return 0;

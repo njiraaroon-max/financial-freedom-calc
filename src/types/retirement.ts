@@ -99,6 +99,10 @@ export interface SpecialExpenseItem {
   occurAge?: number;              // อายุที่ใช้จริง (kind="lump"; default = retireAge)
   sourceKind?: CashflowSourceKind; // default "inline"
   calcSourceKey?: CalcSourceKey;   // e.g. "pillar2_health", "caretaker", "travel_detail"
+
+  // --- User-controlled enable/disable ---
+  // Undefined (legacy data) or true → รวมในแผน; false → ปิด ไม่นำมาคำนวณ NPV รวม
+  enabled?: boolean;
 }
 
 // ===== Saving Fund Source =====

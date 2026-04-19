@@ -85,7 +85,9 @@ export default function RetirementPlanPage() {
   // Auto-compute savedSteps based on data presence
   const a = store.assumptions;
   const totalBasicMonthly = store.basicExpenses.reduce((sum, e) => sum + e.monthlyAmount, 0);
-  const totalSpecialAmount = store.specialExpenses.reduce((sum, e) => sum + e.amount, 0);
+  const totalSpecialAmount = store.specialExpenses
+    .filter((e) => e.enabled !== false)
+    .reduce((sum, e) => sum + e.amount, 0);
 
   // Cashflow context — shared with registry for calc-linked items
   const ctx: CashflowContext = {
