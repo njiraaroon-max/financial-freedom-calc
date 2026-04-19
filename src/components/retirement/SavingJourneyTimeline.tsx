@@ -61,25 +61,33 @@ export default function SavingJourneyTimeline({
   onPhaseClick,
 }: SavingJourneyTimelineProps) {
   // ── SVG dimensions (compact) ─────────────────────────────────────
+  // Extra top room reserved for the two-line label header (amount + %)
+  // that sits ABOVE every bar at a fixed y, so labels line up into a
+  // consistent strip regardless of bar height.
   const W = 700;
-  const H = 130;
+  const H = 140;
   const leftPad = 30;
   const rightPad = 10;
-  const topPad = 12;
+  const topPad = 30;      // room for the two label rows above the plot
   const bottomPad = 18;
   const plotW = W - leftPad - rightPad;
   const plotH = H - topPad - bottomPad;
+
+  // Fixed Y positions for the top label header (viewBox space).
+  const labelAmountY = 14;
+  const labelReturnY = 24;
 
   const totalYears = Math.max(1, retireAge - currentAge);
   const yearToX = (age: number) =>
     leftPad + ((age - currentAge) / totalYears) * plotW;
 
-  // Max Y value — give a little headroom so labels don't sit flush.
+  // Max Y value — small headroom only; amount labels no longer sit
+  // inside the plot so they don't need extra space.
   const maxMonthly = Math.max(
     10_000,
     ...plans.map((p) => p.monthlyAmount),
   );
-  const yMax = maxMonthly * 1.12;
+  const yMax = maxMonthly * 1.05;
   const amountToY = (v: number) =>
     topPad + plotH - (v / yMax) * plotH;
 
@@ -180,13 +188,12 @@ export default function SavingJourneyTimeline({
 
           const fillOpacity = isDimmed ? 0.15 : isHovered ? 0.8 : baseOpacity;
 
-          // Inline label fits only if bar is wide+tall enough
-          const canFitInline = barW >= 44 && barH >= 28;
           const labelLine1 = `฿${fmtK(plan.monthlyAmount)}/ด`;
           const labelLine2 = `${(plan.expectedReturn * 100).toFixed(1)}%`;
+          const labelCenterX = x1 + barW / 2;
 
-          // Phase number placement — inside bar at top if tall enough,
-          // otherwise above the bar (outside chart fill).
+          // Phase number inside bar at top if tall enough; otherwise
+          // floats above bar with a white stroke so it stays legible.
           const chipInside = barH >= 14;
           const chipY = chipInside ? barY + 8 : Math.max(topPad + 6, barY - 4);
 
@@ -222,7 +229,7 @@ export default function SavingJourneyTimeline({
 
               {/* Phase number — on-chart, top-center of the bar */}
               <text
-                x={x1 + barW / 2}
+                x={labelCenterX}
                 y={chipY}
                 textAnchor="middle"
                 fill={chipInside ? "white" : PHASE_COLOR}
@@ -237,46 +244,30 @@ export default function SavingJourneyTimeline({
                 {idx + 1}
               </text>
 
-              {/* Inline amount + return labels */}
-              {canFitInline && (
-                <>
-                  <text
-                    x={x1 + barW / 2}
-                    y={barY + 20}
-                    textAnchor="middle"
-                    fill="#1e40af"
-                    fontSize={8}
-                    fontWeight={700}
-                  >
-                    {labelLine1}
-                  </text>
-                  <text
-                    x={x1 + barW / 2}
-                    y={barY + 30}
-                    textAnchor="middle"
-                    fill="#1e40af"
-                    fontSize={7}
-                    fontWeight={600}
-                    opacity={0.8}
-                  >
-                    {labelLine2}
-                  </text>
-                </>
-              )}
-
-              {/* Label on top when bar too narrow for inline */}
-              {!canFitInline && (
-                <text
-                  x={x1 + barW / 2}
-                  y={Math.max(topPad + 14, barY - 2)}
-                  textAnchor="middle"
-                  fill={PHASE_COLOR}
-                  fontSize={7}
-                  fontWeight={700}
-                >
-                  ฿{fmtK(plan.monthlyAmount)}
-                </text>
-              )}
+              {/* Amount + return labels — fixed at top of chart for all
+                  phases so they line up in a consistent header row. */}
+              <text
+                x={labelCenterX}
+                y={labelAmountY}
+                textAnchor="middle"
+                fill={PHASE_COLOR}
+                fontSize={8}
+                fontWeight={700}
+                opacity={isDimmed ? 0.4 : 1}
+              >
+                {labelLine1}
+              </text>
+              <text
+                x={labelCenterX}
+                y={labelReturnY}
+                textAnchor="middle"
+                fill="#6b7280"
+                fontSize={7}
+                fontWeight={600}
+                opacity={isDimmed ? 0.4 : 0.85}
+              >
+                {labelLine2}
+              </text>
 
               {/* Invisible hit area — expand clickable zone */}
               <rect
@@ -321,25 +312,6 @@ export default function SavingJourneyTimeline({
           </text>
         ))}
 
-        {/* Edge markers: "ปัจจุบัน" / "เกษียณ" */}
-        <text
-          x={yearToX(currentAge)}
-          y={topPad - 3}
-          textAnchor="start"
-          className="fill-gray-400"
-          fontSize={7}
-        >
-          ปัจจุบัน
-        </text>
-        <text
-          x={yearToX(retireAge)}
-          y={topPad - 3}
-          textAnchor="end"
-          className="fill-gray-400"
-          fontSize={7}
-        >
-          เกษียณ
-        </text>
       </svg>
     </div>
   );

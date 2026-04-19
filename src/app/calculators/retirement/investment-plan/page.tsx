@@ -741,9 +741,7 @@ function InvestmentPlanPageInner() {
                       </span>
                       {simMode === "montecarlo" && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-semibold border border-indigo-100">
-                          {presetInfo
-                            ? `${presetInfo.emoji} ${presetInfo.label}`
-                            : "⚙️ Custom"}
+                          {presetInfo ? presetInfo.label : "กำหนดเอง"}
                         </span>
                       )}
                     </div>
@@ -840,18 +838,16 @@ function InvestmentPlanPageInner() {
                   ];
                   return (
                     <div className="mt-2 pt-2 border-t border-indigo-100 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                      {/* Preset tiles — emoji only, tooltip for name */}
-                      <div className="flex items-center gap-1">
-                        <span className="text-[11px] text-gray-400 mr-0.5">🎲</span>
+                      {/* Preset pills — keyword text (no colour dot) */}
+                      <div className="flex items-center flex-wrap gap-1">
                         {presetKeys.map((k) => {
                           const preset = k !== "custom" ? RISK_PRESETS[k] : null;
                           const active = profile === k;
+                          const label = preset?.label ?? "กำหนดเอง";
                           return (
                             <button
                               key={k}
                               type="button"
-                              title={preset?.label ?? "กำหนดเอง"}
-                              aria-label={preset?.label ?? "กำหนดเอง"}
                               onClick={() => {
                                 if (k === "custom") {
                                   store.updateInvestmentPlan(plan.id, {
@@ -868,13 +864,13 @@ function InvestmentPlanPageInner() {
                                   });
                                 }
                               }}
-                              className={`w-6 h-6 rounded-md flex items-center justify-center text-[11px] border transition ${
+                              className={`px-2 py-0.5 rounded-md text-[11px] font-medium border transition ${
                                 active
-                                  ? "bg-indigo-600 border-indigo-600 scale-110 shadow-sm"
-                                  : "bg-white border-gray-200 hover:border-indigo-300"
+                                  ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                                  : "bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-700"
                               }`}
                             >
-                              {preset?.emoji ?? "⚙️"}
+                              {label}
                             </button>
                           );
                         })}
