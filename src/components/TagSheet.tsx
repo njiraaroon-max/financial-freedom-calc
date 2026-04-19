@@ -218,7 +218,7 @@ export default function TagSheet({
               onKeyDown={(e) => {
                 if (e.key === "Enter") (e.target as HTMLInputElement).blur();
               }}
-              className="w-full text-base font-bold bg-transparent border-b border-transparent focus:border-indigo-300 outline-none px-0 py-0.5 transition-colors"
+              className="w-full text-sm font-bold bg-white/60 border border-gray-200 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-400 transition"
               placeholder="ชื่อรายการ"
             />
           </div>
