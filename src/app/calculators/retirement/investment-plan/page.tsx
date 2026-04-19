@@ -715,43 +715,49 @@ function InvestmentPlanPageInner() {
             {/* Deterministic (default) */}
             {simMode === "deterministic" && (
               <div className="p-4">
-                <div className="text-xs font-bold text-[#1e3a5f] text-center mb-3">
-                  ภาพรวมพอร์ตลงทุน ณ วันเกษียณ
-                </div>
+                {/* Cap the chart column so it stays comfortably sized on
+                    iPad & MacBook (chart viewBox is 500×285). */}
+                <div className="max-w-xl mx-auto">
+                  <div className="text-xs font-bold text-[#1e3a5f] text-center mb-3">
+                    ภาพรวมพอร์ตลงทุน ณ วันเกษียณ
+                  </div>
 
-                {renderChart()}
+                  {renderChart()}
 
-                {/* Legend */}
-                <div className="flex flex-wrap items-center justify-center gap-3 mt-3">
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-0.5 bg-emerald-500 rounded" />
-                    <span className="text-[13px] text-gray-500">Good Case</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-0.5 bg-blue-500 rounded" />
-                    <span className="text-[13px] text-gray-500">Base Case</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-0.5 bg-amber-500 rounded" />
-                    <span className="text-[13px] text-gray-500">Bad Case</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-[1px] bg-gray-400 border-dashed border-t" />
-                    <span className="text-[13px] text-gray-500">ต้นทุน</span>
-                  </div>
-                  {shortage > 0 && (
+                  {/* Legend */}
+                  <div className="flex flex-wrap items-center justify-center gap-3 mt-3">
                     <div className="flex items-center gap-1">
-                      <div className="w-3 h-[1px] bg-red-500 border-dashed border-t" />
-                      <span className="text-[13px] text-gray-500">เป้าหมาย</span>
+                      <div className="w-3 h-0.5 bg-emerald-500 rounded" />
+                      <span className="text-[13px] text-gray-500">Good Case</span>
                     </div>
-                  )}
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-0.5 bg-blue-500 rounded" />
+                      <span className="text-[13px] text-gray-500">Base Case</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-0.5 bg-amber-500 rounded" />
+                      <span className="text-[13px] text-gray-500">Bad Case</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-[1px] bg-gray-400 border-dashed border-t" />
+                      <span className="text-[13px] text-gray-500">ต้นทุน</span>
+                    </div>
+                    {shortage > 0 && (
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-[1px] bg-red-500 border-dashed border-t" />
+                        <span className="text-[13px] text-gray-500">เป้าหมาย</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Monte Carlo */}
             {simMode === "montecarlo" && mcResult && (
-              <div className="p-4 space-y-4">
+              <div className="p-4">
+                {/* Cap chart column for comfortable reading on iPad/MacBook */}
+                <div className="max-w-xl mx-auto space-y-4">
                 <div className="flex items-center justify-between mb-1">
                   <div className="text-xs font-bold text-indigo-700">
                     โอกาสสำเร็จของแผน (Monte Carlo Simulation)
@@ -868,6 +874,7 @@ function InvestmentPlanPageInner() {
                   💡 Monte Carlo จำลอง 10,000 กรณี โดยสุ่มผลตอบแทนแต่ละปีจากการแจกแจงปกติ
                   (mean = ผลตอบแทนคาดหวัง, SD = ความผันผวน) แล้ว clip ด้วยช่วง min/max
                   ของแต่ละพอร์ต · เปลี่ยนรูปแบบพอร์ตและปรับ SD ได้ในแต่ละ Phase ด้านบน
+                </div>
                 </div>
               </div>
             )}
