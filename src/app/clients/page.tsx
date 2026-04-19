@@ -56,12 +56,35 @@ export default function ClientsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<Client | null>(null);
   const [migrating, setMigrating] = useState(false);
 
+  /**
+   * Pick a default name for a new client — "ลูกค้า N" where N is
+   * the smallest positive integer not already in use by an existing
+   * "ลูกค้า N" client. Keeps the counter dense even after deletions.
+   */
+  const pickDefaultName = (): string => {
+    const used = new Set<number>();
+    for (const c of clients) {
+      const m = c.name.trim().match(/^ลูกค้า\s+(\d+)$/);
+      if (m) used.add(Number(m[1]));
+    }
+    let n = 1;
+    while (used.has(n)) n++;
+    return `ลูกค้า ${n}`;
+  };
+
+  const openNewPopup = () => {
+    setNewName(pickDefaultName());
+    setNewNickname("");
+    setShowNewPopup(true);
+  };
+
   const handleCreate = async () => {
-    if (!newName.trim()) return;
+    // Fall back to default name if user cleared the field.
+    const nameToUse = newName.trim() || pickDefaultName();
     setSubmitting(true);
     try {
       const row = await create({
-        name: newName.trim(),
+        name: nameToUse,
         nickname: newNickname.trim() || null,
       });
       toast.success(`เพิ่ม ${row.name} เรียบร้อย`);
@@ -209,7 +232,7 @@ export default function ClientsPage() {
                 เริ่มต้นด้วยการเพิ่ม client คนแรกของคุณ
               </div>
               <button
-                onClick={() => setShowNewPopup(true)}
+                onClick={openNewPopup}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-500 text-white text-xs font-bold hover:bg-indigo-600 transition"
               >
                 <Plus size={14} /> เพิ่ม client
@@ -293,7 +316,7 @@ export default function ClientsPage() {
 
               {/* Add New Client Card */}
               <button
-                onClick={() => setShowNewPopup(true)}
+                onClick={openNewPopup}
                 className="glass rounded-2xl border-2 border-dashed border-gray-300 p-4 flex flex-col items-center justify-center gap-2 hover:border-indigo-400 hover:bg-indigo-50/30 active:scale-95 transition-all min-h-[160px]"
               >
                 <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center">
@@ -322,13 +345,17 @@ export default function ClientsPage() {
               เพิ่ม client ใหม่
             </div>
             <div className="text-[12px] text-gray-400 mb-3">
-              กรอกชื่อเพื่อเริ่มต้น (แก้ไขรายละเอียดเพิ่มภายหลังได้)
+              กดบันทึกได้เลย หรือแก้ชื่อก่อนก็ได้ (แก้ภายหลังได้)
             </div>
             <input
               type="text"
               autoFocus
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
+              onFocus={(e) => e.target.select()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleCreate();
+              }}
               className="w-full text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-400 transition mb-2"
               placeholder="ชื่อ-นามสกุล"
               disabled={submitting}
@@ -338,7 +365,7 @@ export default function ClientsPage() {
               value={newNickname}
               onChange={(e) => setNewNickname(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && newName.trim()) handleCreate();
+                if (e.key === "Enter") handleCreate();
               }}
               className="w-full text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-400 transition mb-3"
               placeholder="ชื่อเล่น (ไม่บังคับ)"
@@ -354,11 +381,11 @@ export default function ClientsPage() {
               </button>
               <button
                 onClick={handleCreate}
-                disabled={!newName.trim() || submitting}
+                disabled={submitting}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition flex items-center justify-center gap-1.5 ${
-                  newName.trim() && !submitting
-                    ? "bg-indigo-500 text-white hover:bg-indigo-600"
-                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  submitting
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-indigo-500 text-white hover:bg-indigo-600"
                 }`}
               >
                 {submitting && <Loader2 size={14} className="animate-spin" />}
