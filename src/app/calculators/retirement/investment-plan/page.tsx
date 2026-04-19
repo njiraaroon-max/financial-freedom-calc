@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useEffect, useMemo } from "react";
+import { Suspense, useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { Save, Plus, Trash2, TrendingUp, Dice5, BarChart3, RefreshCw, TrendingDown, Lightbulb } from "lucide-react";
 import { useRetirementStore } from "@/store/retirement-store";
@@ -23,6 +23,9 @@ import {
 import MonteCarloChart from "@/components/retirement/MonteCarloChart";
 import MonteCarloHistogram from "@/components/retirement/MonteCarloHistogram";
 import RiskPresetPicker from "@/components/retirement/RiskPresetPicker";
+import SavingJourneyTimeline, {
+  phaseColor,
+} from "@/components/retirement/SavingJourneyTimeline";
 import {
   sumSavingFundsNpv,
   sumSpecialExpensesNpv,
@@ -187,6 +190,25 @@ function InvestmentPlanPageInner() {
   // Shortcut-hint return rate (in decimal). Default 5% — user can edit to see
   // how required monthly savings change with return assumptions.
   const [hintReturn, setHintReturn] = useState<number>(0.05);
+
+  // ── Timeline ↔ editor row sync ────────────────────────────────────
+  // hoveredPhaseId: which phase is currently hovered (either the bar on the
+  // timeline or the editor row). flashingPhaseId: briefly applied after a
+  // timeline bar click so the matching editor row glows to guide the eye.
+  const [hoveredPhaseId, setHoveredPhaseId] = useState<string | null>(null);
+  const [flashingPhaseId, setFlashingPhaseId] = useState<string | null>(null);
+  const phaseRowRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  const handleTimelineClick = useCallback((id: string) => {
+    const el = phaseRowRefs.current.get(id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    setFlashingPhaseId(id);
+    window.setTimeout(
+      () => setFlashingPhaseId((cur) => (cur === id ? null : cur)),
+      1400,
+    );
+  }, []);
 
   const a = store.assumptions;
 
@@ -645,79 +667,191 @@ function InvestmentPlanPageInner() {
             <span className="text-sm font-bold text-[#1e3a5f]">แผนการออม/ลงทุน</span>
           </div>
 
-          {store.investmentPlans.length === 0 && (
-            <div className="text-center py-6 text-gray-400 text-xs">
-              ยังไม่มีแผนการออม/ลงทุน กดปุ่มด้านล่างเพื่อเพิ่ม
-            </div>
-          )}
+          {/* ── Timeline visualisation ─────────────────────────────────
+              Bars are proportional to monthly savings amount; clicking a
+              bar scrolls to (and flashes) the matching editor row. */}
+          <SavingJourneyTimeline
+            plans={store.investmentPlans}
+            currentAge={a.currentAge}
+            retireAge={a.retireAge}
+            hoveredId={hoveredPhaseId}
+            onHoverChange={setHoveredPhaseId}
+            onPhaseClick={handleTimelineClick}
+          />
 
-          <div className="space-y-4">
-            {store.investmentPlans.map((plan, idx) => (
-              <div key={plan.id} className="bg-gray-50 rounded-xl p-3 relative">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-[#1e3a5f]">Phase {idx + 1}</span>
-                  <button onClick={() => store.removeInvestmentPlan(plan.id)} className="text-gray-300 hover:text-red-500">
-                    <Trash2 size={14} />
-                  </button>
-                </div>
+          {/* ── Summary pill (totals across all phases) ───────────────── */}
+          {store.investmentPlans.length > 0 && (() => {
+            let totalContribution = 0;
+            let weightedReturnNumerator = 0;
+            let weightedReturnDenominator = 0;
+            const coveredYears = new Set<number>();
+            for (const p of store.investmentPlans) {
+              const s = Math.max(a.currentAge, p.yearStart);
+              const e = Math.min(a.retireAge - 1, p.yearEnd);
+              const years = Math.max(0, e - s + 1);
+              totalContribution += p.monthlyAmount * 12 * years;
+              weightedReturnNumerator += p.expectedReturn * years;
+              weightedReturnDenominator += years;
+              for (let y = s; y <= e; y++) coveredYears.add(y);
+            }
+            const weightedAvgReturn =
+              weightedReturnDenominator > 0
+                ? weightedReturnNumerator / weightedReturnDenominator
+                : 0;
+            const yearsCovered = coveredYears.size;
+            const yearsTotal = Math.max(0, a.retireAge - a.currentAge);
+            const hasGaps = yearsCovered < yearsTotal;
+            return (
+              <div className="mt-1 mb-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-gray-500">
+                <span>
+                  รวมสะสม{" "}
+                  <b className="text-[#1e3a5f]">
+                    ฿{fmtM(totalContribution)}
+                  </b>
+                </span>
+                <span className="text-gray-300">·</span>
+                <span>
+                  ผลตอบแทนเฉลี่ย{" "}
+                  <b className="text-[#1e3a5f]">
+                    {(weightedAvgReturn * 100).toFixed(1)}%
+                  </b>
+                </span>
+                <span className="text-gray-300">·</span>
+                <span>
+                  ครอบคลุม{" "}
+                  <b className={hasGaps ? "text-amber-600" : "text-emerald-600"}>
+                    {yearsCovered}/{yearsTotal} ปี
+                  </b>
+                </span>
+              </div>
+            );
+          })()}
 
-                {/* Age range inputs */}
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-[13px] text-gray-500 w-12 shrink-0">อายุ</span>
-                  <AgeInput
-                    value={plan.yearStart}
-                    onChange={(v) => store.updateInvestmentPlan(plan.id, { yearStart: v })}
-                    min={a.currentAge}
-                    max={a.retireAge - 1}
-                  />
-                  <span className="text-xs text-gray-400">ถึง</span>
-                  <AgeInput
-                    value={plan.yearEnd}
-                    onChange={(v) => store.updateInvestmentPlan(plan.id, { yearEnd: v })}
-                    min={plan.yearStart}
-                    max={a.retireAge - 1}
-                    onOverMax={() =>
-                      toast.warning(
-                        `เกษียณตอน ${a.retireAge} ปี — ออมได้สูงสุดถึงอายุ ${a.retireAge - 1}`
-                      )
-                    }
-                  />
-                  <span className="text-[13px] text-gray-400">({Math.max(plan.yearEnd - plan.yearStart + 1, 0)} ปี)</span>
-                </div>
+          {/* ── Editor rows — one compact line per phase ──────────────── */}
+          <div className="space-y-2.5">
+            {store.investmentPlans.map((plan, idx) => {
+              const color = phaseColor(idx);
+              const isFlashing = flashingPhaseId === plan.id;
+              const isDimmed =
+                hoveredPhaseId !== null && hoveredPhaseId !== plan.id;
+              const profile: RiskProfile = plan.riskProfile || "balanced";
+              const presetInfo =
+                profile !== "custom" ? RISK_PRESETS[profile] : null;
+              const years = Math.max(plan.yearEnd - plan.yearStart + 1, 0);
+              return (
+                <div
+                  key={plan.id}
+                  ref={(el) => {
+                    if (el) phaseRowRefs.current.set(plan.id, el);
+                    else phaseRowRefs.current.delete(plan.id);
+                  }}
+                  className="bg-white/70 rounded-xl pl-3 pr-3 py-2.5 border-l-4 transition"
+                  style={{
+                    borderLeftColor: color,
+                    boxShadow: isFlashing
+                      ? `0 0 0 2px ${color}66`
+                      : undefined,
+                    opacity: isDimmed ? 0.55 : 1,
+                  }}
+                  onMouseEnter={() => setHoveredPhaseId(plan.id)}
+                  onMouseLeave={() => setHoveredPhaseId(null)}
+                >
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                    {/* Phase number chip */}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span
+                        className="w-5 h-5 rounded-full grid place-items-center text-[10px] font-extrabold text-white"
+                        style={{ background: color }}
+                      >
+                        {idx + 1}
+                      </span>
+                      <span className="text-xs font-bold text-[#1e3a5f]">
+                        Phase {idx + 1}
+                      </span>
+                      {simMode === "montecarlo" && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-semibold border border-indigo-100">
+                          {presetInfo
+                            ? `${presetInfo.emoji} ${presetInfo.label}`
+                            : "⚙️ Custom"}
+                        </span>
+                      )}
+                    </div>
 
-                {/* Monthly savings + expected return — compact single row.
-                    Number inputs only (sliders removed) to save vertical space
-                    and let users type exact values directly. */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[13px] text-gray-500 whitespace-nowrap">
-                      ออม/เดือน
-                    </span>
-                    <MoneyInput
-                      value={plan.monthlyAmount}
-                      onChange={(v) =>
-                        store.updateInvestmentPlan(plan.id, { monthlyAmount: v })
-                      }
-                      unit="บาท"
-                      className="glass w-28 text-xs font-semibold rounded-lg px-2 py-1 outline-none focus:ring-2 text-right"
-                      ringClass="focus:ring-[var(--color-primary)]"
-                    />
+                    {/* Age range */}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[12px] text-gray-500">อายุ</span>
+                      <AgeInput
+                        value={plan.yearStart}
+                        onChange={(v) =>
+                          store.updateInvestmentPlan(plan.id, { yearStart: v })
+                        }
+                        min={a.currentAge}
+                        max={a.retireAge - 1}
+                      />
+                      <span className="text-[12px] text-gray-400">–</span>
+                      <AgeInput
+                        value={plan.yearEnd}
+                        onChange={(v) =>
+                          store.updateInvestmentPlan(plan.id, { yearEnd: v })
+                        }
+                        min={plan.yearStart}
+                        max={a.retireAge - 1}
+                        onOverMax={() =>
+                          toast.warning(
+                            `เกษียณตอน ${a.retireAge} ปี — ออมได้สูงสุดถึงอายุ ${a.retireAge - 1}`,
+                          )
+                        }
+                      />
+                      <span className="text-[11px] text-gray-400">
+                        ({years} ปี)
+                      </span>
+                    </div>
+
+                    {/* Monthly amount */}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[12px] text-gray-500 whitespace-nowrap">
+                        ออม/เดือน
+                      </span>
+                      <MoneyInput
+                        value={plan.monthlyAmount}
+                        onChange={(v) =>
+                          store.updateInvestmentPlan(plan.id, {
+                            monthlyAmount: v,
+                          })
+                        }
+                        unit="฿"
+                        className="glass w-28 text-xs font-semibold rounded-lg px-2 py-1 outline-none focus:ring-2 text-right"
+                        ringClass="focus:ring-[var(--color-primary)]"
+                      />
+                    </div>
+
+                    {/* Expected return */}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[12px] text-gray-500 whitespace-nowrap">
+                        ผลตอบแทน
+                      </span>
+                      <PercentInput
+                        value={plan.expectedReturn}
+                        onChange={(v) =>
+                          store.updateInvestmentPlan(plan.id, {
+                            expectedReturn: v,
+                          })
+                        }
+                        min={0}
+                        max={15}
+                        widthClass="w-14"
+                      />
+                    </div>
+
+                    {/* Trash — push to right with ml-auto */}
+                    <button
+                      onClick={() => store.removeInvestmentPlan(plan.id)}
+                      className="ml-auto text-gray-300 hover:text-red-500 transition shrink-0"
+                      aria-label={`ลบ Phase ${idx + 1}`}
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[13px] text-gray-500 whitespace-nowrap">
-                      ผลตอบแทน
-                    </span>
-                    <PercentInput
-                      value={plan.expectedReturn}
-                      onChange={(v) =>
-                        store.updateInvestmentPlan(plan.id, { expectedReturn: v })
-                      }
-                      min={0}
-                      max={15}
-                      widthClass="w-16"
-                    />
-                  </div>
-                </div>
 
                 {/* Monte Carlo settings — show only in MC mode */}
                 {simMode === "montecarlo" && (() => {
@@ -813,8 +947,9 @@ function InvestmentPlanPageInner() {
                     </div>
                   );
                 })()}
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
 
           <button
@@ -896,9 +1031,12 @@ function InvestmentPlanPageInner() {
             {/* Monte Carlo */}
             {simMode === "montecarlo" && mcResult && (
               <div className="p-4">
-                {/* Wider container to match stretched chart viewBox (800) —
-                    keeps on-screen text at the same size. */}
-                <div className="max-w-4xl mx-auto space-y-4">
+                {/* MC chart auto-fits to container via ResizeObserver; axis
+                    labels use pixel-absolute font sizes (not viewBox-scaled)
+                    so widening the container stretches the x-axis without
+                    enlarging text. Wider than the deterministic cap to give
+                    the 500 spaghetti paths room to breathe. */}
+                <div className="max-w-6xl mx-auto space-y-4">
                 <div className="flex items-center justify-between mb-1">
                   <div className="text-xs font-bold text-indigo-700">
                     โอกาสสำเร็จของแผน (Monte Carlo Simulation)
