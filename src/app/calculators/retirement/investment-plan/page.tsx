@@ -794,8 +794,8 @@ function InvestmentPlanPageInner() {
                       />
                     </div>
 
-                    {/* Expected return */}
-                    <div className="flex items-center gap-1.5">
+                    {/* Expected return — input + slider that fills remaining row */}
+                    <div className="flex items-center gap-2 flex-1 min-w-[220px]">
                       <span className="text-[12px] text-gray-500 whitespace-nowrap">
                         ผลตอบแทน
                       </span>
@@ -810,6 +810,28 @@ function InvestmentPlanPageInner() {
                         max={15}
                         widthClass="w-14"
                       />
+                      <span className="text-[10px] text-gray-400 tabular-nums shrink-0">3%</span>
+                      <input
+                        type="range"
+                        min={3}
+                        max={15}
+                        step={0.5}
+                        value={Math.max(
+                          3,
+                          Math.min(15, plan.expectedReturn * 100),
+                        )}
+                        onChange={(e) => {
+                          const n = parseFloat(e.target.value);
+                          if (Number.isFinite(n)) {
+                            store.updateInvestmentPlan(plan.id, {
+                              expectedReturn: n / 100,
+                            });
+                          }
+                        }}
+                        aria-label={`ปรับ % ผลตอบแทน Phase ${idx + 1}`}
+                        className="flex-1 min-w-[100px] h-1 accent-indigo-500 cursor-pointer"
+                      />
+                      <span className="text-[10px] text-gray-400 tabular-nums shrink-0">15%</span>
                     </div>
 
                     {/* Trash — push to right with ml-auto */}
