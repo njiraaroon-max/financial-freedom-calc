@@ -24,8 +24,11 @@ const W        = 1000;
 const H        = 600;
 const NW_SMALL = 14;   // col 0, 3 (individual items)
 const NW_BIG   = 72;   // col 1, 2 (aggregate nodes) — wide enough for labels
-const GAP      = 15;   // gap between stacked items — more breathing room
-const GAP_CAT  = 48;   // extra gap between categories (fixed | variable+invest)
+const GAP      = 15;   // gap between stacked items in col 0 (income side)
+const GAP3     = 6;    // tighter gap between col 3 items so the stack stays
+                       // within the category node's height and doesn't bleed
+                       // across GAP_CAT into the next category's label zone
+const GAP_CAT  = 60;   // extra gap between categories (fixed | variable+invest)
 const PAD_T    = 90;   // top space — room for the "above" floating category pill
 const PAD_B    = 130;  // bottom space — extra room so the "below" variable pill
                        // doesn't crowd whatever card sits under the Sankey
@@ -254,9 +257,27 @@ export default function CashFlowSankey({ incomes, expenses, getAnnualTotal, year
     const col3Nodes: ItemNode[] = [];
     const flows23: Flow[] = [];
 
-    for (const catNode of col2Nodes) {
+    // Per-category item layout. The col3 stack is TALLER than catNode.h
+    // because of the GAP3 between items — by (items-1)*GAP3. For the first
+    // (fixed) category we let the stack extend UPWARD into PAD_T, and for
+    // the second (variable+invest) category we let it extend DOWNWARD into
+    // PAD_B. This keeps a clean gap between the two categories' label
+    // zones instead of having the fixed-side labels crash into the
+    // variable-side ones.
+    for (let ci = 0; ci < col2Nodes.length; ci++) {
+      const catNode = col2Nodes[ci];
+      const n = catNode.items.length;
+      const overflow = Math.max(0, n - 1) * GAP3;
+      const isFirst = ci === 0;
+      const isLast  = ci === col2Nodes.length - 1;
+      // Bias: first cat → up, last cat → down, middle (rare) → centered
+      const startOffset =
+        isFirst && !isLast ? -overflow :
+        isLast  && !isFirst ? 0 :
+        -overflow / 2;
+
       let src = catNode.y;
-      let tgt = catNode.y;
+      let tgt = catNode.y + startOffset;
 
       for (const item of catNode.items) {
         const h = sc(item.v);
@@ -274,7 +295,7 @@ export default function CashFlowSankey({ incomes, expenses, getAnnualTotal, year
           srcName: catNode.name, tgtName: item.name, v: item.v,
         });
         src += h;
-        tgt += h + GAP;
+        tgt += h + GAP3;
       }
     }
 
@@ -463,19 +484,19 @@ export default function CashFlowSankey({ incomes, expenses, getAnnualTotal, year
                 onMouseLeave={clearTooltip}
               >
                 <rect x={n.x} y={n.y} width={n.w} height={n.h} fill={n.color} rx={4} filter="url(#node-shadow)" />
+                {/* Single-line label — name + value + common ratio on one
+                    row so the total label height stays ~11px. Prevents the
+                    two-line version from bleeding into neighboring items. */}
                 <text
-                  x={n.x - 10} y={n.y + n.h / 2 - 4}
+                  x={n.x - 10} y={n.y + n.h / 2 + 3}
                   textAnchor="end" fontSize={9.5} fill="#1f2937" fontWeight="700"
                 >
                   {n.name.length > 14 ? n.name.slice(0, 13) + "…" : n.name}
-                </text>
-                <text
-                  x={n.x - 10} y={n.y + n.h / 2 + 7}
-                  textAnchor="end" fontSize={9} fill="#6b7280"
-                >
-                  {fmtK(n.v)}
+                  <tspan fill="#6b7280" fontWeight="500"> {fmtK(n.v)}</tspan>
                   {n.ratio !== undefined && (
-                    <tspan fill="#9ca3af"> · {n.ratio.toFixed(1)}%</tspan>
+                    <tspan fill="#9ca3af" fontWeight="500">
+                      {" "}· {n.ratio.toFixed(1)}%
+                    </tspan>
                   )}
                 </text>
               </g>
@@ -544,19 +565,17 @@ export default function CashFlowSankey({ incomes, expenses, getAnnualTotal, year
                 onMouseLeave={clearTooltip}
               >
                 <rect x={n.x} y={n.y} width={n.w} height={n.h} fill={n.color} rx={4} filter="url(#node-shadow)" />
+                {/* Single-line label — see col0 above for rationale. */}
                 <text
-                  x={n.x + n.w + 10} y={n.y + n.h / 2 - 4}
+                  x={n.x + n.w + 10} y={n.y + n.h / 2 + 3}
                   textAnchor="start" fontSize={9.5} fill="#1f2937" fontWeight="700"
                 >
                   {n.name.length > 15 ? n.name.slice(0, 14) + "…" : n.name}
-                </text>
-                <text
-                  x={n.x + n.w + 10} y={n.y + n.h / 2 + 7}
-                  textAnchor="start" fontSize={9} fill="#6b7280"
-                >
-                  {fmtK(n.v)}
+                  <tspan fill="#6b7280" fontWeight="500"> {fmtK(n.v)}</tspan>
                   {n.ratio !== undefined && (
-                    <tspan fill="#9ca3af"> · {n.ratio.toFixed(1)}%</tspan>
+                    <tspan fill="#9ca3af" fontWeight="500">
+                      {" "}· {n.ratio.toFixed(1)}%
+                    </tspan>
                   )}
                 </text>
               </g>
