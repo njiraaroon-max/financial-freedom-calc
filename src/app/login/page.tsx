@@ -12,8 +12,10 @@
 import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LogIn, Mail, Lock, Loader2, Eye, EyeOff } from "lucide-react";
+import { LogIn, Mail, Lock, Loader2, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+
+type Phase = "idle" | "authenticating" | "redirecting";
 
 function LoginForm() {
   const router = useRouter();
@@ -23,13 +25,13 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
+    setPhase("authenticating");
 
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({
@@ -43,13 +45,40 @@ function LoginForm() {
           ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง"
           : error.message,
       );
-      setLoading(false);
+      setPhase("idle");
       return;
     }
 
+    // Auth OK — now the slow bit (middleware → home render → ClientDataSync
+    // plan_data fetch) kicks in and can take 1-3s. Flip to "redirecting" so
+    // the UI signals success explicitly instead of keeping the button stuck
+    // on a spinner.
+    setPhase("redirecting");
     router.push(next);
     router.refresh();
   };
+
+  // Full-card success state — replaces the form so the 1-3s bridge between
+  // auth-OK and home-render feels like a deliberate "loading the app" step
+  // instead of a frozen login button.
+  if (phase === "redirecting") {
+    return (
+      <div className="min-h-dvh flex items-center justify-center px-4 py-12 bg-gradient-to-br from-indigo-50 via-white to-sky-50">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500 shadow-lg shadow-emerald-200 mb-4">
+              <CheckCircle2 size={32} className="text-white" />
+            </div>
+            <h1 className="text-xl font-bold text-gray-800">เข้าสู่ระบบสำเร็จ</h1>
+            <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-500">
+              <Loader2 size={16} className="animate-spin text-indigo-500" />
+              <span>กำลังโหลดหน้าหลัก...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-dvh flex items-center justify-center px-4 py-12 bg-gradient-to-br from-indigo-50 via-white to-sky-50">
@@ -134,10 +163,10 @@ function LoginForm() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={phase === "authenticating"}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-indigo-500 text-white text-sm font-bold hover:bg-indigo-600 active:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
           >
-            {loading ? (
+            {phase === "authenticating" ? (
               <>
                 <Loader2 size={16} className="animate-spin" />
                 กำลังเข้าสู่ระบบ...
