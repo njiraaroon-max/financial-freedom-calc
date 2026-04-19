@@ -15,6 +15,16 @@ import {
   filterLifePolicies,
   computePillar1Analysis,
 } from "@/lib/pillar1Analysis";
+import {
+  CURRICULUM_TYPES,
+  ageToLevelPosition,
+  getInsuranceTuitionRange,
+  formatRange,
+  INSURANCE_LEVEL_LABEL,
+  INSURANCE_LEVEL_YEARS,
+  type CurriculumType,
+  type InsuranceLevelKey,
+} from "@/data/education-tuition-lookup";
 import { flushAllStores } from "@/lib/sync/flush-all";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -422,7 +432,7 @@ export default function Pillar1Page() {
                 </div>
               )}
 
-              {/* ── Children / Education section ── */}
+              {/* ── Children / Education section (v19: age + curriculum picker) ── */}
               {(p1.dependents || {}).children && (
                 <div className="bg-blue-50/50 rounded-xl p-3 space-y-3 border border-blue-100">
                   <div className="flex items-center justify-between">
@@ -431,7 +441,22 @@ export default function Pillar1Page() {
                       <button
                         onClick={() => {
                           const kids = [...(p1.educationChildren || [])];
-                          kids.push({ id: `child-${Date.now()}`, name: `บุตรคนที่ ${kids.length + 1}`, currentLevelKey: "kindergarten", currentYearInLevel: 1 });
+                          // Inherit curriculum from the last-added child so families
+                          // planning the same school-type don't have to re-pick.
+                          const lastCurriculum = kids.length > 0
+                            ? ((kids[kids.length - 1] as { curriculumType?: CurriculumType }).curriculumType || "thai")
+                            : "thai";
+                          const newKid = {
+                            id: `child-${Date.now()}`,
+                            name: `บุตรคนที่ ${kids.length + 1}`,
+                            age: 6,
+                            curriculumType: lastCurriculum,
+                            studyUntil: "bachelor" as const,
+                            // Legacy fields kept in-sync so older code doesn't crash.
+                            currentLevelKey: "primary",
+                            currentYearInLevel: 1,
+                          };
+                          kids.push(newKid);
                           update({ educationChildren: kids });
                         }}
                         className="text-[13px] text-blue-600 font-bold hover:underline"
@@ -443,54 +468,29 @@ export default function Pillar1Page() {
 
                   {!p1.useEducationPlan && (
                     <div className="space-y-3">
-                      {/* Education levels config (shared cost per year) */}
-                      <div className="space-y-1.5">
-                        <div className="text-[13px] text-gray-500 font-semibold">ระดับการศึกษา & ค่าใช้จ่ายต่อปี</div>
-                        {(p1.educationLevels || []).map((lv: { key: string; label: string; years: number; costPerYear: number; enabled: boolean }, idx: number) => (
-                          <div key={lv.key}>
-                            <div className="flex items-center gap-2">
-                              <label className="flex items-center gap-1.5 cursor-pointer shrink-0">
-                                <input
-                                  type="checkbox"
-                                  checked={lv.enabled}
-                                  onChange={(e) => {
-                                    const levels = [...(p1.educationLevels || [])];
-                                    levels[idx] = { ...levels[idx], enabled: e.target.checked };
-                                    update({ educationLevels: levels });
-                                  }}
-                                  className="w-3.5 h-3.5 rounded border-gray-300 text-blue-500 focus:ring-0"
-                                />
-                                <span className={`text-[14px] font-semibold ${lv.enabled ? "text-blue-700" : "text-gray-400"}`}>{lv.label}</span>
-                              </label>
-                              <span className="text-[13px] text-gray-400 shrink-0">{lv.years} ปี</span>
-                              {lv.enabled && (
-                                <div className="flex items-center flex-1 min-w-0">
-                                  <MoneyInput
-                                    value={lv.costPerYear}
-                                    onChange={(v) => {
-                                      const levels = [...(p1.educationLevels || [])];
-                                      levels[idx] = { ...levels[idx], costPerYear: v };
-                                      update({ educationLevels: levels });
-                                    }}
-                                    unit="บาท/ปี"
-                                    className="glass w-full text-sm text-right font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2"
-                                    ringClass="focus:ring-blue-400"
-                                  />
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                      {(p1.educationChildren || []).length === 0 && (
+                        <div className="text-[13px] text-blue-400 bg-blue-50 rounded-lg px-3 py-2">
+                          กด &quot;+ เพิ่มบุตร&quot; แล้วกรอกอายุ + เลือกหลักสูตร ระบบจะจับคู่ระดับชั้นและคำนวณค่าเทอมตามช่วงราคาตลาดให้อัตโนมัติ
+                        </div>
+                      )}
 
-                      {/* Per-child: name + current level + year-in-level */}
                       {(p1.educationChildren || []).length > 0 && (
                         <div className="space-y-2">
-                          <div className="text-[13px] text-gray-500 font-semibold">บุตรแต่ละคน — กำลังเรียนระดับ/ปีที่เท่าไร</div>
-                          {(p1.educationChildren || []).map((child: { id: string; name: string; currentLevelKey: string; currentYearInLevel: number }, cidx: number) => {
+                          <div className="text-[13px] text-gray-500 font-semibold">บุตรแต่ละคน — ใส่อายุ &amp; หลักสูตร ระบบคำนวณตามช่วงราคาตลาดให้อัตโนมัติ</div>
+                          {(p1.educationChildren || []).map((child, cidx) => {
                             const childCalc = analysis.perChildEdu.find((c) => c.id === child.id);
-                            const currentLevel = (p1.educationLevels || []).find((lv: { key: string }) => lv.key === child.currentLevelKey) as { key: string; label: string; years: number } | undefined;
-                            const maxYears = currentLevel?.years || 1;
+                            const age = typeof child.age === "number" ? child.age : 6;
+                            const curriculum: CurriculumType = (child.curriculumType as CurriculumType) || "thai";
+                            const studyUntil: InsuranceLevelKey = (child.studyUntil as InsuranceLevelKey) || "bachelor";
+                            const pos = ageToLevelPosition(age);
+                            const range = getInsuranceTuitionRange(pos.levelKey, curriculum);
+                            const levelLabel = INSURANCE_LEVEL_LABEL[pos.levelKey];
+                            const levelDuration = INSURANCE_LEVEL_YEARS[pos.levelKey];
+
+                            const currentStatus = pos.yearInLevel === 0
+                              ? `ยังไม่เข้าเรียน — จะเริ่มอีก ${pos.entryYearOffset} ปี (${levelLabel} ปี 1)`
+                              : `กำลังเรียน ${levelLabel} ปีที่ ${pos.yearInLevel}/${levelDuration}`;
+
                             return (
                               <div key={child.id} className="glass rounded-lg border border-blue-100 p-2.5 space-y-2">
                                 {/* Row 1: Name + delete */}
@@ -517,43 +517,84 @@ export default function Pillar1Page() {
                                     <X size={16} />
                                   </button>
                                 </div>
-                                {/* Row 2: Level + Year-in-level */}
-                                <div className="flex items-center gap-2">
-                                  <span className="text-[13px] text-gray-500 shrink-0">กำลังเรียน</span>
-                                  <select
-                                    value={child.currentLevelKey}
-                                    onChange={(e) => {
-                                      const kids = [...(p1.educationChildren || [])];
-                                      kids[cidx] = { ...kids[cidx], currentLevelKey: e.target.value, currentYearInLevel: 1 };
-                                      update({ educationChildren: kids });
-                                    }}
-                                    className="text-xs bg-blue-50 border border-blue-200 rounded-lg px-2 py-1.5 text-blue-700 font-bold focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                  >
-                                    {(p1.educationLevels || []).map((lv: { key: string; label: string }) => (
-                                      <option key={lv.key} value={lv.key}>{lv.label}</option>
-                                    ))}
-                                  </select>
-                                  <span className="text-[13px] text-gray-500 shrink-0">ปีที่</span>
-                                  <select
-                                    value={child.currentYearInLevel || 1}
-                                    onChange={(e) => {
-                                      const kids = [...(p1.educationChildren || [])];
-                                      kids[cidx] = { ...kids[cidx], currentYearInLevel: Number(e.target.value) };
-                                      update({ educationChildren: kids });
-                                    }}
-                                    className="text-xs bg-blue-50 border border-blue-200 rounded-lg px-2 py-1.5 text-blue-700 font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 w-16"
-                                  >
-                                    {Array.from({ length: maxYears }, (_, i) => i + 1).map((y) => (
-                                      <option key={y} value={y}>{y}</option>
-                                    ))}
-                                  </select>
-                                  <span className="text-[13px] text-gray-400 shrink-0">/ {maxYears}</span>
+
+                                {/* Row 2: Age + Curriculum + Study-until */}
+                                <div className="grid grid-cols-3 gap-2">
+                                  <div>
+                                    <label className="text-[11px] text-gray-500 block mb-0.5">อายุ (ปี)</label>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      max={24}
+                                      value={age}
+                                      onChange={(e) => {
+                                        const newAge = Math.max(0, Math.min(24, Number(e.target.value) || 0));
+                                        const newPos = ageToLevelPosition(newAge);
+                                        const kids = [...(p1.educationChildren || [])];
+                                        kids[cidx] = {
+                                          ...kids[cidx],
+                                          age: newAge,
+                                          // Keep legacy fields aligned with the derived position.
+                                          currentLevelKey: newPos.levelKey,
+                                          currentYearInLevel: Math.max(newPos.yearInLevel, 1),
+                                        };
+                                        update({ educationChildren: kids });
+                                      }}
+                                      className="w-full text-sm bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-center font-bold text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-[11px] text-gray-500 block mb-0.5">หลักสูตร</label>
+                                    <select
+                                      value={curriculum}
+                                      onChange={(e) => {
+                                        const kids = [...(p1.educationChildren || [])];
+                                        kids[cidx] = { ...kids[cidx], curriculumType: e.target.value as CurriculumType };
+                                        update({ educationChildren: kids });
+                                      }}
+                                      className="w-full text-xs bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-blue-700 font-bold focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                    >
+                                      {CURRICULUM_TYPES.map((c) => (
+                                        <option key={c.key} value={c.key}>{c.shortLabel}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <label className="text-[11px] text-gray-500 block mb-0.5">เรียนถึง</label>
+                                    <select
+                                      value={studyUntil}
+                                      onChange={(e) => {
+                                        const kids = [...(p1.educationChildren || [])];
+                                        kids[cidx] = { ...kids[cidx], studyUntil: e.target.value as "bachelor" | "master" };
+                                        update({ educationChildren: kids });
+                                      }}
+                                      className="w-full text-xs bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-blue-700 font-bold focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                    >
+                                      <option value="bachelor">ป.ตรี</option>
+                                      <option value="master">ป.โท</option>
+                                    </select>
+                                  </div>
                                 </div>
+
+                                {/* Row 3: Derived status + reference range */}
+                                <div className="text-[12px] text-gray-500 bg-blue-50/40 rounded-md px-2 py-1.5 space-y-0.5">
+                                  <div>
+                                    <span className="text-gray-400">สถานะ:</span>{" "}
+                                    <span className="text-blue-600 font-semibold">{currentStatus}</span>
+                                  </div>
+                                  {range && (
+                                    <div>
+                                      <span className="text-gray-400">ช่วงราคาอ้างอิง ({levelLabel}):</span>{" "}
+                                      <span className="text-gray-600">{formatRange(range)}</span>
+                                    </div>
+                                  )}
+                                </div>
+
                                 {/* Subtotal */}
                                 {childCalc && childCalc.totalYears > 0 && (
                                   <div className="text-[13px] text-blue-500 pl-1 space-y-0.5 bg-blue-50/50 rounded-md px-2 py-1.5">
                                     <div>เหลืออีก <span className="font-bold">{childCalc.totalYears} ปี</span> | แบบตรง: {fmt(childCalc.simpleTotal)} บาท</div>
-                                    <div className="font-bold">TVM: {fmt(childCalc.tvmTotal)} บาท</div>
+                                    <div className="font-bold">TVM (PV): {fmt(childCalc.tvmTotal)} บาท</div>
                                   </div>
                                 )}
                               </div>
@@ -565,24 +606,21 @@ export default function Pillar1Page() {
                       {/* Education total */}
                       {(() => {
                         const hasChildren = (p1.educationChildren || []).length > 0;
-                        const eduTotal = hasChildren ? analysis.eduFundTVM : (p1.educationLevels || []).filter((lv: { enabled: boolean }) => lv.enabled).reduce((s: number, lv: { years: number; costPerYear: number }) => s + lv.years * lv.costPerYear, 0);
-                        const eduSimple = hasChildren ? analysis.eduFundSimple : eduTotal;
+                        if (!hasChildren) return null;
+                        const eduTotal = analysis.eduFundTVM;
+                        const eduSimple = analysis.eduFundSimple;
                         return eduTotal > 0 ? (
                           <div className="bg-gray-100 rounded-lg px-3 py-2 mt-1 space-y-0.5">
                             <div className="flex items-center justify-between">
-                              <span className="text-[13px] font-bold text-gray-600">รวมทุนการศึกษา{hasChildren ? ` (${(p1.educationChildren || []).length} คน)` : ""}</span>
+                              <span className="text-[13px] font-bold text-gray-600">รวมทุนการศึกษา ({(p1.educationChildren || []).length} คน)</span>
                               <span className="text-xs font-extrabold text-gray-700">{fmt(eduTotal)} บาท</span>
                             </div>
-                            {hasChildren && eduSimple !== eduTotal && (
+                            {eduSimple !== eduTotal && (
                               <div className="flex items-center justify-between">
                                 <span className="text-[13px] text-gray-400">แบบไม่คิด TVM</span>
                                 <span className="text-[13px] text-gray-400">{fmt(eduSimple)} บาท</span>
                               </div>
                             )}
-                          </div>
-                        ) : (p1.educationChildren || []).length === 0 ? (
-                          <div className="text-[13px] text-blue-400 bg-blue-50 rounded-lg px-3 py-2">
-                            กด &quot;+ เพิ่มบุตร&quot; เพื่อคำนวณทุนการศึกษาตามระดับชั้นที่เหลือ
                           </div>
                         ) : null;
                       })()}

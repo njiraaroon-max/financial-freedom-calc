@@ -286,7 +286,17 @@ export interface Pillar1Data {
   educationFund: number;            // ทุนการศึกษาบุตร (legacy lump sum)
   useEducationPlan: boolean;        // ดึงจากแผนการศึกษาบุตร
   educationLevels: { key: string; label: string; years: number; costPerYear: number; enabled: boolean }[];
-  educationChildren: { id: string; name: string; currentLevelKey: string; currentYearInLevel: number }[];  // บุตรแต่ละคน + ระดับชั้น + กำลังเรียนปีที่
+  educationChildren: {
+    id: string;
+    name: string;
+    // Core (new model, v19+): age in whole years + curriculum + how far to study.
+    age: number;                                    // อายุ (ปี) — system maps to current level automatically
+    curriculumType: "thai" | "bilingual" | "inter" | "inter_premium";
+    studyUntil: "bachelor" | "master";              // เรียนถึงระดับ (default bachelor)
+    // Legacy (v14–v18, kept for backward compat; recomputed from age on render).
+    currentLevelKey: string;
+    currentYearInLevel: number;
+  }[];
   incomeItems: { name: string; monthlyAmount: number; years: number }[];  // รายการค่าใช้จ่ายเพิ่มเติม (ต่อเดือน x ปี)
   // ── TVM parameters ──
   inflationRate: number;            // อัตราเงินเฟ้อ (%)
@@ -672,7 +682,7 @@ export const useInsuranceStore = create<InsuranceState>()(
     }),
     {
       name: "ffc-insurance",
-      version: 18,
+      version: 19,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
         if (version < 2) {
@@ -853,6 +863,35 @@ export const useInsuranceStore = create<InsuranceState>()(
           if (rm && rm.pillar2) {
             const p2 = rm.pillar2 as unknown as Record<string, unknown>;
             if (p2.premiumExtraYears === undefined) p2.premiumExtraYears = 0;
+          }
+        }
+        if (version < 19) {
+          // Augment educationChildren with { age, curriculumType, studyUntil }.
+          // Existing kids carry (currentLevelKey, currentYearInLevel) → derive age.
+          const baseAgeByLevel: Record<string, number> = {
+            kindergarten: 3,
+            primary: 6,
+            junior_high: 12,
+            senior_high: 15,
+            bachelor: 18,
+            master: 22,
+          };
+          const rm = state.riskManagement as RiskManagementData | undefined;
+          if (rm && rm.pillar1) {
+            const p1 = rm.pillar1 as unknown as Record<string, unknown>;
+            const kids = p1.educationChildren as Array<Record<string, unknown>> | undefined;
+            if (Array.isArray(kids)) {
+              for (const k of kids) {
+                if (typeof k.age !== "number") {
+                  const lvl = typeof k.currentLevelKey === "string" ? k.currentLevelKey : "kindergarten";
+                  const yr = typeof k.currentYearInLevel === "number" ? k.currentYearInLevel : 1;
+                  const base = baseAgeByLevel[lvl] ?? 6;
+                  k.age = base + Math.max(yr - 1, 0);
+                }
+                if (typeof k.curriculumType !== "string") k.curriculumType = "thai";
+                if (typeof k.studyUntil !== "string") k.studyUntil = "bachelor";
+              }
+            }
           }
         }
         return state;

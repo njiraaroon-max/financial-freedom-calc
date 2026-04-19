@@ -10,6 +10,15 @@
 // out of sync.
 
 import type { InsurancePolicy, Pillar1Data } from "@/store/insurance-store";
+import {
+  ageToLevelPosition,
+  INSURANCE_LEVEL_SEQUENCE,
+  INSURANCE_LEVEL_YEARS,
+  INSURANCE_LEVEL_LABEL,
+  suggestInsuranceTuition,
+  type CurriculumType,
+  type InsuranceLevelKey,
+} from "@/data/education-tuition-lookup";
 
 // ─── TVM helpers ────────────────────────────────────────────────────────────
 
@@ -150,50 +159,98 @@ export function computePillar1Analysis({
     ? pvAnnuity(p1.familyExpenseMonthlyNew, p1.familyAdjustmentYearsNew, inf, ret)
     : 0;
 
-  // ── Education: per-child remaining levels → TVM, or Goals plan ──
+  // ── Education: per-child projection (age + curriculum based) ──
+  //
+  // New model (v19+): each child carries { age, curriculumType, studyUntil }.
+  // From those we derive which education levels the child still has ahead,
+  // pull a suggested annual tuition from the tuition-lookup table for the
+  // chosen curriculum, and project cashflows year-by-year.
+  //
+  // Inflation & TVM convention (matches user requirement):
+  //   • Tuition for a level is set on the year the child ENTERS that level,
+  //     inflated to that year from today's lookup price.
+  //   • Within a level the tuition is FROZEN (school doesn't re-price each
+  //     year once enrolled). Each year pays that frozen amount.
+  //   • PV back to today uses the investmentReturn rate (risk-free-ish
+  //     discount — we assume the death benefit would be invested until spent).
+  //
+  // The legacy path (flat educationLevels[].costPerYear with per-level
+  // enable/disable) is still computed as a fallback when no children are
+  // defined, so existing users who haven't migrated their UI don't see zeros.
   const allLevels = p1.educationLevels || [];
-  const levelKeys = allLevels.map((lv) => lv.key);
   const children = p1.educationChildren || [];
 
+  const inflRate = inf / 100;
+  const retRate = ret / 100;
+
   const perChildEdu: Pillar1PerChildEdu[] = children.map((child) => {
-    const currentIdx = levelKeys.indexOf(child.currentLevelKey);
-    const yearInLevel = child.currentYearInLevel || 1;
-    if (currentIdx < 0) {
-      return {
-        id: child.id,
-        name: child.name,
-        currentLevelKey: child.currentLevelKey,
-        remaining: [],
-        totalYears: 0,
-        simpleTotal: 0,
-        tvmTotal: 0,
-      };
-    }
-    const remainingLevels: Pillar1PerChildEdu["remaining"] = [];
-    for (let i = currentIdx; i < allLevels.length; i++) {
-      const lv = allLevels[i];
-      if (!lv.enabled) continue;
-      const adjustedYears =
-        i === currentIdx ? Math.max(lv.years - (yearInLevel - 1), 0) : lv.years;
-      if (adjustedYears > 0) {
-        remainingLevels.push({ ...lv, adjustedYears });
+    const age = typeof child.age === "number" ? child.age : 6;
+    const curriculum: CurriculumType = (child.curriculumType as CurriculumType) || "thai";
+    const studyUntil: InsuranceLevelKey = (child.studyUntil as InsuranceLevelKey) || "bachelor";
+
+    const pos = ageToLevelPosition(age);
+    const startIdx = INSURANCE_LEVEL_SEQUENCE.indexOf(pos.levelKey);
+    const stopIdx = INSURANCE_LEVEL_SEQUENCE.indexOf(studyUntil);
+
+    // Walk levels from current to studyUntil, projecting cashflows.
+    const remaining: Pillar1PerChildEdu["remaining"] = [];
+    let cursorYear = pos.entryYearOffset; // year-from-now when NEXT unpaid tuition is due
+    let totalYears = 0;
+    let simpleTotal = 0;
+    let pvTotal = 0;
+
+    if (startIdx >= 0 && stopIdx >= startIdx) {
+      for (let i = startIdx; i <= stopIdx; i++) {
+        const levelKey = INSURANCE_LEVEL_SEQUENCE[i];
+        const levelDuration = INSURANCE_LEVEL_YEARS[levelKey];
+
+        // Years still to pay for this level:
+        //   • Current in-progress level: reduce by years already completed.
+        //   • Future levels: pay the full duration.
+        const yearsCompleted = i === startIdx ? Math.max(pos.yearInLevel - 1, 0) : 0;
+        const yearsRemainingInLevel = Math.max(levelDuration - yearsCompleted, 0);
+        if (yearsRemainingInLevel === 0) continue;
+
+        // Suggested annual tuition from lookup. master → null → fallback to
+        // the matching entry in educationLevels[].costPerYear (so master's can
+        // still be funded via the legacy level config) or zero.
+        const suggested = suggestInsuranceTuition(levelKey, curriculum);
+        const legacyLvl = allLevels.find((lv) => lv.key === levelKey);
+        const basePerYear = suggested ?? legacyLvl?.costPerYear ?? 0;
+
+        // Tuition frozen at the year the child ENTERS this level (or today
+        // when already in-progress — cursorYear may be negative).
+        const entryYearFromNow = Math.max(cursorYear, 0);
+        const tuitionFrozen = basePerYear * Math.pow(1 + inflRate, entryYearFromNow);
+
+        // Walk the remaining years of this level and accumulate cashflows.
+        for (let y = 0; y < yearsRemainingInLevel; y++) {
+          const yearFromNow = Math.max(cursorYear + y, 0);
+          simpleTotal += tuitionFrozen;
+          pvTotal += tuitionFrozen / Math.pow(1 + retRate, yearFromNow);
+        }
+        totalYears += yearsRemainingInLevel;
+        cursorYear += yearsRemainingInLevel;
+
+        remaining.push({
+          key: levelKey,
+          label: INSURANCE_LEVEL_LABEL[levelKey],
+          years: levelDuration,
+          costPerYear: Math.round(tuitionFrozen),
+          enabled: true,
+          adjustedYears: yearsRemainingInLevel,
+        });
       }
     }
-    const totalYears = remainingLevels.reduce((s, lv) => s + lv.adjustedYears, 0);
-    const simpleTotal = remainingLevels.reduce(
-      (s, lv) => s + lv.adjustedYears * lv.costPerYear,
-      0,
-    );
-    const avgAnnual = totalYears > 0 ? simpleTotal / totalYears : 0;
-    const tvmTotal = totalYears > 0 ? pvAnnuity(avgAnnual / 12, totalYears, inf, ret) : 0;
+
     return {
       id: child.id,
       name: child.name,
-      currentLevelKey: child.currentLevelKey,
-      remaining: remainingLevels,
+      currentLevelKey: pos.levelKey,
+      remaining,
       totalYears,
-      simpleTotal,
-      tvmTotal,
+      simpleTotal: Math.round(simpleTotal),
+      tvmTotal: Math.round(pvTotal),
     };
   });
 
