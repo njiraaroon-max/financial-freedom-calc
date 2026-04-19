@@ -86,6 +86,11 @@ export default function FormulaInput({
 
   const commit = () => {
     if (parsed !== null) onCommit(parsed);
+    // In controlled mode, leave the draft alone — the parent is managing it
+    // (e.g. ExcelCashflow keeps the `3000*` draft alive across blur so that
+    // a pick-row click can still multiply by it). Wiping here would destroy
+    // in-progress formulas during pick-mode.
+    if (isControlled) return;
     setDraft(parsed !== null && parsed !== 0 ? String(parsed) : "");
   };
 
