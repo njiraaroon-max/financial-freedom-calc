@@ -271,7 +271,7 @@ export default function CashFlowPage() {
         {/* Sankey panel — animate open/close */}
         <div
           style={{
-            maxHeight: showSankey ? "600px" : "0px",
+            maxHeight: showSankey ? "720px" : "0px",
             overflow: "hidden",
             transition: "max-height 0.4s cubic-bezier(0.4,0,0.2,1)",
           }}
