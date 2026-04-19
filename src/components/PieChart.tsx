@@ -10,6 +10,9 @@ interface PieSlice {
 interface PieChartProps {
   title: string;
   slices: PieSlice[];
+  /** Base (mobile) size in px. On md+ screens the chart scales via the
+   *  `--pie-max` CSS variable — set it on a parent with Tailwind classes
+   *  like `md:[--pie-max:190px] lg:[--pie-max:230px]`. Falls back to `size`. */
   size?: number;
 }
 
@@ -41,8 +44,12 @@ export default function PieChart({ title, slices, size = 130 }: PieChartProps) {
   if (total === 0) {
     return (
       <div className="flex flex-col items-center">
-        <div className="text-[14px] font-bold text-gray-600 mb-2">{title}</div>
-        <svg width={size} height={size} viewBox="0 0 100 100">
+        <div className="text-[14px] md:text-[15px] font-bold text-gray-600 mb-2">{title}</div>
+        <svg
+          viewBox="0 0 100 100"
+          className="w-full h-auto"
+          style={{ maxWidth: `var(--pie-max, ${size}px)` }}
+        >
           <circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" strokeWidth="20" />
           <text x="50" y="52" textAnchor="middle" dominantBaseline="middle" fill="#9ca3af" fontSize="10">
             ไม่มีข้อมูล
@@ -94,8 +101,12 @@ export default function PieChart({ title, slices, size = 130 }: PieChartProps) {
 
   return (
     <div className="flex flex-col items-center">
-      <div className="text-[14px] font-bold text-gray-600 mb-2">{title}</div>
-      <svg width={size} height={size} viewBox="0 0 100 100">
+      <div className="text-[14px] md:text-[15px] font-bold text-gray-600 mb-2">{title}</div>
+      <svg
+        viewBox="0 0 100 100"
+        className="w-full h-auto"
+        style={{ maxWidth: `var(--pie-max, ${size}px)` }}
+      >
         {paths.map((p, i) => (
           <path key={i} d={p.path} fill={p.color} stroke="white" strokeWidth="0.5" />
         ))}
@@ -109,18 +120,21 @@ export default function PieChart({ title, slices, size = 130 }: PieChartProps) {
         </text>
       </svg>
 
-      {/* Legend — sorted by value desc */}
-      <div className="mt-1 w-full max-w-[160px]">
+      {/* Legend — sorted by value desc. Legend max-width follows pie width. */}
+      <div
+        className="mt-2 w-full"
+        style={{ maxWidth: `var(--pie-max, ${size}px)` }}
+      >
         {sorted
           .slice(0, 6)
           .map((s, i) => (
             <div key={i} className="flex items-center gap-1.5 py-0.5">
               <div
-                className="w-2 h-2 rounded-sm shrink-0"
+                className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-sm shrink-0"
                 style={{ backgroundColor: s.color }}
               />
-              <span className="text-[13px] text-gray-600 truncate flex-1">{s.label}</span>
-              <span className="text-[13px] text-gray-700 whitespace-nowrap">
+              <span className="text-[13px] md:text-[14px] text-gray-600 truncate flex-1">{s.label}</span>
+              <span className="text-[13px] md:text-[14px] text-gray-700 whitespace-nowrap">
                 <span className="font-bold">{total > 0 ? ((s.value / total) * 100).toFixed(0) : 0}%</span>
                 {s.commonRatio !== undefined && (
                   <span className="text-gray-400 ml-0.5">(CR:{s.commonRatio.toFixed(0)}%)</span>
@@ -129,7 +143,7 @@ export default function PieChart({ title, slices, size = 130 }: PieChartProps) {
             </div>
           ))}
         {sorted.length > 6 && (
-          <div className="text-[12px] text-gray-400 text-center mt-0.5">
+          <div className="text-[12px] md:text-[13px] text-gray-400 text-center mt-0.5">
             +{sorted.length - 6} รายการ
           </div>
         )}

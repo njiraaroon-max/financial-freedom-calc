@@ -556,8 +556,8 @@ export default function ExcelCashflow({
         </button>
       </div>
 
-      {/* Pie Charts */}
-      <div className="glass grid grid-cols-2 gap-2 rounded-xl p-4">
+      {/* Pie Charts — responsive: bigger on tablet/desktop */}
+      <div className="glass grid grid-cols-2 gap-3 md:gap-6 rounded-xl p-4 md:p-6 [--pie-max:120px] md:[--pie-max:200px] lg:[--pie-max:240px]">
         <PieChart title="รายรับ" slices={incomeSlices} size={120} />
         <PieChart title="รายจ่าย" slices={expenseSlices} size={120} />
       </div>
