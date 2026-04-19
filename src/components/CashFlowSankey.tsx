@@ -82,6 +82,9 @@ interface ItemNode {
   name: string; v: number;
   color: string;
   colorKey: ColorKey;
+  /** Common-size ratio — item value as % of total annual income.
+      Undefined for the "Income" aggregate and category nodes. */
+  ratio?: number;
 }
 interface Flow {
   d: string;
@@ -160,12 +163,22 @@ export default function CashFlowSankey({ incomes, expenses, getAnnualTotal, year
     const sc = (v: number) => Math.max((v / maxV) * plotH, 4);
 
     // ── Col 0: income items ─────────────────────────────────────────────────
+    // Common-size ratio = item value / total annual income × 100. Mirrors
+    // the store's getCommonRatio formula — kept inline so the layout memo
+    // doesn't need to take the store fn as a dependency.
+    const commonRatio = (v: number) =>
+      totalIncome > 0 ? (v / totalIncome) * 100 : 0;
+
     const col0Nodes: ItemNode[] = [];
     const incBlockH = incItems.reduce((s, x) => s + sc(x.v), 0) + (incItems.length - 1) * GAP;
     let y = PAD_T + (plotH - incBlockH) / 2;
     for (const item of incItems) {
       const h = sc(item.v);
-      col0Nodes.push({ id: item.id, x: COL_X[0], y, w: NW_SMALL, h, name: item.name, v: item.v, color: C.income, colorKey: "income" });
+      col0Nodes.push({
+        id: item.id, x: COL_X[0], y, w: NW_SMALL, h,
+        name: item.name, v: item.v, color: C.income, colorKey: "income",
+        ratio: commonRatio(item.v),
+      });
       y += h + GAP;
     }
 
@@ -253,6 +266,7 @@ export default function CashFlowSankey({ incomes, expenses, getAnnualTotal, year
         col3Nodes.push({
           id: item.id, x: COL_X[3], y: tgt, w: NW_SMALL, h,
           name: item.name, v: item.v, color, colorKey,
+          ratio: commonRatio(item.v),
         });
         flows23.push({
           d: ribbon(COL_X[2] + NW_BIG, src, src + h, COL_X[3], tgt, tgt + h),
@@ -450,16 +464,19 @@ export default function CashFlowSankey({ incomes, expenses, getAnnualTotal, year
               >
                 <rect x={n.x} y={n.y} width={n.w} height={n.h} fill={n.color} rx={4} filter="url(#node-shadow)" />
                 <text
-                  x={n.x - 10} y={n.y + n.h / 2 - 5}
-                  textAnchor="end" fontSize={11} fill="#1f2937" fontWeight="700"
+                  x={n.x - 10} y={n.y + n.h / 2 - 4}
+                  textAnchor="end" fontSize={9.5} fill="#1f2937" fontWeight="700"
                 >
-                  {n.name.length > 13 ? n.name.slice(0, 12) + "…" : n.name}
+                  {n.name.length > 14 ? n.name.slice(0, 13) + "…" : n.name}
                 </text>
                 <text
-                  x={n.x - 10} y={n.y + n.h / 2 + 9}
-                  textAnchor="end" fontSize={11} fill="#6b7280"
+                  x={n.x - 10} y={n.y + n.h / 2 + 7}
+                  textAnchor="end" fontSize={9} fill="#6b7280"
                 >
                   {fmtK(n.v)}
+                  {n.ratio !== undefined && (
+                    <tspan fill="#9ca3af"> · {n.ratio.toFixed(1)}%</tspan>
+                  )}
                 </text>
               </g>
             ))}
@@ -528,16 +545,19 @@ export default function CashFlowSankey({ incomes, expenses, getAnnualTotal, year
               >
                 <rect x={n.x} y={n.y} width={n.w} height={n.h} fill={n.color} rx={4} filter="url(#node-shadow)" />
                 <text
-                  x={n.x + n.w + 10} y={n.y + n.h / 2 - 5}
-                  textAnchor="start" fontSize={11} fill="#1f2937" fontWeight="700"
+                  x={n.x + n.w + 10} y={n.y + n.h / 2 - 4}
+                  textAnchor="start" fontSize={9.5} fill="#1f2937" fontWeight="700"
                 >
-                  {n.name.length > 14 ? n.name.slice(0, 13) + "…" : n.name}
+                  {n.name.length > 15 ? n.name.slice(0, 14) + "…" : n.name}
                 </text>
                 <text
-                  x={n.x + n.w + 10} y={n.y + n.h / 2 + 9}
-                  textAnchor="start" fontSize={11} fill="#6b7280"
+                  x={n.x + n.w + 10} y={n.y + n.h / 2 + 7}
+                  textAnchor="start" fontSize={9} fill="#6b7280"
                 >
                   {fmtK(n.v)}
+                  {n.ratio !== undefined && (
+                    <tspan fill="#9ca3af"> · {n.ratio.toFixed(1)}%</tspan>
+                  )}
                 </text>
               </g>
             ))}
