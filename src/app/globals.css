@@ -95,9 +95,16 @@ body::before {
    A4 print layout in /report. */
 @media screen and (min-width: 768px) {
   body { font-size: 17px; line-height: 1.65; zoom: 1.05; }
+  /* text-xs is Tailwind's workhorse label size and too small for older
+     eyes (base 12px × zoom ≈ 12.6px). Bump it to roughly match text-sm
+     on iPad/MacBook. `!important` beats Tailwind's utility specificity
+     since both are single-class selectors and our import order could
+     flip if plugins reorder layers. */
+  .text-xs { font-size: 0.8125rem !important; line-height: 1.15rem !important; }
 }
 @media screen and (min-width: 1024px) {
   body { font-size: 18px; zoom: 1.06; }
+  .text-xs { font-size: 0.875rem !important; line-height: 1.25rem !important; }
 }
 
 input[type="number"]::-webkit-inner-spin-button,
