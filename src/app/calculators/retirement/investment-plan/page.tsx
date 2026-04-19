@@ -139,8 +139,11 @@ function PercentInput({
           e.currentTarget.select();
         }}
         onChange={(e) => {
-          // allow digits + single dot
-          let raw = e.target.value.replace(/[^\d.]/g, "").slice(0, 6);
+          // allow digits + single dot + optional leading minus
+          let raw = e.target.value.replace(/[^\d.\-]/g, "").slice(0, 7);
+          // keep at most one "-" and only at the start
+          const hasLeadingMinus = raw.startsWith("-");
+          raw = (hasLeadingMinus ? "-" : "") + raw.replace(/-/g, "");
           const firstDot = raw.indexOf(".");
           if (firstDot !== -1) {
             raw =
@@ -148,7 +151,7 @@ function PercentInput({
               raw.slice(firstDot + 1).replace(/\./g, "");
           }
           setDraft(raw);
-          if (raw === "" || raw === ".") return;
+          if (raw === "" || raw === "." || raw === "-" || raw === "-.") return;
           const n = parseFloat(raw);
           if (!Number.isFinite(n)) return;
           const clamped = Math.max(min, Math.min(max, n));
@@ -723,9 +726,20 @@ function InvestmentPlanPageInner() {
 
         {/* Investment plan phases */}
         <div className="glass rounded-2xl p-4">
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-2">
             <TrendingUp size={16} className="text-[#1e3a5f]" />
             <span className="text-sm font-bold text-[#1e3a5f]">แผนการออม/ลงทุน</span>
+          </div>
+
+          {/* Educational microcopy — explains why the rate slider extends to
+              negatives. Encourages users to model bear-market scenarios near
+              retirement (sequence-of-returns risk). */}
+          <div className="text-[11px] text-gray-500 leading-relaxed mb-3 pl-0.5">
+            💡 ลองตั้ง Phase ช่วงใกล้เกษียณเป็น{" "}
+            <span className="font-semibold text-rose-600">−5%</span> หรือ{" "}
+            <span className="font-semibold text-rose-600">−10%</span>{" "}
+            เพื่อจำลอง &ldquo;ตลาดหมี&rdquo; และดูว่า port ยังถึงเป้าหรือไม่ —
+            เป็นเหตุผลที่ควรลดความเสี่ยงเมื่อใกล้เกษียณ
           </div>
 
           {/* ── Timeline visualisation ─────────────────────────────────
@@ -893,8 +907,10 @@ function InvestmentPlanPageInner() {
                       );
                     })()}
 
-                    {/* Expected return — input + slider that fills remaining row */}
-                    <div className="flex items-center gap-2 flex-1 min-w-[220px]">
+                    {/* Expected return — input + slider that fills remaining row.
+                        Slider range −10% → +15% (step 0.5%) so users can model
+                        loss scenarios; tick row shows −10/−5/0/5/10/15 anchors. */}
+                    <div className="flex items-center gap-2 flex-1 min-w-[240px]">
                       <span className="text-[12px] text-gray-500 whitespace-nowrap">
                         ผลตอบแทน
                       </span>
@@ -905,32 +921,40 @@ function InvestmentPlanPageInner() {
                             expectedReturn: v,
                           })
                         }
-                        min={0}
+                        min={-10}
                         max={15}
-                        widthClass="w-14"
+                        widthClass="w-16"
                       />
-                      <span className="text-[10px] text-gray-400 tabular-nums shrink-0">3%</span>
-                      <input
-                        type="range"
-                        min={3}
-                        max={15}
-                        step={0.5}
-                        value={Math.max(
-                          3,
-                          Math.min(15, plan.expectedReturn * 100),
-                        )}
-                        onChange={(e) => {
-                          const n = parseFloat(e.target.value);
-                          if (Number.isFinite(n)) {
-                            store.updateInvestmentPlan(plan.id, {
-                              expectedReturn: n / 100,
-                            });
-                          }
-                        }}
-                        aria-label={`ปรับ % ผลตอบแทน Phase ${idx + 1}`}
-                        className="flex-1 min-w-[100px] h-1 accent-indigo-500 cursor-pointer"
-                      />
-                      <span className="text-[10px] text-gray-400 tabular-nums shrink-0">15%</span>
+                      <div className="flex flex-col flex-1 min-w-[140px]">
+                        <input
+                          type="range"
+                          min={-10}
+                          max={15}
+                          step={0.5}
+                          value={Math.max(
+                            -10,
+                            Math.min(15, plan.expectedReturn * 100),
+                          )}
+                          onChange={(e) => {
+                            const n = parseFloat(e.target.value);
+                            if (Number.isFinite(n)) {
+                              store.updateInvestmentPlan(plan.id, {
+                                expectedReturn: n / 100,
+                              });
+                            }
+                          }}
+                          aria-label={`ปรับ % ผลตอบแทน Phase ${idx + 1}`}
+                          className="w-full h-1 accent-indigo-500 cursor-pointer"
+                        />
+                        <div className="flex justify-between text-[9px] text-gray-400 mt-0.5 tabular-nums">
+                          <span>−10%</span>
+                          <span>−5%</span>
+                          <span>0%</span>
+                          <span>5%</span>
+                          <span>10%</span>
+                          <span>15%</span>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Trash — push to right with ml-auto */}
