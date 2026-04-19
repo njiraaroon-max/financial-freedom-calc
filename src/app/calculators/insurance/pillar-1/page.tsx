@@ -15,6 +15,7 @@ import {
   filterLifePolicies,
   computePillar1Analysis,
 } from "@/lib/pillar1Analysis";
+import { flushAllStores } from "@/lib/sync/flush-all";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(n: number): string {
@@ -149,10 +150,13 @@ export default function Pillar1Page() {
   // ─── Save & mark completed ──────────────────────────────────────────────
   const [saveFlash, setSaveFlash] = useState(false);
   const isAlreadySaved = store.completedSteps?.pillar1 || false;
-  const handleSave = () => {
+  const handleSave = async () => {
     store.markPillarCompleted("pillar1");
     setSaveFlash(true);
-    setTimeout(() => setSaveFlash(false), 2000);
+    await flushAllStores();
+    setTimeout(() => {
+      window.location.href = "/calculators/insurance";
+    }, 1200);
   };
 
   return (

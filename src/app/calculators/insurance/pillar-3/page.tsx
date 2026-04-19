@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Home, Car, ShieldAlert, AlertTriangle, CheckCircle2, Package } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import MoneyInput from "@/components/MoneyInput";
 import { useInsuranceStore, VehicleInsuranceType } from "@/store/insurance-store";
+import { flushAllStores } from "@/lib/sync/flush-all";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(n: number): string {
@@ -99,8 +100,16 @@ export default function Pillar3Page() {
     return { items, totalNeed, totalHave, totalGap, adequateCount, homeGap, vehicleGap, liabilityGap };
   }, [p3]);
 
-  const handleSave = () => {
+  const [saveFlash, setSaveFlash] = useState(false);
+  const isAlreadySaved = store.riskManagement?.completedPillars?.pillar3 || false;
+
+  const handleSave = async () => {
     store.markPillarCompleted("pillar3");
+    setSaveFlash(true);
+    await flushAllStores();
+    setTimeout(() => {
+      window.location.href = "/calculators/insurance";
+    }, 1200);
   };
 
   return (
@@ -479,9 +488,24 @@ export default function Pillar3Page() {
 
         {/* Save button */}
         <div className="mx-1">
-          <button onClick={handleSave}
-            className="w-full py-3 rounded-2xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 active:scale-[0.98] transition shadow-lg">
-            บันทึกการประเมิน Pillar 3
+          <button
+            onClick={handleSave}
+            disabled={saveFlash}
+            className={`w-full py-3 rounded-2xl text-white text-sm font-bold active:scale-[0.98] transition shadow-lg flex items-center justify-center gap-2 ${
+              saveFlash
+                ? "bg-emerald-500 cursor-default"
+                : isAlreadySaved
+                ? "bg-amber-400 hover:bg-amber-500"
+                : "bg-amber-500 hover:bg-amber-600"
+            }`}
+          >
+            {saveFlash ? (
+              <><CheckCircle2 size={16} /> บันทึกเรียบร้อย — กำลังกลับ...</>
+            ) : isAlreadySaved ? (
+              <><CheckCircle2 size={16} /> บันทึกแล้ว — กดอีกครั้งเพื่ออัปเดต</>
+            ) : (
+              "บันทึกการประเมิน Pillar 3"
+            )}
           </button>
         </div>
       </div>

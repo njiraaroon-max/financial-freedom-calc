@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
-import { Receipt, TrendingDown } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Receipt, TrendingDown, CheckCircle2 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { useInsuranceStore } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
 import { useTaxStore } from "@/store/tax-store";
 import { toast } from "@/store/toast-store";
+import { flushAllStores } from "@/lib/sync/flush-all";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(n: number): string {
@@ -44,6 +45,9 @@ export default function TaxOptimizationPage() {
 
   const p4 = store.riskManagement.pillar4;
   const policies = store.policies;
+  const [saveFlash, setSaveFlash] = useState(false);
+  const isAlreadySaved = store.riskManagement?.completedPillars?.pillar4 || false;
+
   const annualIncome = (profile.salary || 0) * 12;
   const totalPremium = policies.reduce((s, p) => s + p.premium, 0);
 
@@ -102,6 +106,15 @@ export default function TaxOptimizationPage() {
           .join(" + ")}
       </div>
     );
+  };
+
+  const handleSave = async () => {
+    store.markPillarCompleted("pillar4");
+    setSaveFlash(true);
+    await flushAllStores();
+    setTimeout(() => {
+      window.location.href = "/calculators/insurance";
+    }, 1200);
   };
 
   const handlePushToTax = () => {
@@ -326,10 +339,23 @@ export default function TaxOptimizationPage() {
         {/* Save button */}
         <div className="mx-1">
           <button
-            onClick={() => store.markPillarCompleted("pillar4")}
-            className="w-full py-3 rounded-2xl bg-purple-500 text-white text-sm font-bold hover:bg-purple-600 active:scale-[0.98] transition shadow-lg"
+            onClick={handleSave}
+            disabled={saveFlash}
+            className={`w-full py-3 rounded-2xl text-white text-sm font-bold active:scale-[0.98] transition shadow-lg flex items-center justify-center gap-2 ${
+              saveFlash
+                ? "bg-emerald-500 cursor-default"
+                : isAlreadySaved
+                ? "bg-purple-400 hover:bg-purple-500"
+                : "bg-purple-500 hover:bg-purple-600"
+            }`}
           >
-            บันทึก Tax Optimization
+            {saveFlash ? (
+              <><CheckCircle2 size={16} /> บันทึกเรียบร้อย — กำลังกลับ...</>
+            ) : isAlreadySaved ? (
+              <><CheckCircle2 size={16} /> บันทึกแล้ว — กดอีกครั้งเพื่ออัปเดต</>
+            ) : (
+              "บันทึก Tax Optimization"
+            )}
           </button>
         </div>
       </div>

@@ -14,6 +14,7 @@ import {
   computePolicyAggregates,
   computePillar2Analysis,
 } from "@/lib/pillar2Analysis";
+import { flushAllStores } from "@/lib/sync/flush-all";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(n: number): string {
@@ -347,10 +348,13 @@ export default function Pillar2Page() {
   const [npvSent, setNpvSent] = useState(false);
   const isAlreadySaved = store.completedSteps?.pillar2 || false;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     store.markPillarCompleted("pillar2");
     setSaveFlash(true);
-    setTimeout(() => setSaveFlash(false), 2000);
+    await flushAllStores();
+    setTimeout(() => {
+      window.location.href = "/calculators/insurance";
+    }, 1200);
   };
 
   const handleSendNPV = () => {
