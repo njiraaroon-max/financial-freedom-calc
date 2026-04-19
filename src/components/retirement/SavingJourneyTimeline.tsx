@@ -4,13 +4,17 @@
  * SavingJourneyTimeline — visual overview of the user's pre-retirement
  * saving/investment plan phases.
  *
- * X axis: อายุ (currentAge → retireAge)
+ * X axis: อายุ (currentAge → retireAge), one tick per year
  * Y axis: monthlyAmount (บาท/เดือน, auto-scaled)
  *
- * Each phase is rendered as a coloured bar whose height is proportional
- * to the monthly savings amount. Hovering a bar highlights the matching
- * editor row (via onHoverChange); clicking scrolls the page to that row
- * and triggers a ring flash (via onPhaseClick).
+ * Style: minimal, single blue tone. Each phase is a translucent blue
+ * bar whose height is proportional to monthly savings. Phase numbers
+ * are placed INSIDE the bars (top edge) so they don't collide with
+ * the year labels below.
+ *
+ * Hovering a bar highlights the matching editor row (via onHoverChange);
+ * clicking scrolls the page to that row and triggers a ring flash
+ * (via onPhaseClick).
  *
  * Handles edge cases:
  *   - Zero phases → dashed skeleton outline + placeholder label.
@@ -20,17 +24,14 @@
 
 import type { InvestmentPlanItem } from "@/types/retirement";
 
-/** Stable palette for phase bars + editor row accents (cycled by index). */
-export const PHASE_COLORS = [
-  "#3b82f6", // blue
-  "#14b8a6", // teal
-  "#6366f1", // indigo
-  "#f59e0b", // amber
-  "#ec4899", // pink
-] as const;
+/** Minimal single-blue palette — all phases use the same colour.
+ *  Kept as an export so editor rows can colour-match without coupling. */
+export const PHASE_COLOR = "#3b82f6";
 
-export function phaseColor(idx: number): string {
-  return PHASE_COLORS[idx % PHASE_COLORS.length];
+/** @deprecated kept for any callers still referencing it; always returns
+ *  the single minimal-blue accent now. */
+export function phaseColor(_idx: number): string {
+  return PHASE_COLOR;
 }
 
 function fmtK(n: number): string {
@@ -59,13 +60,13 @@ export default function SavingJourneyTimeline({
   onHoverChange,
   onPhaseClick,
 }: SavingJourneyTimelineProps) {
-  // ── SVG dimensions ────────────────────────────────────────────────
+  // ── SVG dimensions (compact) ─────────────────────────────────────
   const W = 700;
-  const H = 170;
-  const leftPad = 36;
-  const rightPad = 14;
-  const topPad = 22;
-  const bottomPad = 28;
+  const H = 130;
+  const leftPad = 30;
+  const rightPad = 10;
+  const topPad = 12;
+  const bottomPad = 18;
   const plotW = W - leftPad - rightPad;
   const plotH = H - topPad - bottomPad;
 
@@ -78,48 +79,37 @@ export default function SavingJourneyTimeline({
     10_000,
     ...plans.map((p) => p.monthlyAmount),
   );
-  const yMax = maxMonthly * 1.15;
+  const yMax = maxMonthly * 1.12;
   const amountToY = (v: number) =>
     topPad + plotH - (v / yMax) * plotH;
 
   // ── Y grid ticks ──────────────────────────────────────────────────
-  const ySteps = 3;
+  const ySteps = 2;
   const yTicks: number[] = [];
   for (let i = 0; i <= ySteps; i++) yTicks.push((yMax * i) / ySteps);
 
-  // ── X ticks: every 5 years + start/end + phase boundaries ─────────
-  const xTicks = new Set<number>();
-  xTicks.add(currentAge);
-  xTicks.add(retireAge);
-  for (let a = Math.ceil(currentAge / 5) * 5; a < retireAge; a += 5) {
-    xTicks.add(a);
-  }
-  plans.forEach((p) => {
-    if (p.yearStart >= currentAge && p.yearStart <= retireAge)
-      xTicks.add(p.yearStart);
-    if (p.yearEnd + 1 >= currentAge && p.yearEnd + 1 <= retireAge)
-      xTicks.add(p.yearEnd + 1);
-  });
-  const xTickList = Array.from(xTicks).sort((a, b) => a - b);
+  // ── X ticks: every year (user request) ────────────────────────────
+  const xTickList: number[] = [];
+  for (let a = currentAge; a <= retireAge; a++) xTickList.push(a);
 
   return (
-    <div className="w-full">
+    <div className="w-full max-w-3xl mx-auto">
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="w-full h-auto select-none"
         role="img"
         aria-label="แผนภาพการออม/ลงทุนรายช่วงอายุ"
       >
-        {/* Plot frame — soft bg */}
+        {/* Plot frame — very soft bg */}
         <rect
           x={leftPad}
           y={topPad}
           width={plotW}
           height={plotH}
-          fill="#fafafa"
-          stroke="#f3f4f6"
+          fill="#fafbff"
+          stroke="#eef2ff"
           strokeWidth={0.5}
-          rx={6}
+          rx={4}
         />
 
         {/* Horizontal grid lines + y labels */}
@@ -131,15 +121,15 @@ export default function SavingJourneyTimeline({
               x2={leftPad + plotW}
               y2={amountToY(v)}
               stroke="#e5e7eb"
-              strokeWidth={0.5}
-              strokeDasharray={i === 0 ? undefined : "3,3"}
+              strokeWidth={0.4}
+              strokeDasharray={i === 0 ? undefined : "2,3"}
             />
             <text
-              x={leftPad - 4}
-              y={amountToY(v) + 3}
+              x={leftPad - 3}
+              y={amountToY(v) + 2}
               textAnchor="end"
               className="fill-gray-400"
-              fontSize={9}
+              fontSize={7}
             >
               ฿{fmtK(v)}
             </text>
@@ -151,29 +141,32 @@ export default function SavingJourneyTimeline({
           <g>
             <rect
               x={leftPad}
-              y={topPad + plotH * 0.35}
+              y={topPad + plotH * 0.4}
               width={plotW}
-              height={plotH * 0.55}
+              height={plotH * 0.5}
               fill="none"
               stroke="#d1d5db"
-              strokeWidth={1.2}
-              strokeDasharray="5,4"
-              rx={4}
+              strokeWidth={1}
+              strokeDasharray="4,3"
+              rx={3}
             />
             <text
               x={leftPad + plotW / 2}
               y={topPad + plotH * 0.65}
               textAnchor="middle"
               className="fill-gray-400"
-              fontSize={11}
+              fontSize={9}
             >
               ยังไม่มีแผนการออม/ลงทุน — กด &ldquo;+ เพิ่ม Phase&rdquo; ด้านล่าง
             </text>
           </g>
         )}
 
-        {/* Phase bars */}
+        {/* Phase bars — single blue tone, opacity varies with index */}
         {plans.map((plan, idx) => {
+          // Stagger opacity just a touch so adjacent phases are still
+          // distinguishable when they sit next to each other.
+          const baseOpacity = 0.32 + (idx % 3) * 0.12; // 0.32 / 0.44 / 0.56
           // clamp into [currentAge, retireAge-1] for drawing only
           const s = Math.max(currentAge, Math.min(retireAge - 1, plan.yearStart));
           const e = Math.max(s, Math.min(retireAge - 1, plan.yearEnd));
@@ -182,17 +175,20 @@ export default function SavingJourneyTimeline({
           const barW = Math.max(2, x2 - x1);
           const barY = amountToY(plan.monthlyAmount);
           const barH = topPad + plotH - barY;
-          const color = phaseColor(idx);
           const isHovered = hoveredId === plan.id;
           const isDimmed = hoveredId !== undefined && hoveredId !== null && !isHovered;
 
-          // Inline label fits only if bar is wide enough
-          const canFitInline = barW >= 56 && barH >= 28;
+          const fillOpacity = isDimmed ? 0.15 : isHovered ? 0.8 : baseOpacity;
+
+          // Inline label fits only if bar is wide+tall enough
+          const canFitInline = barW >= 44 && barH >= 28;
           const labelLine1 = `฿${fmtK(plan.monthlyAmount)}/ด`;
           const labelLine2 = `${(plan.expectedReturn * 100).toFixed(1)}%`;
 
-          // Label when too narrow — position above the bar
-          const topLabelY = Math.max(topPad + 10, barY - 5);
+          // Phase number placement — inside bar at top if tall enough,
+          // otherwise above the bar (outside chart fill).
+          const chipInside = barH >= 14;
+          const chipY = chipInside ? barY + 8 : Math.max(topPad + 6, barY - 4);
 
           return (
             <g
@@ -202,87 +198,85 @@ export default function SavingJourneyTimeline({
               onMouseLeave={() => onHoverChange?.(null)}
               onClick={() => onPhaseClick?.(plan.id)}
             >
-              {/* Bar fill */}
+              {/* Bar fill — translucent blue */}
               <rect
-                x={x1 + 1}
+                x={x1 + 0.5}
                 y={barY}
-                width={Math.max(1, barW - 2)}
+                width={Math.max(1, barW - 1)}
                 height={barH}
-                fill={color}
-                fillOpacity={isDimmed ? 0.28 : isHovered ? 0.92 : 0.78}
-                rx={3}
+                fill={PHASE_COLOR}
+                fillOpacity={fillOpacity}
+                rx={2}
                 style={{ transition: "fill-opacity 150ms ease" }}
               />
-              {/* Top accent stroke */}
-              <rect
-                x={x1 + 1}
-                y={barY}
-                width={Math.max(1, barW - 2)}
-                height={2.5}
-                fill={color}
-                rx={1.5}
+              {/* Top edge line — the "minimal blue line" accent */}
+              <line
+                x1={x1 + 0.5}
+                y1={barY}
+                x2={x1 + barW - 0.5}
+                y2={barY}
+                stroke={PHASE_COLOR}
+                strokeWidth={1.5}
+                strokeOpacity={isDimmed ? 0.3 : 1}
               />
 
-              {/* Inline label (centered inside bar) */}
+              {/* Phase number — on-chart, top-center of the bar */}
+              <text
+                x={x1 + barW / 2}
+                y={chipY}
+                textAnchor="middle"
+                fill={chipInside ? "white" : PHASE_COLOR}
+                fontSize={7}
+                fontWeight={800}
+                style={{
+                  paintOrder: chipInside ? undefined : "stroke",
+                  stroke: chipInside ? undefined : "white",
+                  strokeWidth: chipInside ? undefined : 2,
+                }}
+              >
+                {idx + 1}
+              </text>
+
+              {/* Inline amount + return labels */}
               {canFitInline && (
                 <>
                   <text
                     x={x1 + barW / 2}
-                    y={barY + 13}
+                    y={barY + 20}
                     textAnchor="middle"
-                    className="fill-white"
-                    fontSize={10}
+                    fill="#1e40af"
+                    fontSize={8}
                     fontWeight={700}
                   >
                     {labelLine1}
                   </text>
                   <text
                     x={x1 + barW / 2}
-                    y={barY + 25}
+                    y={barY + 30}
                     textAnchor="middle"
-                    className="fill-white/90"
-                    fontSize={9}
+                    fill="#1e40af"
+                    fontSize={7}
                     fontWeight={600}
+                    opacity={0.8}
                   >
                     {labelLine2}
                   </text>
                 </>
               )}
 
-              {/* Label on top when bar too narrow */}
+              {/* Label on top when bar too narrow for inline */}
               {!canFitInline && (
                 <text
                   x={x1 + barW / 2}
-                  y={topLabelY}
+                  y={Math.max(topPad + 14, barY - 2)}
                   textAnchor="middle"
-                  fill={color}
-                  fontSize={9}
+                  fill={PHASE_COLOR}
+                  fontSize={7}
                   fontWeight={700}
                 >
                   ฿{fmtK(plan.monthlyAmount)}
                 </text>
               )}
-
-              {/* Phase number chip at bottom of bar */}
-              <g>
-                <circle
-                  cx={x1 + barW / 2}
-                  cy={topPad + plotH + 12}
-                  r={8}
-                  fill={color}
-                  fillOpacity={isDimmed ? 0.4 : 1}
-                />
-                <text
-                  x={x1 + barW / 2}
-                  y={topPad + plotH + 15}
-                  textAnchor="middle"
-                  className="fill-white"
-                  fontSize={9}
-                  fontWeight={800}
-                >
-                  {idx + 1}
-                </text>
-              </g>
 
               {/* Invisible hit area — expand clickable zone */}
               <rect
@@ -309,40 +303,40 @@ export default function SavingJourneyTimeline({
           x2={leftPad + plotW}
           y2={topPad + plotH}
           stroke="#9ca3af"
-          strokeWidth={1}
+          strokeWidth={0.6}
         />
 
-        {/* X axis labels (age) — below the phase-number circles */}
+        {/* X axis labels (age) — every year */}
         {xTickList.map((age) => (
           <text
             key={`x-${age}`}
             x={yearToX(age)}
-            y={H - 4}
+            y={H - 5}
             textAnchor="middle"
-            className="fill-gray-500"
-            fontSize={9}
+            className="fill-gray-400"
+            fontSize={6}
             fontWeight={age === currentAge || age === retireAge ? 700 : 400}
           >
             {age}
           </text>
         ))}
 
-        {/* Edge markers: "อายุปัจจุบัน" / "เกษียณ" */}
+        {/* Edge markers: "ปัจจุบัน" / "เกษียณ" */}
         <text
           x={yearToX(currentAge)}
-          y={topPad - 6}
+          y={topPad - 3}
           textAnchor="start"
           className="fill-gray-400"
-          fontSize={9}
+          fontSize={7}
         >
           ปัจจุบัน
         </text>
         <text
           x={yearToX(retireAge)}
-          y={topPad - 6}
+          y={topPad - 3}
           textAnchor="end"
           className="fill-gray-400"
-          fontSize={9}
+          fontSize={7}
         >
           เกษียณ
         </text>

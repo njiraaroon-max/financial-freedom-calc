@@ -22,7 +22,6 @@ import {
 } from "@/types/retirement";
 import MonteCarloChart from "@/components/retirement/MonteCarloChart";
 import MonteCarloHistogram from "@/components/retirement/MonteCarloHistogram";
-import RiskPresetPicker from "@/components/retirement/RiskPresetPicker";
 import SavingJourneyTimeline, {
   phaseColor,
 } from "@/components/retirement/SavingJourneyTimeline";
@@ -682,50 +681,19 @@ function InvestmentPlanPageInner() {
             onPhaseClick={handleTimelineClick}
           />
 
-          {/* ── Summary pill (totals across all phases) ───────────────── */}
+          {/* ── Summary pill — only รวมสะสม, minimal ──────────────────── */}
           {store.investmentPlans.length > 0 && (() => {
             let totalContribution = 0;
-            let weightedReturnNumerator = 0;
-            let weightedReturnDenominator = 0;
-            const coveredYears = new Set<number>();
             for (const p of store.investmentPlans) {
               const s = Math.max(a.currentAge, p.yearStart);
               const e = Math.min(a.retireAge - 1, p.yearEnd);
               const years = Math.max(0, e - s + 1);
               totalContribution += p.monthlyAmount * 12 * years;
-              weightedReturnNumerator += p.expectedReturn * years;
-              weightedReturnDenominator += years;
-              for (let y = s; y <= e; y++) coveredYears.add(y);
             }
-            const weightedAvgReturn =
-              weightedReturnDenominator > 0
-                ? weightedReturnNumerator / weightedReturnDenominator
-                : 0;
-            const yearsCovered = coveredYears.size;
-            const yearsTotal = Math.max(0, a.retireAge - a.currentAge);
-            const hasGaps = yearsCovered < yearsTotal;
             return (
-              <div className="mt-1 mb-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-gray-500">
-                <span>
-                  รวมสะสม{" "}
-                  <b className="text-[#1e3a5f]">
-                    ฿{fmtM(totalContribution)}
-                  </b>
-                </span>
-                <span className="text-gray-300">·</span>
-                <span>
-                  ผลตอบแทนเฉลี่ย{" "}
-                  <b className="text-[#1e3a5f]">
-                    {(weightedAvgReturn * 100).toFixed(1)}%
-                  </b>
-                </span>
-                <span className="text-gray-300">·</span>
-                <span>
-                  ครอบคลุม{" "}
-                  <b className={hasGaps ? "text-amber-600" : "text-emerald-600"}>
-                    {yearsCovered}/{yearsTotal} ปี
-                  </b>
-                </span>
+              <div className="mt-1 mb-3 text-center text-[11px] text-gray-500">
+                รวมสะสม{" "}
+                <b className="text-[#1e3a5f]">฿{fmtM(totalContribution)}</b>
               </div>
             );
           })()}
@@ -856,97 +824,130 @@ function InvestmentPlanPageInner() {
                     </button>
                   </div>
 
-                {/* Monte Carlo settings — show only in MC mode */}
+                {/* Monte Carlo settings — minimal 1-line row.
+                    Preset buttons collapse to emoji-only tiles; σ/min/max
+                    are compact labelled inputs. Tooltips carry the full
+                    preset name + field meaning. */}
                 {simMode === "montecarlo" && (() => {
                   const mc = getMCParams(plan);
                   const profile: RiskProfile = plan.riskProfile || "balanced";
+                  const presetKeys: RiskProfile[] = [
+                    "aggressive",
+                    "balanced",
+                    "conservative",
+                    "cash",
+                    "custom",
+                  ];
                   return (
-                    <div className="mt-3 pt-3 border-t border-indigo-100 bg-indigo-50/40 rounded-lg px-2.5 py-2.5 -mx-0.5 space-y-2.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[13px] font-bold text-indigo-700">🎲 การจำลอง Monte Carlo</span>
+                    <div className="mt-2 pt-2 border-t border-indigo-100 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                      {/* Preset tiles — emoji only, tooltip for name */}
+                      <div className="flex items-center gap-1">
+                        <span className="text-[11px] text-gray-400 mr-0.5">🎲</span>
+                        {presetKeys.map((k) => {
+                          const preset = k !== "custom" ? RISK_PRESETS[k] : null;
+                          const active = profile === k;
+                          return (
+                            <button
+                              key={k}
+                              type="button"
+                              title={preset?.label ?? "กำหนดเอง"}
+                              aria-label={preset?.label ?? "กำหนดเอง"}
+                              onClick={() => {
+                                if (k === "custom") {
+                                  store.updateInvestmentPlan(plan.id, {
+                                    riskProfile: "custom",
+                                  });
+                                } else {
+                                  const p = RISK_PRESETS[k];
+                                  store.updateInvestmentPlan(plan.id, {
+                                    riskProfile: k,
+                                    expectedReturn: p.expectedReturn,
+                                    volatility: p.volatility,
+                                    minReturn: p.minReturn,
+                                    maxReturn: p.maxReturn,
+                                  });
+                                }
+                              }}
+                              className={`w-6 h-6 rounded-md flex items-center justify-center text-[11px] border transition ${
+                                active
+                                  ? "bg-indigo-600 border-indigo-600 scale-110 shadow-sm"
+                                  : "bg-white border-gray-200 hover:border-indigo-300"
+                              }`}
+                            >
+                              {preset?.emoji ?? "⚙️"}
+                            </button>
+                          );
+                        })}
                       </div>
 
-                      {/* Preset picker */}
-                      <div>
-                        <div className="text-[13px] text-gray-500 mb-1">รูปแบบพอร์ต</div>
-                        <RiskPresetPicker
-                          value={profile}
-                          onPick={(p) => {
-                            if (p === "custom") {
-                              store.updateInvestmentPlan(plan.id, { riskProfile: "custom" });
-                            } else {
-                              const preset = RISK_PRESETS[p];
-                              store.updateInvestmentPlan(plan.id, {
-                                riskProfile: p,
-                                expectedReturn: preset.expectedReturn,
-                                volatility: preset.volatility,
-                                minReturn: preset.minReturn,
-                                maxReturn: preset.maxReturn,
-                              });
-                            }
+                      {/* σ (SD) */}
+                      <label
+                        className="flex items-center gap-1 text-[11px] text-gray-500"
+                        title="ความผันผวน (Standard Deviation) ต่อปี"
+                      >
+                        <span className="font-semibold">σ</span>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={(mc.volatility * 100).toFixed(1)}
+                          onChange={(e) => {
+                            const v = Number(e.target.value) / 100;
+                            if (!Number.isFinite(v)) return;
+                            store.updateInvestmentPlan(plan.id, {
+                              volatility: Math.max(0, v),
+                              riskProfile: "custom",
+                            });
                           }}
-                          compact
+                          className="glass w-12 text-[11px] font-semibold rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-indigo-400 text-right"
                         />
-                      </div>
+                        <span className="text-gray-400">%</span>
+                      </label>
 
-                      {/* Volatility + min/max */}
-                      <div className="grid grid-cols-3 gap-2">
-                        <div>
-                          <div className="text-[13px] text-gray-500 mb-0.5">SD (%)</div>
-                          <input
-                            type="text"
-                            inputMode="decimal"
-                            value={(mc.volatility * 100).toFixed(1)}
-                            onChange={(e) => {
-                              const v = Number(e.target.value) / 100;
-                              if (!Number.isFinite(v)) return;
-                              store.updateInvestmentPlan(plan.id, {
-                                volatility: Math.max(0, v),
-                                riskProfile: "custom",
-                              });
-                            }}
-                            className="glass w-full text-xs font-semibold rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-400 text-right"
-                          />
-                        </div>
-                        <div>
-                          <div className="text-[13px] text-gray-500 mb-0.5">ขาดทุนสูงสุด (%)</div>
-                          <input
-                            type="text"
-                            inputMode="decimal"
-                            value={(mc.minReturn * 100).toFixed(1)}
-                            onChange={(e) => {
-                              const v = Number(e.target.value) / 100;
-                              if (!Number.isFinite(v)) return;
-                              store.updateInvestmentPlan(plan.id, {
-                                minReturn: v,
-                                riskProfile: "custom",
-                              });
-                            }}
-                            className="glass w-full text-xs font-semibold rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-400 text-right"
-                          />
-                        </div>
-                        <div>
-                          <div className="text-[13px] text-gray-500 mb-0.5">กำไรสูงสุด (%)</div>
-                          <input
-                            type="text"
-                            inputMode="decimal"
-                            value={(mc.maxReturn * 100).toFixed(1)}
-                            onChange={(e) => {
-                              const v = Number(e.target.value) / 100;
-                              if (!Number.isFinite(v)) return;
-                              store.updateInvestmentPlan(plan.id, {
-                                maxReturn: v,
-                                riskProfile: "custom",
-                              });
-                            }}
-                            className="glass w-full text-xs font-semibold rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-400 text-right"
-                          />
-                        </div>
-                      </div>
-                      <div className="text-[13px] text-gray-500 leading-relaxed">
-                        ผลตอบแทนจะถูกสุ่มจากช่วง ({(mc.minReturn * 100).toFixed(0)}% ถึง {(mc.maxReturn * 100).toFixed(0)}%)
-                        · ค่าเฉลี่ย {(mc.expectedReturn * 100).toFixed(1)}% · ผันผวน {(mc.volatility * 100).toFixed(1)}%
-                      </div>
+                      {/* Min */}
+                      <label
+                        className="flex items-center gap-1 text-[11px] text-gray-500"
+                        title="ขาดทุนสูงสุดต่อปี (floor)"
+                      >
+                        <span>min</span>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={(mc.minReturn * 100).toFixed(1)}
+                          onChange={(e) => {
+                            const v = Number(e.target.value) / 100;
+                            if (!Number.isFinite(v)) return;
+                            store.updateInvestmentPlan(plan.id, {
+                              minReturn: v,
+                              riskProfile: "custom",
+                            });
+                          }}
+                          className="glass w-14 text-[11px] font-semibold rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-indigo-400 text-right"
+                        />
+                        <span className="text-gray-400">%</span>
+                      </label>
+
+                      {/* Max */}
+                      <label
+                        className="flex items-center gap-1 text-[11px] text-gray-500"
+                        title="กำไรสูงสุดต่อปี (ceiling)"
+                      >
+                        <span>max</span>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={(mc.maxReturn * 100).toFixed(1)}
+                          onChange={(e) => {
+                            const v = Number(e.target.value) / 100;
+                            if (!Number.isFinite(v)) return;
+                            store.updateInvestmentPlan(plan.id, {
+                              maxReturn: v,
+                              riskProfile: "custom",
+                            });
+                          }}
+                          className="glass w-12 text-[11px] font-semibold rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-indigo-400 text-right"
+                        />
+                        <span className="text-gray-400">%</span>
+                      </label>
                     </div>
                   );
                 })()}
