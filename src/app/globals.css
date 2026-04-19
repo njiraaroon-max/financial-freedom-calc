@@ -86,16 +86,18 @@ body::before {
   body { max-width: none; }
 }
 
-/* iPad + laptop: bump base font-size so Tailwind's rem-based utilities
-   (text-xs, text-sm, text-base, ...) scale up proportionally. Literal
-   pixel sizes like text-[11px] keep their px size — we bump those
-   separately via the audit script. FA demo audience skews older so we
-   lean a little bigger than most web apps. */
-@media (min-width: 768px) {
-  body { font-size: 17px; line-height: 1.65; }
+/* iPad + laptop: zoom bumps EVERY pixel uniformly — Tailwind utilities
+   (rem-based, normally tied to <html>), literal text-[Npx], spacing,
+   icons, chart coords, all of it. Paired with a modest body font-size
+   bump for unstyled text that inherits from body.
+   FA demo audience skews older so we lean a little bigger than most
+   web apps. `screen` media scope so zoom doesn't interfere with the
+   A4 print layout in /report. */
+@media screen and (min-width: 768px) {
+  body { font-size: 17px; line-height: 1.65; zoom: 1.05; }
 }
-@media (min-width: 1024px) {
-  body { font-size: 18px; }
+@media screen and (min-width: 1024px) {
+  body { font-size: 18px; zoom: 1.06; }
 }
 
 input[type="number"]::-webkit-inner-spin-button,
