@@ -311,12 +311,19 @@ function InvestmentPlanPageInner() {
           </g>
         ))}
 
-        {/* X-axis labels */}
-        {investResult.map((r, i) => (
+        {/* X-axis labels — every 5 years + first + last, so labels
+            don't crash into each other on iPad/laptop width. */}
+        {investResult.map((r, i) => {
+          const isFirst = i === 0;
+          const isLast = i === investResult.length - 1;
+          const isRoundAge = r.age % 5 === 0;
+          if (!isFirst && !isLast && !isRoundAge) return null;
+          return (
             <text key={i} x={idxToX(i)} y={chartH - 8} textAnchor="middle" className="text-[11px] fill-gray-400">
               {r.age}
             </text>
-        ))}
+          );
+        })}
 
         {/* Target line (shortage) */}
         {shortage > 0 && shortage < maxVal && (
