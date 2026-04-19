@@ -557,7 +557,9 @@ export default function BalanceSheetTable({
                 return rows;
               })()}
 
-              {/* Subtotal: personal */}
+              {/* Subtotal: personal. Right side fills with green so the
+                  netWorth block flows all the way down to the grand total
+                  row without a visible white gap. */}
               <tr className="bg-white">
                 <td
                   className={`${subtotalL} ${stickyCol} bg-white whitespace-nowrap`}
@@ -566,12 +568,13 @@ export default function BalanceSheetTable({
                 </td>
                 <td className={subtotalV}>{fmt(personalTotal)}</td>
                 <td className={subtotalV}>{pct(personalTotal, totalAssets)}</td>
-                <td className={subtotalL} />
-                <td className={subtotalV} />
-                <td className={subtotalV} />
+                <td className={`${greenBg}`} />
+                <td className={`${greenBg}`} />
+                <td className={`${greenBg}`} />
               </tr>
 
-              {/* Grand Total */}
+              {/* Grand Total — single unified dark-blue row across both
+                  sides (label matches the sinthrap total on the left). */}
               <tr className={darkBlue}>
                 <td
                   className={`${hWhite} ${stickyCol} bg-[#1e3a5f] whitespace-nowrap`}
@@ -580,13 +583,11 @@ export default function BalanceSheetTable({
                 </td>
                 <td className={`${hWhite} text-right`}>{fmt(totalAssets)}</td>
                 <td className={`${hWhite} text-right`}>100.0%</td>
-                <td className={`${hWhite} bg-[#9b2c2c]`}>
-                  หนี้สินและความมั่งคั่งสุทธิ
-                </td>
-                <td className={`${hWhite} text-right bg-[#9b2c2c]`}>
+                <td className={`${hWhite}`}>หนี้สินและความมั่งคั่งสุทธิ</td>
+                <td className={`${hWhite} text-right`}>
                   {fmt(totalLiabilities + netWorth)}
                 </td>
-                <td className={`${hWhite} text-right bg-[#9b2c2c]`}>100.0%</td>
+                <td className={`${hWhite} text-right`}>100.0%</td>
               </tr>
             </tbody>
           </table>
