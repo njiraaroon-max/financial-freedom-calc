@@ -313,7 +313,7 @@ export default function ExcelCashflow({
           {/* Tag label line — click to open TagSheet */}
           <button
             onClick={() => onOpenTag(item.id)}
-            className="text-[12px] text-gray-400 truncate pr-1 hover:text-indigo-600 text-left w-full transition"
+            className="text-[13px] text-gray-400 truncate pr-1 hover:text-indigo-600 text-left w-full transition"
             title="แตะเพื่อแก้ไขหมวด/ช่วงเดือน"
           >
             {isIncome
@@ -472,7 +472,7 @@ export default function ExcelCashflow({
       >
         <button
           onClick={onClick}
-          className="flex items-center gap-1.5 text-[13px] text-indigo-500 hover:text-indigo-700 font-medium"
+          className="flex items-center gap-1.5 text-[14px] text-indigo-500 hover:text-indigo-700 font-medium"
         >
           <Plus size={12} /> {label}
         </button>
@@ -544,7 +544,7 @@ export default function ExcelCashflow({
         </div>
         <button
           onClick={() => setOptimize((v) => !v)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-semibold transition ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[14px] font-semibold transition ${
             optimize
               ? "bg-indigo-500 text-white shadow-md shadow-indigo-200"
               : "bg-white/70 text-gray-700 hover:bg-white border border-gray-200"

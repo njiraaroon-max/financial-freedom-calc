@@ -129,7 +129,7 @@ export default function SavingFundsPage() {
 
       <div className="px-4 md:px-8 pt-4 pb-8">
         {/* Hint */}
-        <div className="text-[13px] text-gray-500 bg-emerald-50 rounded-xl px-4 py-2.5 mb-4 leading-relaxed flex items-start gap-2">
+        <div className="text-[14px] text-gray-500 bg-emerald-50 rounded-xl px-4 py-2.5 mb-4 leading-relaxed flex items-start gap-2">
           <Info size={14} className="text-emerald-500 mt-0.5 shrink-0" />
           <div>
             รายการ 🔗 (ประกันสังคม, PVD, เงินชดเชย, ประกันบำนาญ) ดึงจาก

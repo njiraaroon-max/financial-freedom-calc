@@ -144,10 +144,10 @@ export default function Sidebar() {
               expanded ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}
           >
-            <div className="text-[15px] font-bold leading-tight truncate">
+            <div className="text-[16px] font-bold leading-tight truncate">
               Financial Friend
             </div>
-            <div className="text-[12px] text-gray-500">วางแผนแบบองค์รวม</div>
+            <div className="text-[13px] text-gray-500">วางแผนแบบองค์รวม</div>
           </div>
         </Link>
         <button
@@ -185,7 +185,7 @@ export default function Sidebar() {
             }`}
           >
             <div className="text-xs font-semibold truncate">คุณ{firstName}</div>
-            <div className="text-[12px] text-gray-500">ดูโปรไฟล์</div>
+            <div className="text-[13px] text-gray-500">ดูโปรไฟล์</div>
           </div>
         </Link>
       )}
@@ -223,7 +223,7 @@ export default function Sidebar() {
           />
         </NavGroup>
         <div
-          className={`px-3 pt-2 text-[11px] text-gray-400 text-center overflow-hidden whitespace-nowrap transition-opacity ${
+          className={`px-3 pt-2 text-[13px] text-gray-400 text-center overflow-hidden whitespace-nowrap transition-opacity ${
             expanded ? "opacity-100" : "opacity-0"
           }`}
         >
@@ -249,7 +249,7 @@ function NavGroup({
     <div className="mb-2">
       {label && (
         <div
-          className={`text-[12px] uppercase tracking-wider font-bold text-gray-400 px-3 pt-3 pb-1 overflow-hidden whitespace-nowrap transition-opacity duration-150 ${
+          className={`text-[13px] uppercase tracking-wider font-bold text-gray-400 px-3 pt-3 pb-1 overflow-hidden whitespace-nowrap transition-opacity duration-150 ${
             expanded ? "opacity-100 h-auto" : "opacity-0 h-0 pt-0 pb-0"
           }`}
         >

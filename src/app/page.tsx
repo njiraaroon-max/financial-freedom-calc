@@ -162,17 +162,17 @@ export default function HomePage() {
           <img src="/character/icon-home.png" alt="Financial Friend" className="w-14 h-14 md:w-16 md:h-16 object-contain" />
           <div>
             <h1 className="text-lg font-bold">Financial Friend</h1>
-            <p className="text-[12px] text-gray-400 mt-0.5">วางแผนการเงินแบบองค์รวม</p>
+            <p className="text-[13px] text-gray-400 mt-0.5">วางแผนการเงินแบบองค์รวม</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Link href="/clients" className="flex flex-col items-center gap-0.5 p-2 rounded-xl hover:bg-gray-100 transition">
             <Users size={22} className="text-gray-500" />
-            <span className="text-[11px] text-gray-500 font-medium">Users</span>
+            <span className="text-[13px] text-gray-500 font-medium">Users</span>
           </Link>
           <div className="flex flex-col items-center gap-0.5 p-2">
             <UserCircle size={26} className="text-[var(--color-primary)]" />
-            <span className="text-[12px] text-[var(--color-primary)] font-bold">
+            <span className="text-[13px] text-[var(--color-primary)] font-bold">
               {firstName ? `คุณ${firstName}` : ""}
             </span>
           </div>

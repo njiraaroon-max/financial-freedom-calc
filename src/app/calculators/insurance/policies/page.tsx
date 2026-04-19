@@ -171,7 +171,7 @@ function PolicySummaryTable({ policies, birthYear }: { policies: InsurancePolicy
     <div className="glass rounded-xl p-4 md:p-6">
       <h3 className="text-base font-bold text-gray-800 mb-3">ตารางสรุปกรมธรรม์</h3>
       <div className="overflow-x-auto -mx-2">
-        <table className="w-full text-[12px] min-w-[800px]">
+        <table className="w-full text-[13px] min-w-[800px]">
           <thead>
             <tr className="bg-[#1e3a5f]">
               <th className="py-2 px-2 text-center text-white font-bold w-8">ลำดับ</th>
@@ -259,12 +259,12 @@ function TaxDeduction({ policies }: { policies: InsurancePolicy[] }) {
               </div>
               <div className="h-7 bg-gray-100 rounded-full overflow-hidden">
                 <div className="h-full rounded-full transition-all flex items-center justify-center" style={{ width: `${Math.max(pct, 8)}%`, background: b.color }}>
-                  <span className="text-[12px] font-bold text-white whitespace-nowrap px-2">
+                  <span className="text-[13px] font-bold text-white whitespace-nowrap px-2">
                     ใช้ {fmt(b.used)}
                   </span>
                 </div>
               </div>
-              <div className="text-[12px] text-gray-400 mt-0.5 text-right">เหลือ {fmt(Math.max(b.limit - b.used, 0))} บาท</div>
+              <div className="text-[13px] text-gray-400 mt-0.5 text-right">เหลือ {fmt(Math.max(b.limit - b.used, 0))} บาท</div>
             </div>
           );
         })}
@@ -350,20 +350,20 @@ function PremiumByAgeBracket({ policies, birthYear, currentAge, retireAge: defau
       {/* Settings: retireAge & lifeExpectancy */}
       <div className="flex items-center gap-4 mb-4">
         <div className="flex items-center gap-1.5">
-          <span className="text-[12px] text-gray-500">เกษียณ</span>
+          <span className="text-[13px] text-gray-500">เกษียณ</span>
           <input type="text" inputMode="numeric" value={retireAge}
             onChange={(e) => { const v = parseInt(e.target.value) || 0; setRetireAge(v); }}
             className="w-10 text-center text-xs font-bold bg-gray-100 rounded-lg px-1 py-1 border border-gray-200 outline-none focus:ring-1 focus:ring-blue-400"
           />
-          <span className="text-[12px] text-gray-400">ปี</span>
+          <span className="text-[13px] text-gray-400">ปี</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="text-[12px] text-gray-500">อายุขัย</span>
+          <span className="text-[13px] text-gray-500">อายุขัย</span>
           <input type="text" inputMode="numeric" value={lifeExpectancy}
             onChange={(e) => { const v = parseInt(e.target.value) || 0; setLifeExpectancy(v); }}
             className="w-10 text-center text-xs font-bold bg-gray-100 rounded-lg px-1 py-1 border border-gray-200 outline-none focus:ring-1 focus:ring-blue-400"
           />
-          <span className="text-[12px] text-gray-400">ปี</span>
+          <span className="text-[13px] text-gray-400">ปี</span>
         </div>
       </div>
       <div className="space-y-2.5">
@@ -375,11 +375,11 @@ function PremiumByAgeBracket({ policies, birthYear, currentAge, retireAge: defau
               <div className="flex items-center justify-between text-xs mb-1">
                 <span className={`font-semibold ${isFirst ? "text-blue-600" : "text-gray-600"}`}>
                   {b.label}
-                  {b.tag && <span className={`text-[11px] px-1.5 py-0.5 rounded-full ml-1 ${isFirst ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500"}`}>{b.tag}</span>}
+                  {b.tag && <span className={`text-[13px] px-1.5 py-0.5 rounded-full ml-1 ${isFirst ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500"}`}>{b.tag}</span>}
                 </span>
                 <div className="text-right">
                   <span className="font-bold text-gray-800">{fmt(b.total)} บาท</span>
-                  <span className="text-[11px] text-gray-400 ml-1">({fmt(b.perYear)}/ปี)</span>
+                  <span className="text-[13px] text-gray-400 ml-1">({fmt(b.perYear)}/ปี)</span>
                 </div>
               </div>
               <div className="h-6 bg-gray-100 rounded-full overflow-hidden">
@@ -388,7 +388,7 @@ function PremiumByAgeBracket({ policies, birthYear, currentAge, retireAge: defau
                   style={{ width: `${Math.max(pct, 5)}%`, background: isFirst ? "#2563eb" : NAVY }}
                 >
                   {pct > 25 && (
-                    <span className="text-[11px] font-bold text-white pl-2 whitespace-nowrap">
+                    <span className="text-[13px] font-bold text-white pl-2 whitespace-nowrap">
                       {b.policies.length} กรมธรรม์
                     </span>
                   )}
@@ -396,7 +396,7 @@ function PremiumByAgeBracket({ policies, birthYear, currentAge, retireAge: defau
               </div>
               <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 pl-1">
                 {b.policies.map((pp) => (
-                  <span key={pp.name} className="text-[11px] text-gray-400">
+                  <span key={pp.name} className="text-[13px] text-gray-400">
                     {pp.name.length > 12 ? pp.name.slice(0, 10) + "…" : pp.name}: {fmtShort(pp.amount)}
                   </span>
                 ))}
@@ -428,29 +428,29 @@ function PolicyCard({ policy, birthYear, onEdit, onDelete }: {
         <div className="w-2 h-10 rounded-full" style={{ background: colors.premium }} />
         <div className="flex-1 min-w-0">
           <div className="text-sm font-bold text-gray-800 truncate">{policy.planName}</div>
-          <div className="text-[12px] text-gray-400">{typeLabel} • {policy.company || "-"}</div>
+          <div className="text-[13px] text-gray-400">{typeLabel} • {policy.company || "-"}</div>
         </div>
         <div className="text-right shrink-0">
           <div className="text-sm font-bold" style={{ color: colors.text }}>{fmtShort(policy.sumInsured)}</div>
-          <div className="text-[12px] text-gray-400">เบี้ย {fmtShort(policy.premium)}/ปี</div>
+          <div className="text-[13px] text-gray-400">เบี้ย {fmtShort(policy.premium)}/ปี</div>
         </div>
         {expanded ? <ChevronUp size={16} className="text-gray-300" /> : <ChevronDown size={16} className="text-gray-300" />}
       </div>
       {expanded && (
         <div className="px-3 pb-3 border-t border-gray-100 pt-2">
-          <div className="grid grid-cols-2 gap-2 text-[12px] text-gray-500">
+          <div className="grid grid-cols-2 gap-2 text-[13px] text-gray-500">
             <div>เริ่มต้น: <span className="font-bold text-gray-700">{startY + BE_OFFSET}</span></div>
             <div>จ่ายเบี้ยถึง: <span className="font-bold text-gray-700">{payEnd + BE_OFFSET}</span></div>
             <div>คุ้มครองถึง: <span className="font-bold text-gray-700">{covEnd + BE_OFFSET}</span></div>
             <div>ทุนประกัน: <span className="font-bold text-gray-700">{fmt(policy.sumInsured)}</span></div>
           </div>
-          {policy.notes && <div className="text-[12px] text-gray-400 mt-1">หมายเหตุ: {policy.notes}</div>}
+          {policy.notes && <div className="text-[13px] text-gray-400 mt-1">หมายเหตุ: {policy.notes}</div>}
           <div className="flex gap-2 mt-2">
-            <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-[12px] font-medium hover:bg-blue-100">
+            <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-[13px] font-medium hover:bg-blue-100">
               <Pencil size={12} /> แก้ไข
             </button>
             <button onClick={(e) => { e.stopPropagation(); onDelete(); }}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-50 text-red-500 text-[12px] font-medium hover:bg-red-100">
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-50 text-red-500 text-[13px] font-medium hover:bg-red-100">
               <Trash2 size={12} /> ลบ
             </button>
           </div>
@@ -572,22 +572,22 @@ export default function PortfolioDashboard() {
       <div className="mx-2 mt-3 mb-3">
         <div className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8e] rounded-xl p-4 text-white">
           <div className="flex items-center justify-between mb-3">
-            <div className="text-[12px] opacity-70">{profileName} | อายุ {currentAge} ปี | พ.ศ. {CURRENT_YEAR + BE_OFFSET}</div>
+            <div className="text-[13px] opacity-70">{profileName} | อายุ {currentAge} ปี | พ.ศ. {CURRENT_YEAR + BE_OFFSET}</div>
             <button onClick={openAdd} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/20 text-white text-xs font-bold hover:bg-white/30 active:scale-95 transition">
               <Plus size={14} /> เพิ่มกรมธรรม์
             </button>
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div className="bg-white/15 rounded-lg p-2 text-center">
-              <div className="text-[11px] opacity-70">จำนวนกรมธรรม์</div>
+              <div className="text-[13px] opacity-70">จำนวนกรมธรรม์</div>
               <div className="text-lg font-bold">{totalPolicies}</div>
             </div>
             <div className="bg-white/15 rounded-lg p-2 text-center">
-              <div className="text-[11px] opacity-70">ทุนประกันรวม</div>
+              <div className="text-[13px] opacity-70">ทุนประกันรวม</div>
               <div className="text-lg font-bold">{fmtShort(totalSumInsured)}</div>
             </div>
             <div className="bg-white/15 rounded-lg p-2 text-center">
-              <div className="text-[11px] opacity-70">เบี้ยรวม/ปี</div>
+              <div className="text-[13px] opacity-70">เบี้ยรวม/ปี</div>
               <div className="text-lg font-bold">{fmtShort(totalPremium)}</div>
             </div>
           </div>
@@ -606,7 +606,7 @@ export default function PortfolioDashboard() {
                 💰
               </div>
               <div>
-                <div className="text-[12px] font-bold text-purple-700 uppercase tracking-wide">
+                <div className="text-[13px] font-bold text-purple-700 uppercase tracking-wide">
                   ประกันบำนาญ {annuityCount} กรมธรรม์
                 </div>
                 <div className="text-xs text-gray-700 font-semibold">
@@ -659,14 +659,14 @@ export default function PortfolioDashboard() {
             <div className="px-5 py-4 space-y-4">
               {/* Category Selector */}
               <div>
-                <label className="text-[12px] font-bold text-gray-500 uppercase mb-1 block">หมวดประกัน</label>
+                <label className="text-[13px] font-bold text-gray-500 uppercase mb-1 block">หมวดประกัน</label>
                 <div className="grid grid-cols-2 gap-2">
                   {CATEGORY_OPTIONS.map((c) => (
                     <button key={c.value} type="button"
                       onClick={() => setForm({ ...form, category: c.value, policyType: (c.value === "life" ? LIFE_TYPES : NONLIFE_TYPES)[0].value })}
                       className={`px-3 py-3 rounded-xl border text-center transition ${form.category === c.value ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200" : "border-gray-200 hover:border-gray-300"}`}>
                       <div className="text-sm font-bold text-gray-800">{c.label}</div>
-                      <div className="text-[12px] text-gray-400">{c.description}</div>
+                      <div className="text-[13px] text-gray-400">{c.description}</div>
                     </button>
                   ))}
                 </div>
@@ -674,14 +674,14 @@ export default function PortfolioDashboard() {
 
               {/* Policy Sub-type */}
               <div>
-                <label className="text-[12px] font-bold text-gray-500 uppercase mb-1 block">ประเภทประกัน</label>
+                <label className="text-[13px] font-bold text-gray-500 uppercase mb-1 block">ประเภทประกัน</label>
                 <div className="grid grid-cols-2 gap-1.5">
                   {(form.category === "life" ? LIFE_TYPES : NONLIFE_TYPES).map((t) => {
                     const colors = TYPE_COLORS[t.value];
                     const selected = form.policyType === t.value;
                     return (
                       <button key={t.value} type="button" onClick={() => setForm({ ...form, policyType: t.value })}
-                        className={`text-left px-3 py-2 rounded-lg border text-[13px] transition ${selected ? "border-blue-400 bg-blue-50 font-bold" : "border-gray-200 hover:border-gray-300"}`}>
+                        className={`text-left px-3 py-2 rounded-lg border text-[14px] transition ${selected ? "border-blue-400 bg-blue-50 font-bold" : "border-gray-200 hover:border-gray-300"}`}>
                         <span className="inline-block w-2 h-2 rounded-full mr-1.5" style={{ background: colors.premium }} />
                         {t.label}
                       </button>
@@ -692,7 +692,7 @@ export default function PortfolioDashboard() {
 
               {/* Plan Name */}
               <div>
-                <label className="text-[12px] font-bold text-gray-500 uppercase mb-1 block">ชื่อแผนประกัน *</label>
+                <label className="text-[13px] font-bold text-gray-500 uppercase mb-1 block">ชื่อแผนประกัน *</label>
                 <input type="text" value={form.planName} onChange={(e) => setForm({ ...form, planName: e.target.value })}
                   className="w-full text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200"
                   placeholder="เช่น My Whole Life 90/21" autoFocus />
@@ -700,31 +700,31 @@ export default function PortfolioDashboard() {
 
               {/* Company */}
               <div>
-                <label className="text-[12px] font-bold text-gray-500 uppercase mb-1 block">บริษัทประกัน</label>
+                <label className="text-[13px] font-bold text-gray-500 uppercase mb-1 block">บริษัทประกัน</label>
                 <input type="text" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })}
                   className="w-full text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200" placeholder="เช่น Allianz Ayudhya" />
               </div>
 
               {/* Start Date */}
               <div>
-                <label className="text-[12px] font-bold text-gray-500 uppercase mb-1 block">วันเริ่มต้นคุ้มครอง</label>
+                <label className="text-[13px] font-bold text-gray-500 uppercase mb-1 block">วันเริ่มต้นคุ้มครอง</label>
                 <ThaiDatePicker value={form.startDate} onChange={(v) => setForm({ ...form, startDate: v })} placeholder="เลือกวันที่" minYear={2490} maxYear={2600} />
               </div>
 
               {/* ── Payment Period (3 modes) ── */}
               <div>
-                <label className="text-[12px] font-bold text-gray-500 uppercase mb-1 block">ระยะจ่ายเบี้ย</label>
+                <label className="text-[13px] font-bold text-gray-500 uppercase mb-1 block">ระยะจ่ายเบี้ย</label>
                 <div className="flex bg-gray-100 rounded-full p-0.5 mb-2">
                   <button type="button" onClick={() => setForm({ ...form, paymentMode: "years" })}
-                    className={`flex-1 py-1.5 rounded-full text-[12px] font-medium transition ${form.paymentMode === "years" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
+                    className={`flex-1 py-1.5 rounded-full text-[13px] font-medium transition ${form.paymentMode === "years" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
                     จ่าย ___ ปี
                   </button>
                   <button type="button" onClick={() => setForm({ ...form, paymentMode: "age" })}
-                    className={`flex-1 py-1.5 rounded-full text-[12px] font-medium transition ${form.paymentMode === "age" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
+                    className={`flex-1 py-1.5 rounded-full text-[13px] font-medium transition ${form.paymentMode === "age" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
                     ถึงอายุ ___ ปี
                   </button>
                   <button type="button" onClick={() => setForm({ ...form, paymentMode: "date" })}
-                    className={`flex-1 py-1.5 rounded-full text-[12px] font-medium transition ${form.paymentMode === "date" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
+                    className={`flex-1 py-1.5 rounded-full text-[13px] font-medium transition ${form.paymentMode === "date" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
                     เลือกวันที่
                   </button>
                 </div>
@@ -758,18 +758,18 @@ export default function PortfolioDashboard() {
 
               {/* ── Coverage Period — ซ่อนสำหรับ annuity (ใช้ payoutEndAge แทน) ── */}
               {form.policyType !== "annuity" && <div>
-                <label className="text-[12px] font-bold text-gray-500 uppercase mb-1 block">ระยะคุ้มครอง</label>
+                <label className="text-[13px] font-bold text-gray-500 uppercase mb-1 block">ระยะคุ้มครอง</label>
                 <div className="flex bg-gray-100 rounded-full p-0.5 mb-2">
                   <button type="button" onClick={() => setForm({ ...form, coverageMode: "years" })}
-                    className={`flex-1 py-1.5 rounded-full text-[12px] font-medium transition ${form.coverageMode === "years" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
+                    className={`flex-1 py-1.5 rounded-full text-[13px] font-medium transition ${form.coverageMode === "years" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
                     ระยะเวลา ___ ปี
                   </button>
                   <button type="button" onClick={() => setForm({ ...form, coverageMode: "age" })}
-                    className={`flex-1 py-1.5 rounded-full text-[12px] font-medium transition ${form.coverageMode === "age" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
+                    className={`flex-1 py-1.5 rounded-full text-[13px] font-medium transition ${form.coverageMode === "age" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
                     ถึงอายุ ___ ปี
                   </button>
                   <button type="button" onClick={() => setForm({ ...form, coverageMode: "date" })}
-                    className={`flex-1 py-1.5 rounded-full text-[12px] font-medium transition ${form.coverageMode === "date" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
+                    className={`flex-1 py-1.5 rounded-full text-[13px] font-medium transition ${form.coverageMode === "date" ? "bg-[#1e3a5f] text-white shadow" : "text-gray-500"}`}>
                     เลือกวันที่
                   </button>
                 </div>
@@ -800,7 +800,7 @@ export default function PortfolioDashboard() {
                   <ThaiDatePicker value={form.endDate} onChange={(v) => setForm({ ...form, endDate: v })} placeholder="วันครบกำหนดสัญญา" minYear={2490} maxYear={2650} />
                 )}
                 {form.startDate && form.coverageMode !== "date" && (
-                  <div className="text-[12px] text-gray-400 mt-1 text-center">
+                  <div className="text-[13px] text-gray-400 mt-1 text-center">
                     {form.coverageMode === "age" && form.coverageEndAge
                       ? `คุ้มครองถึง พ.ศ. ${birthYear + parseInt(form.coverageEndAge) + BE_OFFSET}`
                       : form.coverageMode === "years" && form.coverageYears
@@ -836,7 +836,7 @@ export default function PortfolioDashboard() {
                 return (
               <div className={`grid ${form.policyType === "term" ? "grid-cols-2" : "grid-cols-3"} gap-2`}>
                 <div>
-                  <label className="text-[12px] font-bold text-gray-500 uppercase mb-1 block">{sumInsuredLabel}</label>
+                  <label className="text-[13px] font-bold text-gray-500 uppercase mb-1 block">{sumInsuredLabel}</label>
                   <MoneyInput
                     value={form.sumInsured}
                     onChange={(v) => setForm({ ...form, sumInsured: v })}
@@ -845,12 +845,12 @@ export default function PortfolioDashboard() {
                     ringClass="focus:ring-blue-400"
                   />
                   {sumInsuredHint && (
-                    <div className="text-[11px] text-gray-400 mt-1 leading-relaxed">{sumInsuredHint}</div>
+                    <div className="text-[13px] text-gray-400 mt-1 leading-relaxed">{sumInsuredHint}</div>
                   )}
                 </div>
                 {form.policyType !== "term" && (
                   <div>
-                    <label className="text-[12px] font-bold text-gray-500 uppercase mb-1 block">มูลค่าเวนคืน</label>
+                    <label className="text-[13px] font-bold text-gray-500 uppercase mb-1 block">มูลค่าเวนคืน</label>
                     <MoneyInput
                       value={form.cashValue}
                       onChange={(v) => setForm({ ...form, cashValue: v })}
@@ -861,7 +861,7 @@ export default function PortfolioDashboard() {
                   </div>
                 )}
                 <div>
-                  <label className="text-[12px] font-bold text-gray-500 uppercase mb-1 block">เบี้ยที่จ่าย/ปี</label>
+                  <label className="text-[13px] font-bold text-gray-500 uppercase mb-1 block">เบี้ยที่จ่าย/ปี</label>
                   <MoneyInput
                     value={form.premium}
                     onChange={(v) => setForm({ ...form, premium: v })}
@@ -877,12 +877,12 @@ export default function PortfolioDashboard() {
               {/* Health Details */}
               {["health", "nonlife_health", "critical_illness"].includes(form.policyType) && (
                 <div className="border border-teal-200 bg-teal-50/30 rounded-xl p-3 space-y-3">
-                  <div className="text-[12px] font-bold text-teal-700 uppercase">ข้อมูลสุขภาพเพิ่มเติม</div>
+                  <div className="text-[13px] font-bold text-teal-700 uppercase">ข้อมูลสุขภาพเพิ่มเติม</div>
 
                   {/* Room Rate + Standard Room toggle */}
                   <div className="flex items-center gap-2">
                     <div className="flex-1">
-                      <label className="text-[12px] text-gray-500 mb-0.5 block">ค่าห้อง (ต่อวัน)</label>
+                      <label className="text-[13px] text-gray-500 mb-0.5 block">ค่าห้อง (ต่อวัน)</label>
                       <MoneyInput
                         value={form.healthDetails.roomRatePerDay}
                         onChange={(v) => setForm({ ...form, healthDetails: { ...form.healthDetails, roomRatePerDay: v } })}
@@ -895,13 +895,13 @@ export default function PortfolioDashboard() {
                       <input type="checkbox" checked={form.healthDetails.isStandardPrivateRoom}
                         onChange={(e) => setForm({ ...form, healthDetails: { ...form.healthDetails, isStandardPrivateRoom: e.target.checked } })}
                         className="w-4 h-4 rounded accent-teal-500" />
-                      <span className="text-[12px] text-gray-600">ห้องเดี่ยวมาตรฐาน</span>
+                      <span className="text-[13px] text-gray-600">ห้องเดี่ยวมาตรฐาน</span>
                     </label>
                   </div>
 
                   {/* IPD */}
                   <div>
-                    <label className="text-[12px] text-gray-500 mb-0.5 block">ค่ารักษา IPD (ผู้ป่วยใน)</label>
+                    <label className="text-[13px] text-gray-500 mb-0.5 block">ค่ารักษา IPD (ผู้ป่วยใน)</label>
                     <div className="flex items-center gap-2">
                       <MoneyInput
                         value={form.healthDetails.ipdAmount}
@@ -912,16 +912,16 @@ export default function PortfolioDashboard() {
                       />
                       <div className="flex bg-gray-100 rounded-full p-0.5 shrink-0">
                         <button type="button" onClick={() => setForm({ ...form, healthDetails: { ...form.healthDetails, ipdMode: "per_year" } })}
-                          className={`px-2 py-1 rounded-full text-[12px] font-medium transition ${form.healthDetails.ipdMode === "per_year" ? "bg-teal-600 text-white" : "text-gray-500"}`}>ต่อปี</button>
+                          className={`px-2 py-1 rounded-full text-[13px] font-medium transition ${form.healthDetails.ipdMode === "per_year" ? "bg-teal-600 text-white" : "text-gray-500"}`}>ต่อปี</button>
                         <button type="button" onClick={() => setForm({ ...form, healthDetails: { ...form.healthDetails, ipdMode: "per_visit" } })}
-                          className={`px-2 py-1 rounded-full text-[12px] font-medium transition ${form.healthDetails.ipdMode === "per_visit" ? "bg-teal-600 text-white" : "text-gray-500"}`}>ต่อครั้ง</button>
+                          className={`px-2 py-1 rounded-full text-[13px] font-medium transition ${form.healthDetails.ipdMode === "per_visit" ? "bg-teal-600 text-white" : "text-gray-500"}`}>ต่อครั้ง</button>
                       </div>
                     </div>
                   </div>
 
                   {/* OPD */}
                   <div>
-                    <label className="text-[12px] text-gray-500 mb-0.5 block">ค่ารักษา OPD (ผู้ป่วยนอก)</label>
+                    <label className="text-[13px] text-gray-500 mb-0.5 block">ค่ารักษา OPD (ผู้ป่วยนอก)</label>
                     <div className="flex items-center gap-2">
                       <MoneyInput
                         value={form.healthDetails.opdAmount}
@@ -932,16 +932,16 @@ export default function PortfolioDashboard() {
                       />
                       <div className="flex bg-gray-100 rounded-full p-0.5 shrink-0">
                         <button type="button" onClick={() => setForm({ ...form, healthDetails: { ...form.healthDetails, opdMode: "per_year" } })}
-                          className={`px-2 py-1 rounded-full text-[12px] font-medium transition ${form.healthDetails.opdMode === "per_year" ? "bg-teal-600 text-white" : "text-gray-500"}`}>ต่อปี</button>
+                          className={`px-2 py-1 rounded-full text-[13px] font-medium transition ${form.healthDetails.opdMode === "per_year" ? "bg-teal-600 text-white" : "text-gray-500"}`}>ต่อปี</button>
                         <button type="button" onClick={() => setForm({ ...form, healthDetails: { ...form.healthDetails, opdMode: "per_visit" } })}
-                          className={`px-2 py-1 rounded-full text-[12px] font-medium transition ${form.healthDetails.opdMode === "per_visit" ? "bg-teal-600 text-white" : "text-gray-500"}`}>ต่อครั้ง</button>
+                          className={`px-2 py-1 rounded-full text-[13px] font-medium transition ${form.healthDetails.opdMode === "per_visit" ? "bg-teal-600 text-white" : "text-gray-500"}`}>ต่อครั้ง</button>
                       </div>
                     </div>
                   </div>
 
                   {/* CI โรคร้ายแรง */}
                   <div>
-                    <label className="text-[12px] text-gray-500 mb-0.5 block">CI โรคร้ายแรง (เงินก้อน)</label>
+                    <label className="text-[13px] text-gray-500 mb-0.5 block">CI โรคร้ายแรง (เงินก้อน)</label>
                     <MoneyInput
                       value={form.healthDetails.ciLumpSum}
                       onChange={(v) => setForm({ ...form, healthDetails: { ...form.healthDetails, ciLumpSum: v } })}
@@ -955,14 +955,14 @@ export default function PortfolioDashboard() {
                   {/* คุ้มครองอุบัติเหตุ */}
                   <div>
                     <div className="flex items-center justify-between mb-0.5">
-                      <label className="text-[12px] text-gray-500">คุ้มครองอุบัติเหตุ</label>
+                      <label className="text-[13px] text-gray-500">คุ้มครองอุบัติเหตุ</label>
                       <div className="flex bg-gray-100 rounded-full p-0.5">
                         <button type="button" onClick={() => setForm({ ...form, healthDetails: { ...form.healthDetails, accidentMode: "per_visit" } })}
-                          className={`px-2 py-0.5 rounded-full text-[11px] font-medium transition ${form.healthDetails.accidentMode === "per_visit" ? "bg-teal-600 text-white shadow" : "text-gray-500"}`}>
+                          className={`px-2 py-0.5 rounded-full text-[13px] font-medium transition ${form.healthDetails.accidentMode === "per_visit" ? "bg-teal-600 text-white shadow" : "text-gray-500"}`}>
                           ต่อครั้ง
                         </button>
                         <button type="button" onClick={() => setForm({ ...form, healthDetails: { ...form.healthDetails, accidentMode: "per_year" } })}
-                          className={`px-2 py-0.5 rounded-full text-[11px] font-medium transition ${form.healthDetails.accidentMode === "per_year" ? "bg-teal-600 text-white shadow" : "text-gray-500"}`}>
+                          className={`px-2 py-0.5 rounded-full text-[13px] font-medium transition ${form.healthDetails.accidentMode === "per_year" ? "bg-teal-600 text-white shadow" : "text-gray-500"}`}>
                           ต่อปี
                         </button>
                       </div>
@@ -982,19 +982,19 @@ export default function PortfolioDashboard() {
               {/* Annuity Details */}
               {form.policyType === "annuity" && (
                 <div className="border border-purple-200 bg-purple-50/30 rounded-xl p-3 space-y-3">
-                  <div className="text-[12px] font-bold text-purple-700 uppercase">ข้อมูลบำนาญ</div>
+                  <div className="text-[13px] font-bold text-purple-700 uppercase">ข้อมูลบำนาญ</div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-[12px] text-gray-500 mb-0.5 block">เริ่มรับบำนาญอายุ</label>
+                      <label className="text-[13px] text-gray-500 mb-0.5 block">เริ่มรับบำนาญอายุ</label>
                       <div className="flex items-center gap-1">
                         <input type="text" inputMode="numeric" value={form.annuityDetails.payoutStartAge || ""}
                           onChange={(e) => setForm({ ...form, annuityDetails: { ...form.annuityDetails, payoutStartAge: parseInt(e.target.value.replace(/[^0-9]/g, "")) || 0 } })}
                           className="glass flex-1 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-purple-400 text-center font-bold" placeholder="60" />
-                        <span className="text-[12px] text-gray-500">ปี</span>
+                        <span className="text-[13px] text-gray-500">ปี</span>
                       </div>
                     </div>
                     <div>
-                      <label className="text-[12px] text-gray-500 mb-0.5 block">บำนาญที่รับ/ปี</label>
+                      <label className="text-[13px] text-gray-500 mb-0.5 block">บำนาญที่รับ/ปี</label>
                       <MoneyInput
                         value={form.annuityDetails.payoutPerYear}
                         onChange={(v) => setForm({ ...form, annuityDetails: { ...form.annuityDetails, payoutPerYear: v } })}
@@ -1007,7 +1007,7 @@ export default function PortfolioDashboard() {
                   </div>
                   {/* กรมธรรม์จ่ายถึงอายุ */}
                   <div>
-                    <label className="text-[12px] text-gray-500 mb-1 block">กรมธรรม์จ่ายถึงอายุ</label>
+                    <label className="text-[13px] text-gray-500 mb-1 block">กรมธรรม์จ่ายถึงอายุ</label>
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {[85, 90, 99].map((age) => (
                         <button
@@ -1032,10 +1032,10 @@ export default function PortfolioDashboard() {
                           className="w-12 text-xs font-bold bg-transparent outline-none text-center"
                           placeholder="อื่นๆ"
                         />
-                        <span className="text-[12px] text-gray-400">ปี</span>
+                        <span className="text-[13px] text-gray-400">ปี</span>
                       </div>
                     </div>
-                    <div className="text-[11px] text-gray-400 mt-1">
+                    <div className="text-[13px] text-gray-400 mt-1">
                       {form.annuityDetails.payoutEndAge === 0
                         ? "ไม่ระบุ — ระบบใช้อายุขัยจากแผนเกษียณแทน"
                         : `จ่ายถึงอายุ ${form.annuityDetails.payoutEndAge} ปี`}
@@ -1047,22 +1047,22 @@ export default function PortfolioDashboard() {
               {/* Endowment Details */}
               {form.policyType === "endowment" && (
                 <div className="border border-green-200 bg-green-50/30 rounded-xl p-3 space-y-3">
-                  <div className="text-[12px] font-bold text-green-700 uppercase">ข้อมูลสะสมทรัพย์</div>
+                  <div className="text-[13px] font-bold text-green-700 uppercase">ข้อมูลสะสมทรัพย์</div>
 
                   {/* Dividends */}
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <label className="text-[12px] text-gray-500">เงินปันผล</label>
+                      <label className="text-[13px] text-gray-500">เงินปันผล</label>
                       <button type="button" onClick={() => setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, dividends: [...form.endowmentDetails.dividends, { year: 0, amount: 0 }] } })}
-                        className="text-[12px] text-green-600 font-bold hover:underline">+ เพิ่มปี</button>
+                        className="text-[13px] text-green-600 font-bold hover:underline">+ เพิ่มปี</button>
                     </div>
                     {form.endowmentDetails.dividends.map((d, i) => (
                       <div key={i} className="flex items-center gap-2 mb-1.5">
-                        <span className="text-[12px] text-gray-400 shrink-0">ปีที่</span>
+                        <span className="text-[13px] text-gray-400 shrink-0">ปีที่</span>
                         <input type="text" inputMode="numeric" value={d.year || ""}
                           onChange={(e) => { const arr = [...form.endowmentDetails.dividends]; arr[i] = { ...arr[i], year: parseInt(e.target.value.replace(/[^0-9]/g, "")) || 0 }; setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, dividends: arr } }); }}
                           className="glass w-14 text-sm rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-green-400 text-center font-bold" />
-                        <span className="text-[12px] text-gray-400 shrink-0">จำนวน</span>
+                        <span className="text-[13px] text-gray-400 shrink-0">จำนวน</span>
                         <MoneyInput
                           value={d.amount}
                           onChange={(v) => { const arr = [...form.endowmentDetails.dividends]; arr[i] = { ...arr[i], amount: v }; setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, dividends: arr } }); }}
@@ -1079,7 +1079,7 @@ export default function PortfolioDashboard() {
                   {/* Maturity */}
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-[12px] text-gray-500 mb-0.5 block">เงินก้อนจบโครงการ</label>
+                      <label className="text-[13px] text-gray-500 mb-0.5 block">เงินก้อนจบโครงการ</label>
                       <MoneyInput
                         value={form.endowmentDetails.maturityPayout}
                         onChange={(v) => setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, maturityPayout: v } })}
@@ -1089,7 +1089,7 @@ export default function PortfolioDashboard() {
                       />
                     </div>
                     <div>
-                      <label className="text-[12px] text-gray-500 mb-0.5 block">ปีที่ได้เงินก้อน</label>
+                      <label className="text-[13px] text-gray-500 mb-0.5 block">ปีที่ได้เงินก้อน</label>
                       <input type="text" inputMode="numeric" value={form.endowmentDetails.maturityYear || ""}
                         onChange={(e) => setForm({ ...form, endowmentDetails: { ...form.endowmentDetails, maturityYear: parseInt(e.target.value.replace(/[^0-9]/g, "")) || 0 } })}
                         className="glass w-full text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-green-400 text-center font-bold" placeholder="20" />
@@ -1100,7 +1100,7 @@ export default function PortfolioDashboard() {
 
               {/* Notes */}
               <div>
-                <label className="text-[12px] font-bold text-gray-500 uppercase mb-1 block">หมายเหตุ</label>
+                <label className="text-[13px] font-bold text-gray-500 uppercase mb-1 block">หมายเหตุ</label>
                 <input type="text" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   className="w-full text-sm bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200" placeholder="เช่น จ่ายเบี้ยหมดแล้ว" />
               </div>

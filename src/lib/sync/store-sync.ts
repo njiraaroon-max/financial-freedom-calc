@@ -27,6 +27,7 @@ import { useGoalsStore } from "@/store/goals-store";
 import { useTaxStore } from "@/store/tax-store";
 import { useVariableStore } from "@/store/variable-store";
 import { useEducationStore } from "@/store/education-store";
+import { useSelectedModulesStore } from "@/store/selected-modules-store";
 
 interface ZustandHook {
   getState: () => unknown;
@@ -111,5 +112,8 @@ export const SYNCED_STORES: SyncedStore[] = [
   // variable-store has no dedicated reset action — wipe the map directly.
   entry("variables", "Variables", useVariableStore, () =>
     useVariableStore.setState({ variables: {} }),
+  ),
+  entry("selected_modules", "Selected Modules", useSelectedModulesStore, () =>
+    (useSelectedModulesStore.getState() as WithAction<"clearAll">).clearAll(),
   ),
 ];

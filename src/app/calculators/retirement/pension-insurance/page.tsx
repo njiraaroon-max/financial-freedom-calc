@@ -90,7 +90,7 @@ function PensionPolicyCard({
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-sm font-bold text-gray-800 truncate">{policy.planName || "ประกันบำนาญ"}</div>
-          <div className="text-[12px] text-gray-400">{policy.company || "ไม่ระบุบริษัท"}</div>
+          <div className="text-[13px] text-gray-400">{policy.company || "ไม่ระบุบริษัท"}</div>
         </div>
         <div className="flex gap-1 shrink-0">
           <button
@@ -110,7 +110,7 @@ function PensionPolicyCard({
         </div>
       </div>
       <div className="px-3 pb-3 pt-0 border-t border-gray-50">
-        <div className="grid grid-cols-2 gap-2 text-[12px] mt-2">
+        <div className="grid grid-cols-2 gap-2 text-[13px] mt-2">
           <div className="bg-purple-50/50 rounded-lg p-2">
             <div className="text-gray-400">เริ่มรับบำนาญอายุ</div>
             <div className="font-bold text-purple-700">{ad.payoutStartAge || "-"} ปี</div>
@@ -131,12 +131,12 @@ function PensionPolicyCard({
           </div>
         </div>
         {lifetimeTotal > 0 && (
-          <div className="text-[12px] text-gray-400 mt-2 text-center">
+          <div className="text-[13px] text-gray-400 mt-2 text-center">
             คาดรับทั้งหมด ฿{fmt(lifetimeTotal)} ({years} ปี)
           </div>
         )}
         {policy.notes && (
-          <div className="text-[12px] text-gray-400 mt-1 text-center italic">{policy.notes}</div>
+          <div className="text-[13px] text-gray-400 mt-1 text-center italic">{policy.notes}</div>
         )}
       </div>
     </div>
@@ -211,14 +211,14 @@ function AnnuityModal({
 
         <div className="px-5 py-4 space-y-4">
           {/* Locked type hint */}
-          <div className="bg-purple-50 border border-purple-200 rounded-xl px-3 py-2 text-[12px] text-purple-700 flex items-center gap-2">
+          <div className="bg-purple-50 border border-purple-200 rounded-xl px-3 py-2 text-[13px] text-purple-700 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-purple-500" />
             ประเภท: <strong>บำนาญ (Annuity)</strong> · หมวด: <strong>ประกันชีวิต</strong>
           </div>
 
           {/* Plan Name */}
           <div>
-            <label className="text-[12px] font-bold text-gray-500 uppercase mb-1 block">
+            <label className="text-[13px] font-bold text-gray-500 uppercase mb-1 block">
               ชื่อแผนประกัน
             </label>
             <input
@@ -233,7 +233,7 @@ function AnnuityModal({
 
           {/* Company */}
           <div>
-            <label className="text-[12px] font-bold text-gray-500 uppercase mb-1 block">
+            <label className="text-[13px] font-bold text-gray-500 uppercase mb-1 block">
               บริษัทประกัน
             </label>
             <input
@@ -247,7 +247,7 @@ function AnnuityModal({
 
           {/* Policy Number */}
           <div>
-            <label className="text-[12px] font-bold text-gray-500 uppercase mb-1 block">
+            <label className="text-[13px] font-bold text-gray-500 uppercase mb-1 block">
               เลขที่กรมธรรม์ (ถ้ามี)
             </label>
             <input
@@ -261,7 +261,7 @@ function AnnuityModal({
 
           {/* Start Date */}
           <div>
-            <label className="text-[12px] font-bold text-gray-500 uppercase mb-1 block">
+            <label className="text-[13px] font-bold text-gray-500 uppercase mb-1 block">
               วันเริ่มต้นสัญญา
             </label>
             <input
@@ -274,7 +274,7 @@ function AnnuityModal({
 
           {/* Premium */}
           <div>
-            <label className="text-[12px] font-bold text-gray-500 uppercase mb-1 block">
+            <label className="text-[13px] font-bold text-gray-500 uppercase mb-1 block">
               เบี้ยที่จ่าย/ปี
             </label>
             <MoneyInput
@@ -289,11 +289,11 @@ function AnnuityModal({
 
           {/* ── Annuity Details ── */}
           <div className="border border-purple-200 bg-purple-50/30 rounded-xl p-3 space-y-3">
-            <div className="text-[12px] font-bold text-purple-700 uppercase">ข้อมูลบำนาญ</div>
+            <div className="text-[13px] font-bold text-purple-700 uppercase">ข้อมูลบำนาญ</div>
 
             {/* Payout per year */}
             <div>
-              <label className="text-[13px] text-gray-500 mb-1 block">บำนาญที่รับ/ปี *</label>
+              <label className="text-[14px] text-gray-500 mb-1 block">บำนาญที่รับ/ปี *</label>
               <MoneyInput
                 value={form.annuityDetails.payoutPerYear || 0}
                 onChange={(v) =>
@@ -314,7 +314,7 @@ function AnnuityModal({
 
             {/* Start age */}
             <div>
-              <label className="text-[13px] text-gray-500 mb-1 block">อายุเริ่มรับบำนาญ *</label>
+              <label className="text-[14px] text-gray-500 mb-1 block">อายุเริ่มรับบำนาญ *</label>
               <div className="flex items-center gap-2">
                 {[55, 60, 65].map((age) => (
                   <button
@@ -360,7 +360,7 @@ function AnnuityModal({
 
             {/* End age */}
             <div>
-              <label className="text-[13px] text-gray-500 mb-1 block">จ่ายถึงอายุ *</label>
+              <label className="text-[14px] text-gray-500 mb-1 block">จ่ายถึงอายุ *</label>
               <div className="flex items-center gap-2 flex-wrap">
                 {[85, 90, 99].map((age) => (
                   <button
@@ -407,7 +407,7 @@ function AnnuityModal({
 
           {/* Notes */}
           <div>
-            <label className="text-[12px] font-bold text-gray-500 uppercase mb-1 block">
+            <label className="text-[13px] font-bold text-gray-500 uppercase mb-1 block">
               หมายเหตุ
             </label>
             <input
@@ -684,11 +684,11 @@ function PensionInsurancePageInner() {
                 ←
               </div>
               <div>
-                <div className="text-[11px] text-gray-500 uppercase tracking-wide font-bold">มาจาก</div>
+                <div className="text-[13px] text-gray-500 uppercase tracking-wide font-bold">มาจาก</div>
                 <div className="text-xs font-bold text-gray-800">{fromLabel}</div>
               </div>
             </div>
-            <div className="text-[12px] text-purple-600 font-bold">กดกลับ ›</div>
+            <div className="text-[13px] text-purple-600 font-bold">กดกลับ ›</div>
           </a>
         )}
 
@@ -702,13 +702,13 @@ function PensionInsurancePageInner() {
             <Info size={16} />
           </button>
           <div className="pr-10">
-            <div className="text-[12px] font-bold text-white/70 mb-1">
+            <div className="text-[13px] font-bold text-white/70 mb-1">
               Step 2 · Pension Insurance
             </div>
             <h3 className="text-sm font-bold leading-snug mb-1.5">
               คำนวณมูลค่าประกันบำนาญเอกชน
             </h3>
-            <p className="text-[13px] text-white/80 leading-relaxed">
+            <p className="text-[14px] text-white/80 leading-relaxed">
               จัดการกรมธรรม์บำนาญทุกเล่ม พร้อมคำนวณ NPV ณ วันเกษียณ ตามหลัก CFP Module 4 (Private Annuity Valuation)
             </p>
           </div>
@@ -718,37 +718,37 @@ function PensionInsurancePageInner() {
         {hasPolicies && (
           <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl p-4 text-white mx-1">
             <div className="flex items-center justify-between mb-3">
-              <div className="text-[12px] opacity-80 font-bold uppercase tracking-wide">
+              <div className="text-[13px] opacity-80 font-bold uppercase tracking-wide">
                 สรุปกรมธรรม์บำนาญ
               </div>
-              <div className="text-[12px] bg-white/20 rounded-full px-2.5 py-1 font-bold">
+              <div className="text-[13px] bg-white/20 rounded-full px-2.5 py-1 font-bold">
                 {summary.count} เล่ม
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 mb-3">
               <div className="bg-white/20 rounded-xl p-2.5">
-                <div className="text-[12px] opacity-80">เบี้ยรวม/ปี</div>
+                <div className="text-[13px] opacity-80">เบี้ยรวม/ปี</div>
                 <div className="text-sm font-bold">฿{fmt(summary.totalPremium)}</div>
               </div>
               <div className="bg-white/20 rounded-xl p-2.5">
-                <div className="text-[12px] opacity-80">บำนาญรวม/ปี</div>
+                <div className="text-[13px] opacity-80">บำนาญรวม/ปี</div>
                 <div className="text-sm font-bold">฿{fmt(summary.totalPayoutPerYear)}</div>
               </div>
               <div className="bg-white/20 rounded-xl p-2.5">
-                <div className="text-[12px] opacity-80">รับตั้งแต่อายุ</div>
+                <div className="text-[13px] opacity-80">รับตั้งแต่อายุ</div>
                 <div className="text-sm font-bold">
                   {summary.minStart > 0 ? `${summary.minStart} ปี` : "-"}
                   {summary.maxEnd > 0 ? ` → ${summary.maxEnd}` : ""}
                 </div>
               </div>
               <div className="bg-white/20 rounded-xl p-2.5">
-                <div className="text-[12px] opacity-80">รวมบำนาญทั้งหมด</div>
+                <div className="text-[13px] opacity-80">รวมบำนาญทั้งหมด</div>
                 <div className="text-sm font-bold">฿{fmt(summary.lifetimeTotal)}</div>
               </div>
             </div>
             {hasCalculated && (
               <div className="bg-white/25 rounded-xl p-3 border border-white/30">
-                <div className="text-[12px] opacity-80 mb-0.5">NPV ณ วันเกษียณ</div>
+                <div className="text-[13px] opacity-80 mb-0.5">NPV ณ วันเกษียณ</div>
                 <div className="text-xl font-extrabold">฿{fmt(totalNPV)}</div>
               </div>
             )}
@@ -764,7 +764,7 @@ function PensionInsurancePageInner() {
             </div>
             <button
               onClick={pullFromPlan}
-              className="flex items-center gap-1 text-[12px] text-blue-600 font-medium bg-blue-50 px-2.5 py-1.5 rounded-lg hover:bg-blue-100 transition"
+              className="flex items-center gap-1 text-[13px] text-blue-600 font-medium bg-blue-50 px-2.5 py-1.5 rounded-lg hover:bg-blue-100 transition"
             >
               ↻ ดึงค่าจากแผนเกษียณ
             </button>
@@ -772,7 +772,7 @@ function PensionInsurancePageInner() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[12px] text-gray-500 mb-1 block">อายุปัจจุบัน</label>
+              <label className="text-[13px] text-gray-500 mb-1 block">อายุปัจจุบัน</label>
               <div className="flex items-center gap-1">
                 <input
                   type="number"
@@ -787,7 +787,7 @@ function PensionInsurancePageInner() {
               </div>
             </div>
             <div>
-              <label className="text-[12px] text-gray-500 mb-1 block">อายุเกษียณ</label>
+              <label className="text-[13px] text-gray-500 mb-1 block">อายุเกษียณ</label>
               <div className="flex items-center gap-1">
                 <input
                   type="number"
@@ -802,7 +802,7 @@ function PensionInsurancePageInner() {
               </div>
             </div>
             <div>
-              <label className="text-[12px] text-gray-500 mb-1 block">อายุขัย</label>
+              <label className="text-[13px] text-gray-500 mb-1 block">อายุขัย</label>
               <div className="flex items-center gap-1">
                 <input
                   type="number"
@@ -817,7 +817,7 @@ function PensionInsurancePageInner() {
               </div>
             </div>
             <div>
-              <label className="text-[12px] text-gray-500 mb-1 block">อัตราคิดลด</label>
+              <label className="text-[13px] text-gray-500 mb-1 block">อัตราคิดลด</label>
               <div className="flex items-center gap-1">
                 <input
                   type="text"
@@ -836,7 +836,7 @@ function PensionInsurancePageInner() {
 
           {/* Buffer years as chip selector */}
           <div>
-            <label className="text-[12px] text-gray-500 mb-1 block">จำนวนปีที่เผื่อเกินอายุขัย</label>
+            <label className="text-[13px] text-gray-500 mb-1 block">จำนวนปีที่เผื่อเกินอายุขัย</label>
             <div className="flex items-center gap-2">
               {[0, 3, 5, 10].map((y) => (
                 <button
@@ -1087,7 +1087,7 @@ function PensionInsurancePageInner() {
                 <p className="text-xs font-bold text-gray-800 leading-relaxed">
                   &ldquo;ซื้อประกันบำนาญไว้... จะคุ้มค่าเบี้ยแค่ไหน?&rdquo;
                 </p>
-                <p className="text-[13px] text-gray-500 mt-2 leading-relaxed">
+                <p className="text-[14px] text-gray-500 mt-2 leading-relaxed">
                   ประกันบำนาญ (Annuity) จ่ายเงินคงที่ตั้งแต่อายุเกษียณจนถึงสิ้นสัญญา —
                   ช่วยลดความเสี่ยงอายุยืน (Longevity Risk)
                 </p>
@@ -1099,47 +1099,47 @@ function PensionInsurancePageInner() {
 
               <div className="border border-gray-200 rounded-xl p-4 space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-[12px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-[13px] font-bold flex items-center justify-center shrink-0">1</span>
                   <h4 className="text-xs font-bold text-gray-800">ระบุอัตราบำนาญ/ปี</h4>
                 </div>
-                <p className="text-[13px] leading-relaxed">
+                <p className="text-[14px] leading-relaxed">
                   กรอกแต่ละกรมธรรม์: จ่าย/ปี, เริ่มจ่ายตอนอายุกี่ปี, และจ่ายถึงอายุกี่ปี
                 </p>
-                <div className="bg-purple-50 rounded-lg px-3 py-2 text-[12px]">
+                <div className="bg-purple-50 rounded-lg px-3 py-2 text-[13px]">
                   <div><strong>ตัวแปร:</strong> PMT (ต่อปี), อายุเริ่มรับ, อายุสิ้นสัญญา</div>
                 </div>
               </div>
 
               <div className="border border-gray-200 rounded-xl p-4 space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-[12px] font-bold flex items-center justify-center shrink-0">2</span>
+                  <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-[13px] font-bold flex items-center justify-center shrink-0">2</span>
                   <h4 className="text-xs font-bold text-gray-800">คิดลดกลับมาที่วันเกษียณ</h4>
                 </div>
-                <p className="text-[13px] leading-relaxed">
+                <p className="text-[14px] leading-relaxed">
                   แต่ละปีที่ได้รับเงิน คิดลดเป็น Present Value ณ วันเกษียณ ด้วยอัตราผลตอบแทนหลังเกษียณ
                 </p>
-                <div className="bg-purple-50 rounded-lg px-3 py-2 text-[12px]">
+                <div className="bg-purple-50 rounded-lg px-3 py-2 text-[13px]">
                   <div><strong>สูตร:</strong> PV<sub>year i</sub> = PMT ÷ (1 + rate)<sup>i</sup></div>
                 </div>
               </div>
 
               <div className="border-2 border-purple-500 rounded-xl p-4 space-y-2 bg-purple-50/30">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-purple-600 text-white text-[12px] font-bold flex items-center justify-center shrink-0">3</span>
+                  <span className="w-6 h-6 rounded-full bg-purple-600 text-white text-[13px] font-bold flex items-center justify-center shrink-0">3</span>
                   <h4 className="text-xs font-bold text-purple-800">รวม NPV ทั้งหมด ⭐</h4>
                 </div>
-                <div className="text-[12px] text-purple-700 font-bold bg-purple-100 rounded-lg px-2 py-1 inline-block">ใช้ในหน้านี้</div>
-                <p className="text-[13px] leading-relaxed">
+                <div className="text-[13px] text-purple-700 font-bold bg-purple-100 rounded-lg px-2 py-1 inline-block">ใช้ในหน้านี้</div>
+                <p className="text-[14px] leading-relaxed">
                   รวมผลของทุกกรมธรรม์ในทุกปี ตั้งแต่เกษียณจนสิ้นอายุขัย (+ บัฟเฟอร์) = มูลค่าประกันบำนาญรวม ณ วันเกษียณ
                 </p>
-                <div className="bg-purple-100 rounded-lg px-3 py-2 text-[12px] space-y-1">
+                <div className="bg-purple-100 rounded-lg px-3 py-2 text-[13px] space-y-1">
                   <div><strong>สูตร:</strong> NPV = Σ<sub>policies</sub> Σ<sub>i</sub> PMT ÷ (1 + rate)<sup>i</sup></div>
                   <div className="text-green-700">✓ สะท้อนทั้งกระแสรายรับและความเสี่ยงอายุยืน</div>
                 </div>
               </div>
 
               <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
-                <div className="text-[12px] text-amber-700 leading-relaxed">
+                <div className="text-[13px] text-amber-700 leading-relaxed">
                   💡 ประกันบำนาญได้สิทธิลดหย่อนสูงสุด 15% ของรายได้ (ไม่เกิน 200,000 บาท)
                   เมื่อรวมกับ PVD/RMF/SSF แล้วต้องไม่เกิน 500,000 บาท
                 </div>

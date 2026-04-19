@@ -113,7 +113,7 @@ export default function FormulaInput({
       </div>
 
       {/* Live preview / error line */}
-      <div className="mt-1.5 h-4 text-[13px] flex items-center justify-center">
+      <div className="mt-1.5 h-4 text-[14px] flex items-center justify-center">
         {isInvalid ? (
           <span className="text-rose-500">สูตรไม่ถูกต้อง</span>
         ) : isFormula && parsed !== null ? (

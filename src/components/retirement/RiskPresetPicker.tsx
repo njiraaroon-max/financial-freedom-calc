@@ -28,14 +28,14 @@ export default function RiskPresetPicker({
             key={k}
             type="button"
             onClick={() => onPick(k)}
-            className={`rounded-lg px-1.5 py-1.5 text-[12px] font-semibold border transition text-center ${
+            className={`rounded-lg px-1.5 py-1.5 text-[13px] font-semibold border transition text-center ${
               active
                 ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
                 : "bg-white text-gray-700 border-gray-200 hover:border-indigo-300 hover:bg-indigo-50"
             }`}
           >
             <div className="text-xs leading-none">{preset?.emoji ?? "⚙️"}</div>
-            <div className={`mt-0.5 ${compact ? "text-[11px]" : ""}`}>
+            <div className={`mt-0.5 ${compact ? "text-[13px]" : ""}`}>
               {preset?.label ?? "กำหนดเอง"}
             </div>
           </button>

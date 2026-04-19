@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Check, Plus, X, HeartPulse } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useSelectedModulesStore } from "@/store/selected-modules-store";
 
 interface RadialPiece {
   name: string;
@@ -19,28 +20,21 @@ interface RadialDashboardProps {
   pieces: RadialPiece[];
 }
 
-const STORAGE_KEY = "ffc-selected-modules";
-
 export default function RadialDashboard({ pieces }: RadialDashboardProps) {
-  // Which modules user has selected to show on the ring
-  const [selectedNames, setSelectedNames] = useState<string[]>([]);
-  const [mounted, setMounted] = useState(false);
+  // Which modules the FA pinned onto the ring — now per-client, backed
+  // by selected-modules-store (persisted locally + synced to Supabase
+  // via ClientDataSync).
+  const selectedNames = useSelectedModulesStore((s) => s.selectedNames);
+  const addModule = useSelectedModulesStore((s) => s.addModule);
+  const removeModule = useSelectedModulesStore((s) => s.removeModule);
 
+  // SSR / hydration guard — keep the existing "don't render until
+  // mounted" pattern so zustand-persist hydration doesn't flash wrong
+  // content on the very first paint.
+  const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        setSelectedNames(JSON.parse(saved));
-      } catch { /* ignore */ }
-    }
   }, []);
-
-  useEffect(() => {
-    if (mounted) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedNames));
-    }
-  }, [selectedNames, mounted]);
 
   const selectedPieces = pieces.filter((p) => selectedNames.includes(p.name));
   const unselectedPieces = pieces.filter((p) => !selectedNames.includes(p.name));
@@ -88,14 +82,6 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
       y: 50 + 36 * Math.sin(rad),
     };
   }
-
-  const addModule = (name: string) => {
-    setSelectedNames((prev) => [...prev, name]);
-  };
-
-  const removeModule = (name: string) => {
-    setSelectedNames((prev) => prev.filter((n) => n !== name));
-  };
 
   if (!mounted) return null;
 
@@ -201,7 +187,7 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
               className="w-full object-contain drop-shadow-md"
               style={{ maxHeight: "80%" }}
             />
-            <div className="text-[11px] md:text-[13px] font-bold text-gray-600 leading-tight mt-1 whitespace-nowrap">
+            <div className="text-[13px] md:text-[14px] font-bold text-gray-600 leading-tight mt-1 whitespace-nowrap">
               สรุปแผนการเงิน
             </div>
           </Link>
@@ -228,7 +214,7 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
               >
                 {/* "เริ่มต้น" label above Personal Info */}
                 {isPersonalInfo && (
-                  <div className="text-[11px] md:text-[13px] font-bold text-[var(--color-primary)] text-center mb-0.5 whitespace-nowrap">
+                  <div className="text-[13px] md:text-[14px] font-bold text-[var(--color-primary)] text-center mb-0.5 whitespace-nowrap">
                     เริ่มต้น ▼
                   </div>
                 )}
@@ -283,11 +269,11 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
                     </div>
 
                     {/* Name */}
-                    <div className="text-[12px] md:text-[14px] font-bold text-gray-700 mt-1 text-center leading-tight whitespace-nowrap">
+                    <div className="text-[13px] md:text-[15px] font-bold text-gray-700 mt-1 text-center leading-tight whitespace-nowrap">
                       {piece.name}
                     </div>
                     {/* Description */}
-                    <div className="text-[10px] md:text-[12px] text-gray-400 text-center leading-tight whitespace-nowrap">
+                    <div className="text-[12px] md:text-[13px] text-gray-400 text-center leading-tight whitespace-nowrap">
                       {piece.description}
                     </div>
                   </div>
@@ -301,7 +287,7 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
       {/* Bottom Module Selector — only unselected modules */}
       {unselectedPieces.length > 0 && (
         <div className="glass rounded-2xl p-2 mt-1">
-          <div className="text-[11px] text-gray-400 text-center mb-1.5">กดเพื่อเพิ่มแผนที่ต้องการ</div>
+          <div className="text-[13px] text-gray-400 text-center mb-1.5">กดเพื่อเพิ่มแผนที่ต้องการ</div>
           <div className="flex flex-wrap justify-center gap-1.5 md:gap-2">
             {unselectedPieces.map((piece) => {
               const Icon = piece.icon;
@@ -335,7 +321,7 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
                       <Plus size={8} className="text-white" strokeWidth={3} />
                     </div>
                   </div>
-                  <span className="text-[9px] md:text-[10px] font-medium text-gray-500 text-center leading-tight whitespace-nowrap">
+                  <span className="text-[11px] md:text-[12px] font-medium text-gray-500 text-center leading-tight whitespace-nowrap">
                     {piece.description}
                   </span>
                 </button>
@@ -348,7 +334,7 @@ export default function RadialDashboard({ pieces }: RadialDashboardProps) {
       {/* All selected indicator */}
       {unselectedPieces.length === 0 && selectedPieces.length > 0 && (
         <div className="text-center mt-2">
-          <span className="text-[12px] text-emerald-500 font-medium">✓ เพิ่มแผนครบทุกด้านแล้ว</span>
+          <span className="text-[13px] text-emerald-500 font-medium">✓ เพิ่มแผนครบทุกด้านแล้ว</span>
         </div>
       )}
     </div>

@@ -431,7 +431,7 @@ export default function InsuranceHubPage() {
               <div className="absolute left-0 right-0 top-0 flex flex-col items-center justify-center cursor-pointer group" style={{ bottom: "26%" }}>
                 <ClipboardList size={18} className="text-white/60 mb-1" />
                 <span className="text-white text-lg md:text-xl font-bold tracking-wider group-hover:brightness-125 transition">สรุปกรมธรรม์</span>
-                <span className="text-white/40 text-[11px] md:text-[13px] tracking-[0.2em] mt-0.5 font-medium">Policy Summary</span>
+                <span className="text-white/40 text-[13px] md:text-[14px] tracking-[0.2em] mt-0.5 font-medium">Policy Summary</span>
               </div>
             </Link>
 
@@ -439,7 +439,7 @@ export default function InsuranceHubPage() {
             <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center pb-2 md:pb-3 px-3 md:px-5">
               {/* Centered stats text (absolute so pill doesn't affect centering) */}
               <Link href="/calculators/insurance/policies" className="text-white/90 hover:text-white transition">
-                <span className="text-[13px] md:text-sm font-medium">
+                <span className="text-[14px] md:text-sm font-medium">
                   กรมธรรม์ <span className="font-bold">{totalPolicies}</span> เล่ม
                   <span className="text-white/30 mx-1.5">|</span>
                   ทุนชีวิตรวม <span className="font-bold">{fmtShort(totalSumInsured)}</span>
@@ -449,7 +449,7 @@ export default function InsuranceHubPage() {
               </Link>
               {/* Pill button — same line, pushed right */}
               <Link href="/calculators/insurance/policies?add=true" className="absolute right-3 md:right-5">
-                <div className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition text-white/80 hover:text-white text-[12px] md:text-xs font-medium backdrop-blur-md border border-white/20">
+                <div className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition text-white/80 hover:text-white text-[13px] md:text-xs font-medium backdrop-blur-md border border-white/20">
                   <Plus size={13} strokeWidth={2} />
                   <span>เพิ่มกรมธรรม์</span>
                 </div>
@@ -506,17 +506,17 @@ export default function InsuranceHubPage() {
                           </div>
 
                           {/* Title */}
-                          <div className="text-[12px] md:text-[14px] font-bold text-gray-900 mt-1 leading-tight">
+                          <div className="text-[13px] md:text-[15px] font-bold text-gray-900 mt-1 leading-tight">
                             {pillar.title}
                           </div>
 
                           {/* Subtitle */}
-                          <div className="text-[10px] md:text-[11px] text-gray-500 mt-0.5 leading-tight">
+                          <div className="text-[12px] md:text-[13px] text-gray-500 mt-0.5 leading-tight">
                             {pillar.subtitle}
                           </div>
 
                           {/* Status badge */}
-                          <div className={`text-[9px] md:text-[10px] px-2 py-0.5 rounded-full mt-2.5 font-bold ${
+                          <div className={`text-[11px] md:text-[12px] px-2 py-0.5 rounded-full mt-2.5 font-bold ${
                             pillar.status === "adequate" ? "bg-emerald-100 text-emerald-700" :
                             pillar.status === "warning" ? "bg-amber-100 text-amber-700" :
                             pillar.status === "critical" ? "bg-red-100 text-red-700" :
@@ -526,7 +526,7 @@ export default function InsuranceHubPage() {
                           </div>
 
                           {/* Metric */}
-                          <div className={`text-[11px] md:text-[12px] font-bold mt-1.5 ${
+                          <div className={`text-[13px] md:text-[13px] font-bold mt-1.5 ${
                             pillar.metric.startsWith("Gap") ? "text-red-700" : "text-gray-700"
                           }`}>
                             {pillar.metric}
@@ -545,7 +545,7 @@ export default function InsuranceHubPage() {
                           )}
 
                           {/* Tap hint */}
-                          <div className="flex items-center gap-0.5 mt-auto pt-2 text-[10px] md:text-[11px] text-gray-400 group-hover:text-gray-700 transition-colors">
+                          <div className="flex items-center gap-0.5 mt-auto pt-2 text-[12px] md:text-[13px] text-gray-400 group-hover:text-gray-700 transition-colors">
                             <span>ดูเพิ่ม</span>
                             <ChevronRight size={10} className="group-hover:translate-x-0.5 transition-transform" />
                           </div>
@@ -582,14 +582,14 @@ export default function InsuranceHubPage() {
                 <div className="flex items-center gap-2 mb-3">
                   <Landmark size={16} className="text-stone-300" />
                   <span className="text-xs font-bold text-stone-200">Long Live Protection</span>
-                  <span className="text-[11px] text-stone-500 italic">— เชื่อมกับแผนเกษียณ</span>
+                  <span className="text-[13px] text-stone-500 italic">— เชื่อมกับแผนเกษียณ</span>
                   <ChevronRight size={14} className="text-stone-400 ml-auto group-hover:translate-x-0.5 group-hover:text-stone-200 transition-all" />
                 </div>
 
                 <div className="flex items-center gap-4">
                   {/* Coverage progress */}
                   <div className="flex-1">
-                    <div className="flex items-center justify-between text-[12px] mb-1">
+                    <div className="flex items-center justify-between text-[13px] mb-1">
                       <span className="text-stone-400">ความพร้อมเกษียณ</span>
                       <span className={`font-bold ${pillar4LongLive.status === "adequate" ? "text-emerald-400" : pillar4LongLive.status === "warning" ? "text-amber-400" : pillar4LongLive.status === "critical" ? "text-red-400" : "text-stone-400"}`}>
                         {pillar4LongLive.status !== "not_started" ? `${pillar4LongLive.pct}%` : "—"}
@@ -599,7 +599,7 @@ export default function InsuranceHubPage() {
                       <div className={`h-full rounded-full ${pillar4LongLive.status === "adequate" ? "bg-emerald-400" : pillar4LongLive.status === "warning" ? "bg-amber-400" : pillar4LongLive.status === "critical" ? "bg-red-400" : "bg-stone-500"}`}
                         style={{ width: `${Math.min(pillar4LongLive.pct, 100)}%` }} />
                     </div>
-                    <div className="text-[10px] text-stone-500 mt-0.5">
+                    <div className="text-[12px] text-stone-500 mt-0.5">
                       {pillar4LongLive.status !== "not_started"
                         ? `มี ${fmtShort(pillar4LongLive.totalHave)} / ต้องการ ${fmtShort(pillar4LongLive.fundNeeded)}`
                         : "ยังไม่ประเมิน — กดเพื่อเริ่ม"}
@@ -608,7 +608,7 @@ export default function InsuranceHubPage() {
 
                   {/* Gap summary */}
                   <div className="flex-1">
-                    <div className="flex items-center justify-between text-[12px] mb-1">
+                    <div className="flex items-center justify-between text-[13px] mb-1">
                       <span className="text-stone-400">ส่วนขาด (Gap)</span>
                       <span className={`font-bold ${pillar4LongLive.gap > 0 ? "text-red-400" : "text-emerald-400"}`}>
                         {pillar4LongLive.status !== "not_started"
@@ -618,7 +618,7 @@ export default function InsuranceHubPage() {
                           : "—"}
                       </span>
                     </div>
-                    <div className="text-[11px] text-stone-400 leading-relaxed">
+                    <div className="text-[13px] text-stone-400 leading-relaxed">
                       ใช้ข้อมูลจากหน้าแผนเกษียณใหญ่เป็นหลัก + sum ของประกันบำนาญและเงินออมประกัน
                     </div>
                   </div>
@@ -634,19 +634,19 @@ export default function InsuranceHubPage() {
         <div className="glass rounded-2xl p-4 mx-1">
           <div className="text-center mb-2">
             <div className="text-sm font-bold text-gray-800">Risk Allocation Balance Score</div>
-            <div className="text-[12px] text-gray-400">อายุ {currentAge} ปี | ประเมินแล้ว {completedCount}/4 Pillars</div>
+            <div className="text-[13px] text-gray-400">อายุ {currentAge} ปี | ประเมินแล้ว {completedCount}/4 Pillars</div>
           </div>
           <RadarChart data={radarData} />
           <div className="flex items-center justify-center gap-4 mt-2">
-            <div className="flex items-center gap-1.5 text-[11px]">
+            <div className="flex items-center gap-1.5 text-[13px]">
               <div className="w-2 h-2 rounded-full bg-emerald-500" />
               <span className="text-gray-500">เพียงพอ</span>
             </div>
-            <div className="flex items-center gap-1.5 text-[11px]">
+            <div className="flex items-center gap-1.5 text-[13px]">
               <div className="w-2 h-2 rounded-full bg-amber-500" />
               <span className="text-gray-500">ควรเพิ่ม</span>
             </div>
-            <div className="flex items-center gap-1.5 text-[11px]">
+            <div className="flex items-center gap-1.5 text-[13px]">
               <div className="w-2 h-2 rounded-full bg-red-500" />
               <span className="text-gray-500">ไม่เพียงพอ</span>
             </div>
@@ -667,7 +667,7 @@ export default function InsuranceHubPage() {
                     <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${
                       rec.priority === "critical" ? "bg-red-500" : rec.priority === "warning" ? "bg-amber-500" : "bg-blue-400"
                     }`} />
-                    <span className="text-[13px] text-gray-700 flex-1">{rec.text}</span>
+                    <span className="text-[14px] text-gray-700 flex-1">{rec.text}</span>
                     <ChevronRight size={14} className="text-gray-300 shrink-0" />
                   </div>
                 </Link>
@@ -684,7 +684,7 @@ export default function InsuranceHubPage() {
               return <div key={i} className={`w-4 h-4 rounded-full ${ss.dot} shadow-sm`} />;
             })}
           </div>
-          <div className="text-[12px] text-gray-400 mt-1.5">
+          <div className="text-[13px] text-gray-400 mt-1.5">
             {adequateCount === 4 ? "ยอดเยี่ยม! ทุก Pillar เพียงพอ" :
              completedCount === 0 ? "เริ่มประเมินเพื่อดู Risk Score" :
              `${adequateCount}/4 Pillars เพียงพอ`}

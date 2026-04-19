@@ -704,11 +704,11 @@ export default function GoalsPage() {
           <div className="glass rounded-2xl overflow-hidden">
             {/* Header */}
             <div className="grid grid-cols-[28px_28px_1fr_auto_auto_32px] gap-1.5 px-3 py-2.5 bg-gray-50 border-b border-gray-100">
-              <div className="text-[12px] font-bold text-gray-500 text-center">#</div>
-              <div className="text-[12px] font-bold text-gray-400 text-center">จัด</div>
-              <div className="text-[12px] font-bold text-gray-500">เป้าหมาย</div>
-              <div className="text-[12px] font-bold text-gray-500 text-right">เท่าไร</div>
-              <div className="text-[12px] font-bold text-gray-500 text-right">เมื่อไร</div>
+              <div className="text-[13px] font-bold text-gray-500 text-center">#</div>
+              <div className="text-[13px] font-bold text-gray-400 text-center">จัด</div>
+              <div className="text-[13px] font-bold text-gray-500">เป้าหมาย</div>
+              <div className="text-[13px] font-bold text-gray-500 text-right">เท่าไร</div>
+              <div className="text-[13px] font-bold text-gray-500 text-right">เมื่อไร</div>
               <div />
             </div>
 
@@ -752,9 +752,9 @@ export default function GoalsPage() {
                     <div className="min-w-0">
                       <div className="text-xs font-bold text-gray-800 truncate">{g.name}</div>
                       {g.notes ? (
-                        <div className="text-[12px] text-gray-400 truncate">{g.notes}</div>
+                        <div className="text-[13px] text-gray-400 truncate">{g.notes}</div>
                       ) : (
-                        ageStr && <div className="text-[12px] text-[#7a9fc4]">{ageStr}</div>
+                        ageStr && <div className="text-[13px] text-[#7a9fc4]">{ageStr}</div>
                       )}
                     </div>
                   </div>
@@ -765,11 +765,11 @@ export default function GoalsPage() {
                       <div>
                         <div className="text-xs font-bold text-gray-800">฿{fmt(amt)}</div>
                         {fromLabel && (
-                          <div className="text-[11px] text-[#1e3a6e] whitespace-nowrap">จากแผนเกษียณ</div>
+                          <div className="text-[13px] text-[#1e3a6e] whitespace-nowrap">จากแผนเกษียณ</div>
                         )}
                       </div>
                     ) : (
-                      <div className="text-[12px] text-gray-400 italic">ไม่ทราบ</div>
+                      <div className="text-[13px] text-gray-400 italic">ไม่ทราบ</div>
                     )}
                   </div>
 
@@ -831,7 +831,7 @@ export default function GoalsPage() {
             <div className="mt-4 overflow-hidden rounded-xl border border-gray-200">
               {/* Header */}
               <div
-                className="grid text-white text-[13px] font-bold"
+                className="grid text-white text-[14px] font-bold"
                 style={{
                   gridTemplateColumns: "36px 1fr 90px 90px 1fr",
                   background: NAVY,
@@ -866,7 +866,7 @@ export default function GoalsPage() {
                 return (
                   <div
                     key={g.id}
-                    className="grid items-center text-[13px]"
+                    className="grid items-center text-[14px]"
                     style={{
                       gridTemplateColumns: "36px 1fr 90px 90px 1fr",
                       background: isEven ? NAVY_PALE : "#ffffff",
@@ -879,10 +879,10 @@ export default function GoalsPage() {
                       <span className="font-semibold text-gray-800">{g.name}</span>
                     </div>
                     <div className="py-2.5 text-center font-bold text-gray-800">
-                      {amt !== null ? fmt(amt) : <span className="text-gray-400 font-normal text-[12px]">ไม่ทราบ</span>}
+                      {amt !== null ? fmt(amt) : <span className="text-gray-400 font-normal text-[13px]">ไม่ทราบ</span>}
                     </div>
                     <div className="py-2.5 text-center text-gray-700">{whenStr}</div>
-                    <div className="py-2.5 px-2 text-gray-500 text-[12px]">{g.notes || ""}</div>
+                    <div className="py-2.5 px-2 text-gray-500 text-[13px]">{g.notes || ""}</div>
                   </div>
                 );
               })}
@@ -921,7 +921,7 @@ export default function GoalsPage() {
                 {formStep === "fill" && (
                   <button
                     onClick={() => !editingId && setFormStep("pick")}
-                    className="text-[13px] text-[#1e3a6e] mt-0.5"
+                    className="text-[14px] text-[#1e3a6e] mt-0.5"
                   >
                     {!editingId && "← เลือกใหม่"}
                   </button>
@@ -953,11 +953,11 @@ export default function GoalsPage() {
                         <div className="w-10 h-10 bg-[#e8f0f8] rounded-2xl flex items-center justify-center">
                           {ICON_MAP[preset.iconName] ?? <Star size={20} className="text-[#1e3a6e]" />}
                         </div>
-                        <div className="text-[13px] font-bold text-gray-700 text-center leading-tight">
+                        <div className="text-[14px] font-bold text-gray-700 text-center leading-tight">
                           {preset.name}
                         </div>
                         {resolvedAmt !== null && (
-                          <div className="text-[11px] text-[#1e3a6e] font-semibold">
+                          <div className="text-[13px] text-[#1e3a6e] font-semibold">
                             ฿{fmt(resolvedAmt)}
                           </div>
                         )}
@@ -977,14 +977,14 @@ export default function GoalsPage() {
                     </div>
                     <div>
                       <div className="text-xs font-bold text-[#1e3a6e]">{getPreset(form.category).name}</div>
-                      <div className="text-[12px] text-[#7a9fc4]">{getPreset(form.category).description}</div>
+                      <div className="text-[13px] text-[#7a9fc4]">{getPreset(form.category).description}</div>
                     </div>
                   </div>
 
                   {/* Icon picker for custom goals */}
                   {form.category === "custom" && (
                     <div>
-                      <label className="text-[13px] text-gray-500 mb-1.5 block font-semibold">
+                      <label className="text-[14px] text-gray-500 mb-1.5 block font-semibold">
                         เลือกไอคอน
                       </label>
                       <div className="flex flex-wrap gap-2">
@@ -1010,7 +1010,7 @@ export default function GoalsPage() {
 
                   {/* Goal name */}
                   <div>
-                    <label className="text-[13px] text-gray-500 mb-1.5 block font-semibold">
+                    <label className="text-[14px] text-gray-500 mb-1.5 block font-semibold">
                       ชื่อเป้าหมาย
                     </label>
                     <input
@@ -1024,7 +1024,7 @@ export default function GoalsPage() {
 
                   {/* Amount */}
                   <div>
-                    <label className="text-[13px] text-gray-500 mb-1.5 block font-semibold">
+                    <label className="text-[14px] text-gray-500 mb-1.5 block font-semibold">
                       จำนวนเงิน
                     </label>
                     <div className="flex items-center gap-2 mb-2">
@@ -1060,14 +1060,14 @@ export default function GoalsPage() {
                         <span className="text-xs text-[#1e3a6e] font-semibold">
                           ค่าปัจจุบัน: ฿{fmt(variables[form.amountSourceKey].value)}
                         </span>
-                        <span className="text-[12px] text-[#7a9fc4]">จากแผนเกษียณ</span>
+                        <span className="text-[13px] text-[#7a9fc4]">จากแผนเกษียณ</span>
                       </div>
                     )}
                   </div>
 
                   {/* Frequency */}
                   <div>
-                    <label className="text-[13px] text-gray-500 mb-1.5 block font-semibold">
+                    <label className="text-[14px] text-gray-500 mb-1.5 block font-semibold">
                       ความถี่
                     </label>
                     <div className="flex gap-2">
@@ -1096,13 +1096,13 @@ export default function GoalsPage() {
                     const yearsStr = form.targetYearBE === "" ? "" : String(yearsFromNow);
                     return (
                       <div>
-                        <label className="text-[13px] text-gray-500 mb-1.5 block font-semibold">
+                        <label className="text-[14px] text-gray-500 mb-1.5 block font-semibold">
                           เวลาถึงเป้าหมาย
                         </label>
                         <div className="grid grid-cols-2 gap-2">
                           {/* ปี พ.ศ. */}
                           <div>
-                            <div className="text-[12px] text-gray-400 mb-1">ปีเป้าหมาย (พ.ศ.)</div>
+                            <div className="text-[13px] text-gray-400 mb-1">ปีเป้าหมาย (พ.ศ.)</div>
                             <input
                               type="text"
                               inputMode="numeric"
@@ -1114,7 +1114,7 @@ export default function GoalsPage() {
                           </div>
                           {/* อีกกี่ปีจากปัจจุบัน */}
                           <div>
-                            <div className="text-[12px] text-gray-400 mb-1">อีกกี่ปีจากปัจจุบัน</div>
+                            <div className="text-[13px] text-gray-400 mb-1">อีกกี่ปีจากปัจจุบัน</div>
                             <div className="relative">
                               <input
                                 type="text"
@@ -1141,7 +1141,7 @@ export default function GoalsPage() {
                           </div>
                         </div>
                         {form.targetYearBE && (
-                          <div className="text-[12px] text-gray-400 mt-1.5">
+                          <div className="text-[13px] text-gray-400 mt-1.5">
                             อายุประมาณ {currentAge + yearsFromNow} ปี
                           </div>
                         )}
@@ -1151,7 +1151,7 @@ export default function GoalsPage() {
 
                   {/* Notes */}
                   <div>
-                    <label className="text-[13px] text-gray-500 mb-1.5 block font-semibold">
+                    <label className="text-[14px] text-gray-500 mb-1.5 block font-semibold">
                       หมายเหตุ (ถ้ามี)
                     </label>
                     <textarea

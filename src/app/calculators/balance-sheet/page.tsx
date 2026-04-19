@@ -119,11 +119,11 @@ export default function BalanceSheetPage() {
             <div className="text-2xl font-bold mb-3">{formatCurrency(netWorth)}</div>
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-white/20 rounded-xl p-2.5">
-                <div className="text-[12px] opacity-80">สินทรัพย์รวม</div>
+                <div className="text-[13px] opacity-80">สินทรัพย์รวม</div>
                 <div className="text-sm font-bold">{formatCurrency(totalAssets)}</div>
               </div>
               <div className="bg-red-500/80 rounded-xl p-2.5">
-                <div className="text-[12px] opacity-90">หนี้สินรวม</div>
+                <div className="text-[13px] opacity-90">หนี้สินรวม</div>
                 <div className="text-sm font-bold">{formatCurrency(totalLiabilities)}</div>
               </div>
             </div>
@@ -177,8 +177,8 @@ export default function BalanceSheetPage() {
               return (
                 <div key={type} className="mb-3">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[13px] font-medium text-emerald-600">{labels[type]}</span>
-                    <span className="text-[13px] font-bold text-emerald-700">{formatCurrency(totals[type])}</span>
+                    <span className="text-[14px] font-medium text-emerald-600">{labels[type]}</span>
+                    <span className="text-[14px] font-bold text-emerald-700">{formatCurrency(totals[type])}</span>
                   </div>
                   {items.map((item) => (
                     <BalanceSheetItemRow
@@ -219,8 +219,8 @@ export default function BalanceSheetPage() {
               return (
                 <div key={type} className="mb-3">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[13px] font-medium text-red-600">{labels[type]}</span>
-                    <span className="text-[13px] font-bold text-red-700">{formatCurrency(totals[type])}</span>
+                    <span className="text-[14px] font-medium text-red-600">{labels[type]}</span>
+                    <span className="text-[14px] font-bold text-red-700">{formatCurrency(totals[type])}</span>
                   </div>
                   {items.map((item) => (
                     <BalanceSheetItemRow

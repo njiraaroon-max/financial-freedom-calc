@@ -43,7 +43,7 @@ function MoneyField({ label, value, onChange, hint, suffix = "บาท" }: {
         className="flex-1 text-sm bg-gray-50 rounded-xl px-4 py-2.5 outline-none focus:ring-2 border border-gray-200 text-right font-bold"
         ringClass="focus:ring-blue-400"
       />
-      {hint && <div className="text-[11px] text-gray-400 mt-0.5 pl-1">{hint}</div>}
+      {hint && <div className="text-[13px] text-gray-400 mt-0.5 pl-1">{hint}</div>}
     </div>
   );
 }
@@ -63,7 +63,7 @@ function NumberInput({ label, value, onChange, suffix = "ปี" }: {
 
   return (
     <div>
-      <label className="text-[13px] text-gray-500 font-semibold block mb-1">{label}</label>
+      <label className="text-[14px] text-gray-500 font-semibold block mb-1">{label}</label>
       <div className="flex items-center gap-2">
         <input
           type="text"
@@ -176,7 +176,7 @@ export default function Pillar1Page() {
               <Info size={16} />
             </button>
           </div>
-          <p className="text-[13px] opacity-80 leading-relaxed">
+          <p className="text-[14px] opacity-80 leading-relaxed">
             คำนวณทุนประกันชีวิตที่เหมาะสมด้วย Needs Analysis Approach
             เพื่อให้มั่นใจว่าคนที่รักจะดำรงชีวิตต่อไปได้
           </p>
@@ -214,9 +214,9 @@ export default function Pillar1Page() {
                     <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shadow-sm ring-2 ring-offset-2 transition-all ${baseColor} ${ringColor}`}>
                       {step.n}
                     </div>
-                    <div className="text-[12px] font-bold text-gray-700 mt-1.5 text-center leading-tight">Step {step.n}</div>
-                    <div className="text-[11px] font-bold text-gray-500 text-center">{step.label}</div>
-                    <div className="text-[10px] text-gray-400 text-center">{step.sub}</div>
+                    <div className="text-[13px] font-bold text-gray-700 mt-1.5 text-center leading-tight">Step {step.n}</div>
+                    <div className="text-[13px] font-bold text-gray-500 text-center">{step.label}</div>
+                    <div className="text-[12px] text-gray-400 text-center">{step.sub}</div>
                   </button>
                   {/* Connecting line */}
                   {i < 2 && <div className="flex-1 h-0.5 bg-gray-200 mt-[18px]" />}
@@ -230,7 +230,7 @@ export default function Pillar1Page() {
         <div className="glass rounded-2xl mx-1">
           <button onClick={() => toggleStep(1)} className="w-full p-4 md:p-6 pb-0 flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-[12px] font-bold flex items-center justify-center">1</span>
+              <span className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-[13px] font-bold flex items-center justify-center">1</span>
               Step 1: คำนวณความต้องการทั้งหมด
             </h3>
             <div className="flex items-center gap-2">
@@ -243,7 +243,7 @@ export default function Pillar1Page() {
           {/* ── A: Immediate Cash Needs ── */}
           <div className="border border-red-100 rounded-xl overflow-hidden">
             <div className="bg-red-50 px-3 py-2 border-b border-red-100">
-              <span className="text-[12px] font-bold text-red-700">A. เงินก้อนทันที (Immediate Cash Needs)</span>
+              <span className="text-[13px] font-bold text-red-700">A. เงินก้อนทันที (Immediate Cash Needs)</span>
             </div>
             <div className="p-3 space-y-3">
               <div>
@@ -255,7 +255,7 @@ export default function Pillar1Page() {
               <div className="space-y-2.5">
                 <div>
                   <div className="text-xs font-bold text-gray-700">Debt Clearance: ค่าปิดยอดหนี้สินคงค้าง</div>
-                  <div className="text-[12px] text-gray-400 mt-0.5 leading-relaxed">หนี้สินทั้งหมดที่ไม่ได้มีประกันคุ้มครองวงเงินสินเชื่อ (MRTA) เช่น หนี้บัตรเครดิต, หนี้สินเชื่อส่วนบุคคล หรือหนี้บ้าน/รถที่ยังค้างอยู่</div>
+                  <div className="text-[13px] text-gray-400 mt-0.5 leading-relaxed">หนี้สินทั้งหมดที่ไม่ได้มีประกันคุ้มครองวงเงินสินเชื่อ (MRTA) เช่น หนี้บัตรเครดิต, หนี้สินเชื่อส่วนบุคคล หรือหนี้บ้าน/รถที่ยังค้างอยู่</div>
                 </div>
 
                 {/* Debt items list */}
@@ -304,7 +304,7 @@ export default function Pillar1Page() {
                     const items = [...(p1.debtItems || []), { name: "", amount: 0 }];
                     update({ debtItems: items });
                   }}
-                  className="text-[13px] text-blue-600 font-bold hover:underline flex items-center gap-1"
+                  className="text-[14px] text-blue-600 font-bold hover:underline flex items-center gap-1"
                 >
                   + เพิ่มรายการหนี้สิน
                 </button>
@@ -317,12 +317,12 @@ export default function Pillar1Page() {
                     onChange={(e) => update({ useBalanceSheetDebts: e.target.checked })}
                     className="w-3 h-3 rounded border-gray-300 text-blue-500 focus:ring-0"
                   />
-                  <span className="text-[11px] text-gray-400">ดึงหนี้สินจาก Balance Sheet ด้วย ({fmt(totalDebtsFromBS)} บาท)</span>
+                  <span className="text-[13px] text-gray-400">ดึงหนี้สินจาก Balance Sheet ด้วย ({fmt(totalDebtsFromBS)} บาท)</span>
                 </label>
               </div>
             </div>
             <div className="bg-red-50 px-3 py-2 border-t border-red-100 flex items-center justify-between">
-              <span className="text-[12px] font-bold text-red-700">รวมเงินก้อนทันที</span>
+              <span className="text-[13px] font-bold text-red-700">รวมเงินก้อนทันที</span>
               <span className="text-xs font-extrabold text-red-600">{fmt(analysis.totalImmediate)} บาท</span>
             </div>
           </div>
@@ -330,12 +330,12 @@ export default function Pillar1Page() {
           {/* ── B: Income Needs ── */}
           <div className="border border-red-100 rounded-xl overflow-hidden">
             <div className="bg-red-50 px-3 py-2 border-b border-red-100">
-              <span className="text-[12px] font-bold text-red-700">B. ค่าใช้จ่ายต่อเนื่อง (Income Needs)</span>
+              <span className="text-[13px] font-bold text-red-700">B. ค่าใช้จ่ายต่อเนื่อง (Income Needs)</span>
             </div>
             <div className="p-3 space-y-4">
               {/* ── TVM Parameters ── */}
               <div className="bg-gray-50 rounded-xl p-3 space-y-2 border border-gray-100">
-                <div className="text-[13px] font-bold text-gray-600">สมมติฐาน Time Value of Money</div>
+                <div className="text-[14px] font-bold text-gray-600">สมมติฐาน Time Value of Money</div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <NumberInput label="อัตราเงินเฟ้อ" value={p1.inflationRate ?? 3} onChange={(v) => update({ inflationRate: v })} suffix="%" />
                   <NumberInput label="ผลตอบแทนการลงทุน" value={p1.investmentReturn ?? 5} onChange={(v) => update({ investmentReturn: v })} suffix="%" />
@@ -344,7 +344,7 @@ export default function Pillar1Page() {
                   const realRate = ((1 + (p1.investmentReturn ?? 5) / 100) / (1 + (p1.inflationRate ?? 3) / 100) - 1) * 100;
                   const isNegative = realRate < 0;
                   return (
-                    <div className={`text-[11px] pl-1 ${isNegative ? "text-amber-600 font-bold" : "text-gray-400"}`}>
+                    <div className={`text-[13px] pl-1 ${isNegative ? "text-amber-600 font-bold" : "text-gray-400"}`}>
                       Real Rate ≈ {realRate.toFixed(2)}% ต่อปี
                       {isNegative && (
                         <span className="ml-1 inline-flex items-center gap-0.5 text-amber-600">
@@ -387,13 +387,13 @@ export default function Pillar1Page() {
               {/* ── Parents section ── */}
               {(p1.dependents || {}).parents && (
                 <div className="bg-orange-50/50 rounded-xl p-3 space-y-2 border border-orange-100">
-                  <div className="text-[13px] font-bold text-orange-700">เงินดูแลพ่อ / แม่</div>
+                  <div className="text-[14px] font-bold text-orange-700">เงินดูแลพ่อ / แม่</div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <MoneyField label="รายเดือน" value={p1.parentSupportMonthly} onChange={(v) => update({ parentSupportMonthly: v })} />
                     <NumberInput label="อีกกี่ปี" value={p1.parentSupportYears} onChange={(v) => update({ parentSupportYears: v })} />
                   </div>
                   {p1.parentSupportMonthly > 0 && (
-                    <div className="text-[11px] text-orange-500 pl-1 space-y-0.5">
+                    <div className="text-[13px] text-orange-500 pl-1 space-y-0.5">
                       <div>แบบตรง: {fmt(simpleAnnuity(p1.parentSupportMonthly, p1.parentSupportYears))} บาท</div>
                       <div className="font-bold">TVM: {fmt(pvAnnuity(p1.parentSupportMonthly, p1.parentSupportYears, p1.inflationRate ?? 3, p1.investmentReturn ?? 5))} บาท</div>
                     </div>
@@ -404,13 +404,13 @@ export default function Pillar1Page() {
               {/* ── Family section ── */}
               {(p1.dependents || {}).family && (
                 <div className="bg-pink-50/50 rounded-xl p-3 space-y-2 border border-pink-100">
-                  <div className="text-[13px] font-bold text-pink-700">ค่าปรับตัวครอบครัว</div>
+                  <div className="text-[14px] font-bold text-pink-700">ค่าปรับตัวครอบครัว</div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <MoneyField label="รายเดือน" value={p1.familyExpenseMonthlyNew} onChange={(v) => update({ familyExpenseMonthlyNew: v })} />
                     <NumberInput label="อีกกี่ปี" value={p1.familyAdjustmentYearsNew} onChange={(v) => update({ familyAdjustmentYearsNew: v })} />
                   </div>
                   {p1.familyExpenseMonthlyNew > 0 && (
-                    <div className="text-[11px] text-pink-500 pl-1 space-y-0.5">
+                    <div className="text-[13px] text-pink-500 pl-1 space-y-0.5">
                       <div>แบบตรง: {fmt(simpleAnnuity(p1.familyExpenseMonthlyNew, p1.familyAdjustmentYearsNew))} บาท</div>
                       <div className="font-bold">TVM: {fmt(pvAnnuity(p1.familyExpenseMonthlyNew, p1.familyAdjustmentYearsNew, p1.inflationRate ?? 3, p1.investmentReturn ?? 5))} บาท</div>
                     </div>
@@ -422,7 +422,7 @@ export default function Pillar1Page() {
               {(p1.dependents || {}).children && (
                 <div className="bg-blue-50/50 rounded-xl p-3 space-y-3 border border-blue-100">
                   <div className="flex items-center justify-between">
-                    <div className="text-[13px] font-bold text-blue-700">ทุนการศึกษาบุตร</div>
+                    <div className="text-[14px] font-bold text-blue-700">ทุนการศึกษาบุตร</div>
                     {!p1.useEducationPlan && (
                       <button
                         onClick={() => {
@@ -430,7 +430,7 @@ export default function Pillar1Page() {
                           kids.push({ id: `child-${Date.now()}`, name: `บุตรคนที่ ${kids.length + 1}`, currentLevelKey: "kindergarten", currentYearInLevel: 1 });
                           update({ educationChildren: kids });
                         }}
-                        className="text-[12px] text-blue-600 font-bold hover:underline"
+                        className="text-[13px] text-blue-600 font-bold hover:underline"
                       >
                         + เพิ่มบุตร
                       </button>
@@ -441,7 +441,7 @@ export default function Pillar1Page() {
                     <div className="space-y-3">
                       {/* Education levels config (shared cost per year) */}
                       <div className="space-y-1.5">
-                        <div className="text-[12px] text-gray-500 font-semibold">ระดับการศึกษา & ค่าใช้จ่ายต่อปี</div>
+                        <div className="text-[13px] text-gray-500 font-semibold">ระดับการศึกษา & ค่าใช้จ่ายต่อปี</div>
                         {(p1.educationLevels || []).map((lv: { key: string; label: string; years: number; costPerYear: number; enabled: boolean }, idx: number) => (
                           <div key={lv.key}>
                             <div className="flex items-center gap-2">
@@ -456,9 +456,9 @@ export default function Pillar1Page() {
                                   }}
                                   className="w-3.5 h-3.5 rounded border-gray-300 text-blue-500 focus:ring-0"
                                 />
-                                <span className={`text-[13px] font-semibold ${lv.enabled ? "text-blue-700" : "text-gray-400"}`}>{lv.label}</span>
+                                <span className={`text-[14px] font-semibold ${lv.enabled ? "text-blue-700" : "text-gray-400"}`}>{lv.label}</span>
                               </label>
-                              <span className="text-[11px] text-gray-400 shrink-0">{lv.years} ปี</span>
+                              <span className="text-[13px] text-gray-400 shrink-0">{lv.years} ปี</span>
                               {lv.enabled && (
                                 <div className="flex items-center flex-1 min-w-0">
                                   <MoneyInput
@@ -482,7 +482,7 @@ export default function Pillar1Page() {
                       {/* Per-child: name + current level + year-in-level */}
                       {(p1.educationChildren || []).length > 0 && (
                         <div className="space-y-2">
-                          <div className="text-[12px] text-gray-500 font-semibold">บุตรแต่ละคน — กำลังเรียนระดับ/ปีที่เท่าไร</div>
+                          <div className="text-[13px] text-gray-500 font-semibold">บุตรแต่ละคน — กำลังเรียนระดับ/ปีที่เท่าไร</div>
                           {(p1.educationChildren || []).map((child: { id: string; name: string; currentLevelKey: string; currentYearInLevel: number }, cidx: number) => {
                             const childCalc = analysis.perChildEdu.find((c) => c.id === child.id);
                             const currentLevel = (p1.educationLevels || []).find((lv: { key: string }) => lv.key === child.currentLevelKey) as { key: string; label: string; years: number } | undefined;
@@ -515,7 +515,7 @@ export default function Pillar1Page() {
                                 </div>
                                 {/* Row 2: Level + Year-in-level */}
                                 <div className="flex items-center gap-2">
-                                  <span className="text-[12px] text-gray-500 shrink-0">กำลังเรียน</span>
+                                  <span className="text-[13px] text-gray-500 shrink-0">กำลังเรียน</span>
                                   <select
                                     value={child.currentLevelKey}
                                     onChange={(e) => {
@@ -529,7 +529,7 @@ export default function Pillar1Page() {
                                       <option key={lv.key} value={lv.key}>{lv.label}</option>
                                     ))}
                                   </select>
-                                  <span className="text-[12px] text-gray-500 shrink-0">ปีที่</span>
+                                  <span className="text-[13px] text-gray-500 shrink-0">ปีที่</span>
                                   <select
                                     value={child.currentYearInLevel || 1}
                                     onChange={(e) => {
@@ -543,11 +543,11 @@ export default function Pillar1Page() {
                                       <option key={y} value={y}>{y}</option>
                                     ))}
                                   </select>
-                                  <span className="text-[12px] text-gray-400 shrink-0">/ {maxYears}</span>
+                                  <span className="text-[13px] text-gray-400 shrink-0">/ {maxYears}</span>
                                 </div>
                                 {/* Subtotal */}
                                 {childCalc && childCalc.totalYears > 0 && (
-                                  <div className="text-[11px] text-blue-500 pl-1 space-y-0.5 bg-blue-50/50 rounded-md px-2 py-1.5">
+                                  <div className="text-[13px] text-blue-500 pl-1 space-y-0.5 bg-blue-50/50 rounded-md px-2 py-1.5">
                                     <div>เหลืออีก <span className="font-bold">{childCalc.totalYears} ปี</span> | แบบตรง: {fmt(childCalc.simpleTotal)} บาท</div>
                                     <div className="font-bold">TVM: {fmt(childCalc.tvmTotal)} บาท</div>
                                   </div>
@@ -566,18 +566,18 @@ export default function Pillar1Page() {
                         return eduTotal > 0 ? (
                           <div className="bg-gray-100 rounded-lg px-3 py-2 mt-1 space-y-0.5">
                             <div className="flex items-center justify-between">
-                              <span className="text-[12px] font-bold text-gray-600">รวมทุนการศึกษา{hasChildren ? ` (${(p1.educationChildren || []).length} คน)` : ""}</span>
+                              <span className="text-[13px] font-bold text-gray-600">รวมทุนการศึกษา{hasChildren ? ` (${(p1.educationChildren || []).length} คน)` : ""}</span>
                               <span className="text-xs font-extrabold text-gray-700">{fmt(eduTotal)} บาท</span>
                             </div>
                             {hasChildren && eduSimple !== eduTotal && (
                               <div className="flex items-center justify-between">
-                                <span className="text-[11px] text-gray-400">แบบไม่คิด TVM</span>
-                                <span className="text-[12px] text-gray-400">{fmt(eduSimple)} บาท</span>
+                                <span className="text-[13px] text-gray-400">แบบไม่คิด TVM</span>
+                                <span className="text-[13px] text-gray-400">{fmt(eduSimple)} บาท</span>
                               </div>
                             )}
                           </div>
                         ) : (p1.educationChildren || []).length === 0 ? (
-                          <div className="text-[12px] text-blue-400 bg-blue-50 rounded-lg px-3 py-2">
+                          <div className="text-[13px] text-blue-400 bg-blue-50 rounded-lg px-3 py-2">
                             กด &quot;+ เพิ่มบุตร&quot; เพื่อคำนวณทุนการศึกษาตามระดับชั้นที่เหลือ
                           </div>
                         ) : null;
@@ -586,7 +586,7 @@ export default function Pillar1Page() {
                   )}
 
                   {p1.useEducationPlan && (
-                    <div className="text-[12px] text-blue-600 bg-blue-100/60 rounded-lg px-3 py-2 font-bold">
+                    <div className="text-[13px] text-blue-600 bg-blue-100/60 rounded-lg px-3 py-2 font-bold">
                       รวมจากแผนการศึกษาบุตร: {fmt(totalEducationFromPlan)} บาท
                       {educationGoals.length > 0 && (
                         <div className="font-normal text-blue-500 mt-1">
@@ -603,7 +603,7 @@ export default function Pillar1Page() {
                       onChange={(e) => update({ useEducationPlan: e.target.checked })}
                       className="w-3 h-3 rounded border-gray-300 text-blue-500 focus:ring-0"
                     />
-                    <span className="text-[11px] text-gray-400">ดึงจากแผนการศึกษาบุตร ({fmt(totalEducationFromPlan)} บาท)</span>
+                    <span className="text-[13px] text-gray-400">ดึงจากแผนการศึกษาบุตร ({fmt(totalEducationFromPlan)} บาท)</span>
                   </label>
                 </div>
               )}
@@ -651,7 +651,7 @@ export default function Pillar1Page() {
                           }}
                           placeholder="0"
                         />
-                        <span className="absolute right-2 text-[11px] text-gray-400">ปี</span>
+                        <span className="absolute right-2 text-[13px] text-gray-400">ปี</span>
                       </div>
                       <button
                         onClick={() => {
@@ -665,7 +665,7 @@ export default function Pillar1Page() {
                       </button>
                     </div>
                     {item.monthlyAmount > 0 && item.years > 0 && (
-                      <div className="text-[11px] text-gray-400 pl-1">
+                      <div className="text-[13px] text-gray-400 pl-1">
                         TVM: {fmt(pvAnnuity(item.monthlyAmount, item.years, p1.inflationRate ?? 3, p1.investmentReturn ?? 5))} บาท
                         <span className="text-gray-300 mx-1">|</span>
                         ตรง: {fmt(simpleAnnuity(item.monthlyAmount, item.years))} บาท
@@ -678,7 +678,7 @@ export default function Pillar1Page() {
                     const items = [...(p1.incomeItems || []), { name: "", monthlyAmount: 0, years: 1 }];
                     update({ incomeItems: items });
                   }}
-                  className="text-[13px] text-blue-600 font-bold hover:underline flex items-center gap-1"
+                  className="text-[14px] text-blue-600 font-bold hover:underline flex items-center gap-1"
                 >
                   + เพิ่มรายการ
                 </button>
@@ -687,13 +687,13 @@ export default function Pillar1Page() {
             {/* Footer: show both simple and TVM totals */}
             <div className="bg-red-50 px-3 py-2 border-t border-red-100">
               <div className="flex items-center justify-between">
-                <span className="text-[12px] font-bold text-red-700">รวมค่าใช้จ่ายต่อเนื่อง (TVM)</span>
+                <span className="text-[13px] font-bold text-red-700">รวมค่าใช้จ่ายต่อเนื่อง (TVM)</span>
                 <span className="text-xs font-extrabold text-red-600">{fmt(analysis.totalIncome)} บาท</span>
               </div>
               {analysis.totalIncomeSimple !== analysis.totalIncomeTVM && (
                 <div className="flex items-center justify-between mt-0.5">
-                  <span className="text-[11px] text-red-400">แบบไม่คิด TVM (คูณตรง)</span>
-                  <span className="text-[12px] text-red-400">{fmt(analysis.totalIncomeSimple)} บาท</span>
+                  <span className="text-[13px] text-red-400">แบบไม่คิด TVM (คูณตรง)</span>
+                  <span className="text-[13px] text-red-400">{fmt(analysis.totalIncomeSimple)} บาท</span>
                 </div>
               )}
             </div>
@@ -711,7 +711,7 @@ export default function Pillar1Page() {
         <div className="glass rounded-2xl mx-1">
           <button onClick={() => toggleStep(2)} className="w-full p-4 md:p-6 pb-0 flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-[12px] font-bold flex items-center justify-center">2</span>
+              <span className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-[13px] font-bold flex items-center justify-center">2</span>
               Step 2: รวบรวมสินทรัพย์ที่มีอยู่
             </h3>
             <div className="flex items-center gap-2">
@@ -733,7 +733,7 @@ export default function Pillar1Page() {
                   const typeLabel =
                     POLICY_TYPE_OPTIONS.find((o) => o.value === p.policyType)?.label ?? p.policyType;
                   return (
-                    <div key={p.id} className="flex items-center justify-between text-[12px]">
+                    <div key={p.id} className="flex items-center justify-between text-[13px]">
                       <span className="text-blue-700">
                         {p.planName}{" "}
                         <span className="text-blue-400">
@@ -746,7 +746,7 @@ export default function Pillar1Page() {
                 })}
               </div>
             ) : (
-              <div className="text-[12px] text-blue-400">ยังไม่มีกรมธรรม์ที่ระบุทุนชีวิต — เพิ่มได้ที่หน้าสรุปกรมธรรม์ (รวมถึงกรมธรรม์สุขภาพ/CI/PA ที่มีหัวขบวนชีวิต)</div>
+              <div className="text-[13px] text-blue-400">ยังไม่มีกรมธรรม์ที่ระบุทุนชีวิต — เพิ่มได้ที่หน้าสรุปกรมธรรม์ (รวมถึงกรมธรรม์สุขภาพ/CI/PA ที่มีหัวขบวนชีวิต)</div>
             )}
           </div>
 
@@ -777,7 +777,7 @@ export default function Pillar1Page() {
                 onChange={(e) => update({ useBalanceSheetLiquid: e.target.checked })}
                 className="w-3 h-3 rounded border-gray-300 text-blue-500 focus:ring-0"
               />
-              <span className="text-[11px] text-gray-400">ดึงสินทรัพย์สภาพคล่องจาก Balance Sheet ({fmt(liquidAssetsFromBS)} บาท)</span>
+              <span className="text-[13px] text-gray-400">ดึงสินทรัพย์สภาพคล่องจาก Balance Sheet ({fmt(liquidAssetsFromBS)} บาท)</span>
             </label>
           </div>
 
@@ -793,7 +793,7 @@ export default function Pillar1Page() {
         <div className="glass rounded-2xl mx-1">
           <button onClick={() => toggleStep(3)} className="w-full p-4 md:p-6 pb-0 flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-              <span className={`w-6 h-6 rounded-full text-white text-[12px] font-bold flex items-center justify-center ${
+              <span className={`w-6 h-6 rounded-full text-white text-[13px] font-bold flex items-center justify-center ${
                 analysis.totalNeed > 0 && analysis.totalHave > 0
                   ? (analysis.gap <= 0 ? "bg-emerald-500" : "bg-red-500")
                   : "bg-[#1e3a5f]"
@@ -812,18 +812,18 @@ export default function Pillar1Page() {
             {/* Needs card */}
             <div className="border border-red-100 rounded-xl overflow-hidden flex flex-col">
               <div className="bg-red-50 px-3 py-2">
-                <span className="text-[12px] font-bold text-red-600">ความต้องการทั้งหมด</span>
+                <span className="text-[13px] font-bold text-red-600">ความต้องการทั้งหมด</span>
               </div>
               <div className="divide-y divide-gray-50 flex-1">
                 {analysis.breakdown.map((b) => (
                   <div key={b.label} className="flex items-center justify-between px-3 py-1.5">
-                    <span className="text-[13px] text-gray-600">{b.label}</span>
-                    <span className="text-[13px] font-bold text-gray-700">{fmt(b.value)}</span>
+                    <span className="text-[14px] text-gray-600">{b.label}</span>
+                    <span className="text-[14px] font-bold text-gray-700">{fmt(b.value)}</span>
                   </div>
                 ))}
               </div>
               <div className="bg-red-50 px-3 py-2 flex items-center justify-between mt-auto">
-                <span className="text-[12px] font-bold text-red-700">Total Needs</span>
+                <span className="text-[13px] font-bold text-red-700">Total Needs</span>
                 <span className="text-sm font-extrabold text-red-600">{fmt(analysis.totalNeed)}</span>
               </div>
             </div>
@@ -831,18 +831,18 @@ export default function Pillar1Page() {
             {/* Assets card */}
             <div className="border border-emerald-100 rounded-xl overflow-hidden flex flex-col">
               <div className="bg-emerald-50 px-3 py-2">
-                <span className="text-[12px] font-bold text-emerald-600">สินทรัพย์ที่มีอยู่</span>
+                <span className="text-[13px] font-bold text-emerald-600">สินทรัพย์ที่มีอยู่</span>
               </div>
               <div className="divide-y divide-gray-50 flex-1">
                 {analysis.haveBreakdown.map((b) => (
                   <div key={b.label} className="flex items-center justify-between px-3 py-1.5">
-                    <span className="text-[13px] text-gray-600">{b.label}</span>
-                    <span className="text-[13px] font-bold text-gray-700">{fmt(b.value)}</span>
+                    <span className="text-[14px] text-gray-600">{b.label}</span>
+                    <span className="text-[14px] font-bold text-gray-700">{fmt(b.value)}</span>
                   </div>
                 ))}
               </div>
               <div className="bg-emerald-50 px-3 py-2 flex items-center justify-between mt-auto">
-                <span className="text-[12px] font-bold text-emerald-700">Existing Assets</span>
+                <span className="text-[13px] font-bold text-emerald-700">Existing Assets</span>
                 <span className="text-sm font-extrabold text-emerald-600">{fmt(analysis.totalHave)}</span>
               </div>
             </div>
@@ -850,7 +850,7 @@ export default function Pillar1Page() {
 
           {/* ── Visual comparison bar ── */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-[12px] text-gray-500">
+            <div className="flex items-center justify-between text-[13px] text-gray-500">
               <span>ความต้องการ</span>
               <span>ครอบคลุม {analysis.coveragePct.toFixed(0)}%</span>
             </div>
@@ -860,7 +860,7 @@ export default function Pillar1Page() {
               {/* Have bar overlay */}
               <div className="absolute left-0 top-0 h-full rounded-full bg-emerald-400 transition-all" style={{ width: `${analysis.coveragePct}%` }} />
             </div>
-            <div className="flex items-center justify-between text-[11px]">
+            <div className="flex items-center justify-between text-[13px]">
               <span className="text-red-500 font-bold">Need: {fmtShort(analysis.totalNeed)}</span>
               <span className="text-emerald-600 font-bold">Have: {fmtShort(analysis.totalHave)}</span>
             </div>
@@ -879,8 +879,8 @@ export default function Pillar1Page() {
                 <AlertTriangle size={36} className="text-red-500 mx-auto mb-2" />
                 <div className="text-xs font-bold text-red-600 uppercase tracking-wide">Insurance Gap</div>
                 <div className="text-3xl font-extrabold text-red-600 mt-1">{fmt(analysis.gap)}</div>
-                <div className="text-[12px] text-red-400 mt-0.5">บาท</div>
-                <div className="text-[12px] text-gray-500 mt-3 space-y-0.5">
+                <div className="text-[13px] text-red-400 mt-0.5">บาท</div>
+                <div className="text-[13px] text-gray-500 mt-3 space-y-0.5">
                   <div>ควรเพิ่มทุนประกันชีวิตอีก <span className="font-bold text-gray-700">{fmtShort(analysis.gap)}</span> บาท</div>
                   <div>เบี้ยประมาณ <span className="font-bold text-gray-700">{fmt(Math.round(analysis.gap * 3 / 1000))} - {fmt(Math.round(analysis.gap * 5 / 1000))}</span> บาท/ปี (Term 20 ปี)</div>
                 </div>
@@ -942,7 +942,7 @@ export default function Pillar1Page() {
                 <p className="text-xs font-bold text-gray-800 leading-relaxed">
                   &ldquo;ใครบอกว่าคนตายไม่ได้เอาอะไรไป... แล้วรายได้ที่ครอบครัวเคยได้รับ ใครจะดูแลต่อ?&rdquo;
                 </p>
-                <p className="text-[13px] text-gray-500 mt-2 leading-relaxed">
+                <p className="text-[14px] text-gray-500 mt-2 leading-relaxed">
                   มาคำนวณความสามารถของเราให้เป็นมูลค่า เพื่อให้ครอบครัวใช้ชีวิตต่อได้แบบไร้รอยต่อ ในวันที่เราไม่อยู่
                 </p>
               </div>
@@ -955,14 +955,14 @@ export default function Pillar1Page() {
               {/* Method 1 */}
               <div className="border border-gray-200 rounded-xl p-4 space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[12px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[13px] font-bold flex items-center justify-center shrink-0">1</span>
                   <h4 className="text-xs font-bold text-gray-800">วิธีมูลค่าทางเศรษฐกิจ (Human Life Value)</h4>
                 </div>
-                <p className="text-[13px] leading-relaxed">
+                <p className="text-[14px] leading-relaxed">
                   มองคนเป็น &ldquo;สินทรัพย์&rdquo; ที่สร้างรายได้ คำนวณว่าตั้งแต่วันนี้จนถึงเกษียณจะหาเงินได้รวมเป็น
                   มูลค่าปัจจุบัน (Present Value) เท่าไหร่
                 </p>
-                <div className="bg-blue-50 rounded-lg px-3 py-2 text-[12px] space-y-1">
+                <div className="bg-blue-50 rounded-lg px-3 py-2 text-[13px] space-y-1">
                   <div><strong>สูตร:</strong> (รายได้หลังหักค่าใช้จ่ายส่วนตัว/ปี) x (ปัจจัยมูลค่าปัจจุบันของเงินงวด)</div>
                   <div className="text-green-700">✓ จุดเด่น: สะท้อน &ldquo;ศักยภาพ&rdquo; ในการหาเงินที่แท้จริง</div>
                   <div className="text-red-600">✗ ข้อเสีย: ไม่ได้มองว่าครอบครัวจำเป็นต้องใช้เท่าไหร่</div>
@@ -972,14 +972,14 @@ export default function Pillar1Page() {
               {/* Method 2 */}
               <div className="border-2 border-blue-400 rounded-xl p-4 space-y-2 bg-blue-50/30">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-[12px] font-bold flex items-center justify-center shrink-0">2</span>
+                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-[13px] font-bold flex items-center justify-center shrink-0">2</span>
                   <h4 className="text-xs font-bold text-blue-800">วิธีวิเคราะห์ความต้องการ (Needs Analysis) ⭐</h4>
                 </div>
-                <div className="text-[12px] text-blue-600 font-bold bg-blue-100 rounded-lg px-2 py-1 inline-block">ใช้ในหน้านี้</div>
-                <p className="text-[13px] leading-relaxed">
+                <div className="text-[13px] text-blue-600 font-bold bg-blue-100 rounded-lg px-2 py-1 inline-block">ใช้ในหน้านี้</div>
+                <p className="text-[14px] leading-relaxed">
                   วิธีที่ได้รับความนิยมมากที่สุด ยึดตามภาระหน้าที่และความจำเป็นจริงของคนข้างหลัง
                 </p>
-                <div className="text-[13px] leading-relaxed space-y-1">
+                <div className="text-[14px] leading-relaxed space-y-1">
                   <div className="font-bold text-gray-800">แบ่งความต้องการเป็น 2 ส่วน:</div>
                   <div className="pl-3">
                     <div><strong>เงินก้อนทันที:</strong> ค่าพิธีฌาปนกิจ, หนี้สินค้างชำระ, กองทุนฉุกเฉิน</div>
@@ -988,11 +988,11 @@ export default function Pillar1Page() {
                   <div className="font-bold text-gray-800 mt-1">การคำนวณ:</div>
                   <div className="pl-3">(ความต้องการทั้งหมด) - (สินทรัพย์ที่มี) = ทุนประกันที่ต้องซื้อเพิ่ม</div>
                 </div>
-                <div className="bg-blue-100 rounded-lg px-3 py-2 text-[12px] space-y-1">
+                <div className="bg-blue-100 rounded-lg px-3 py-2 text-[13px] space-y-1">
                   <div className="text-green-700">✓ จุดเด่น: แม่นยำที่สุด ตรงกับเป้าหมายการเงินจริง</div>
                 </div>
                 <button onClick={() => { setShowInfo(false); setShowNeedsDetail(true); }}
-                  className="flex items-center gap-1 text-[13px] text-blue-600 font-bold hover:underline mt-1">
+                  className="flex items-center gap-1 text-[14px] text-blue-600 font-bold hover:underline mt-1">
                   <Info size={13} /> ดูวิธีคำนวณแบบละเอียด →
                 </button>
               </div>
@@ -1000,14 +1000,14 @@ export default function Pillar1Page() {
               {/* Method 3 */}
               <div className="border border-gray-200 rounded-xl p-4 space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[12px] font-bold flex items-center justify-center shrink-0">3</span>
+                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[13px] font-bold flex items-center justify-center shrink-0">3</span>
                   <h4 className="text-xs font-bold text-gray-800">วิธีประมาณการอย่างง่าย (Capital Retention)</h4>
                 </div>
-                <p className="text-[13px] leading-relaxed">
+                <p className="text-[14px] leading-relaxed">
                   เน้นรักษา &ldquo;เงินต้น&rdquo; ไว้ เพื่อให้ดอกผลจากเงินก้อนนั้นเพียงพอต่อการดำรงชีพ
                   โดยไม่ต้องถอนเงินต้นออกมาใช้
                 </p>
-                <div className="bg-gray-50 rounded-lg px-3 py-2 text-[12px] space-y-1">
+                <div className="bg-gray-50 rounded-lg px-3 py-2 text-[13px] space-y-1">
                   <div><strong>สูตร:</strong> ทุนประกัน = รายได้ที่ครอบครัวต้องการ/ปี ÷ อัตราผลตอบแทนหลังหักภาษี</div>
                   <div className="text-green-700">✓ จุดเด่น: มั่นคงที่สุด เงินต้นเป็นมรดกให้ลูกหลานต่อได้</div>
                   <div className="text-red-600">✗ ข้อเสีย: ต้องใช้ทุนประกันสูงมาก เบี้ยแพงตาม</div>
@@ -1018,7 +1018,7 @@ export default function Pillar1Page() {
               <div>
                 <h4 className="text-xs font-bold text-gray-800 mb-2">ตารางเปรียบเทียบ</h4>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-[12px]">
+                  <table className="w-full text-[13px]">
                     <thead>
                       <tr className="bg-[#1e3a5f] text-white">
                         <th className="py-2 px-2 text-left font-bold">วิธีการ</th>
@@ -1048,7 +1048,7 @@ export default function Pillar1Page() {
               </div>
 
               <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
-                <div className="text-[12px] text-amber-700 leading-relaxed">
+                <div className="text-[13px] text-amber-700 leading-relaxed">
                   💡 ในการทำเคสจริงตามมาตรฐาน CFP มักจะใช้ <strong>Needs Analysis</strong> เป็นหลัก
                   เพราะสามารถระบุได้ชัดเจนว่าเงินแต่ละบาทที่ลูกค้าจ่ายไปนั้น ไปคุ้มครอง &ldquo;เป้าหมาย&rdquo; ไหนกันแน่
                 </div>
@@ -1089,25 +1089,25 @@ export default function Pillar1Page() {
               <div className="border border-red-200 rounded-xl overflow-hidden">
                 <div className="bg-red-50 px-4 py-2.5 border-b border-red-200">
                   <h4 className="text-xs font-bold text-red-800">1. ความต้องการเงินก้อนทันที (Immediate Cash Needs)</h4>
-                  <p className="text-[12px] text-red-600 mt-0.5">เงินที่ต้องใช้ทันทีเมื่อเกิดเหตุ เพื่อไม่ให้สถานะการเงินของครอบครัวสะดุด</p>
+                  <p className="text-[13px] text-red-600 mt-0.5">เงินที่ต้องใช้ทันทีเมื่อเกิดเหตุ เพื่อไม่ให้สถานะการเงินของครอบครัวสะดุด</p>
                 </div>
-                <div className="p-4 space-y-3 text-[13px]">
+                <div className="p-4 space-y-3 text-[14px]">
                   <div className="flex gap-3">
-                    <span className="w-5 h-5 rounded-full bg-red-100 text-red-600 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">F</span>
+                    <span className="w-5 h-5 rounded-full bg-red-100 text-red-600 text-[13px] font-bold flex items-center justify-center shrink-0 mt-0.5">F</span>
                     <div>
                       <div className="font-bold text-gray-800">Final Expenses — ค่าใช้จ่ายสุดท้าย</div>
                       <div className="text-gray-500 mt-0.5">ค่ารักษาพยาบาลก่อนเสียชีวิต (ที่เบิกไม่ได้) และค่าพิธีฌาปนกิจ</div>
                     </div>
                   </div>
                   <div className="flex gap-3">
-                    <span className="w-5 h-5 rounded-full bg-red-100 text-red-600 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">D</span>
+                    <span className="w-5 h-5 rounded-full bg-red-100 text-red-600 text-[13px] font-bold flex items-center justify-center shrink-0 mt-0.5">D</span>
                     <div>
                       <div className="font-bold text-gray-800">Debt Clearance — ค่าปิดยอดหนี้สินคงค้าง</div>
                       <div className="text-gray-500 mt-0.5">หนี้สินที่ไม่มี MRTA คุ้มครอง เช่น หนี้บัตรเครดิต, สินเชื่อส่วนบุคคล, หนี้บ้าน/รถที่ค้าง</div>
                     </div>
                   </div>
                   <div className="flex gap-3">
-                    <span className="w-5 h-5 rounded-full bg-red-100 text-red-600 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">E</span>
+                    <span className="w-5 h-5 rounded-full bg-red-100 text-red-600 text-[13px] font-bold flex items-center justify-center shrink-0 mt-0.5">E</span>
                     <div>
                       <div className="font-bold text-gray-800">Emergency Fund — กองทุนฉุกเฉิน</div>
                       <div className="text-gray-500 mt-0.5">สำรองไว้ 3-6 เท่าของค่าใช้จ่ายครอบครัว เพื่อให้มีเวลาปรับตัว</div>
@@ -1120,18 +1120,18 @@ export default function Pillar1Page() {
               <div className="border border-blue-200 rounded-xl overflow-hidden">
                 <div className="bg-blue-50 px-4 py-2.5 border-b border-blue-200">
                   <h4 className="text-xs font-bold text-blue-800">2. ความต้องการรายได้ต่อเนื่อง (Income Needs)</h4>
-                  <p className="text-[12px] text-blue-600 mt-0.5">ส่วนที่ซับซ้อนที่สุด ต้องใช้หลัก Time Value of Money (TVM)</p>
+                  <p className="text-[13px] text-blue-600 mt-0.5">ส่วนที่ซับซ้อนที่สุด ต้องใช้หลัก Time Value of Money (TVM)</p>
                 </div>
-                <div className="p-4 space-y-3 text-[13px]">
+                <div className="p-4 space-y-3 text-[14px]">
                   <div className="flex gap-3">
-                    <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
+                    <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 text-[13px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
                     <div>
                       <div className="font-bold text-gray-800">Dependency Period — ช่วงดูแลบุตร</div>
                       <div className="text-gray-500 mt-0.5">ค่ากินอยู่และค่าเทอมลูกจนกว่าจะเรียนจบ (เช่น จนถึงอายุ 22 ปี)</div>
                     </div>
                   </div>
                   <div className="flex gap-3">
-                    <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
+                    <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 text-[13px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
                     <div>
                       <div className="font-bold text-gray-800">Blackout Period — ช่วงปรับตัวและดูแลคู่สมรส</div>
                       <div className="text-gray-500 mt-0.5 space-y-0.5">
@@ -1151,13 +1151,13 @@ export default function Pillar1Page() {
                   {/* Step 1 */}
                   <div className="bg-gray-50 rounded-xl p-3 border border-gray-200">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span className="w-6 h-6 rounded-lg bg-[#1e3a5f] text-white text-[12px] font-bold flex items-center justify-center">1</span>
-                      <span className="text-[13px] font-bold text-gray-800">คำนวณความต้องการทั้งหมด (Total Needs)</span>
+                      <span className="w-6 h-6 rounded-lg bg-[#1e3a5f] text-white text-[13px] font-bold flex items-center justify-center">1</span>
+                      <span className="text-[14px] font-bold text-gray-800">คำนวณความต้องการทั้งหมด (Total Needs)</span>
                     </div>
-                    <p className="text-[12px] text-gray-600 leading-relaxed mb-2">
+                    <p className="text-[13px] text-gray-600 leading-relaxed mb-2">
                       หา PV ของค่าใช้จ่ายในอนาคต โดยคำนึงถึง อัตราเงินเฟ้อ (Inflation) และ อัตราผลตอบแทนจากการลงทุน (Investment Return)
                     </p>
-                    <div className="glass rounded-lg p-2.5 text-[12px] space-y-1">
+                    <div className="glass rounded-lg p-2.5 text-[13px] space-y-1">
                       <div className="font-bold text-gray-700">ใช้ Real Rate of Return:</div>
                       <div className="text-center font-mono text-xs text-blue-700 py-1">
                         i<sub>real</sub> = ((1 + i) / (1 + f) - 1) × 100
@@ -1169,10 +1169,10 @@ export default function Pillar1Page() {
                   {/* Step 2 */}
                   <div className="bg-gray-50 rounded-xl p-3 border border-gray-200">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span className="w-6 h-6 rounded-lg bg-[#1e3a5f] text-white text-[12px] font-bold flex items-center justify-center">2</span>
-                      <span className="text-[13px] font-bold text-gray-800">รวบรวมสินทรัพย์ที่มีอยู่ (Existing Assets)</span>
+                      <span className="w-6 h-6 rounded-lg bg-[#1e3a5f] text-white text-[13px] font-bold flex items-center justify-center">2</span>
+                      <span className="text-[14px] font-bold text-gray-800">รวบรวมสินทรัพย์ที่มีอยู่ (Existing Assets)</span>
                     </div>
-                    <div className="text-[12px] text-gray-600 space-y-0.5 pl-1">
+                    <div className="text-[13px] text-gray-600 space-y-0.5 pl-1">
                       <div>• เงินสดในธนาคาร, กองทุนรวม, หุ้น</div>
                       <div>• สวัสดิการจากที่ทำงาน (เช่น เงินชดเชยกรณีเสียชีวิต)</div>
                       <div>• ทุนประกันชีวิตที่มีอยู่แล้วในปัจจุบัน</div>
@@ -1182,8 +1182,8 @@ export default function Pillar1Page() {
                   {/* Step 3 */}
                   <div className="bg-gray-50 rounded-xl p-3 border border-gray-200">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span className="w-6 h-6 rounded-lg bg-[#1e3a5f] text-white text-[12px] font-bold flex items-center justify-center">3</span>
-                      <span className="text-[13px] font-bold text-gray-800">หาจุดที่ยังขาด (The Gap)</span>
+                      <span className="w-6 h-6 rounded-lg bg-[#1e3a5f] text-white text-[13px] font-bold flex items-center justify-center">3</span>
+                      <span className="text-[14px] font-bold text-gray-800">หาจุดที่ยังขาด (The Gap)</span>
                     </div>
                     <div className="text-center font-mono text-xs text-red-600 bg-red-50 rounded-lg py-2 border border-red-200">
                       Insurance Gap = Total Needs − Existing Assets
@@ -1197,18 +1197,18 @@ export default function Pillar1Page() {
                 <div className="bg-amber-50 px-4 py-2.5 border-b border-amber-200">
                   <h4 className="text-xs font-bold text-amber-800">📐 ตัวอย่าง Case Study</h4>
                 </div>
-                <div className="p-4 text-[13px] space-y-2">
+                <div className="p-4 text-[14px] space-y-2">
                   <p className="text-gray-600">
                     สมมติลูกค้าต้องการเงินให้ลูกใช้ปีละ <strong>200,000 บาท</strong> (ปรับเพิ่มตามเงินเฟ้อ 3%)
                     ไปอีก 15 ปี โดยคาดว่าเงินก้อนนี้จะนำไปลงทุนได้ผลตอบแทน 5%
                   </p>
 
-                  <div className="glass rounded-lg p-3 space-y-1.5 text-[12px]">
+                  <div className="glass rounded-lg p-3 space-y-1.5 text-[13px]">
                     <div className="font-bold text-gray-700">หา Real Rate:</div>
                     <div className="font-mono text-blue-700 text-center">(1.05 / 1.03) − 1 = 1.9417%</div>
                   </div>
 
-                  <div className="glass rounded-lg p-3 space-y-1 text-[12px]">
+                  <div className="glass rounded-lg p-3 space-y-1 text-[13px]">
                     <div className="font-bold text-gray-700">กดเครื่องคิดเลข Financial (Mode BGN):</div>
                     <div className="grid grid-cols-2 gap-1 font-mono text-gray-700 mt-1">
                       <div>N = 15</div>
@@ -1221,7 +1221,7 @@ export default function Pillar1Page() {
                     </div>
                   </div>
 
-                  <p className="text-gray-500 text-[12px] leading-relaxed">
+                  <p className="text-gray-500 text-[13px] leading-relaxed">
                     นี่คือ &ldquo;ทุนประกัน&rdquo; เฉพาะหมวดการศึกษาบุตร เมื่อรวมกับหมวดอื่นๆ (หนี้สิน + เงินก้อนสุดท้าย)
                     ก็จะได้ทุนประกันรวมที่ควรมี
                   </p>

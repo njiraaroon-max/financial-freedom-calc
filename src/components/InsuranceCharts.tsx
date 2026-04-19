@@ -104,14 +104,14 @@ export function GanttChart({
           <div style={{ height: padT }} />
           {sorted.map((p) => (
             <div key={p.id} className="flex items-center justify-end pr-2" style={{ height: rowH }}>
-              <span className="text-[13px] font-bold text-gray-800 text-right truncate block" style={{ maxWidth: labelW - 8 }}>
+              <span className="text-[14px] font-bold text-gray-800 text-right truncate block" style={{ maxWidth: labelW - 8 }}>
                 {p.planName}
               </span>
             </div>
           ))}
           <div className="text-right pr-2 pt-2 space-y-5">
-            <div className="text-[11px] font-semibold text-gray-500">พ.ศ.</div>
-            <div className="text-[11px] font-semibold text-blue-500">อายุ</div>
+            <div className="text-[13px] font-semibold text-gray-500">พ.ศ.</div>
+            <div className="text-[13px] font-semibold text-blue-500">อายุ</div>
           </div>
         </div>
 
@@ -268,7 +268,7 @@ export function StepLineChart({ policies, birthYear, currentAge }: { policies: I
           {/* Y tick labels positioned absolutely via relative container */}
           <div className="relative" style={{ height: chartH }}>
             {yTicks.map((v, i) => (
-              <div key={i} className="absolute right-2 text-[11px] text-gray-500 font-medium"
+              <div key={i} className="absolute right-2 text-[13px] text-gray-500 font-medium"
                 style={{ top: `${((maxVal - v) / maxVal) * 100}%`, transform: "translateY(-50%)" }}>
                 {fmtShort(v)}
               </div>
@@ -276,8 +276,8 @@ export function StepLineChart({ policies, birthYear, currentAge }: { policies: I
           </div>
           {/* Axis row labels */}
           <div className="text-right pr-2 pt-2 space-y-5">
-            <div className="text-[11px] font-semibold text-gray-500">พ.ศ.</div>
-            <div className="text-[11px] font-semibold text-blue-500">อายุ</div>
+            <div className="text-[13px] font-semibold text-gray-500">พ.ศ.</div>
+            <div className="text-[13px] font-semibold text-blue-500">อายุ</div>
           </div>
         </div>
 

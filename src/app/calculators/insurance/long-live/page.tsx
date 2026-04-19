@@ -374,7 +374,7 @@ export default function LongLivePage() {
             <Landmark size={20} />
             <span className="text-sm font-bold">เงินจากประกัน — ตลอดช่วงชีวิต</span>
           </div>
-          <p className="text-[13px] opacity-80 leading-relaxed">
+          <p className="text-[14px] opacity-80 leading-relaxed">
             รวมเงินก้อน เงินปันผล และเงินบำนาญรายปีจากกรมธรรม์ทั้งหมด
           </p>
         </div>
@@ -384,7 +384,7 @@ export default function LongLivePage() {
           <div className="glass rounded-2xl p-10 mx-1 text-center">
             <div className="text-3xl mb-2">📋</div>
             <div className="text-sm font-bold text-gray-500">ยังไม่มีกรมธรรม์สะสมทรัพย์หรือบำนาญ</div>
-            <div className="text-[12px] text-gray-400 mt-1">เพิ่มได้ที่หน้าสรุปกรมธรรม์ → เลือกประเภท &ldquo;สะสมทรัพย์&rdquo; หรือ &ldquo;บำนาญ&rdquo;</div>
+            <div className="text-[13px] text-gray-400 mt-1">เพิ่มได้ที่หน้าสรุปกรมธรรม์ → เลือกประเภท &ldquo;สะสมทรัพย์&rdquo; หรือ &ldquo;บำนาญ&rdquo;</div>
           </div>
         )}
 
@@ -393,20 +393,20 @@ export default function LongLivePage() {
             {/* ── Summary totals ──────────────────────────────────────────── */}
             <div className="glass rounded-2xl p-4 mx-1 space-y-3">
               <div className="text-center">
-                <div className="text-[12px] text-gray-400">เงินจากประกันรวมตลอดชีวิต (ประมาณการ)</div>
+                <div className="text-[13px] text-gray-400">เงินจากประกันรวมตลอดชีวิต (ประมาณการ)</div>
                 <div className="text-2xl font-extrabold text-indigo-600 mt-0.5">฿{fmtShort(grandTotal)}</div>
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div className="bg-purple-50 rounded-xl p-2.5 text-center">
-                  <div className="text-[11px] text-purple-400">เงินก้อน (สะสม)</div>
+                  <div className="text-[13px] text-purple-400">เงินก้อน (สะสม)</div>
                   <div className="text-sm font-bold text-purple-700">{totalLump > 0 ? fmtShort(totalLump) : "—"}</div>
                 </div>
                 <div className="bg-violet-50 rounded-xl p-2.5 text-center">
-                  <div className="text-[11px] text-violet-400">เงินปันผล (สะสม)</div>
+                  <div className="text-[13px] text-violet-400">เงินปันผล (สะสม)</div>
                   <div className="text-sm font-bold text-violet-700">{totalDiv > 0 ? fmtShort(totalDiv) : "—"}</div>
                 </div>
                 <div className="bg-indigo-50 rounded-xl p-2.5 text-center">
-                  <div className="text-[11px] text-indigo-400">บำนาญ (รวม)</div>
+                  <div className="text-[13px] text-indigo-400">บำนาญ (รวม)</div>
                   <div className="text-sm font-bold text-indigo-700">{totalAnnuity > 0 ? fmtShort(totalAnnuity) : "—"}</div>
                 </div>
               </div>
@@ -418,7 +418,7 @@ export default function LongLivePage() {
                 <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
                   <Coins size={14} className="text-purple-600" />
                   กรมธรรม์สะสมทรัพย์
-                  <span className="text-[12px] font-medium text-purple-500">{endowmentPolicies.length} เล่ม</span>
+                  <span className="text-[13px] font-medium text-purple-500">{endowmentPolicies.length} เล่ม</span>
                 </h3>
 
                 {endowmentPolicies.map((p) => {
@@ -434,18 +434,18 @@ export default function LongLivePage() {
                       <div className="flex items-start justify-between">
                         <div>
                           <div className="text-xs font-bold text-gray-800">{p.planName || "—"}</div>
-                          <div className="text-[12px] text-gray-400">{p.company}</div>
+                          <div className="text-[13px] text-gray-400">{p.company}</div>
                         </div>
                         {maturityAge > 0 && (
                           <div className="text-right">
                             <div className="text-xs font-bold text-purple-600">ครบอายุ {maturityAge} ปี</div>
-                            <div className="text-[11px] text-gray-400">พ.ศ. {birthYear + maturityAge + BE_OFFSET}</div>
+                            <div className="text-[13px] text-gray-400">พ.ศ. {birthYear + maturityAge + BE_OFFSET}</div>
                           </div>
                         )}
                       </div>
 
                       {/* Stats */}
-                      <div className="grid grid-cols-3 gap-1.5 text-[11px]">
+                      <div className="grid grid-cols-3 gap-1.5 text-[13px]">
                         <div className="bg-purple-50 rounded-lg p-2 text-center">
                           <div className="text-purple-400">เบี้ยที่จ่าย/ปี</div>
                           <div className="font-bold text-purple-700">{fmtShort(p.premium)}</div>
@@ -473,7 +473,7 @@ export default function LongLivePage() {
                 <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
                   <TrendingUp size={14} className="text-indigo-600" />
                   กรมธรรม์บำนาญ
-                  <span className="text-[12px] font-medium text-indigo-500">{annuityPolicies.length} เล่ม</span>
+                  <span className="text-[13px] font-medium text-indigo-500">{annuityPolicies.length} เล่ม</span>
                 </h3>
 
                 {annuityPolicies.map((p) => {
@@ -490,16 +490,16 @@ export default function LongLivePage() {
                       <div className="flex items-start justify-between">
                         <div>
                           <div className="text-xs font-bold text-gray-800">{p.planName || "—"}</div>
-                          <div className="text-[12px] text-gray-400">{p.company}</div>
+                          <div className="text-[13px] text-gray-400">{p.company}</div>
                         </div>
                         <div className="text-right">
                           <div className="text-xs font-bold text-indigo-600">{fmt(perYear)} บาท/ปี</div>
-                          <div className="text-[11px] text-gray-400">อายุ {startAge}–{endAge} ปี</div>
+                          <div className="text-[13px] text-gray-400">อายุ {startAge}–{endAge} ปี</div>
                         </div>
                       </div>
 
                       {/* Stats */}
-                      <div className="grid grid-cols-3 gap-1.5 text-[11px]">
+                      <div className="grid grid-cols-3 gap-1.5 text-[13px]">
                         <div className="bg-indigo-50 rounded-lg p-2 text-center">
                           <div className="text-indigo-400">เบี้ยที่จ่าย/ปี</div>
                           <div className="font-bold text-indigo-700">{fmtShort(p.premium)}</div>
@@ -531,7 +531,7 @@ export default function LongLivePage() {
                 <LongLiveBarChart barData={barData} birthYear={birthYear} />
 
                 {/* Legend */}
-                <div className="flex flex-wrap gap-4 text-[11px] text-gray-500 pt-1 border-t border-gray-50">
+                <div className="flex flex-wrap gap-4 text-[13px] text-gray-500 pt-1 border-t border-gray-50">
                   <div className="flex items-center gap-1.5">
                     <div className="w-3 h-3 rounded-sm bg-purple-500" />
                     <span>เงินก้อน / ปันผล (สะสมทรัพย์)</span>
@@ -554,7 +554,7 @@ export default function LongLivePage() {
                 >
                   <h3 className="text-sm font-bold text-gray-800">ตารางรับเงินจากกรมธรรม์</h3>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[12px] text-gray-400">{pivotData.rows.length} รายการ</span>
+                    <span className="text-[13px] text-gray-400">{pivotData.rows.length} รายการ</span>
                     <ChevronDown
                       size={16}
                       className={`text-gray-400 transition-transform duration-200 ${tableOpen ? "rotate-180" : ""}`}
@@ -588,7 +588,7 @@ export default function LongLivePage() {
                           >
                             <td className={`px-3 py-2 sticky left-0 z-10 font-medium text-gray-700 whitespace-nowrap ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/60"}`}>
                               {row.age} ปี
-                              <div className="text-[11px] text-gray-400 font-normal">
+                              <div className="text-[13px] text-gray-400 font-normal">
                                 พ.ศ.{birthYear + row.age + BE_OFFSET}
                               </div>
                             </td>

@@ -88,13 +88,14 @@ body::before {
 
 /* iPad + laptop: bump base font-size so Tailwind's rem-based utilities
    (text-xs, text-sm, text-base, ...) scale up proportionally. Literal
-   pixel sizes like text-[11px] keep their px size — by design, since
-   we already bumped those via a separate audit. */
+   pixel sizes like text-[11px] keep their px size — we bump those
+   separately via the audit script. FA demo audience skews older so we
+   lean a little bigger than most web apps. */
 @media (min-width: 768px) {
-  body { font-size: 16px; line-height: 1.6; }
+  body { font-size: 17px; line-height: 1.65; }
 }
 @media (min-width: 1024px) {
-  body { font-size: 17px; }
+  body { font-size: 18px; }
 }
 
 input[type="number"]::-webkit-inner-spin-button,

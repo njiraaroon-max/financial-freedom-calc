@@ -104,17 +104,17 @@ export default function SeverancePage() {
             <Info size={16} />
           </button>
           <div className="pr-10">
-            <div className="text-[12px] font-bold text-white/70 mb-1">Step 2 · Severance Pay</div>
+            <div className="text-[13px] font-bold text-white/70 mb-1">Step 2 · Severance Pay</div>
             <h3 className="text-sm font-bold leading-snug mb-1.5">
               คำนวณเงินชดเชยตามกฎหมายแรงงาน
             </h3>
-            <p className="text-[13px] text-white/80 leading-relaxed">
+            <p className="text-[14px] text-white/80 leading-relaxed">
               เงินที่นายจ้างต้องจ่ายเมื่อเกษียณ ตาม พ.ร.บ.คุ้มครองแรงงาน มาตรา 118
               คำนวณจากเงินเดือนสุดท้าย × จำนวนวันชดเชยตามอายุงาน
             </p>
             <button
               onClick={() => setShowInfo(true)}
-              className="mt-2 inline-flex items-center gap-1 text-[12px] text-white/90 font-bold hover:text-white underline-offset-2 hover:underline"
+              className="mt-2 inline-flex items-center gap-1 text-[13px] text-white/90 font-bold hover:text-white underline-offset-2 hover:underline"
             >
               <Info size={11} /> ดูวิธีคำนวณตามกฎหมาย
             </button>
@@ -198,7 +198,7 @@ export default function SeverancePage() {
             <span className="text-gray-500">จำนวนวันชดเชย</span>
             <span className="font-bold">{severanceDays} วัน</span>
           </div>
-          <div className="text-[12px] text-gray-400 pt-1">
+          <div className="text-[13px] text-gray-400 pt-1">
             สูตร: เงินเดือนสุดท้าย ÷ 30 × {severanceDays} วัน
           </div>
         </div>
@@ -231,7 +231,7 @@ export default function SeverancePage() {
                 <p className="text-xs font-bold text-gray-800 leading-relaxed">
                   &ldquo;ทำงานให้บริษัทมา 20 ปี... กฎหมายให้เงินชดเชยเท่าไหร่?&rdquo;
                 </p>
-                <p className="text-[13px] text-gray-500 mt-2 leading-relaxed">
+                <p className="text-[14px] text-gray-500 mt-2 leading-relaxed">
                   เงินชดเชยเป็นสิทธิของลูกจ้างตามกฎหมาย จ่ายเมื่อเกษียณหรือถูกเลิกจ้างโดยไม่ใช่ความผิด
                 </p>
               </div>
@@ -242,20 +242,20 @@ export default function SeverancePage() {
 
               <div className="border border-gray-200 rounded-xl p-4 space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-[12px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-[13px] font-bold flex items-center justify-center shrink-0">1</span>
                   <h4 className="text-xs font-bold text-gray-800">คำนวณอายุงานรวม</h4>
                 </div>
-                <p className="text-[13px] leading-relaxed">
+                <p className="text-[14px] leading-relaxed">
                   อายุงานตั้งแต่เริ่มทำงาน จนถึงวันเกษียณ = อายุงานปัจจุบัน + ปีจนถึงเกษียณ
                 </p>
               </div>
 
               <div className="border border-gray-200 rounded-xl p-4 space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-[12px] font-bold flex items-center justify-center shrink-0">2</span>
+                  <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-[13px] font-bold flex items-center justify-center shrink-0">2</span>
                   <h4 className="text-xs font-bold text-gray-800">หาจำนวนวันชดเชยตามอายุงาน</h4>
                 </div>
-                <div className="bg-amber-50 rounded-lg px-3 py-2 text-[12px] space-y-0.5">
+                <div className="bg-amber-50 rounded-lg px-3 py-2 text-[13px] space-y-0.5">
                   <div>• 120 วัน – 1 ปี = <b>30 วัน</b></div>
                   <div>• 1 – 3 ปี = <b>90 วัน</b></div>
                   <div>• 3 – 6 ปี = <b>180 วัน</b></div>
@@ -267,21 +267,21 @@ export default function SeverancePage() {
 
               <div className="border-2 border-amber-500 rounded-xl p-4 space-y-2 bg-amber-50/30">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-amber-600 text-white text-[12px] font-bold flex items-center justify-center shrink-0">3</span>
+                  <span className="w-6 h-6 rounded-full bg-amber-600 text-white text-[13px] font-bold flex items-center justify-center shrink-0">3</span>
                   <h4 className="text-xs font-bold text-amber-800">คำนวณเงินชดเชย ⭐</h4>
                 </div>
-                <div className="text-[12px] text-amber-700 font-bold bg-amber-100 rounded-lg px-2 py-1 inline-block">ใช้ในหน้านี้</div>
-                <p className="text-[13px] leading-relaxed">
+                <div className="text-[13px] text-amber-700 font-bold bg-amber-100 rounded-lg px-2 py-1 inline-block">ใช้ในหน้านี้</div>
+                <p className="text-[14px] leading-relaxed">
                   ใช้เงินเดือนสุดท้าย ณ วันเกษียณ (ปรับด้วยอัตราขึ้นเงินเดือน) คูณด้วยจำนวนวันชดเชย
                 </p>
-                <div className="bg-amber-100 rounded-lg px-3 py-2 text-[12px] space-y-1">
+                <div className="bg-amber-100 rounded-lg px-3 py-2 text-[13px] space-y-1">
                   <div><strong>สูตร:</strong> เงินชดเชย = (เงินเดือนสุดท้าย ÷ 30) × จำนวนวันชดเชย</div>
                   <div className="text-green-700">✓ เป็นเงินก้อนที่ได้รับ ณ วันเกษียณ</div>
                 </div>
               </div>
 
               <div className="bg-teal-50 rounded-xl p-3 border border-teal-200">
-                <div className="text-[12px] text-teal-700 leading-relaxed">
+                <div className="text-[13px] text-teal-700 leading-relaxed">
                   💡 เงินชดเชยที่เกษียณปกติ ได้รับยกเว้นภาษีบางส่วนตามสูตรของสรรพากร
                   (300,000 บาท + 7,000 × อายุงาน)
                 </div>

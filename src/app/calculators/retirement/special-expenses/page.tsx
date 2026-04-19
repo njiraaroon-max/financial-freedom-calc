@@ -232,13 +232,13 @@ export default function SpecialExpensesPage() {
             <Info size={16} />
           </button>
           <div className="pr-10">
-            <div className="text-[12px] font-bold text-white/70 mb-1">
+            <div className="text-[13px] font-bold text-white/70 mb-1">
               Step 1 · Special Expenses
             </div>
             <h3 className="text-sm font-bold leading-snug mb-1.5">
               รายจ่ายพิเศษหลังเกษียณ (รองรับทั้งก้อนเดียว และต่อเนื่อง)
             </h3>
-            <p className="text-[13px] text-white/80 leading-relaxed">
+            <p className="text-[14px] text-white/80 leading-relaxed">
               แยกเป็น &ldquo;ก้อนเดียว&rdquo; (ซื้อรถ / ซ่อมบ้าน) หรือ
               &ldquo;ต่อเนื่องทุกปี&rdquo; (ท่องเที่ยว / ค่าคนดูแล)
               ระบบคำนวณทั้ง NPV ณ วันเกษียณ และรายปีอัตโนมัติ
@@ -249,7 +249,7 @@ export default function SpecialExpensesPage() {
         {/* Hint */}
         <div className="bg-amber-50 rounded-xl p-3 mb-4 flex items-start gap-2">
           <Info size={14} className="text-amber-500 mt-0.5 shrink-0" />
-          <div className="text-[12px] text-amber-700">
+          <div className="text-[13px] text-amber-700">
             ใส่ค่าใช้จ่ายเป็น <b>มูลค่าปัจจุบัน (PV)</b> —
             ระบบจะปรับเงินเฟ้อและ discount ให้อัตโนมัติ
             รายการที่ 🔗 จะดึงจาก calc อื่น (แก้ไขที่ต้นทาง)
@@ -261,16 +261,16 @@ export default function SpecialExpensesPage() {
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 flex items-start gap-2">
             <RotateCcw size={14} className="text-blue-500 mt-0.5 shrink-0" />
             <div className="flex-1 min-w-0">
-              <div className="text-[13px] text-blue-900 font-bold">
+              <div className="text-[14px] text-blue-900 font-bold">
                 มีรายการ default หายไป {missingDefaults.length} รายการ
               </div>
-              <div className="text-[12px] text-blue-700 mt-0.5 leading-relaxed">
+              <div className="text-[13px] text-blue-700 mt-0.5 leading-relaxed">
                 {missingDefaults.map((d) => d.name).join(" · ")}
               </div>
             </div>
             <button
               onClick={() => store.restoreDefaultSpecialExpenses()}
-              className="shrink-0 px-3 py-1.5 rounded-lg bg-blue-500 text-white text-[12px] font-bold hover:bg-blue-600 active:scale-95 transition"
+              className="shrink-0 px-3 py-1.5 rounded-lg bg-blue-500 text-white text-[13px] font-bold hover:bg-blue-600 active:scale-95 transition"
             >
               กู้คืน
             </button>
@@ -311,7 +311,7 @@ export default function SpecialExpensesPage() {
                       <div className="absolute -top-2 right-2 z-10">
                         <button
                           onClick={() => handleRequestDelete(item.id)}
-                          className="px-2 py-1 bg-red-500 text-white rounded-md text-[12px] font-bold"
+                          className="px-2 py-1 bg-red-500 text-white rounded-md text-[13px] font-bold"
                         >
                           ยืนยันลบ?
                         </button>
@@ -347,7 +347,7 @@ export default function SpecialExpensesPage() {
                       <div className="absolute -top-2 right-2 z-10">
                         <button
                           onClick={() => handleRequestDelete(item.id)}
-                          className="px-2 py-1 bg-red-500 text-white rounded-md text-[12px] font-bold"
+                          className="px-2 py-1 bg-red-500 text-white rounded-md text-[13px] font-bold"
                         >
                           ยืนยันลบ?
                         </button>
@@ -375,7 +375,7 @@ export default function SpecialExpensesPage() {
                     <div className="absolute -top-2 right-2 z-10">
                       <button
                         onClick={() => handleRequestDelete(item.id)}
-                        className="px-2 py-1 bg-red-500 text-white rounded-md text-[12px] font-bold"
+                        className="px-2 py-1 bg-red-500 text-white rounded-md text-[13px] font-bold"
                       >
                         ยืนยันลบ?
                       </button>
@@ -432,7 +432,7 @@ export default function SpecialExpensesPage() {
             <span className="text-xs font-bold text-white">
               ตารางสรุป ค่าใช้จ่ายพิเศษหลังเกษียณ
             </span>
-            <span className="text-[12px] text-white/80 font-medium">
+            <span className="text-[13px] text-white/80 font-medium">
               มูลค่าที่ต้องเตรียม ณ วันเกษียณ
             </span>
           </div>
@@ -456,7 +456,7 @@ export default function SpecialExpensesPage() {
                       <div className="text-xs font-bold text-gray-800 truncate">
                         {item.name}
                       </div>
-                      <div className="text-[12px] text-gray-400 mt-0.5 leading-snug">
+                      <div className="text-[13px] text-gray-400 mt-0.5 leading-snug">
                         {meta.desc}
                       </div>
                     </div>
@@ -479,7 +479,7 @@ export default function SpecialExpensesPage() {
               <div className="text-sm font-bold text-gray-700">
                 ทุนเกษียณ (B)
               </div>
-              <div className="text-[12px] text-gray-500">
+              <div className="text-[13px] text-gray-500">
                 รวมมูลค่าที่ต้องเตรียม ณ วันเกษียณ
               </div>
             </div>
@@ -552,7 +552,7 @@ export default function SpecialExpensesPage() {
               </button>
             </div>
 
-            <div className="px-5 py-4 space-y-4 text-gray-700 text-[14px] leading-relaxed">
+            <div className="px-5 py-4 space-y-4 text-gray-700 text-[15px] leading-relaxed">
               <p>
                 แต่ละรายการรองรับ <b>2 แบบ</b>:
               </p>
@@ -572,7 +572,7 @@ export default function SpecialExpensesPage() {
                 <b>ดึงจาก calc อื่น</b>
                 อัตโนมัติ — แก้ไขที่หน้าต้นทาง
               </p>
-              <p className="text-[13px] text-gray-500">
+              <p className="text-[14px] text-gray-500">
                 ระบบคำนวณทั้ง <b>NPV ณ วันเกษียณ</b> (CFP) และ{" "}
                 <b>yearly stream</b> (Wealth Journey) จาก input เดียวกัน
                 — เลข 2 หน้าตรงกันเสมอ

@@ -253,7 +253,7 @@ export default function RetirementPlanPage() {
           </div>
           <div className="text-left">
             <div className="text-xs font-bold">{title}</div>
-            {subtitle && <div className="text-[11px] opacity-60">{subtitle}</div>}
+            {subtitle && <div className="text-[13px] opacity-60">{subtitle}</div>}
           </div>
         </div>
         {openSteps.has(step) ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -279,7 +279,7 @@ export default function RetirementPlanPage() {
             <div className="glass rounded-xl border border-orange-200 p-4 hover:bg-orange-50/50 transition active:scale-[0.98]">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-[12px] text-orange-500 font-medium">A. ค่าใช้จ่ายพื้นฐานหลังเกษียณ</div>
+                  <div className="text-[13px] text-orange-500 font-medium">A. ค่าใช้จ่ายพื้นฐานหลังเกษียณ</div>
                   <div className="text-xl font-extrabold text-orange-600 mt-1">฿{fmt(basicRetireFund)}</div>
                 </div>
                 <div className="text-orange-300 text-lg">›</div>
@@ -299,7 +299,7 @@ export default function RetirementPlanPage() {
             <div className="glass rounded-xl border border-red-200 p-4 hover:bg-red-50/50 transition active:scale-[0.98]">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-[12px] text-red-500 font-medium">B. ค่าใช้จ่ายพิเศษหลังเกษียณ</div>
+                  <div className="text-[13px] text-red-500 font-medium">B. ค่าใช้จ่ายพิเศษหลังเกษียณ</div>
                   <div className="text-xl font-extrabold text-red-600 mt-1">฿{fmt(totalSpecialFV)}</div>
                 </div>
                 <div className="text-red-300 text-lg">›</div>
@@ -316,9 +316,9 @@ export default function RetirementPlanPage() {
 
           {/* ทุนเกษียณรวม (RF) */}
           <div className="rounded-xl bg-red-100 border border-red-300 p-4">
-            <div className="text-[12px] text-red-600 font-medium">ทุนเกษียณที่ต้องเตรียมทั้งหมด (RF)</div>
+            <div className="text-[13px] text-red-600 font-medium">ทุนเกษียณที่ต้องเตรียมทั้งหมด (RF)</div>
             <div className="text-2xl font-extrabold text-red-700 mt-1">฿{fmt(totalRetireFund)}</div>
-            <div className="text-[12px] text-red-400 mt-1">= A + B</div>
+            <div className="text-[13px] text-red-400 mt-1">= A + B</div>
           </div>
         </div>
 
@@ -333,8 +333,8 @@ export default function RetirementPlanPage() {
         <Link href="/calculators/retirement/saving-funds" className="block">
           <div className="rounded-2xl border-2 border-dashed border-emerald-400 bg-emerald-50/50 p-5 hover:bg-emerald-50 transition active:scale-[0.98]">
             <div className="flex items-center justify-between mb-1">
-              <div className="text-[12px] text-emerald-600 font-medium">C. แหล่งเงินเกษียณที่มีอยู่แล้ว (SF)</div>
-              <div className="text-[11px] text-emerald-500 flex items-center gap-0.5">✅ ดึง NPV จากเครื่องคิดเลข</div>
+              <div className="text-[13px] text-emerald-600 font-medium">C. แหล่งเงินเกษียณที่มีอยู่แล้ว (SF)</div>
+              <div className="text-[13px] text-emerald-500 flex items-center gap-0.5">✅ ดึง NPV จากเครื่องคิดเลข</div>
             </div>
             <div className="text-2xl font-extrabold text-emerald-700">฿{fmt(totalSavingFund)}</div>
             {/* Show each saving fund item (fresh NPV via registry) */}
@@ -343,13 +343,13 @@ export default function RetirementPlanPage() {
                 .map((f) => ({ ...f, npv: savingFundNpvAtRetire(f, ctx, registryCtx) }))
                 .filter((f) => f.npv > 0)
                 .map((f) => (
-                  <div key={f.id} className="flex justify-between text-[12px]">
+                  <div key={f.id} className="flex justify-between text-[13px]">
                     <span className="text-gray-500">{f.name}</span>
                     <span className="font-medium text-emerald-600">฿{fmt(f.npv)}</span>
                   </div>
                 ))}
             </div>
-            <div className="text-[12px] text-gray-400 mt-2">กดเพื่อดูรายละเอียด / ปรับแก้ →</div>
+            <div className="text-[13px] text-gray-400 mt-2">กดเพื่อดูรายละเอียด / ปรับแก้ →</div>
           </div>
         </Link>
 
@@ -368,13 +368,13 @@ export default function RetirementPlanPage() {
           <div className="text-3xl font-extrabold">
             {isEnough ? `เหลือ ฿${fmt(Math.abs(shortage))}` : `฿${fmt(shortage)}`}
           </div>
-          <div className="text-[12px] opacity-60 mt-1">
+          <div className="text-[13px] opacity-60 mt-1">
             RF (฿{fmt(totalRetireFund)}) − SF (฿{fmt(totalSavingFund)})
           </div>
         </div>
 
         {/* Auto-save indicator */}
-        <div className="flex items-center justify-center gap-1.5 text-[12px] text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-full py-2">
+        <div className="flex items-center justify-center gap-1.5 text-[13px] text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-full py-2">
           <Check size={12} />
           บันทึกอัตโนมัติ — ค่าซิงค์ตามการแก้ไขในทุกหน้า
         </div>
@@ -409,7 +409,7 @@ export default function RetirementPlanPage() {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-white text-sm font-bold">ล้างข้อมูลแผนเกษียณทั้งหมด?</h3>
-                    <p className="text-white/80 text-[12px] mt-0.5">การกระทำนี้ไม่สามารถกู้คืนได้</p>
+                    <p className="text-white/80 text-[13px] mt-0.5">การกระทำนี้ไม่สามารถกู้คืนได้</p>
                   </div>
                   <button
                     onClick={() => setShowClearConfirm(false)}
@@ -425,7 +425,7 @@ export default function RetirementPlanPage() {
                   <p className="text-xs text-gray-700 leading-relaxed">
                     ระบบจะ <b>รีเซ็ตข้อมูลแผนเกษียณทั้งหมด</b> กลับเป็นค่าเริ่มต้น ได้แก่:
                   </p>
-                  <div className="bg-red-50 border border-red-100 rounded-xl p-3 space-y-1.5 text-[13px] text-gray-700">
+                  <div className="bg-red-50 border border-red-100 rounded-xl p-3 space-y-1.5 text-[14px] text-gray-700">
                     <div className="flex items-start gap-2">
                       <span className="text-red-500 shrink-0">•</span>
                       <span><b>สมมติฐาน</b> — อายุ, เงินเฟ้อ, ผลตอบแทน</span>
@@ -443,7 +443,7 @@ export default function RetirementPlanPage() {
                       <span><b>แผนการออม</b> และสถานะการทำแต่ละขั้น</span>
                     </div>
                   </div>
-                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-[12px] text-blue-700 leading-relaxed">
+                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-[13px] text-blue-700 leading-relaxed">
                     💡 ข้อมูลในหน้าอื่น (Profile, Cash Flow, ประกัน ฯลฯ) จะ <b>ไม่ถูกล้าง</b>
                   </div>
                 </div>
@@ -542,7 +542,7 @@ export default function RetirementPlanPage() {
                   <div className="text-sm font-bold text-gray-800">กำลังล้างข้อมูล</div>
                   <div
                     key={clearMessage}
-                    className="text-[13px] text-red-500 font-medium mt-1"
+                    className="text-[14px] text-red-500 font-medium mt-1"
                     style={{ animation: "fade-in-up 0.35s ease-out" }}
                   >
                     {clearMessage}
@@ -592,7 +592,7 @@ export default function RetirementPlanPage() {
                 </div>
                 <div className="relative text-center">
                   <div className="text-sm font-bold text-emerald-700">ล้างข้อมูลเรียบร้อย</div>
-                  <div className="text-[13px] text-gray-500 mt-1">กลับไปเริ่มต้นแผนใหม่ได้เลย</div>
+                  <div className="text-[14px] text-gray-500 mt-1">กลับไปเริ่มต้นแผนใหม่ได้เลย</div>
                 </div>
               </div>
             )}

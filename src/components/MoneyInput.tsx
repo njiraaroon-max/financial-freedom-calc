@@ -116,7 +116,7 @@ export default function MoneyInput({
         className={`${className ?? baseClass} ${ringClass} transition`}
       />
       {unit && (
-        <span className="text-[12px] text-gray-400 whitespace-nowrap">
+        <span className="text-[13px] text-gray-400 whitespace-nowrap">
           {unit}
         </span>
       )}

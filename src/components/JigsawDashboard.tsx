@@ -90,7 +90,7 @@ export default function JigsawDashboard({ pieces }: JigsawDashboardProps) {
     <div className="mx-4 md:mx-8 mb-4">
       {/* Progress header */}
       <div className="flex items-center justify-between mb-2">
-        <p className="text-[13px] text-gray-400 italic">กดที่ชิ้นจิ๊กซอว์เพื่อเข้าไปแต่ละแผน</p>
+        <p className="text-[14px] text-gray-400 italic">กดที่ชิ้นจิ๊กซอว์เพื่อเข้าไปแต่ละแผน</p>
         <span className="text-xs font-bold text-[var(--color-primary)]">
           {readyCount}/{pieces.length}
         </span>

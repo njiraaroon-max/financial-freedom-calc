@@ -110,7 +110,7 @@ export default function UserMenu() {
             <div className="text-xs font-bold text-gray-800 truncate">
               {displayName}
             </div>
-            <div className="text-[12px] text-gray-500 truncate">
+            <div className="text-[13px] text-gray-500 truncate">
               {user.email}
             </div>
           </div>

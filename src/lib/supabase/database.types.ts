@@ -32,7 +32,8 @@ export type PlanDomain =
   | "goals"
   | "balance_sheet"
   | "tax"
-  | "variables";
+  | "variables"
+  | "selected_modules";
 
 export interface Database {
   public: {

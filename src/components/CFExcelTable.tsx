@@ -87,7 +87,7 @@ export default function CFExcelTable({
   return (
     <div className="relative">
       {/* Usage hint + quick actions */}
-      <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 text-[12px] text-gray-500 flex items-center gap-3 flex-wrap justify-between">
+      <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 text-[13px] text-gray-500 flex items-center gap-3 flex-wrap justify-between">
         <div className="flex items-center gap-3 flex-wrap">
           <span>← → เลื่อนขวา-ซ้ายดูข้อมูลทั้งหมด</span>
           <span>▾ กดหัวข้อเพื่อยุบ</span>
@@ -97,14 +97,14 @@ export default function CFExcelTable({
           {anyCFCollapsed ? (
             <button
               onClick={expandAll}
-              className="flex items-center gap-1 text-[12px] text-sky-600 font-semibold bg-sky-50 border border-sky-200 rounded-md px-2 py-1 hover:bg-sky-100"
+              className="flex items-center gap-1 text-[13px] text-sky-600 font-semibold bg-sky-50 border border-sky-200 rounded-md px-2 py-1 hover:bg-sky-100"
             >
               <Maximize2 size={10} /> ขยาย CF ทั้งหมด
             </button>
           ) : (
             <button
               onClick={collapseAllCF}
-              className="flex items-center gap-1 text-[12px] text-slate-600 font-semibold bg-slate-50 border border-slate-200 rounded-md px-2 py-1 hover:bg-slate-100"
+              className="flex items-center gap-1 text-[13px] text-slate-600 font-semibold bg-slate-50 border border-slate-200 rounded-md px-2 py-1 hover:bg-slate-100"
             >
               <Minimize2 size={10} /> ยุบ CF เดิม (ดูแต่สรุป)
             </button>
@@ -114,7 +114,7 @@ export default function CFExcelTable({
 
       <div className="overflow-auto max-h-[80vh]">
         <div style={{ minWidth: tableWidth }}>
-          <table className="text-[12px] border-collapse w-full">
+          <table className="text-[13px] border-collapse w-full">
             {/* ─── Header ─── */}
             <thead className="sticky top-0 z-30 bg-[#1e3a5f] text-white">
               <tr>
@@ -153,9 +153,9 @@ export default function CFExcelTable({
                             : undefined
                       }
                     >
-                      <div className="text-[11px] opacity-70">ค.ศ. {y}</div>
-                      <div className="text-[13px]">{yearsBE[i]}</div>
-                      <div className="text-[11px] opacity-80">
+                      <div className="text-[13px] opacity-70">ค.ศ. {y}</div>
+                      <div className="text-[14px]">{yearsBE[i]}</div>
+                      <div className="text-[13px] opacity-80">
                         อายุ {ages[i]}
                         {isRetire ? " ⭐" : ""}
                         {isProblemYear ? " 🚨" : ""}
@@ -220,7 +220,7 @@ export default function CFExcelTable({
                             <ChevronDown size={12} />
                           )}
                           {categoryLabel(cat)}
-                          <span className="text-[11px] opacity-70 ml-1">({catItems.length})</span>
+                          <span className="text-[13px] opacity-70 ml-1">({catItems.length})</span>
                         </div>
                       </td>
                       <td
@@ -241,9 +241,9 @@ export default function CFExcelTable({
                             style={{ left: leftStickyStart, minWidth: COL_NAME_W, width: COL_NAME_W }}
                             title={`${it.sourceModule}${it.sourceId ? ` • ${it.sourceId}` : ""}`}
                           >
-                            <span className="text-slate-700 text-[12px]">{it.name}</span>
+                            <span className="text-slate-700 text-[13px]">{it.name}</span>
                             {it.sourceModule !== "cashflow" && (
-                              <span className="ml-1 text-[10px] text-violet-500 font-bold uppercase">
+                              <span className="ml-1 text-[12px] text-violet-500 font-bold uppercase">
                                 {it.sourceModule}
                               </span>
                             )}
@@ -253,14 +253,14 @@ export default function CFExcelTable({
                             style={{ left: leftStickyInflation, minWidth: COL_INFL_W, width: COL_INFL_W }}
                           >
                             {it.yearlyOverrides ? (
-                              <span className="text-[11px] text-gray-400 italic">varies</span>
+                              <span className="text-[13px] text-gray-400 italic">varies</span>
                             ) : onUpdateInflation ? (
                               <InflationCell
                                 value={it.inflationRate}
                                 onChange={(v) => onUpdateInflation(it.id, v)}
                               />
                             ) : (
-                              <span className="text-[11px] text-gray-600">{it.inflationRate}%</span>
+                              <span className="text-[13px] text-gray-600">{it.inflationRate}%</span>
                             )}
                           </td>
                           {years.map((_, yi) => {
@@ -314,7 +314,7 @@ export default function CFExcelTable({
       </div>
 
       {/* Footer legend */}
-      <div className="px-3 py-2 border-t border-gray-100 bg-gray-50 text-[11px] text-gray-500 leading-relaxed space-y-0.5">
+      <div className="px-3 py-2 border-t border-gray-100 bg-gray-50 text-[13px] text-gray-500 leading-relaxed space-y-0.5">
         <div>
           💡 <strong>วิธีอ่าน:</strong> คอลัมน์ "%" คือเงินเฟ้อของแต่ละรายการ (กดคลิกเพื่อปรับ) —
           รายการที่เขียนว่า "varies" (เช่น ค่าการศึกษา) ใช้ค่าปีต่อปีตามแผนเรียนที่กำหนดไว้
@@ -348,7 +348,7 @@ function SummaryRow({
   return (
     <tr className={rowClass}>
       <td
-        className={`py-1.5 px-2 sticky z-10 font-bold text-[13px] border-r border-slate-300 ${rowClass || "bg-slate-50"}`}
+        className={`py-1.5 px-2 sticky z-10 font-bold text-[14px] border-r border-slate-300 ${rowClass || "bg-slate-50"}`}
         style={{ left: leftStickyStart, minWidth: COL_NAME_W, width: COL_NAME_W }}
       >
         {label}
@@ -386,7 +386,7 @@ function InflationCell({
           setDraft(String(value));
           setEditing(true);
         }}
-        className="text-[11px] text-gray-600 hover:text-indigo-600 hover:underline"
+        className="text-[13px] text-gray-600 hover:text-indigo-600 hover:underline"
       >
         {value}%
       </button>
@@ -413,7 +413,7 @@ function InflationCell({
           setEditing(false);
         }
       }}
-      className="w-full text-center text-[11px] bg-white border border-indigo-300 rounded px-0.5 py-0.5 outline-none focus:ring-1 focus:ring-indigo-500"
+      className="w-full text-center text-[13px] bg-white border border-indigo-300 rounded px-0.5 py-0.5 outline-none focus:ring-1 focus:ring-indigo-500"
     />
   );
 }

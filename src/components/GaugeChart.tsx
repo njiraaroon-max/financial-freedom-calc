@@ -200,7 +200,7 @@ export default function GaugeChart({
       </svg>
 
       {/* Value display */}
-      <div className="text-[13px] font-bold text-gray-800 -mt-3 text-center">
+      <div className="text-[14px] font-bold text-gray-800 -mt-3 text-center">
         {displayValue}
       </div>
     </div>

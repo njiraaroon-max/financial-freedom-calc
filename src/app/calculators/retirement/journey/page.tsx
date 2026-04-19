@@ -380,20 +380,20 @@ export default function WealthJourneyPage() {
               <div className="text-sm font-bold text-amber-900">
                 กำลังแสดงข้อมูลตัวอย่าง (Demo)
               </div>
-              <div className="text-[13px] text-amber-800 mt-0.5 leading-relaxed">
+              <div className="text-[14px] text-amber-800 mt-0.5 leading-relaxed">
                 ยังไม่มีข้อมูลการเงินของคุณ — ลองไปกรอก <b>ค่าใช้จ่ายพื้นฐาน</b> และ{" "}
                 <b>แผนการออม/ลงทุน</b> ก่อน แล้วกลับมาดูผลลัพธ์จริง
               </div>
               <div className="flex gap-2 mt-2">
                 <Link
                   href="/calculators/retirement/basic-expenses"
-                  className="text-[13px] font-bold text-amber-700 bg-amber-200 hover:bg-amber-300 px-3 py-1 rounded-lg transition"
+                  className="text-[14px] font-bold text-amber-700 bg-amber-200 hover:bg-amber-300 px-3 py-1 rounded-lg transition"
                 >
                   กรอกค่าใช้จ่าย →
                 </Link>
                 <Link
                   href="/calculators/retirement/investment-plan"
-                  className="text-[13px] font-bold text-amber-700 bg-amber-200 hover:bg-amber-300 px-3 py-1 rounded-lg transition"
+                  className="text-[14px] font-bold text-amber-700 bg-amber-200 hover:bg-amber-300 px-3 py-1 rounded-lg transition"
                 >
                   กรอกแผนลงทุน →
                 </Link>
@@ -502,7 +502,7 @@ export default function WealthJourneyPage() {
           <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg mb-3 w-fit">
             <button
               onClick={() => setChartView("wealth")}
-              className={`px-3 py-1.5 rounded-md text-[13px] font-bold transition ${
+              className={`px-3 py-1.5 rounded-md text-[14px] font-bold transition ${
                 chartView === "wealth" ? "bg-white text-[#0B1E3F] shadow-sm" : "text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -510,7 +510,7 @@ export default function WealthJourneyPage() {
             </button>
             <button
               onClick={() => setChartView("breakdown")}
-              className={`px-3 py-1.5 rounded-md text-[13px] font-bold transition ${
+              className={`px-3 py-1.5 rounded-md text-[14px] font-bold transition ${
                 chartView === "breakdown" ? "bg-white text-[#0B1E3F] shadow-sm" : "text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -533,7 +533,7 @@ export default function WealthJourneyPage() {
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={() => setChartMode("monteCarlo")}
-                className={`flex items-center gap-1.5 text-[13px] font-bold px-3 py-1.5 rounded-xl transition ${
+                className={`flex items-center gap-1.5 text-[14px] font-bold px-3 py-1.5 rounded-xl transition ${
                   chartMode === "monteCarlo"
                     ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -544,7 +544,7 @@ export default function WealthJourneyPage() {
               </button>
               <button
                 onClick={() => setChartMode("compare")}
-                className={`flex items-center gap-1.5 text-[13px] font-bold px-3 py-1.5 rounded-xl transition ${
+                className={`flex items-center gap-1.5 text-[14px] font-bold px-3 py-1.5 rounded-xl transition ${
                   chartMode === "compare"
                     ? "bg-[#0B1E3F] text-white shadow"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -570,7 +570,7 @@ export default function WealthJourneyPage() {
             <div className="absolute inset-0 z-10 bg-white/70 backdrop-blur-sm flex items-center justify-center rounded-2xl">
               <div className="flex flex-col items-center gap-2">
                 <Dices size={28} className="text-indigo-600 animate-spin" />
-                <div className="text-[13px] font-bold text-slate-600">กำลัง simulate {mcSimulations.toLocaleString()} รอบ...</div>
+                <div className="text-[14px] font-bold text-slate-600">กำลัง simulate {mcSimulations.toLocaleString()} รอบ...</div>
               </div>
             </div>
           )}
@@ -683,7 +683,7 @@ export default function WealthJourneyPage() {
           </div>
 
           {/* Legend hint */}
-          <div className="flex flex-wrap items-center gap-4 mt-3 pt-3 border-t border-gray-100 text-[12px] text-gray-600">
+          <div className="flex flex-wrap items-center gap-4 mt-3 pt-3 border-t border-gray-100 text-[13px] text-gray-600">
             {chartMode === "monteCarlo" ? (
               <>
                 <span className="flex items-center gap-1.5">
@@ -743,13 +743,13 @@ export default function WealthJourneyPage() {
                     การกระจายของอายุที่เงินหมด
                   </h3>
                 </div>
-                <p className="text-[13px] text-slate-500 mt-0.5">
+                <p className="text-[14px] text-slate-500 mt-0.5">
                   จาก {mcResult.simulations.toLocaleString()} simulations ·
                   แสดงเฉพาะ {depleted.length.toLocaleString()} sims ที่เงินหมดในช่วงอายุ ≤ {endAge} ปี
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-[12px] text-slate-500">เป้าหมาย</div>
+                <div className="text-[13px] text-slate-500">เป้าหมาย</div>
                 <div className="text-sm font-bold text-[#0B1E3F]">อายุขัย {a.lifeExpectancy} ปี</div>
               </div>
             </div>
@@ -759,11 +759,11 @@ export default function WealthJourneyPage() {
               <div className="mb-3 flex items-center justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
                 <div className="flex items-center gap-2">
                   <ShieldCheck size={14} className="text-emerald-600" />
-                  <span className="text-[13px] font-bold text-emerald-800">
+                  <span className="text-[14px] font-bold text-emerald-800">
                     🎉 เงินไม่หมดเลยตลอดช่วง
                   </span>
                 </div>
-                <span className="text-[13px] text-emerald-700">
+                <span className="text-[14px] text-emerald-700">
                   <b className="font-black">{neverDepleted.toLocaleString()}</b> sims
                   <span className="text-emerald-500"> ({neverPct.toFixed(1)}%) </span>
                   — ไม่ถูกนำมาแสดงในกราฟ
@@ -781,12 +781,12 @@ export default function WealthJourneyPage() {
                 integer
               />
             ) : (
-              <div className="text-center py-12 text-[13px] text-emerald-600 font-bold">
+              <div className="text-center py-12 text-[14px] text-emerald-600 font-bold">
                 ทุก simulation เงินไม่หมดเลย — แผนปลอดภัยมาก 💪
               </div>
             )}
 
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 pt-2 border-t border-gray-100 text-[12px] text-gray-600">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 pt-2 border-t border-gray-100 text-[13px] text-gray-600">
               <span className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded bg-red-500/75"></span>
                 เงินหมดก่อนอายุขัย (ไม่ผ่านเป้า)
@@ -843,7 +843,7 @@ export default function WealthJourneyPage() {
           </button>
           {tableOpen && (
             <div className="px-4 pb-4 overflow-x-auto">
-              <table className="w-full text-[13px]">
+              <table className="w-full text-[14px]">
                 <thead className="bg-[#0B1E3F] text-white">
                   <tr>
                     <th className="p-2 text-left">อายุ</th>
@@ -867,9 +867,9 @@ export default function WealthJourneyPage() {
                         <td className="p-2 font-semibold">
                           {r.age}
                           {r.phase === "accumulation" ? (
-                            <span className="text-[11px] text-blue-500 ml-1">●</span>
+                            <span className="text-[13px] text-blue-500 ml-1">●</span>
                           ) : (
-                            <span className="text-[11px] text-pink-500 ml-1">●</span>
+                            <span className="text-[13px] text-pink-500 ml-1">●</span>
                           )}
                         </td>
                         <td className="p-2 text-right">{fmt(r.balanceStart)}</td>
@@ -912,7 +912,7 @@ export default function WealthJourneyPage() {
             />
           </button>
           {assumpOpen && (
-            <div className="px-4 pb-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-[13px]">
+            <div className="px-4 pb-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-[14px]">
               <AssumpRow label="อายุปัจจุบัน" value={`${a.currentAge} ปี`} />
               <AssumpRow label="อายุเกษียณ" value={`${a.retireAge} ปี`} />
               <AssumpRow label="อายุขัย" value={`${a.lifeExpectancy} ปี`} />
@@ -922,13 +922,13 @@ export default function WealthJourneyPage() {
               <AssumpRow label="เงินเริ่มต้น (ปัจจุบัน)" value={fmtCurrency(a.currentSavings || 0)} />
               <AssumpRow label="ค่าใช้จ่ายพื้นฐาน/ด." value={fmtCurrency(inputs.basicMonthlyToday)} />
               <div className="col-span-full pt-2 border-t border-gray-100 flex gap-2 flex-wrap">
-                <Link href="/calculators/retirement/assumptions" className="text-[13px] font-bold text-blue-600 hover:underline">
+                <Link href="/calculators/retirement/assumptions" className="text-[14px] font-bold text-blue-600 hover:underline">
                   แก้สมมติฐาน →
                 </Link>
-                <Link href="/calculators/retirement/basic-expenses" className="text-[13px] font-bold text-blue-600 hover:underline">
+                <Link href="/calculators/retirement/basic-expenses" className="text-[14px] font-bold text-blue-600 hover:underline">
                   แก้ค่าใช้จ่าย →
                 </Link>
-                <Link href="/calculators/retirement/investment-plan" className="text-[13px] font-bold text-blue-600 hover:underline">
+                <Link href="/calculators/retirement/investment-plan" className="text-[14px] font-bold text-blue-600 hover:underline">
                   แก้แผนการออม →
                 </Link>
               </div>
@@ -941,13 +941,13 @@ export default function WealthJourneyPage() {
       <div className="px-4 md:px-8 pt-4 flex justify-between">
         <Link
           href="/calculators/retirement/investment-plan"
-          className="text-[14px] font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1"
+          className="text-[15px] font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1"
         >
           <ChevronRight size={16} className="rotate-180" /> กลับ Step 3
         </Link>
         <Link
           href="/calculators/retirement"
-          className="text-[14px] font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1"
+          className="text-[15px] font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1"
         >
           กลับหน้าหลัก <ChevronRight size={16} />
         </Link>
@@ -980,7 +980,7 @@ function HeroCard({
           : "bg-gradient-to-br from-red-50 via-white to-amber-50 border-red-200"
       }`}
     >
-      <div className="flex items-center gap-2 text-[13px] font-bold text-slate-500">
+      <div className="flex items-center gap-2 text-[14px] font-bold text-slate-500">
         <Sparkles size={12} />
         เส้นทางสินทรัพย์ของคุณ
         <span className="text-slate-300">•</span>
@@ -991,7 +991,7 @@ function HeroCard({
 
       <div className="mt-2 flex items-end gap-3 flex-wrap">
         <div>
-          <div className="text-[15px] font-semibold text-slate-600">
+          <div className="text-[16px] font-semibold text-slate-600">
             {pass ? "✅ เงินของคุณพอใช้ถึงอายุ" : "⚠️ เงินของคุณหมดเมื่ออายุ"}
           </div>
           <div className={`text-5xl md:text-6xl font-black leading-none mt-1 ${pass ? "text-[#0B1E3F]" : "text-red-600"}`}>
@@ -1000,17 +1000,17 @@ function HeroCard({
           </div>
         </div>
         <div className="ml-auto text-right">
-          <div className="text-[12px] font-bold text-slate-500 uppercase tracking-wider">
+          <div className="text-[13px] font-bold text-slate-500 uppercase tracking-wider">
             เป้าอายุขัย
           </div>
           <div className="text-2xl font-bold text-slate-700">{assumptions.lifeExpectancy} ปี</div>
           {pass && summary.marginYears > 0 && (
-            <div className="text-[13px] font-bold text-emerald-600 mt-1">
+            <div className="text-[14px] font-bold text-emerald-600 mt-1">
               เหลือเผื่อ +{summary.marginYears} ปี 🎉
             </div>
           )}
           {!pass && (
-            <div className="text-[13px] font-bold text-red-600 mt-1">
+            <div className="text-[14px] font-bold text-red-600 mt-1">
               ขาด {Math.abs(summary.marginYears)} ปี ⚠️
             </div>
           )}
@@ -1018,7 +1018,7 @@ function HeroCard({
       </div>
 
       {summary.finalBalance > 0 && pass && (
-        <div className="mt-3 pt-3 border-t border-slate-200/60 text-[13px] text-slate-600">
+        <div className="mt-3 pt-3 border-t border-slate-200/60 text-[14px] text-slate-600">
           ทรัพย์เหลือวันสิ้นอายุ = <b className="text-slate-800">{fmtCurrency(summary.finalBalance)}</b>
         </div>
       )}
@@ -1060,11 +1060,11 @@ function StatCard({
           </button>
         )}
       </div>
-      <div className="text-[12px] font-bold text-slate-500 uppercase tracking-wider">{label}</div>
+      <div className="text-[13px] font-bold text-slate-500 uppercase tracking-wider">{label}</div>
       <div className="text-xl font-black text-[#0B1E3F] mt-0.5">{value}</div>
-      <div className="text-[12px] text-slate-400 mt-0.5">{subtext}</div>
+      <div className="text-[13px] text-slate-400 mt-0.5">{subtext}</div>
       {tooltip && showTip && (
-        <div className="absolute top-10 right-3 z-20 w-56 bg-slate-900 text-white text-[12px] leading-relaxed rounded-lg shadow-xl p-2.5">
+        <div className="absolute top-10 right-3 z-20 w-56 bg-slate-900 text-white text-[13px] leading-relaxed rounded-lg shadow-xl p-2.5">
           {tooltip}
           <div className="absolute -top-1 right-3 w-2 h-2 bg-slate-900 rotate-45"></div>
         </div>
@@ -1076,8 +1076,8 @@ function StatCard({
 function AssumpRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[12px] text-slate-500">{label}</div>
-      <div className="text-[14px] font-bold text-slate-800">{value}</div>
+      <div className="text-[13px] text-slate-500">{label}</div>
+      <div className="text-[15px] font-bold text-slate-800">{value}</div>
     </div>
   );
 }
@@ -1119,31 +1119,31 @@ function ChartTooltip({
   const isDepleted = row.balanceEnd === 0 && row.phase === "decumulation";
 
   return (
-    <div className="bg-white/95 backdrop-blur border border-gray-200 rounded-xl shadow-lg p-3 text-[13px] min-w-[210px] max-w-[260px]">
-      <div className="font-bold text-[#0B1E3F] text-[14px] mb-1 flex items-center gap-1.5">
+    <div className="bg-white/95 backdrop-blur border border-gray-200 rounded-xl shadow-lg p-3 text-[14px] min-w-[210px] max-w-[260px]">
+      <div className="font-bold text-[#0B1E3F] text-[15px] mb-1 flex items-center gap-1.5">
         <span
           className={`w-2 h-2 rounded-full ${
             row.phase === "accumulation" ? "bg-blue-500" : "bg-pink-500"
           }`}
         ></span>
         อายุ {row.age} ปี
-        <span className="text-[11px] font-normal text-slate-400">
+        <span className="text-[13px] font-normal text-slate-400">
           ({row.phase === "accumulation" ? "สะสม" : "ใช้จ่าย"})
         </span>
       </div>
       {/* Phase / milestone hint */}
       {isRetireAge && (
-        <div className="text-[11px] text-amber-700 bg-amber-50 rounded px-1.5 py-0.5 mb-1.5">
+        <div className="text-[13px] text-amber-700 bg-amber-50 rounded px-1.5 py-0.5 mb-1.5">
           🎯 วันเกษียณ — รับเงินก้อน (PVD, Severance, Saving Funds)
         </div>
       )}
       {isLifeExp && !isDepleted && (
-        <div className="text-[11px] text-emerald-700 bg-emerald-50 rounded px-1.5 py-0.5 mb-1.5">
+        <div className="text-[13px] text-emerald-700 bg-emerald-50 rounded px-1.5 py-0.5 mb-1.5">
           🎯 อายุเป้าหมาย (Life Expectancy)
         </div>
       )}
       {isDepleted && (
-        <div className="text-[11px] text-rose-700 bg-rose-50 rounded px-1.5 py-0.5 mb-1.5">
+        <div className="text-[13px] text-rose-700 bg-rose-50 rounded px-1.5 py-0.5 mb-1.5">
           ⚠️ เงินหมดในปีนี้
         </div>
       )}
@@ -1205,7 +1205,7 @@ function MonteCarloHero({
 
   return (
     <div className={`rounded-2xl p-5 shadow-md border bg-gradient-to-br ${tone.bg} ${tone.border}`}>
-      <div className="flex items-center gap-2 text-[13px] font-bold text-slate-500">
+      <div className="flex items-center gap-2 text-[14px] font-bold text-slate-500">
         <Dices size={12} className="text-purple-600" />
         Monte Carlo Simulation
         <span className="text-slate-300">•</span>
@@ -1214,33 +1214,33 @@ function MonteCarloHero({
 
       <div className="mt-2 flex items-end gap-4 flex-wrap">
         <div>
-          <div className="text-[15px] font-semibold text-slate-600">โอกาสเงินพอใช้ถึงอายุ {assumptions.lifeExpectancy} ปี</div>
+          <div className="text-[16px] font-semibold text-slate-600">โอกาสเงินพอใช้ถึงอายุ {assumptions.lifeExpectancy} ปี</div>
           <div className="flex items-baseline gap-2 mt-1">
             <div className={`text-5xl md:text-6xl font-black leading-none ${tone.text}`}>
               {pct.toFixed(0)}
               <span className="text-2xl md:text-3xl font-bold text-slate-500 ml-1">%</span>
             </div>
-            <span className={`text-[13px] font-bold ${tone.text}`}>{tone.label}</span>
+            <span className={`text-[14px] font-bold ${tone.text}`}>{tone.label}</span>
           </div>
         </div>
 
         {/* Depletion distribution mini-bar */}
         <div className="ml-auto bg-white/60 backdrop-blur rounded-xl p-3 border border-white/80 min-w-[180px]">
-          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">อายุเงินหมด (ช่วง)</div>
-          <div className="flex items-center justify-between gap-2 text-[13px]">
+          <div className="text-[13px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">อายุเงินหมด (ช่วง)</div>
+          <div className="flex items-center justify-between gap-2 text-[14px]">
             <div className="text-center">
               <div className="text-red-500 font-black">{mcResult.depletionAges.p10}</div>
-              <div className="text-[11px] text-slate-400">P10</div>
+              <div className="text-[13px] text-slate-400">P10</div>
             </div>
             <div className="flex-1 h-1.5 bg-gradient-to-r from-red-200 via-amber-200 to-emerald-200 rounded-full"></div>
             <div className="text-center">
               <div className="text-purple-600 font-black">{mcResult.depletionAges.p50}</div>
-              <div className="text-[11px] text-slate-400">P50</div>
+              <div className="text-[13px] text-slate-400">P50</div>
             </div>
             <div className="flex-1 h-1.5 bg-gradient-to-r from-amber-200 to-emerald-200 rounded-full"></div>
             <div className="text-center">
               <div className="text-emerald-600 font-black">{mcResult.depletionAges.p90}</div>
-              <div className="text-[11px] text-slate-400">P90</div>
+              <div className="text-[13px] text-slate-400">P90</div>
             </div>
           </div>
         </div>
@@ -1260,8 +1260,8 @@ function MonteCarloTooltip({
   if (!active || !payload || payload.length === 0) return null;
   const d = payload[0].payload;
   return (
-    <div className="bg-white/95 backdrop-blur border border-gray-200 rounded-xl shadow-lg p-3 text-[13px] min-w-[180px]">
-      <div className="font-bold text-[#0B1E3F] text-[14px] mb-2 flex items-center gap-1.5">
+    <div className="bg-white/95 backdrop-blur border border-gray-200 rounded-xl shadow-lg p-3 text-[14px] min-w-[180px]">
+      <div className="font-bold text-[#0B1E3F] text-[15px] mb-2 flex items-center gap-1.5">
         <Dices size={12} className="text-purple-600" />
         อายุ {d.age} ปี
       </div>
@@ -1407,7 +1407,7 @@ function CashflowBarChart({
           <button
             key={s.key}
             onClick={() => toggle(s.key)}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-bold transition border ${
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[13px] font-bold transition border ${
               visible.has(s.key)
                 ? "border-transparent text-white shadow-sm"
                 : "border-gray-200 text-gray-400 bg-white hover:border-gray-300"
@@ -1647,13 +1647,13 @@ function CashflowBarChart({
               hoveredRow.outflow;
             return (
               <div
-                className="absolute pointer-events-none bg-white/95 backdrop-blur border border-gray-200 rounded-xl shadow-lg p-2.5 text-[12px]"
+                className="absolute pointer-events-none bg-white/95 backdrop-blur border border-gray-200 rounded-xl shadow-lg p-2.5 text-[13px]"
                 style={{ left, top: 4, width: TIP_W, zIndex: 20 }}
               >
-                <div className="font-bold text-[#0B1E3F] text-[13px] mb-1.5 flex items-center gap-1.5">
+                <div className="font-bold text-[#0B1E3F] text-[14px] mb-1.5 flex items-center gap-1.5">
                   <span className={`w-2 h-2 rounded-full ${hoveredRow.phase === "accumulation" ? "bg-blue-500" : "bg-pink-500"}`} />
                   อายุ {hoveredRow.age} ปี
-                  <span className="text-[11px] text-slate-400">
+                  <span className="text-[13px] text-slate-400">
                     · พ.ศ. {birthYear + hoveredRow.age + BE_OFFSET}
                   </span>
                 </div>
@@ -1749,18 +1749,18 @@ function McSettingsModal({
         <div className="space-y-4">
           {/* Pre-retire phases — read-only summary (from investment-plan) */}
           <div>
-            <div className="text-[13px] font-bold text-slate-600 mb-2 flex items-center gap-1.5">
+            <div className="text-[14px] font-bold text-slate-600 mb-2 flex items-center gap-1.5">
               <TrendingUp size={12} className="text-blue-500" />
               ก่อนเกษียณ (ดึงจากหน้าลงทุนเพื่อเกษียณ)
               <span className="relative group inline-flex">
                 <Info size={11} className="text-slate-400 cursor-help" />
-                <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-1.5 w-64 z-10 bg-slate-800 text-white text-[12px] font-normal leading-relaxed rounded-lg px-3 py-2 shadow-lg opacity-0 group-hover:opacity-100 transition">
+                <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-1.5 w-64 z-10 bg-slate-800 text-white text-[13px] font-normal leading-relaxed rounded-lg px-3 py-2 shadow-lg opacity-0 group-hover:opacity-100 transition">
                   Monte Carlo จะจำลองผลตอบแทน<b>แต่ละช่วง</b>ตาม μ/σ ของ risk preset ที่ตั้งใน investment plan แต่ละ phase (ไม่ใช่ค่าเดียวทั้งหมด)
                 </span>
               </span>
             </div>
             {preRetirePhases.length === 0 ? (
-              <div className="text-[13px] text-slate-400 bg-slate-50 rounded-lg p-3 text-center">
+              <div className="text-[14px] text-slate-400 bg-slate-50 rounded-lg p-3 text-center">
                 ยังไม่มีแผนลงทุน — ไปตั้งค่าที่หน้า "ลงทุนเพื่อการเกษียณ"
               </div>
             ) : (
@@ -1770,18 +1770,18 @@ function McSettingsModal({
                     key={i}
                     className="flex items-center justify-between bg-blue-50/60 border border-blue-100 rounded-lg px-3 py-2"
                   >
-                    <div className="text-[13px] text-slate-700">
+                    <div className="text-[14px] text-slate-700">
                       <span className="font-bold">อายุ {ph.yearStart}–{ph.yearEnd}</span>
                       <span className="text-slate-500"> · {profileLabelTh(ph.profile)}</span>
                     </div>
-                    <div className="text-[13px] font-mono text-slate-600">
+                    <div className="text-[14px] font-mono text-slate-600">
                       μ={(ph.expectedReturn * 100).toFixed(1)}% · σ={(ph.volatility * 100).toFixed(1)}%
                     </div>
                   </div>
                 ))}
               </div>
             )}
-            <div className="text-[12px] text-slate-400 mt-1.5">
+            <div className="text-[13px] text-slate-400 mt-1.5">
               แก้ได้ที่{" "}
               <Link
                 href="/calculators/retirement/investment-plan?mode=mc"
@@ -1797,12 +1797,12 @@ function McSettingsModal({
 
           {/* Post-retire risk preset picker */}
           <div>
-            <div className="text-[13px] font-bold text-slate-600 mb-2 flex items-center gap-1.5">
+            <div className="text-[14px] font-bold text-slate-600 mb-2 flex items-center gap-1.5">
               <ShieldCheck size={12} className="text-pink-500" />
               หลังเกษียณ — ระดับความเสี่ยง port
               <span className="relative group inline-flex">
                 <Info size={11} className="text-slate-400 cursor-help" />
-                <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-1.5 w-72 z-10 bg-slate-800 text-white text-[12px] font-normal leading-relaxed rounded-lg px-3 py-2 shadow-lg opacity-0 group-hover:opacity-100 transition">
+                <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-1.5 w-72 z-10 bg-slate-800 text-white text-[13px] font-normal leading-relaxed rounded-lg px-3 py-2 shadow-lg opacity-0 group-hover:opacity-100 transition">
                   <b>σ = ความผันผวนต่อปี (SD)</b><br/>
                   • เสี่ยงสูง 18% — หุ้น ~100%<br/>
                   • ปานกลาง 12% — 60/40 (หุ้น/พันธบัตร)<br/>
@@ -1820,32 +1820,32 @@ function McSettingsModal({
                   <button
                     key={opt.key}
                     onClick={() => setProfile(opt.key)}
-                    className={`py-2.5 px-2 rounded-xl text-[13px] font-bold transition ${
+                    className={`py-2.5 px-2 rounded-xl text-[14px] font-bold transition ${
                       active
                         ? `bg-gradient-to-r ${opt.color} text-white shadow`
                         : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                     }`}
                   >
                     <div>{opt.label}</div>
-                    <div className={`text-[11px] font-mono mt-0.5 ${active ? "opacity-90" : "opacity-70"}`}>
+                    <div className={`text-[13px] font-mono mt-0.5 ${active ? "opacity-90" : "opacity-70"}`}>
                       σ={(preset.volatility * 100).toFixed(0)}%
                     </div>
                   </button>
                 );
               })}
             </div>
-            <div className="text-[12px] text-slate-400 mt-1.5">
+            <div className="text-[13px] text-slate-400 mt-1.5">
               หลังเกษียณมักลดความเสี่ยง — default = อนุรักษ์
             </div>
           </div>
 
           {/* Simulations */}
           <div>
-            <div className="text-[13px] font-bold text-slate-600 mb-2 flex items-center gap-1.5">
+            <div className="text-[14px] font-bold text-slate-600 mb-2 flex items-center gap-1.5">
               จำนวน simulations
               <span className="relative group inline-flex">
                 <Info size={11} className="text-slate-400 cursor-help" />
-                <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-1.5 w-64 z-10 bg-slate-800 text-white text-[12px] font-normal leading-relaxed rounded-lg px-3 py-2 shadow-lg opacity-0 group-hover:opacity-100 transition">
+                <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-1.5 w-64 z-10 bg-slate-800 text-white text-[13px] font-normal leading-relaxed rounded-lg px-3 py-2 shadow-lg opacity-0 group-hover:opacity-100 transition">
                   จำนวนครั้งที่ simulate สุ่มเส้นทางผลตอบแทน — ยิ่งเยอะ = ยิ่งแม่น (ค่า success rate / P10 / P90 นิ่งขึ้น) แต่ใช้เวลามากขึ้น
                 </span>
               </span>
@@ -1855,7 +1855,7 @@ function McSettingsModal({
                 <button
                   key={opt}
                   onClick={() => setN(opt)}
-                  className={`py-2 rounded-xl text-[13px] font-bold transition ${
+                  className={`py-2 rounded-xl text-[14px] font-bold transition ${
                     n === opt
                       ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -1865,7 +1865,7 @@ function McSettingsModal({
                 </button>
               ))}
             </div>
-            <div className="text-[12px] text-slate-400 mt-1.5">
+            <div className="text-[13px] text-slate-400 mt-1.5">
               10,000 = แม่นสุด (เหมือนหน้าลงทุน) · 1,000 = เร็วสุด
             </div>
           </div>
@@ -1874,13 +1874,13 @@ function McSettingsModal({
         <div className="flex items-center justify-end gap-2 mt-5 pt-4 border-t border-gray-100">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-[14px] font-bold text-slate-600 hover:bg-slate-100 transition"
+            className="px-4 py-2 rounded-xl text-[15px] font-bold text-slate-600 hover:bg-slate-100 transition"
           >
             ยกเลิก
           </button>
           <button
             onClick={() => onApply(n, profile)}
-            className="px-4 py-2 rounded-xl text-[14px] font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 transition shadow"
+            className="px-4 py-2 rounded-xl text-[15px] font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 transition shadow"
           >
             ใช้ค่านี้
           </button>

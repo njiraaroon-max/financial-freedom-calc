@@ -122,7 +122,7 @@ export default function CaretakerPage() {
             </div>
             <div className="flex-1">
               <h2 className="font-bold text-sm">วางแผนค่าคนดูแลหลังเกษียณ</h2>
-              <p className="text-[13px] text-white/90 mt-1 leading-relaxed">
+              <p className="text-[14px] text-white/90 mt-1 leading-relaxed">
                 ประมาณการค่าใช้จ่ายรายปีของคนดูแล ตั้งแต่อายุที่เริ่มต้องใช้จนถึงสิ้นอายุขัย —
                 คิด <b>เงินเฟ้อค่าจ้าง</b> และ <b>discount</b> กลับมาที่วันเกษียณ
               </p>
@@ -132,13 +132,13 @@ export default function CaretakerPage() {
 
         {/* Auto-sync banner */}
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-3 flex items-center justify-between gap-3">
-          <div className="text-[13px] text-blue-900 leading-relaxed">
+          <div className="text-[14px] text-blue-900 leading-relaxed">
             🔗 หน้านี้<b>ซิงก์อัตโนมัติ</b>กับ <b>Profile</b> + <b>สมมติฐานการเกษียณ</b> —
             แก้อายุ/ผลตอบแทนที่ต้นทาง แล้วหน้านี้จะอัพเดตตามให้ทันที
           </div>
           <button
             onClick={handleResetToSource}
-            className="glass shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg border border-blue-300 text-blue-700 text-[12px] font-bold hover:bg-blue-100 transition"
+            className="glass shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg border border-blue-300 text-blue-700 text-[13px] font-bold hover:bg-blue-100 transition"
             title="กดเพื่อซิงก์กลับทันที (ถ้าเผลอแก้ในหน้านี้)"
           >
             <RotateCcw size={11} />
@@ -221,13 +221,13 @@ export default function CaretakerPage() {
 
           {/* Presets */}
           <div className="space-y-1.5">
-            <div className="text-[12px] text-gray-400">เลือกจาก preset:</div>
+            <div className="text-[13px] text-gray-400">เลือกจาก preset:</div>
             <div className="flex flex-wrap gap-1.5">
               {CAREGIVER_PRESETS.map((preset) => (
                 <button
                   key={preset.monthly}
                   onClick={() => store.updateCaretakerParam("monthlyRate", preset.monthly)}
-                  className={`px-2.5 py-1 rounded-full text-[12px] font-medium transition ${
+                  className={`px-2.5 py-1 rounded-full text-[13px] font-medium transition ${
                     p.monthlyRate === preset.monthly
                       ? "bg-pink-500 text-white"
                       : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -252,7 +252,7 @@ export default function CaretakerPage() {
                 <button
                   key={opt.rate}
                   onClick={() => store.updateCaretakerParam("inflationRate", opt.rate)}
-                  className={`flex-1 py-1.5 rounded-lg text-[12px] font-bold transition ${
+                  className={`flex-1 py-1.5 rounded-lg text-[13px] font-bold transition ${
                     Math.abs(p.inflationRate - opt.rate) < 0.0001
                       ? "bg-pink-500 text-white"
                       : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -274,7 +274,7 @@ export default function CaretakerPage() {
                 <button
                   key={prob}
                   onClick={() => store.updateCaretakerParam("probability", prob)}
-                  className={`flex-1 py-1.5 rounded-lg text-[12px] font-bold transition ${
+                  className={`flex-1 py-1.5 rounded-lg text-[13px] font-bold transition ${
                     Math.abs(p.probability - prob) < 0.0001
                       ? "bg-pink-500 text-white"
                       : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -284,7 +284,7 @@ export default function CaretakerPage() {
                 </button>
               ))}
             </div>
-            <div className="text-[11px] text-gray-400 mt-1">
+            <div className="text-[13px] text-gray-400 mt-1">
               ปรับลดหากมั่นใจว่าสุขภาพดี / มีครอบครัวช่วยดูแลบางส่วน
             </div>
           </div>
@@ -294,7 +294,7 @@ export default function CaretakerPage() {
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-bold text-gray-500">ผลตอบแทนหลังเกษียณ (discount)</span>
                 {isLinked.postRetireReturn && (
-                  <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">จากสมมติฐาน</span>
+                  <span className="text-[13px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">จากสมมติฐาน</span>
                 )}
               </div>
               <div className="flex items-center gap-1">
@@ -305,7 +305,7 @@ export default function CaretakerPage() {
                   onChange={(e) => store.updateCaretakerParam("postRetireReturn", Number(e.target.value) / 100)}
                   className="w-16 text-sm font-bold bg-gray-50 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-pink-400 text-right"
                 />
-                <span className="text-[12px] text-gray-400">%</span>
+                <span className="text-[13px] text-gray-400">%</span>
               </div>
             </div>
           </div>
@@ -315,7 +315,7 @@ export default function CaretakerPage() {
         <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl border-2 border-pink-200 p-4 space-y-3">
           <div className="text-xs font-bold text-pink-700">📊 ผลลัพธ์</div>
 
-          <div className="grid grid-cols-2 gap-2 text-[12px]">
+          <div className="grid grid-cols-2 gap-2 text-[13px]">
             <Stat label="จำนวนปีที่ต้องใช้" value={`${result.yearsNeeded} ปี`} />
             <Stat label="ค่าจ้าง/เดือน ณ เริ่มใช้" value={`฿${fmt(result.monthlyAtStart)}`} />
             <Stat label="รวมค่าใช้จ่ายทั้งหมด" value={`฿${fmt(result.totalCostFV)}`} sub={`(ไม่ discount)`} />
@@ -323,11 +323,11 @@ export default function CaretakerPage() {
           </div>
 
           <div className="glass rounded-xl p-4 border border-pink-200 text-center">
-            <div className="text-[12px] text-gray-500 font-medium">NPV ณ วันเกษียณ</div>
+            <div className="text-[13px] text-gray-500 font-medium">NPV ณ วันเกษียณ</div>
             <div className="text-2xl font-extrabold text-pink-700 mt-1">
               ฿{fmt(result.npvAtRetire)}
             </div>
-            <div className="text-[11px] text-gray-400 mt-1">
+            <div className="text-[13px] text-gray-400 mt-1">
               ใช้เป็นทุนสำรองในค่าใช้จ่ายพิเศษหลังเกษียณ
             </div>
           </div>
@@ -340,7 +340,7 @@ export default function CaretakerPage() {
               📋 รายละเอียดแต่ละปี ({result.rows.length} ปี)
             </summary>
             <div className="overflow-x-auto border-t border-gray-200">
-              <table className="w-full text-[12px]">
+              <table className="w-full text-[13px]">
                 <thead className="bg-gray-50">
                   <tr className="border-b border-gray-200">
                     <th className="text-center py-2 px-2 font-bold text-gray-600">อายุ</th>
@@ -401,7 +401,7 @@ export default function CaretakerPage() {
               </button>
             </div>
 
-            <div className="px-5 py-4 space-y-4 text-gray-700 text-[13px] leading-relaxed">
+            <div className="px-5 py-4 space-y-4 text-gray-700 text-[14px] leading-relaxed">
               <div className="bg-pink-50 border border-pink-200 rounded-xl p-3">
                 <div className="font-bold text-pink-700 text-xs mb-1">🎯 หลักคิด</div>
                 <div>สะสมค่าคนดูแลรายปีตั้งแต่ <b>อายุที่เริ่มใช้</b> ถึง <b>อายุขัย + ปีเผื่อ</b> แล้ว discount กลับมาที่ <b>วันเกษียณ</b></div>
@@ -480,7 +480,7 @@ function AgeRow({
           <span className="text-xs text-gray-700">{label}</span>
           {sourceLabel && (
             <span
-              className={`text-[11px] px-1.5 py-0.5 rounded-full font-medium ${
+              className={`text-[13px] px-1.5 py-0.5 rounded-full font-medium ${
                 isLinked ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"
               }`}
             >
@@ -488,7 +488,7 @@ function AgeRow({
             </span>
           )}
         </div>
-        {hint && <div className="text-[11px] text-gray-400 mt-0.5">{hint}</div>}
+        {hint && <div className="text-[13px] text-gray-400 mt-0.5">{hint}</div>}
       </div>
       <input
         type="number"
@@ -498,7 +498,7 @@ function AgeRow({
         onChange={(e) => onChange(Number(e.target.value) || 0)}
         className="w-20 text-sm font-bold bg-gray-50 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-pink-400 text-center"
       />
-      <span className="text-[12px] text-gray-400 w-6">{suffix}</span>
+      <span className="text-[13px] text-gray-400 w-6">{suffix}</span>
     </div>
   );
 }
@@ -506,9 +506,9 @@ function AgeRow({
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="bg-white/80 rounded-lg px-2.5 py-2">
-      <div className="text-gray-500 text-[11px]">{label}</div>
+      <div className="text-gray-500 text-[13px]">{label}</div>
       <div className="font-bold text-pink-700 text-xs mt-0.5">{value}</div>
-      {sub && <div className="text-[10px] text-gray-400">{sub}</div>}
+      {sub && <div className="text-[12px] text-gray-400">{sub}</div>}
     </div>
   );
 }
@@ -516,12 +516,12 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
     <div className="flex gap-2">
-      <div className="w-5 h-5 rounded-full bg-pink-500 text-white text-[12px] font-bold flex items-center justify-center shrink-0">
+      <div className="w-5 h-5 rounded-full bg-pink-500 text-white text-[13px] font-bold flex items-center justify-center shrink-0">
         {n}
       </div>
       <div className="flex-1">
-        <div className="font-bold text-gray-800 text-[13px]">{title}</div>
-        <div className="bg-gray-50 rounded px-2 py-1 mt-0.5 text-[12px]">{children}</div>
+        <div className="font-bold text-gray-800 text-[14px]">{title}</div>
+        <div className="bg-gray-50 rounded px-2 py-1 mt-0.5 text-[13px]">{children}</div>
       </div>
     </div>
   );

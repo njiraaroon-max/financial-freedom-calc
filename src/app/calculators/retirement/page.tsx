@@ -91,9 +91,9 @@ export default function RetirementHubPage() {
                     <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shadow-sm ring-2 ring-offset-2 transition-all ${baseColor} ${ringColor}`}>
                       {step.done ? <Check size={16} /> : step.n}
                     </div>
-                    <div className="text-[12px] font-bold text-gray-700 mt-1.5 text-center leading-tight">Step {step.n}</div>
-                    <div className="text-[11px] font-bold text-gray-500 text-center">{step.label}</div>
-                    <div className="text-[10px] text-gray-400 text-center">{step.sub}</div>
+                    <div className="text-[13px] font-bold text-gray-700 mt-1.5 text-center leading-tight">Step {step.n}</div>
+                    <div className="text-[13px] font-bold text-gray-500 text-center">{step.label}</div>
+                    <div className="text-[12px] text-gray-400 text-center">{step.sub}</div>
                   </button>
                   {i < 2 && <div className={`flex-1 h-0.5 mt-[18px] ${step.done ? "bg-emerald-300" : "bg-gray-200"}`} />}
                 </React.Fragment>
@@ -120,8 +120,8 @@ export default function RetirementHubPage() {
             )}
           </div>
           <div className="flex-1">
-            <div className={`text-[14px] font-bold ${assumptionsDone ? "text-emerald-700" : "text-gray-700"}`}>สมมติฐาน</div>
-            <div className="text-[12px] text-gray-400">อัตราเงินเฟ้อ ผลตอบแทน อายุขัย ฯลฯ</div>
+            <div className={`text-[15px] font-bold ${assumptionsDone ? "text-emerald-700" : "text-gray-700"}`}>สมมติฐาน</div>
+            <div className="text-[13px] text-gray-400">อัตราเงินเฟ้อ ผลตอบแทน อายุขัย ฯลฯ</div>
           </div>
           <ChevronRight size={18} className="text-gray-400 shrink-0" />
         </Link>
@@ -132,16 +132,16 @@ export default function RetirementHubPage() {
         <div className="glass rounded-2xl">
           <button onClick={() => toggleStep(1)} className="w-full p-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[12px] font-bold ${step1Done ? "bg-emerald-500 text-white" : "bg-[#1e3a5f] text-white"}`}>
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[13px] font-bold ${step1Done ? "bg-emerald-500 text-white" : "bg-[#1e3a5f] text-white"}`}>
                 {step1Done ? <Check size={14} /> : "1"}
               </div>
               <div className="flex items-baseline gap-2 flex-wrap text-left">
                 <span className={`text-sm font-bold ${step1Done ? "text-emerald-600" : "text-gray-700"}`}>Step 1 · Retirement Funds</span>
-                <span className="text-[13px] text-gray-500">หาทุนเกษียณที่ต้องการ</span>
+                <span className="text-[14px] text-gray-500">หาทุนเกษียณที่ต้องการ</span>
               </div>
             </div>
             <div className="flex items-center gap-1 shrink-0">
-              {!openSteps[1] && <span className="text-[12px] font-bold text-gray-400">ดูรายละเอียด</span>}
+              {!openSteps[1] && <span className="text-[13px] font-bold text-gray-400">ดูรายละเอียด</span>}
               <ChevronDown size={16} className={`text-gray-400 transition-transform ${openSteps[1] ? "rotate-180" : ""}`} />
             </div>
           </button>
@@ -167,8 +167,8 @@ export default function RetirementHubPage() {
                           </div>
                         )}
                       </div>
-                      <div className={`text-[13px] font-bold ${done ? "text-emerald-700" : "text-gray-700"}`}>{card.name}</div>
-                      <div className="text-[11px] text-gray-400 mt-0.5 leading-tight">{card.desc}</div>
+                      <div className={`text-[14px] font-bold ${done ? "text-emerald-700" : "text-gray-700"}`}>{card.name}</div>
+                      <div className="text-[13px] text-gray-400 mt-0.5 leading-tight">{card.desc}</div>
                     </Link>
                   );
                 })}
@@ -183,16 +183,16 @@ export default function RetirementHubPage() {
         <div className="glass rounded-2xl">
           <button onClick={() => toggleStep(2)} className="w-full p-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[12px] font-bold ${step2Done ? "bg-emerald-500 text-white" : "bg-[#1e3a5f] text-white"}`}>
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[13px] font-bold ${step2Done ? "bg-emerald-500 text-white" : "bg-[#1e3a5f] text-white"}`}>
                 {step2Done ? <Check size={14} /> : "2"}
               </div>
               <div className="flex items-baseline gap-2 flex-wrap text-left">
                 <span className={`text-sm font-bold ${step2Done ? "text-emerald-600" : "text-gray-700"}`}>Step 2 · Saving Funds</span>
-                <span className="text-[13px] text-gray-500">แหล่งเงินทุนเพื่อการเกษียณ</span>
+                <span className="text-[14px] text-gray-500">แหล่งเงินทุนเพื่อการเกษียณ</span>
               </div>
             </div>
             <div className="flex items-center gap-1 shrink-0">
-              {!openSteps[2] && <span className="text-[12px] font-bold text-gray-400">ดูรายละเอียด</span>}
+              {!openSteps[2] && <span className="text-[13px] font-bold text-gray-400">ดูรายละเอียด</span>}
               <ChevronDown size={16} className={`text-gray-400 transition-transform ${openSteps[2] ? "rotate-180" : ""}`} />
             </div>
           </button>
@@ -208,8 +208,8 @@ export default function RetirementHubPage() {
                       <div className="w-10 h-10 bg-gray-300 rounded-lg flex items-center justify-center mx-auto mb-2">
                         <Icon size={18} className="text-white" />
                       </div>
-                      <div className="text-[13px] font-bold text-gray-400">{card.name}</div>
-                      <div className="text-[11px] text-gray-400 mt-0.5">เร็วๆ นี้</div>
+                      <div className="text-[14px] font-bold text-gray-400">{card.name}</div>
+                      <div className="text-[13px] text-gray-400 mt-0.5">เร็วๆ นี้</div>
                     </div>
                   ) : (
                     <Link
@@ -227,8 +227,8 @@ export default function RetirementHubPage() {
                           </div>
                         )}
                       </div>
-                      <div className={`text-[13px] font-bold ${done ? "text-emerald-700" : "text-gray-700"}`}>{card.name}</div>
-                      <div className="text-[11px] text-gray-400 mt-0.5 leading-tight">{card.desc}</div>
+                      <div className={`text-[14px] font-bold ${done ? "text-emerald-700" : "text-gray-700"}`}>{card.name}</div>
+                      <div className="text-[13px] text-gray-400 mt-0.5 leading-tight">{card.desc}</div>
                     </Link>
                   );
                 })}
@@ -243,16 +243,16 @@ export default function RetirementHubPage() {
         <div className="glass rounded-2xl">
           <button onClick={() => toggleStep(3)} className="w-full p-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[12px] font-bold ${step3Done ? "bg-emerald-500 text-white" : canCalculate ? "bg-[#1e3a5f] text-white" : "bg-gray-300 text-gray-500"}`}>
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[13px] font-bold ${step3Done ? "bg-emerald-500 text-white" : canCalculate ? "bg-[#1e3a5f] text-white" : "bg-gray-300 text-gray-500"}`}>
                 {step3Done ? <Check size={14} /> : "3"}
               </div>
               <div className="flex items-baseline gap-2 flex-wrap text-left">
                 <span className={`text-sm font-bold ${step3Done ? "text-emerald-600" : canCalculate ? "text-gray-700" : "text-gray-400"}`}>Step 3 · Shortage or Gap + Saving Plan</span>
-                <span className="text-[13px] text-gray-500">ส่วนที่ขาด และแผนการออม</span>
+                <span className="text-[14px] text-gray-500">ส่วนที่ขาด และแผนการออม</span>
               </div>
             </div>
             <div className="flex items-center gap-1 shrink-0">
-              {!openSteps[3] && <span className="text-[12px] font-bold text-gray-400">ดูรายละเอียด</span>}
+              {!openSteps[3] && <span className="text-[13px] font-bold text-gray-400">ดูรายละเอียด</span>}
               <ChevronDown size={16} className={`text-gray-400 transition-transform ${openSteps[3] ? "rotate-180" : ""}`} />
             </div>
           </button>
@@ -275,16 +275,16 @@ export default function RetirementHubPage() {
                   </div>
                 )}
               </div>
-              <div className={`text-[13px] font-bold ${planDone ? "text-emerald-700" : "text-gray-700"}`}>คำนวณแผนเกษียณ</div>
-              <div className="text-[11px] text-gray-400 mt-0.5 leading-tight">ทุนเกษียณ − แหล่งเงิน = ส่วนที่ขาด</div>
+              <div className={`text-[14px] font-bold ${planDone ? "text-emerald-700" : "text-gray-700"}`}>คำนวณแผนเกษียณ</div>
+              <div className="text-[13px] text-gray-400 mt-0.5 leading-tight">ทุนเกษียณ − แหล่งเงิน = ส่วนที่ขาด</div>
             </Link>
           ) : (
             <div className="p-3 bg-white/60 rounded-xl border border-gray-200 opacity-50 text-center">
               <div className="w-10 h-10 bg-gray-300 rounded-lg flex items-center justify-center mx-auto mb-2">
                 <Lock size={16} className="text-white" />
               </div>
-              <div className="text-[13px] font-bold text-gray-400">คำนวณแผนเกษียณ</div>
-              <div className="text-[11px] text-gray-400 mt-0.5 leading-tight">ทำ Step 1 + 2 ก่อน</div>
+              <div className="text-[14px] font-bold text-gray-400">คำนวณแผนเกษียณ</div>
+              <div className="text-[13px] text-gray-400 mt-0.5 leading-tight">ทำ Step 1 + 2 ก่อน</div>
             </div>
           )}
 
@@ -304,16 +304,16 @@ export default function RetirementHubPage() {
                   </div>
                 )}
               </div>
-              <div className={`text-[13px] font-bold ${isCompleted("investment_plan") ? "text-emerald-700" : "text-gray-700"}`}>วางแผนการออม/ลงทุน</div>
-              <div className="text-[11px] text-gray-400 mt-0.5 leading-tight">เงินออมต่อเดือน & ผลตอบแทน</div>
+              <div className={`text-[14px] font-bold ${isCompleted("investment_plan") ? "text-emerald-700" : "text-gray-700"}`}>วางแผนการออม/ลงทุน</div>
+              <div className="text-[13px] text-gray-400 mt-0.5 leading-tight">เงินออมต่อเดือน & ผลตอบแทน</div>
             </Link>
           ) : (
             <div className="p-3 bg-white/60 rounded-xl border border-gray-200 opacity-50 text-center">
               <div className="w-10 h-10 bg-gray-300 rounded-lg flex items-center justify-center mx-auto mb-2">
                 <Lock size={16} className="text-white" />
               </div>
-              <div className="text-[13px] font-bold text-gray-400">วางแผนการออม/ลงทุน</div>
-              <div className="text-[11px] text-gray-400 mt-0.5 leading-tight">คำนวณแผนเกษียณก่อน</div>
+              <div className="text-[14px] font-bold text-gray-400">วางแผนการออม/ลงทุน</div>
+              <div className="text-[13px] text-gray-400 mt-0.5 leading-tight">คำนวณแผนเกษียณก่อน</div>
             </div>
           )}
               </div>
@@ -332,11 +332,11 @@ export default function RetirementHubPage() {
               </div>
               <div className="flex items-baseline gap-2 flex-wrap text-left">
                 <span className="text-sm font-bold text-gray-700">บทสรุป Cashflow หลังวางแผนเกษียณ</span>
-                <span className="text-[11px] bg-amber-400 text-[#0B1E3F] font-bold px-1.5 py-0.5 rounded-full">NEW</span>
+                <span className="text-[13px] bg-amber-400 text-[#0B1E3F] font-bold px-1.5 py-0.5 rounded-full">NEW</span>
               </div>
             </div>
             <div className="flex items-center gap-1 shrink-0">
-              {!openSteps[4] && <span className="text-[12px] font-bold text-gray-400">ดูรายละเอียด</span>}
+              {!openSteps[4] && <span className="text-[13px] font-bold text-gray-400">ดูรายละเอียด</span>}
               <ChevronDown size={16} className={`text-gray-400 transition-transform ${openSteps[4] ? "rotate-180" : ""}`} />
             </div>
           </button>
@@ -352,7 +352,7 @@ export default function RetirementHubPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-bold text-white">เส้นทางสินทรัพย์ตลอดชีวิต</div>
-                    <div className="text-[12px] text-blue-100/80 mt-0.5 leading-tight">ดูกราฟสินทรัพย์ก่อน-หลังเกษียณ • Base/Bad/Good • Monte Carlo</div>
+                    <div className="text-[13px] text-blue-100/80 mt-0.5 leading-tight">ดูกราฟสินทรัพย์ก่อน-หลังเกษียณ • Base/Bad/Good • Monte Carlo</div>
                   </div>
                   <ChevronRight size={18} className="text-white/70 group-hover:translate-x-0.5 transition" />
                 </div>

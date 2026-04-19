@@ -41,7 +41,7 @@ export default function PieChart({ title, slices, size = 130 }: PieChartProps) {
   if (total === 0) {
     return (
       <div className="flex flex-col items-center">
-        <div className="text-[13px] font-bold text-gray-600 mb-2">{title}</div>
+        <div className="text-[14px] font-bold text-gray-600 mb-2">{title}</div>
         <svg width={size} height={size} viewBox="0 0 100 100">
           <circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" strokeWidth="20" />
           <text x="50" y="52" textAnchor="middle" dominantBaseline="middle" fill="#9ca3af" fontSize="10">
@@ -94,7 +94,7 @@ export default function PieChart({ title, slices, size = 130 }: PieChartProps) {
 
   return (
     <div className="flex flex-col items-center">
-      <div className="text-[13px] font-bold text-gray-600 mb-2">{title}</div>
+      <div className="text-[14px] font-bold text-gray-600 mb-2">{title}</div>
       <svg width={size} height={size} viewBox="0 0 100 100">
         {paths.map((p, i) => (
           <path key={i} d={p.path} fill={p.color} stroke="white" strokeWidth="0.5" />
@@ -119,8 +119,8 @@ export default function PieChart({ title, slices, size = 130 }: PieChartProps) {
                 className="w-2 h-2 rounded-sm shrink-0"
                 style={{ backgroundColor: s.color }}
               />
-              <span className="text-[11px] text-gray-600 truncate flex-1">{s.label}</span>
-              <span className="text-[11px] text-gray-700 whitespace-nowrap">
+              <span className="text-[13px] text-gray-600 truncate flex-1">{s.label}</span>
+              <span className="text-[13px] text-gray-700 whitespace-nowrap">
                 <span className="font-bold">{total > 0 ? ((s.value / total) * 100).toFixed(0) : 0}%</span>
                 {s.commonRatio !== undefined && (
                   <span className="text-gray-400 ml-0.5">(CR:{s.commonRatio.toFixed(0)}%)</span>
@@ -129,7 +129,7 @@ export default function PieChart({ title, slices, size = 130 }: PieChartProps) {
             </div>
           ))}
         {sorted.length > 6 && (
-          <div className="text-[10px] text-gray-400 text-center mt-0.5">
+          <div className="text-[12px] text-gray-400 text-center mt-0.5">
             +{sorted.length - 6} รายการ
           </div>
         )}

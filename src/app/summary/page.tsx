@@ -187,9 +187,9 @@ export default function SummaryPage() {
               <FileText size={20} className="text-[#c9b99b]" />
             </div>
             <div>
-              <div className="text-[11px] tracking-[0.3em] text-[#c9b99b] font-semibold">HOLISTIC REPORT</div>
+              <div className="text-[13px] tracking-[0.3em] text-[#c9b99b] font-semibold">HOLISTIC REPORT</div>
               <div className="text-sm font-bold">สร้างรายงานสรุปแผนการเงินองค์รวม</div>
-              <div className="text-[12px] opacity-70 mt-0.5">พร้อม Action Plan แบบ personalize · print-ready</div>
+              <div className="text-[13px] opacity-70 mt-0.5">พร้อม Action Plan แบบ personalize · print-ready</div>
             </div>
           </div>
           <div className="text-[#c9b99b] text-lg shrink-0">›</div>
@@ -273,7 +273,7 @@ export default function SummaryPage() {
                     onClick={() => g.has && setSelectedGauge(i)}
                     className={`${g.has ? "cursor-pointer hover:bg-indigo-50 hover:border-indigo-300 hover:shadow-md active:scale-[0.96]" : "opacity-30 cursor-default"} rounded-xl p-2 border border-gray-100 transition-all`}
                   >
-                    <div className="text-[11px] md:text-[12px] font-bold text-gray-600 text-center mb-1">{g.desc}</div>
+                    <div className="text-[13px] md:text-[13px] font-bold text-gray-600 text-center mb-1">{g.desc}</div>
                     <GaugeChart
                       value={g.gaugeVal}
                       displayValue={g.val}
@@ -304,7 +304,7 @@ export default function SummaryPage() {
                         {statusIcon}
                         <div>
                           <div className="text-sm font-bold text-gray-700">{g.desc}</div>
-                          <div className="text-[12px] text-gray-400">{g.label}</div>
+                          <div className="text-[13px] text-gray-400">{g.label}</div>
                         </div>
                       </div>
 
@@ -334,8 +334,8 @@ export default function SummaryPage() {
 
                       {/* Formula */}
                       <div className="bg-gray-50 rounded-xl p-3 mb-4">
-                        <div className="text-[12px] font-bold text-gray-500 mb-1">📊 สูตรคำนวณ</div>
-                        <div className="text-[13px] text-gray-600 whitespace-pre-line font-mono">{g.formula}</div>
+                        <div className="text-[13px] font-bold text-gray-500 mb-1">📊 สูตรคำนวณ</div>
+                        <div className="text-[14px] text-gray-600 whitespace-pre-line font-mono">{g.formula}</div>
                       </div>
 
                       {/* Close */}
@@ -365,15 +365,15 @@ export default function SummaryPage() {
 
             <div className="grid grid-cols-3 gap-2 text-center mb-3">
               <div className="bg-emerald-50 rounded-xl p-2">
-                <div className="text-[11px] text-gray-500">รายรับ</div>
+                <div className="text-[13px] text-gray-500">รายรับ</div>
                 <div className="text-xs font-bold text-emerald-700">฿{fmtM(annualIncome)}</div>
               </div>
               <div className="bg-red-50 rounded-xl p-2">
-                <div className="text-[11px] text-gray-500">รายจ่าย</div>
+                <div className="text-[13px] text-gray-500">รายจ่าย</div>
                 <div className="text-xs font-bold text-red-600">฿{fmtM(annualExpense)}</div>
               </div>
               <div className={`rounded-xl p-2 ${netCashFlow >= 0 ? "bg-emerald-50" : "bg-red-50"}`}>
-                <div className="text-[11px] text-gray-500">คงเหลือ</div>
+                <div className="text-[13px] text-gray-500">คงเหลือ</div>
                 <div className={`text-xs font-bold ${netCashFlow >= 0 ? "text-emerald-700" : "text-red-600"}`}>฿{fmtM(netCashFlow)}</div>
               </div>
             </div>
@@ -387,7 +387,7 @@ export default function SummaryPage() {
                   { name: "ออม/ลงทุน", value: expenseSaving, color: expenseColors[2] },
                 ], 100)}
               </div>
-              <div className="text-[12px] space-y-1">
+              <div className="text-[13px] space-y-1">
                 <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-red-500" /> คงที่ ฿{fmtM(expenseFixed)}</div>
                 <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-orange-500" /> ผันแปร ฿{fmtM(expenseVariable)}</div>
                 <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-amber-500" /> ออม/ลงทุน ฿{fmtM(expenseSaving)}</div>
@@ -403,17 +403,17 @@ export default function SummaryPage() {
             </div>
 
             <div className={`rounded-xl p-3 text-white mb-3 ${netWorth >= 0 ? "bg-gradient-to-r from-emerald-500 to-teal-600" : "bg-gradient-to-r from-red-500 to-rose-600"}`}>
-              <div className="text-[12px] opacity-80">ความมั่งคั่งสุทธิ (Net Worth)</div>
+              <div className="text-[13px] opacity-80">ความมั่งคั่งสุทธิ (Net Worth)</div>
               <div className="text-xl font-extrabold">฿{fmt(netWorth)}</div>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div className="bg-emerald-50 rounded-xl p-2.5">
-                <div className="text-[11px] text-gray-500">สินทรัพย์รวม</div>
+                <div className="text-[13px] text-gray-500">สินทรัพย์รวม</div>
                 <div className="text-xs font-bold text-emerald-700">฿{fmt(totalAssets)}</div>
               </div>
               <div className="bg-red-50 rounded-xl p-2.5">
-                <div className="text-[11px] text-gray-500">หนี้สินรวม</div>
+                <div className="text-[13px] text-gray-500">หนี้สินรวม</div>
                 <div className="text-xs font-bold text-red-600">฿{fmt(totalLiabilities)}</div>
               </div>
             </div>
@@ -431,14 +431,14 @@ export default function SummaryPage() {
             </div>
 
             <div className={`rounded-xl p-3 text-white text-center ${efMonths >= 6 ? "bg-gradient-to-r from-emerald-500 to-teal-600" : efMonths >= 3 ? "bg-gradient-to-r from-amber-500 to-orange-500" : "bg-gradient-to-r from-red-500 to-rose-600"}`}>
-              <div className="text-[12px] opacity-80">สำรองได้</div>
+              <div className="text-[13px] opacity-80">สำรองได้</div>
               <div className="text-2xl font-extrabold">{efMonths.toFixed(1)} เดือน</div>
-              <div className="text-[12px] opacity-70">สภาพคล่อง ฿{fmt(liquidAssets)} / รายจ่ายจำเป็น ฿{fmt(monthlyEssential)}/เดือน</div>
+              <div className="text-[13px] opacity-70">สภาพคล่อง ฿{fmt(liquidAssets)} / รายจ่ายจำเป็น ฿{fmt(monthlyEssential)}/เดือน</div>
             </div>
 
             {/* Progress bar */}
             <div className="mt-3">
-              <div className="flex justify-between text-[11px] text-gray-400 mb-1">
+              <div className="flex justify-between text-[13px] text-gray-400 mb-1">
                 <span>0</span><span>3 เดือน</span><span>6 เดือน</span><span>12 เดือน</span>
               </div>
               <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
@@ -461,23 +461,23 @@ export default function SummaryPage() {
             <div className="flex items-center mb-3">
               <div className="flex flex-col items-center" style={{ width: 44, flexShrink: 0 }}>
                 <img src="/icons/working.png" alt="ทำงาน" width={32} height={32} />
-                <span className="text-[10px] text-gray-500 mt-0.5">ปัจจุบัน</span>
+                <span className="text-[12px] text-gray-500 mt-0.5">ปัจจุบัน</span>
               </div>
               <div style={{ flex: yearsToRetire }} className="relative mx-1">
                 <div className="border-t-2 border-dashed border-[#1e3a5f]" />
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[11px] font-bold text-[#1e3a5f] bg-white px-1">{yearsToRetire} ปี</div>
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[13px] font-bold text-[#1e3a5f] bg-white px-1">{yearsToRetire} ปี</div>
               </div>
               <div className="flex flex-col items-center" style={{ width: 44, flexShrink: 0 }}>
                 <img src="/icons/retired.png" alt="เกษียณ" width={28} height={28} />
-                <span className="text-[10px] text-[#1e3a5f] font-bold mt-0.5">เกษียณ</span>
+                <span className="text-[12px] text-[#1e3a5f] font-bold mt-0.5">เกษียณ</span>
               </div>
               <div style={{ flex: yearsAfterRetire }} className="relative mx-1">
                 <div className="border-t-2 border-dashed border-gray-400" />
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[11px] font-bold text-gray-500 bg-white px-1">{yearsAfterRetire} ปี</div>
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[13px] font-bold text-gray-500 bg-white px-1">{yearsAfterRetire} ปี</div>
               </div>
               <div className="flex flex-col items-center" style={{ width: 44, flexShrink: 0 }}>
                 <img src="/icons/bed.svg" alt="อายุขัย" width={28} height={28} className="opacity-50" />
-                <span className="text-[10px] text-gray-500 mt-0.5">อายุขัย</span>
+                <span className="text-[12px] text-gray-500 mt-0.5">อายุขัย</span>
               </div>
             </div>
 
@@ -502,37 +502,37 @@ export default function SummaryPage() {
           {/* Circle Diagram */}
           <div className="flex items-center justify-center gap-2 mb-2">
             <div className="w-[80px] h-[80px] md:w-[90px] md:h-[90px] rounded-full bg-[#1e3a5f] flex flex-col items-center justify-center text-white shrink-0">
-              <div className="text-[9px] opacity-80">ค่าใช้จ่าย</div>
-              <div className="text-[11px] font-extrabold text-amber-300">พื้นฐาน</div>
-              <div className="text-[10px] font-bold mt-0.5">฿{fmtM(basicRetireFund)}</div>
+              <div className="text-[11px] opacity-80">ค่าใช้จ่าย</div>
+              <div className="text-[13px] font-extrabold text-amber-300">พื้นฐาน</div>
+              <div className="text-[12px] font-bold mt-0.5">฿{fmtM(basicRetireFund)}</div>
             </div>
             <span className="text-gray-400 font-bold text-sm">+</span>
             <div className="w-[80px] h-[80px] md:w-[90px] md:h-[90px] rounded-full bg-[#8b2020] flex flex-col items-center justify-center text-white shrink-0">
-              <div className="text-[9px] opacity-80">ค่าใช้จ่าย</div>
-              <div className="text-[11px] font-extrabold text-amber-300">พิเศษ</div>
-              <div className="text-[10px] font-bold mt-0.5">฿{fmtM(totalSpecialFV)}</div>
+              <div className="text-[11px] opacity-80">ค่าใช้จ่าย</div>
+              <div className="text-[13px] font-extrabold text-amber-300">พิเศษ</div>
+              <div className="text-[12px] font-bold mt-0.5">฿{fmtM(totalSpecialFV)}</div>
             </div>
             <span className="text-gray-400 font-bold text-sm">=</span>
             <div className="w-[80px] h-[80px] md:w-[90px] md:h-[90px] rounded-full bg-amber-400 flex flex-col items-center justify-center shrink-0">
-              <div className="text-[9px] text-[#1e3a5f] font-bold">ทุนเกษียณ</div>
-              <div className="text-[11px] font-extrabold text-[#1e3a5f]">฿{fmtM(totalRetireFund)}</div>
+              <div className="text-[11px] text-[#1e3a5f] font-bold">ทุนเกษียณ</div>
+              <div className="text-[13px] font-extrabold text-[#1e3a5f]">฿{fmtM(totalRetireFund)}</div>
             </div>
           </div>
 
           {/* Result */}
           <div className="flex items-center justify-center gap-3 mb-3">
             <div className="bg-amber-400 rounded-lg px-3 py-2 text-center">
-              <div className="text-[10px] text-[#1e3a5f] font-bold">ทุนเกษียณ</div>
-              <div className="text-[12px] font-extrabold text-[#1e3a5f]">฿{fmtM(totalRetireFund)}</div>
+              <div className="text-[12px] text-[#1e3a5f] font-bold">ทุนเกษียณ</div>
+              <div className="text-[13px] font-extrabold text-[#1e3a5f]">฿{fmtM(totalRetireFund)}</div>
             </div>
             <span className="text-red-400 font-extrabold">−</span>
             <div className="w-[70px] h-[70px] rounded-full bg-emerald-500 flex flex-col items-center justify-center text-white">
-              <div className="text-[9px] opacity-80">แหล่งเงินทุน</div>
-              <div className="text-[10px] font-bold">฿{fmtM(totalSavingFund)}</div>
+              <div className="text-[11px] opacity-80">แหล่งเงินทุน</div>
+              <div className="text-[12px] font-bold">฿{fmtM(totalSavingFund)}</div>
             </div>
             <span className="text-gray-400 font-bold">=</span>
             <div className={`rounded-xl px-3 py-2 text-center text-white ${shortage <= 0 ? "bg-emerald-600" : "bg-red-500"}`}>
-              <div className="text-[10px] opacity-80">{shortage <= 0 ? "เพียงพอ!" : "ต้องเตรียมเพิ่ม"}</div>
+              <div className="text-[12px] opacity-80">{shortage <= 0 ? "เพียงพอ!" : "ต้องเตรียมเพิ่ม"}</div>
               <div className="text-sm font-extrabold">฿{fmtM(Math.abs(shortage))}</div>
             </div>
           </div>
@@ -549,7 +549,7 @@ export default function SummaryPage() {
             {/* Summary table */}
             <div className="rounded-2xl border border-gray-200 overflow-hidden mb-4">
               <div className="overflow-x-auto">
-                <table className="w-full text-[12px] md:text-xs border-collapse">
+                <table className="w-full text-[13px] md:text-xs border-collapse">
                   <thead>
                     <tr className="bg-[#1e3a5f] text-white">
                       <th className="px-3 py-2 text-left sticky left-0 bg-[#1e3a5f] z-10 font-bold">รายการ</th>
@@ -585,15 +585,15 @@ export default function SummaryPage() {
             {/* 3 Scenario results */}
             <div className="grid grid-cols-3 gap-2 text-center">
               <div className="bg-orange-50 rounded-xl p-2.5">
-                <div className="text-[11px] text-gray-500">Bad Case</div>
+                <div className="text-[13px] text-gray-500">Bad Case</div>
                 <div className="text-xs font-bold text-orange-600">฿{fmtM(badAtRetire)}</div>
               </div>
               <div className="bg-indigo-50 rounded-xl p-2.5 ring-1 ring-indigo-200">
-                <div className="text-[11px] text-gray-500">Base Case</div>
+                <div className="text-[13px] text-gray-500">Base Case</div>
                 <div className="text-sm font-extrabold text-indigo-700">฿{fmtM(investAtRetire)}</div>
               </div>
               <div className="bg-emerald-50 rounded-xl p-2.5">
-                <div className="text-[11px] text-gray-500">Good Case</div>
+                <div className="text-[13px] text-gray-500">Good Case</div>
                 <div className="text-xs font-bold text-emerald-600">฿{fmtM(goodAtRetire)}</div>
               </div>
             </div>

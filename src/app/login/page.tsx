@@ -96,7 +96,7 @@ function LoginForm() {
               </label>
               <Link
                 href="/forgot-password"
-                className="text-[13px] text-indigo-600 hover:text-indigo-700 font-medium"
+                className="text-[14px] text-indigo-600 hover:text-indigo-700 font-medium"
               >
                 ลืมรหัสผ่าน?
               </Link>

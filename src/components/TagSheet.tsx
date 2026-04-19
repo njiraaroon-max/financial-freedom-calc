@@ -208,7 +208,7 @@ export default function TagSheet({
         {/* Header — editable name */}
         <div className="flex items-start justify-between mb-4 gap-2">
           <div className="flex-1 min-w-0">
-            <div className="text-[12px] uppercase tracking-wide text-gray-400 mb-1">
+            <div className="text-[13px] uppercase tracking-wide text-gray-400 mb-1">
               {isIncome ? "รายรับ" : "รายจ่าย"}
             </div>
             <input
@@ -244,7 +244,7 @@ export default function TagSheet({
                       onSetIncomeTaxCategory?.(item.id, c.value)
                     }
                     title={c.description}
-                    className={`px-2 py-2 rounded-lg border text-[13px] font-semibold transition text-center ${
+                    className={`px-2 py-2 rounded-lg border text-[14px] font-semibold transition text-center ${
                       selected
                         ? "bg-indigo-500 text-white border-indigo-500 shadow-sm"
                         : "bg-white/60 border-gray-200 text-gray-600 hover:bg-white"
@@ -348,7 +348,7 @@ export default function TagSheet({
           {/* Amount + Apply */}
           <div className="mt-3 flex items-end gap-2">
             <div className="flex-1">
-              <label className="text-[13px] text-gray-500 mb-1 block">
+              <label className="text-[14px] text-gray-500 mb-1 block">
                 จำนวนต่อเดือน (บาท)
               </label>
               <FormulaInput
@@ -370,7 +370,7 @@ export default function TagSheet({
 
           {/* Preview row — tiny 12-cell strip */}
           <div className="mt-3 bg-white/50 rounded-lg p-2 border border-gray-200">
-            <div className="text-[12px] text-gray-500 mb-1">ตัวอย่างหลังใช้</div>
+            <div className="text-[13px] text-gray-500 mb-1">ตัวอย่างหลังใช้</div>
             <div className="grid grid-cols-12 gap-0.5">
               {Array.from({ length: 12 }, (_, i) => {
                 const inRange = isRecurring
@@ -379,7 +379,7 @@ export default function TagSheet({
                 return (
                   <div
                     key={i}
-                    className={`h-8 flex flex-col items-center justify-center rounded text-[11px] ${
+                    className={`h-8 flex flex-col items-center justify-center rounded text-[13px] ${
                       inRange
                         ? isIncome
                           ? "bg-emerald-100 text-emerald-800"
@@ -438,7 +438,7 @@ export default function TagSheet({
               })}
             </div>
             {salaryPct != null && (
-              <div className="text-[13px] text-indigo-600 mt-2">
+              <div className="text-[14px] text-indigo-600 mt-2">
                 ✓ ผูกที่ {salaryPct}% แล้ว — ยอดจะอัปเดตเองเมื่อเงินได้เปลี่ยน
               </div>
             )}
@@ -500,7 +500,7 @@ function Section({
         <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide">
           {title}
         </h4>
-        {hint && <span className="text-[12px] text-gray-400">{hint}</span>}
+        {hint && <span className="text-[13px] text-gray-400">{hint}</span>}
       </div>
       {children}
     </div>
@@ -536,7 +536,7 @@ function ToggleRow({
           {label}
         </div>
         {hint && (
-          <div className="text-[12px] text-gray-500 truncate">{hint}</div>
+          <div className="text-[13px] text-gray-500 truncate">{hint}</div>
         )}
       </div>
       <span
@@ -584,7 +584,7 @@ function MonthSelect({
 }) {
   return (
     <div>
-      <label className="text-[13px] text-gray-500 mb-1 block">{label}</label>
+      <label className="text-[14px] text-gray-500 mb-1 block">{label}</label>
       <select
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}

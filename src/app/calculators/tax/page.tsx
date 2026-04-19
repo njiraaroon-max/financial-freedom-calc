@@ -98,7 +98,7 @@ function HintIcon({ text }: { text: string }) {
         createPortal(
           <div
             ref={popRef}
-            className="fixed z-[1000] bg-slate-800 text-white text-[12px] leading-relaxed rounded-lg shadow-xl p-2.5 w-64 whitespace-pre-line"
+            className="fixed z-[1000] bg-slate-800 text-white text-[13px] leading-relaxed rounded-lg shadow-xl p-2.5 w-64 whitespace-pre-line"
             style={{ left: pos.left, top: pos.top }}
           >
             {text}
@@ -351,7 +351,7 @@ export default function TaxPage() {
     >
       <div className="text-left">
         <div className="text-sm font-bold">{title}</div>
-        {subtitle && <div className="text-[12px] opacity-60 mt-0.5">{subtitle}</div>}
+        {subtitle && <div className="text-[13px] opacity-60 mt-0.5">{subtitle}</div>}
       </div>
       <div className="shrink-0 ml-2">
         {openSections.has(id) ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
@@ -481,7 +481,7 @@ export default function TaxPage() {
           {openSections.has("deduction") && (
             <div className="bg-white p-4">
               {/* Header row */}
-              <div className="flex items-center gap-2 mb-3 text-[12px] font-bold text-gray-500">
+              <div className="flex items-center gap-2 mb-3 text-[13px] font-bold text-gray-500">
                 <div className="flex-1">รายการ</div>
                 <div className="w-32 text-center">Before</div>
                 <div className="w-32 text-center">After</div>
@@ -536,7 +536,7 @@ export default function TaxPage() {
                     {/* Retirement group progress — only for group 2 */}
                     {group === 2 && retireItems.length > 0 && (
                       <div className="mb-3 bg-indigo-50 rounded-lg p-2.5 border border-indigo-100">
-                        <div className="flex items-center justify-between text-[12px] mb-1">
+                        <div className="flex items-center justify-between text-[13px] mb-1">
                           <span className="font-semibold text-indigo-700">การออมเพื่อเกษียณ (รวม)</span>
                           <span className={`font-bold ${retireOver ? "text-red-600" : "text-indigo-700"}`}>
                             {fmt(retireMax)} / {fmt(RETIREMENT_SAVINGS_CAP)}
@@ -549,7 +549,7 @@ export default function TaxPage() {
                           />
                         </div>
                         {retireOver && (
-                          <div className="text-[12px] text-red-600 mt-1">⚠️ เกินเพดานกลุ่ม 500,000 บาท</div>
+                          <div className="text-[13px] text-red-600 mt-1">⚠️ เกินเพดานกลุ่ม 500,000 บาท</div>
                         )}
                       </div>
                     )}
@@ -563,7 +563,7 @@ export default function TaxPage() {
                               <div className="text-sm text-gray-700 flex items-center gap-1">
                                 <span className="truncate">{d.name}</span>
                                 {d.multiplier && d.multiplier > 1 && (
-                                  <span className="text-[12px] text-violet-500 shrink-0">×{d.multiplier}</span>
+                                  <span className="text-[13px] text-violet-500 shrink-0">×{d.multiplier}</span>
                                 )}
                                 {hintText && <HintIcon text={hintText} />}
                               </div>
@@ -615,11 +615,11 @@ export default function TaxPage() {
               <div className="bg-gray-50 rounded-xl p-3 mb-4">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="flex-1 text-xs font-bold text-gray-600">เงินได้สุทธิ</div>
-                  <div className="w-32 text-center text-[12px] font-bold text-gray-400">Before</div>
-                  <div className="w-32 text-center text-[12px] font-bold text-gray-400">After</div>
+                  <div className="w-32 text-center text-[13px] font-bold text-gray-400">Before</div>
+                  <div className="w-32 text-center text-[13px] font-bold text-gray-400">After</div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 text-[12px] text-gray-500">เงินได้ − ค่าใช้จ่าย − ค่าลดหย่อน</div>
+                  <div className="flex-1 text-[13px] text-gray-500">เงินได้ − ค่าใช้จ่าย − ค่าลดหย่อน</div>
                   <div className="w-32 text-center text-xs font-bold">฿{fmt(netIncomeBefore)}</div>
                   <div className="w-32 text-center text-xs font-bold text-violet-600">฿{fmt(netIncomeAfter)}</div>
                 </div>
@@ -627,7 +627,7 @@ export default function TaxPage() {
 
               {/* ตารางขั้นภาษี */}
               <div className="rounded-2xl border border-gray-200 overflow-hidden mb-4">
-                <table className="w-full text-[12px]">
+                <table className="w-full text-[13px]">
                   <thead>
                     <tr className="bg-[#1e3a5f] text-white">
                       <th className="px-2 py-2 text-left">เงินได้สุทธิ</th>

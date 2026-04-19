@@ -76,7 +76,7 @@ export default function HintIcon({
         createPortal(
           <div
             ref={popRef}
-            className="fixed z-[1000] bg-slate-800 text-white text-[12px] leading-relaxed rounded-lg shadow-xl p-2.5 whitespace-pre-line"
+            className="fixed z-[1000] bg-slate-800 text-white text-[13px] leading-relaxed rounded-lg shadow-xl p-2.5 whitespace-pre-line"
             style={{ left: pos.left, top: pos.top, maxWidth }}
           >
             {body}

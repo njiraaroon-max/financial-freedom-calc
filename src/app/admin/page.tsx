@@ -73,11 +73,11 @@ function ExpiryBadge({ iso }: { iso: string | null }) {
   const days = daysUntil(iso);
   if (days === null)
     return (
-      <span className="text-[12px] text-gray-400">ไม่หมดอายุ</span>
+      <span className="text-[13px] text-gray-400">ไม่หมดอายุ</span>
     );
   if (days < 0)
     return (
-      <span className="text-[12px] font-medium text-rose-700 bg-rose-100 border border-rose-200 px-1.5 py-0.5 rounded-full">
+      <span className="text-[13px] font-medium text-rose-700 bg-rose-100 border border-rose-200 px-1.5 py-0.5 rounded-full">
         หมดอายุแล้ว
       </span>
     );
@@ -89,7 +89,7 @@ function ExpiryBadge({ iso }: { iso: string | null }) {
         : "text-emerald-700 bg-emerald-100 border-emerald-200";
   return (
     <span
-      className={`text-[12px] font-medium border px-1.5 py-0.5 rounded-full ${cls}`}
+      className={`text-[13px] font-medium border px-1.5 py-0.5 rounded-full ${cls}`}
     >
       เหลือ {days} วัน
     </span>
@@ -122,7 +122,7 @@ function ActivityBar({ pct }: { pct: number }) {
           style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
         />
       </div>
-      <span className="text-[12px] text-gray-600 tabular-nums">{pct}%</span>
+      <span className="text-[13px] text-gray-600 tabular-nums">{pct}%</span>
     </div>
   );
 }
@@ -140,7 +140,7 @@ function StatusBadge({ status }: { status: FaAdminRow["status"] }) {
   };
   return (
     <span
-      className={`inline-block px-2 py-0.5 rounded-full text-[12px] font-medium border ${styles[status]}`}
+      className={`inline-block px-2 py-0.5 rounded-full text-[13px] font-medium border ${styles[status]}`}
     >
       {labels[status]}
     </span>
@@ -394,7 +394,7 @@ export default function AdminPage() {
                                 e.target.value as "fa" | "admin",
                               )
                             }
-                            className={`text-[12px] font-medium rounded-full px-2 py-1 border outline-none focus:ring-2 focus:ring-indigo-300 disabled:opacity-50 cursor-pointer ${
+                            className={`text-[13px] font-medium rounded-full px-2 py-1 border outline-none focus:ring-2 focus:ring-indigo-300 disabled:opacity-50 cursor-pointer ${
                               row.role === "admin"
                                 ? "bg-indigo-100 text-indigo-700 border-indigo-200"
                                 : "bg-gray-100 text-gray-600 border-gray-200"
@@ -414,10 +414,10 @@ export default function AdminPage() {
                           {row.client_count > 0 ? (
                             <ActivityBar pct={row.active_pct} />
                           ) : (
-                            <span className="text-[12px] text-gray-400">-</span>
+                            <span className="text-[13px] text-gray-400">-</span>
                           )}
                         </td>
-                        <td className="px-3 py-2.5 text-[13px] text-gray-500">
+                        <td className="px-3 py-2.5 text-[14px] text-gray-500">
                           {formatRelative(row.last_activity)}
                         </td>
                         <td className="px-3 py-2.5 text-gray-500">
@@ -432,7 +432,7 @@ export default function AdminPage() {
                               onChange={(e) =>
                                 handleExpiryChange(row, e.target.value)
                               }
-                              className="text-[12px] px-1.5 py-0.5 rounded border border-gray-200 bg-white text-gray-700 disabled:opacity-50 focus:ring-2 focus:ring-indigo-300 outline-none"
+                              className="text-[13px] px-1.5 py-0.5 rounded border border-gray-200 bg-white text-gray-700 disabled:opacity-50 focus:ring-2 focus:ring-indigo-300 outline-none"
                               title={
                                 row.role === "admin"
                                   ? "Admin ไม่ใช้วันหมดอายุ"
@@ -440,7 +440,7 @@ export default function AdminPage() {
                               }
                             />
                             {row.role === "admin" ? (
-                              <span className="text-[12px] text-indigo-500">
+                              <span className="text-[13px] text-indigo-500">
                                 Admin (ไม่หมดอายุ)
                               </span>
                             ) : (
@@ -518,7 +518,7 @@ function StatCard({
         >
           {icon}
         </div>
-        <span className="text-[13px] text-gray-500">{label}</span>
+        <span className="text-[14px] text-gray-500">{label}</span>
       </div>
       <div className="text-2xl font-bold text-gray-800">{value}</div>
     </div>
