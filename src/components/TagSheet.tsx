@@ -68,11 +68,6 @@ interface Props {
   onRecalcSalaryLinked?: () => void;
 }
 
-function fmt(n: number): string {
-  if (!n) return "-";
-  return Math.round(n).toLocaleString("th-TH");
-}
-
 export default function TagSheet({
   item,
   onClose,
@@ -368,7 +363,8 @@ export default function TagSheet({
             </button>
           </div>
 
-          {/* Preview row — tiny 12-cell strip */}
+          {/* Preview row — tiny 12-cell strip (month labels only; number is
+              intentionally hidden because it overflows the 30px-wide cell). */}
           <div className="mt-3 bg-white/50 rounded-lg p-2 border border-gray-200">
             <div className="text-[13px] text-gray-500 mb-1">ตัวอย่างหลังใช้</div>
             <div className="grid grid-cols-12 gap-0.5">
@@ -379,7 +375,7 @@ export default function TagSheet({
                 return (
                   <div
                     key={i}
-                    className={`h-8 flex flex-col items-center justify-center rounded text-[13px] ${
+                    className={`h-7 flex items-center justify-center rounded text-[12px] font-semibold ${
                       inRange
                         ? isIncome
                           ? "bg-emerald-100 text-emerald-800"
@@ -388,10 +384,7 @@ export default function TagSheet({
                     }`}
                     title={MONTH_NAMES_TH[i]}
                   >
-                    <span className="leading-none">{MONTH_NAMES_TH[i]}</span>
-                    <span className="font-bold leading-none mt-0.5">
-                      {inRange ? fmt(amount) : "-"}
-                    </span>
+                    {MONTH_NAMES_TH[i]}
                   </div>
                 );
               })}
