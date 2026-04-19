@@ -201,32 +201,6 @@ export default function SpecialExpensesPage() {
     return contrib?.npvAtRetire ?? 0;
   };
 
-  // Shared toggle pill — overlays top-right of each item card.
-  // Disabled items are dimmed but the toggle stays bright so user can re-enable.
-  const EnableToggle = ({ item }: { item: SpecialExpenseItem }) => {
-    const enabled = item.enabled !== false;
-    return (
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          store.toggleSpecialExpenseEnabled(item.id);
-        }}
-        className={`relative w-9 h-5 rounded-full transition shadow-sm ring-2 ring-white/90 shrink-0 ${
-          enabled ? "bg-emerald-500" : "bg-gray-300"
-        }`}
-        title={enabled ? "กดเพื่อไม่รวมรายการนี้ในแผน" : "กดเพื่อรวมรายการนี้ในแผน"}
-        aria-label={enabled ? "ปิดรายการ" : "เปิดรายการ"}
-        aria-pressed={enabled}
-      >
-        <span
-          className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${
-            enabled ? "left-[18px]" : "left-0.5"
-          }`}
-        />
-      </button>
-    );
-  };
-
   const totalSpecial = store.specialExpenses.reduce(
     (sum, e) => sum + itemNPV(e),
     0,
@@ -340,9 +314,6 @@ export default function SpecialExpensesPage() {
                       : "/calculators/retirement";
                 return (
                   <div key={item.id} className="relative">
-                    <div className="absolute -top-2 right-3 z-10">
-                      <EnableToggle item={item} />
-                    </div>
                     {confirmLabel && (
                       <div className="absolute -top-2 left-3 z-10">
                         <button
@@ -364,6 +335,10 @@ export default function SpecialExpensesPage() {
                         editLabel="ไปคำนวณ"
                         onRemove={() => handleRequestDelete(item.id)}
                         canRemove={canRemove}
+                        enabled={item.enabled !== false}
+                        onToggleEnabled={() =>
+                          store.toggleSpecialExpenseEnabled(item.id)
+                        }
                       />
                     </div>
                   </div>
@@ -381,9 +356,6 @@ export default function SpecialExpensesPage() {
                   : null;
                 return (
                   <div key={item.id} className="relative">
-                    <div className="absolute -top-2 right-3 z-10">
-                      <EnableToggle item={item} />
-                    </div>
                     {confirmLabel && (
                       <div className="absolute -top-2 left-3 z-10">
                         <button
@@ -405,6 +377,10 @@ export default function SpecialExpensesPage() {
                         subCalcLabel="คำนวณรายละเอียด"
                         onRemove={() => handleRequestDelete(item.id)}
                         canRemove={canRemove}
+                        enabled={item.enabled !== false}
+                        onToggleEnabled={() =>
+                          store.toggleSpecialExpenseEnabled(item.id)
+                        }
                       />
                     </div>
                   </div>
@@ -414,14 +390,11 @@ export default function SpecialExpensesPage() {
               // Inline
               return (
                 <div key={item.id} className="relative">
-                  <div className="absolute -top-2 right-3 z-10">
-                    <EnableToggle item={item} />
-                  </div>
                   {confirmLabel && (
                     <div className="absolute -top-2 left-3 z-10">
                       <button
                         onClick={() => handleRequestDelete(item.id)}
-                        className="px-2 py-1 bg-red-500 text-white rounded-md text-[13px] font-bold"
+                        className="px-2 py-0.5 bg-red-500 text-white rounded-md text-[11px] font-bold"
                       >
                         ยืนยันลบ?
                       </button>
@@ -460,6 +433,10 @@ export default function SpecialExpensesPage() {
                     }
                     onRemove={() => handleRequestDelete(item.id)}
                     canRemove={canRemove}
+                    enabled={item.enabled !== false}
+                    onToggleEnabled={() =>
+                      store.toggleSpecialExpenseEnabled(item.id)
+                    }
                   />
                   </div>
                 </div>

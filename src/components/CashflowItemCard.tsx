@@ -99,6 +99,11 @@ interface BaseProps {
   onRemove?: () => void;
   /** hide trash icon if you don't want remove */
   canRemove?: boolean;
+  /** Enable/disable toggle — when provided, renders an inline switch in the
+   * card header that flips `enabled`. Used by special-expenses hub to let
+   * users exclude specific items from the plan without deleting them. */
+  enabled?: boolean;
+  onToggleEnabled?: () => void;
 }
 
 interface InlineProps extends BaseProps {
@@ -189,18 +194,60 @@ type AccentTheme = {
   ring: string;
 };
 
+// ---------------------------------------------------------------------------
+// EnableSwitch — tiny iOS-style toggle rendered inline in the card header.
+// Appears only when the parent passes onToggleEnabled.
+// ---------------------------------------------------------------------------
+function EnableSwitch({
+  enabled,
+  onToggle,
+}: {
+  enabled: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggle();
+      }}
+      className={`relative w-9 h-5 rounded-full transition shrink-0 ${
+        enabled ? "bg-emerald-500" : "bg-gray-300"
+      }`}
+      title={
+        enabled
+          ? "กดเพื่อไม่รวมรายการนี้ในแผน"
+          : "กดเพื่อรวมรายการนี้ในแผน"
+      }
+      aria-label={enabled ? "ปิดรายการ" : "เปิดรายการ"}
+      aria-pressed={enabled}
+    >
+      <span
+        className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${
+          enabled ? "left-[18px]" : "left-0.5"
+        }`}
+      />
+    </button>
+  );
+}
+
 function Header({
   name,
   onUpdateName,
   onRemove,
   canRemove,
   hintContent,
+  enabled,
+  onToggleEnabled,
 }: {
   name: string;
   onUpdateName?: (name: string) => void;
   onRemove?: () => void;
   canRemove?: boolean;
   hintContent?: React.ReactNode;
+  enabled?: boolean;
+  onToggleEnabled?: () => void;
 }) {
   const [showHint, setShowHint] = useState(false);
   return (
@@ -229,6 +276,12 @@ function Header({
           >
             <Info size={11} />
           </button>
+        )}
+        {onToggleEnabled && (
+          <EnableSwitch
+            enabled={enabled !== false}
+            onToggle={onToggleEnabled}
+          />
         )}
         {canRemove && onRemove && (
           <button
@@ -294,6 +347,8 @@ function InlineCard({
   onRemove,
   canRemove,
   hintContent,
+  enabled,
+  onToggleEnabled,
 }: InlineProps & { accent: AccentTheme }) {
   // Derive normalized props to render
   const amount = readAmount(item);
@@ -321,6 +376,8 @@ function InlineCard({
         onRemove={onRemove}
         canRemove={canRemove}
         hintContent={hintContent}
+        enabled={enabled}
+        onToggleEnabled={onToggleEnabled}
       />
 
       {/* Kind toggle */}
@@ -600,6 +657,8 @@ function LinkedCard({
   editHref,
   editLabel,
   accent,
+  enabled,
+  onToggleEnabled,
 }: LinkedProps & { accent: AccentTheme }) {
   const [showTable, setShowTable] = useState(false);
   const rows = contribution?.yearlyStream ?? [];
@@ -617,6 +676,12 @@ function LinkedCard({
           <div className="text-xs font-medium truncate">{item.name}</div>
           <span className="text-[13px] text-gray-400 shrink-0">🔗</span>
         </div>
+        {onToggleEnabled && (
+          <EnableSwitch
+            enabled={enabled !== false}
+            onToggle={onToggleEnabled}
+          />
+        )}
         <Link
           href={editHref}
           className={`text-[13px] ${accent.chip} font-bold hover:underline flex items-center gap-0.5 shrink-0`}
@@ -765,6 +830,8 @@ function SubCalcCard({
   subCalcHref,
   subCalcLabel,
   accent,
+  enabled,
+  onToggleEnabled,
 }: SubCalcProps & { accent: AccentTheme }) {
   const rows = contribution?.yearlyStream ?? [];
   const npv = contribution?.npvAtRetire ?? 0;
@@ -775,6 +842,12 @@ function SubCalcCard({
     <>
       <div className="flex items-center gap-2">
         <div className="flex-1 text-xs font-medium truncate">{item.name}</div>
+        {onToggleEnabled && (
+          <EnableSwitch
+            enabled={enabled !== false}
+            onToggle={onToggleEnabled}
+          />
+        )}
       </div>
 
       <Link
