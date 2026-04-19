@@ -26,7 +26,7 @@ const NW_SMALL = 14;   // col 0, 3 (individual items)
 const NW_BIG   = 72;   // col 1, 2 (aggregate nodes) — wide enough for labels
 const GAP      = 15;   // gap between stacked items — more breathing room
 const GAP_CAT  = 48;   // extra gap between categories (fixed | variable+invest)
-const PAD_T    = 24;
+const PAD_T    = 60;   // top space — room for floating category labels above col-2 nodes
 const PAD_B    = 54;   // bottom space so chart doesn't touch edge
 const plotH    = H - PAD_T - PAD_B;
 
@@ -488,7 +488,7 @@ export default function CashFlowSankey({ incomes, expenses, getAnnualTotal, year
             )}
           </g>
 
-          {/* ── Col 2: category big nodes ──────────────────────────────── */}
+          {/* ── Col 2: category big nodes (no inline labels — use floating pills) ─ */}
           <g style={colAnim(2)}>
             {col2Nodes.map((n, i) => (
               <g key={i}
@@ -497,42 +497,6 @@ export default function CashFlowSankey({ incomes, expenses, getAnnualTotal, year
                 onMouseLeave={clearTooltip}
               >
                 <rect x={n.x} y={n.y} width={n.w} height={n.h} fill={n.color} rx={6} filter="url(#node-shadow)" />
-                {n.h > 54 && (() => {
-                  const lines = n.name.split("+");
-                  const boxH = lines.length * 14 + 22;   // label lines + value line + padding
-                  const boxY = n.y + n.h / 2 - boxH / 2;
-                  return (
-                    <>
-                      {/* Transparent frame behind label — improves text contrast over ribbons */}
-                      <rect
-                        x={n.x + 4}
-                        y={boxY}
-                        width={n.w - 8}
-                        height={boxH}
-                        fill="rgba(0,0,0,0.18)"
-                        rx={5}
-                      />
-                      {lines.map((line, li) => (
-                        <text key={li}
-                          x={n.x + n.w / 2}
-                          y={boxY + 14 + li * 14}
-                          textAnchor="middle" fontSize={11} fill="white" fontWeight="800"
-                          style={{ textShadow: "0 1px 2px rgba(0,0,0,0.35)" }}
-                        >
-                          {line.trim()}
-                        </text>
-                      ))}
-                      <text
-                        x={n.x + n.w / 2}
-                        y={boxY + 14 + lines.length * 14 + 2}
-                        textAnchor="middle" fontSize={12} fill="white" fontWeight="700"
-                        style={{ textShadow: "0 1px 2px rgba(0,0,0,0.35)" }}
-                      >
-                        {fmtK(n.v)}
-                      </text>
-                    </>
-                  );
-                })()}
               </g>
             ))}
           </g>
@@ -562,6 +526,49 @@ export default function CashFlowSankey({ incomes, expenses, getAnnualTotal, year
             ))}
           </g>
         </svg>
+
+        {/* ── Persistent category labels (col 2) — floating tooltip-style pills ── */}
+        {col2Nodes.map((n, i) => {
+          const pctOfExp = (n.v / Math.max(totalExp, 1)) * 100;
+          const displayName = n.name.replace("+", " + ");
+          return (
+            <div
+              key={`cat-label-${i}`}
+              className="absolute pointer-events-none"
+              style={{
+                left:       `${((n.x + n.w / 2) / W) * 100}%`,
+                top:        `${(n.y / H) * 100}%`,
+                transform:  "translate(-50%, calc(-100% - 8px))",
+                opacity:    revealed ? 1 : 0,
+                transition: `opacity 0.5s ease ${2 * 0.12 + 0.15}s`,
+                zIndex:     1,
+              }}
+            >
+              <div
+                className="px-2.5 py-1.5 rounded-lg text-white text-[11px] whitespace-nowrap"
+                style={{
+                  background: n.color,
+                  boxShadow:  "0 4px 10px rgba(0,0,0,0.18)",
+                }}
+              >
+                <div className="font-bold leading-tight">{displayName}</div>
+                <div className="flex items-center gap-1.5 mt-0.5 leading-tight">
+                  <span className="font-semibold">฿{fmtFull(n.v)}</span>
+                  <span className="opacity-85">{pctOfExp.toFixed(1)}% ของรายจ่ายรวม</span>
+                </div>
+              </div>
+              {/* Arrow pointing down to node */}
+              <div
+                className="w-0 h-0 mx-auto"
+                style={{
+                  borderLeft:  "5px solid transparent",
+                  borderRight: "5px solid transparent",
+                  borderTop:   `5px solid ${n.color}`,
+                }}
+              />
+            </div>
+          );
+        })}
 
         {/* ── Tooltip ─────────────────────────────────────────────────── */}
         {tooltip && (
