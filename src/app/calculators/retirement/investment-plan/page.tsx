@@ -315,7 +315,10 @@ function InvestmentPlanPageInner() {
   const renderChart = () => {
     if (investResult.length === 0) return null;
 
-    const chartW = 500;
+    // Wider viewBox stretches the x-axis (more room between years) without
+    // changing on-screen text size — container max-width is widened in
+    // parallel so the viewBox-to-display ratio stays constant.
+    const chartW = 800;
     const chartH = 285;
     const leftPad = 55;
     const rightPad = 95;
@@ -851,9 +854,10 @@ function InvestmentPlanPageInner() {
             {/* Deterministic (default) */}
             {simMode === "deterministic" && (
               <div className="p-4">
-                {/* Cap the chart column so it stays comfortably sized on
-                    iPad & MacBook (chart viewBox is 500×285). */}
-                <div className="max-w-xl mx-auto">
+                {/* Chart viewBox is 800×285; container max-width is widened
+                    in parallel so x-axis stretches but text stays the same
+                    on-screen size (ratio ≈ 1.15×). */}
+                <div className="max-w-4xl mx-auto">
                   <div className="text-xs font-bold text-[#1e3a5f] text-center mb-3">
                     ภาพรวมพอร์ตลงทุน ณ วันเกษียณ
                   </div>
@@ -892,8 +896,9 @@ function InvestmentPlanPageInner() {
             {/* Monte Carlo */}
             {simMode === "montecarlo" && mcResult && (
               <div className="p-4">
-                {/* Cap chart column for comfortable reading on iPad/MacBook */}
-                <div className="max-w-xl mx-auto space-y-4">
+                {/* Wider container to match stretched chart viewBox (800) —
+                    keeps on-screen text at the same size. */}
+                <div className="max-w-4xl mx-auto space-y-4">
                 <div className="flex items-center justify-between mb-1">
                   <div className="text-xs font-bold text-indigo-700">
                     โอกาสสำเร็จของแผน (Monte Carlo Simulation)
