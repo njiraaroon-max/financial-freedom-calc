@@ -231,11 +231,11 @@ function InvestmentPlanPageInner() {
     if (investResult.length === 0) return null;
 
     const chartW = 500;
-    const chartH = 295;     // +15 to house rotated x-axis labels
+    const chartH = 285;
     const leftPad = 55;
     const rightPad = 95;
     const topPad = 20;
-    const bottomPad = 45;   // +15 so -45° rotated labels don't clip
+    const bottomPad = 28;   // enough for upright age labels
     const plotW = chartW - leftPad - rightPad;
     const plotH = chartH - topPad - bottomPad;
 
@@ -259,9 +259,6 @@ function InvestmentPlanPageInner() {
     const yStep = (maxVal - minVal) / ySteps;
     const yLabels: number[] = [];
     for (let i = 0; i <= ySteps; i++) yLabels.push(minVal + yStep * i);
-
-    // X-axis labels (show every ~5 years)
-    const xInterval = Math.max(1, Math.floor(investResult.length / 5));
 
     // End-point label positions
     const lastIdx = investResult.length - 1;
@@ -311,21 +308,22 @@ function InvestmentPlanPageInner() {
           </g>
         ))}
 
-        {/* X-axis labels — every year, rotated -45° so 40+ ticks don't
-            collide. Anchor at "end" means the right edge of each label
-            sits just below its tick mark; the text then leans down-left
-            into the bottom padding area. */}
+        {/* X-axis labels — show only multiples of 5 (+ first + last) to avoid
+            crowding on narrow screens. No rotation needed with fewer ticks. */}
         {investResult.map((r, i) => {
+          const isFirst = i === 0;
+          const isLast  = i === investResult.length - 1;
+          const isFive  = r.age % 5 === 0;
+          if (!isFirst && !isLast && !isFive) return null;
           const tx = idxToX(i);
-          const ty = chartH - 24;
+          const ty = chartH - 10;
           return (
             <text
               key={i}
               x={tx}
               y={ty}
-              textAnchor="end"
-              className="text-[7px] fill-gray-400"
-              transform={`rotate(-45 ${tx} ${ty})`}
+              textAnchor="middle"
+              className="text-[10px] fill-gray-400"
             >
               {r.age}
             </text>
