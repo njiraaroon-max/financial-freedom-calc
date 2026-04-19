@@ -18,11 +18,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { MoreVertical, Pencil, Tag, Trash2, Plus, Eye, EyeOff } from "lucide-react";
+import { MoreVertical, Pencil, Tag, Trash2, Plus, Eye, EyeOff, MousePointerClick, Zap, X } from "lucide-react";
 import { MONTH_NAMES_TH, INCOME_TAX_CATEGORIES, EXPENSE_CATEGORIES } from "@/types/cashflow";
 import type { IncomeItem, ExpenseItem, ExpenseCategory } from "@/types/cashflow";
 import FormulaInput from "@/components/FormulaInput";
 import PieChart, { INCOME_COLORS, EXPENSE_COLORS } from "@/components/PieChart";
+import { evalFormula } from "@/lib/formula";
 
 interface Props {
   incomes: IncomeItem[];
@@ -73,6 +74,14 @@ export default function ExcelCashflow({
     monthIndex: number;
   } | null>(null);
   const [editValue, setEditValue] = useState(0);
+  // Controlled draft for the formula input — lets us inject values from
+  // cell-pick / row-pick modes without fighting FormulaInput's internal state.
+  const [editDraft, setEditDraft] = useState<string>("");
+  // Excel-style pick modes:
+  //   "cell" → next cell click appends that cell's value to the formula
+  //   "row"  → next row click fills every month of the edited row with
+  //            `formula × sourceRow[m]` (column-by-column multiply)
+  const [pickMode, setPickMode] = useState<null | "cell" | "row">(null);
   const [rowMenu, setRowMenu] = useState<{
     id: string;
     isIncome: boolean;
@@ -232,6 +241,77 @@ export default function ExcelCashflow({
   const nameCellSticky = "sticky left-0 z-10 bg-inherit";
   const totalColSticky = "sticky right-0 z-10";
 
+  // ─── Pick-mode helpers ─────────────────────────────────────────────
+  /** Find a row (income or expense) by id — used by pick handlers. */
+  const findItem = (id: string): IncomeItem | ExpenseItem | null =>
+    incomes.find((i) => i.id === id) ||
+    expenses.find((e) => e.id === id) ||
+    null;
+
+  /** pickMode="cell": append a single cell's numeric value to the draft.
+      If the draft doesn't end with an operator, we prepend `+` so the
+      result is at least a valid expression (`7000` + pick 500 → `7000+500`). */
+  const applyCellPick = (value: number) => {
+    setEditDraft((prev) => {
+      const trimmed = prev.trim();
+      if (trimmed === "") return String(value);
+      const last = trimmed[trimmed.length - 1];
+      const endsWithOperator = /[+\-*/(]/.test(last);
+      return endsWithOperator ? prev + String(value) : prev + "+" + String(value);
+    });
+    setPickMode(null);
+  };
+
+  /** pickMode="row": for every month of the currently-edited row, compute
+      `draft ⋈ sourceRow[m]` and write it. Draft is expected to end with an
+      operator (e.g. `0.05*`); if not, we insert `*` so the common case of
+      "pick row to multiply" just works.
+
+      Example: editing PVD row, type `5%*`, click "เงินเดือน" row →
+        for m in 0..11: PVD[m] = eval("5%*" + salary[m]) = 0.05 × salary[m] */
+  const applyRowPick = (sourceItemId: string) => {
+    if (!editCell) return;
+    // Avoid self-reference — clicking the row you're already editing makes
+    // no mathematical sense here.
+    if (sourceItemId === editCell.itemId) {
+      setPickMode(null);
+      return;
+    }
+    const src = findItem(sourceItemId);
+    if (!src) return;
+
+    const trimmed = editDraft.trim();
+    const last = trimmed[trimmed.length - 1];
+    const endsWithOperator = trimmed !== "" && /[+\-*/(]/.test(last);
+    // Most natural case: user typed something like "5%*" — use as-is.
+    // Otherwise assume they meant "× that row" and insert `*`.
+    const prefix =
+      trimmed === "" ? "1*" : endsWithOperator ? trimmed : trimmed + "*";
+
+    for (let m = 0; m < 12; m++) {
+      const result = evalFormula(prefix + String(src.amounts[m] || 0));
+      if (result !== null) {
+        onUpdateAmount(editCell.itemId, m, Math.round(result));
+      }
+    }
+    setPickMode(null);
+    setEditCell(null);
+    setEditDraft("");
+  };
+
+  // Esc cancels pick mode (but keeps the popup open so user can keep editing).
+  useEffect(() => {
+    if (!pickMode) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setPickMode(null);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [pickMode]);
+
   // ─── Renderers ───────────────────────────────────────────────────────
   const startRename = (id: string, currentName: string) => {
     setRenamingId(id);
@@ -277,9 +357,23 @@ export default function ExcelCashflow({
               />
             ) : (
               <button
-                className="flex-1 text-left truncate hover:text-indigo-600 transition"
-                onDoubleClick={() => startRename(item.id, item.name)}
-                title="ดับเบิลคลิกเพื่อเปลี่ยนชื่อ"
+                className={`flex-1 text-left truncate transition ${
+                  pickMode === "row"
+                    ? "hover:bg-indigo-100 hover:text-indigo-700 rounded px-1 -mx-1 cursor-crosshair ring-1 ring-indigo-300 ring-inset animate-pulse"
+                    : "hover:text-indigo-600"
+                }`}
+                onClick={() => {
+                  if (pickMode === "row") applyRowPick(item.id);
+                }}
+                onDoubleClick={() => {
+                  if (pickMode) return;
+                  startRename(item.id, item.name);
+                }}
+                title={
+                  pickMode === "row"
+                    ? "แตะเพื่อคูณคอลัมน์ต่อคอลัมน์ด้วยแถวนี้"
+                    : "ดับเบิลคลิกเพื่อเปลี่ยนชื่อ"
+                }
               >
                 {item.name}
               </button>
@@ -345,7 +439,13 @@ export default function ExcelCashflow({
               data-item-id={item.id}
               data-month-index={i}
               tabIndex={0}
-              className={`${dataCell} relative cursor-pointer outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-inset ${
+              className={`${dataCell} relative outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-inset ${
+                pickMode === "cell"
+                  ? "cursor-crosshair hover:bg-indigo-100 hover:ring-2 hover:ring-indigo-400 hover:ring-inset"
+                  : pickMode === "row"
+                    ? "cursor-crosshair hover:bg-violet-100"
+                    : "cursor-pointer"
+              } ${
                 isInRange
                   ? isSource
                     ? isClearDrag
@@ -354,16 +454,30 @@ export default function ExcelCashflow({
                     : isClearDrag
                       ? "bg-rose-100"
                       : "bg-indigo-100"
-                  : "hover:bg-indigo-50 active:bg-indigo-100"
+                  : pickMode
+                    ? ""
+                    : "hover:bg-indigo-50 active:bg-indigo-100"
               }`}
               onClick={() => {
                 if (drag) return; // ignore the click that ends a drag
+                // Pick-mode intercepts: clicks on data cells either insert
+                // that cell's value (cell mode) or multiply the whole edited
+                // row by the clicked row's column-by-column (row mode).
+                if (pickMode === "cell") {
+                  applyCellPick(a);
+                  return;
+                }
+                if (pickMode === "row") {
+                  applyRowPick(item.id);
+                  return;
+                }
                 setEditCell({
                   itemId: item.id,
                   itemName: item.name,
                   monthIndex: i,
                 });
                 setEditValue(a);
+                setEditDraft(a === 0 ? "" : String(a));
               }}
               onKeyDown={(e) => {
                 // Delete/Backspace on focused cell = instant clear (no popup)
@@ -386,7 +500,9 @@ export default function ExcelCashflow({
                     itemName: item.name,
                     monthIndex: i,
                   });
+                  const seed = /^[0-9.]$/.test(e.key) ? e.key : (a === 0 ? "" : String(a));
                   setEditValue(/^[0-9.]$/.test(e.key) ? Number(e.key) || 0 : a);
+                  setEditDraft(seed);
                 }
               }}
             >
@@ -815,17 +931,24 @@ export default function ExcelCashflow({
           document.body,
         )}
 
-      {/* Edit Cell Popup */}
+      {/* Edit Cell Popup — dimmed + click-through while in pick mode so the
+          user can actually tap a cell/row behind it. */}
       {editCell && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
-          onClick={() => setEditCell(null)}
+          className={`fixed inset-0 z-50 flex items-center justify-center transition-colors ${
+            pickMode ? "bg-transparent pointer-events-none" : "bg-black/30"
+          }`}
+          onClick={() => {
+            if (!pickMode) setEditCell(null);
+          }}
         >
           <div
-            className="glass rounded-2xl p-5 mx-6 w-full max-w-xs md:max-w-sm"
+            className={`glass rounded-2xl p-5 mx-6 w-full max-w-xs md:max-w-sm transition-opacity duration-200 ${
+              pickMode ? "opacity-0 pointer-events-none" : "opacity-100"
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="text-sm font-bold text-gray-700 mb-1">
+            <div className="font-display text-sm font-bold text-gray-700 mb-1 tracking-tight">
               {editCell.itemName}
             </div>
             <div className="text-xs text-gray-400 mb-3">
@@ -835,6 +958,8 @@ export default function ExcelCashflow({
               value={editValue}
               onCommit={setEditValue}
               onChange={setEditValue}
+              draft={editDraft}
+              onDraftChange={setEditDraft}
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleEditSave();
@@ -842,7 +967,26 @@ export default function ExcelCashflow({
               }}
               className="w-full text-center text-lg font-bold bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 transition"
             />
-            <div className="flex gap-2 mt-4">
+
+            {/* Excel-style pick buttons — tap, then click a cell/row. */}
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={() => setPickMode("cell")}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-[13px] font-medium hover:bg-indigo-100 transition"
+                title="แตะเพื่อเลือกค่าจากเซลล์อื่น"
+              >
+                <MousePointerClick size={14} /> เลือกเซลล์
+              </button>
+              <button
+                onClick={() => setPickMode("row")}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-violet-50 text-violet-700 text-[13px] font-medium hover:bg-violet-100 transition"
+                title="แตะแถวเพื่อคูณคอลัมน์ต่อคอลัมน์ (เช่น 5% × เงินเดือน ทั้ง 12 เดือน)"
+              >
+                <Zap size={14} /> คูณทั้งแถว
+              </button>
+            </div>
+
+            <div className="flex gap-2 mt-3">
               <button
                 onClick={() => {
                   if (editCell) onUpdateAmount(editCell.itemId, editCell.monthIndex, 0);
@@ -869,6 +1013,44 @@ export default function ExcelCashflow({
           </div>
         </div>
       )}
+
+      {/* Pick-mode floating status chip — ported to body so it sits above
+          everything. Clicks pass through to the table, except the Esc button. */}
+      {editCell && pickMode && mounted &&
+        createPortal(
+          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] pointer-events-auto">
+            <div
+              className="flex items-center gap-3 px-4 py-2 rounded-full text-white shadow-lg font-display text-[13px] font-medium"
+              style={{
+                background:
+                  pickMode === "cell"
+                    ? "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)"
+                    : "linear-gradient(135deg, #7c3aed 0%, #c026d3 100%)",
+                letterSpacing: "0.01em",
+              }}
+            >
+              {pickMode === "cell" ? (
+                <>
+                  <MousePointerClick size={15} />
+                  <span>แตะเซลล์ใดก็ได้เพื่อแทรกค่าในสูตร</span>
+                </>
+              ) : (
+                <>
+                  <Zap size={15} />
+                  <span>แตะชื่อแถวที่ต้องการคูณ (ทั้ง 12 เดือน)</span>
+                </>
+              )}
+              <button
+                onClick={() => setPickMode(null)}
+                className="ml-1 flex items-center gap-1 bg-white/20 hover:bg-white/30 rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                title="ยกเลิก (Esc)"
+              >
+                <X size={12} /> Esc
+              </button>
+            </div>
+          </div>,
+          document.body,
+        )}
 
       <style jsx>{`
         /* Fill handle — small indigo square at the bottom-right of each

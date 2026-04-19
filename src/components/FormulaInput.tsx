@@ -31,6 +31,12 @@ export interface FormulaInputProps {
   ringClass?: string;
   /** Enter / Escape handler for save-on-enter / close-on-escape patterns */
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  /** Optional controlled draft. When provided (together with onDraftChange)
+      the parent drives the input text, which lets features like
+      "pick cell → inject value into the formula" work. Leave undefined
+      for the default uncontrolled behaviour. */
+  draft?: string;
+  onDraftChange?: (next: string) => void;
 }
 
 export default function FormulaInput({
@@ -42,21 +48,33 @@ export default function FormulaInput({
   className,
   ringClass = "focus:ring-indigo-400",
   onKeyDown,
+  draft: controlledDraft,
+  onDraftChange,
 }: FormulaInputProps) {
-  // Local draft — the raw text the user is typing. Only the parsed number
-  // goes back through onCommit, so formulas never leak into store state.
-  const [draft, setDraft] = useState<string>(() =>
+  const isControlled =
+    controlledDraft !== undefined && onDraftChange !== undefined;
+
+  // Local draft — used only when parent isn't controlling the text.
+  const [internalDraft, setInternalDraft] = useState<string>(() =>
     value === 0 ? "" : String(value),
   );
+  const draft = isControlled ? (controlledDraft as string) : internalDraft;
+  const setDraft = (next: string) => {
+    if (isControlled) onDraftChange!(next);
+    else setInternalDraft(next);
+  };
+
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // When the canonical `value` prop changes from outside (e.g. the user
   // switched to a different cell), refresh the draft — but only while not
-  // being actively edited, so typing isn't clobbered.
+  // being actively edited, so typing isn't clobbered. Skipped when the
+  // parent is controlling draft (it handles the reset itself).
   useEffect(() => {
+    if (isControlled) return;
     if (!focused) {
-      setDraft(value === 0 ? "" : String(value));
+      setInternalDraft(value === 0 ? "" : String(value));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
