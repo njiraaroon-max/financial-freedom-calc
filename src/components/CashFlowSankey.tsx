@@ -34,8 +34,15 @@ const PAD_B    = 130;  // bottom space — extra room so the "below" variable pi
                        // doesn't crowd whatever card sits under the Sankey
 const plotH    = H - PAD_T - PAD_B;
 
-// Left edge of each column
-const COL_X = [80, 275, 505, 770];
+// Left edge of each column.
+// Padding budget: viewBox is 1000 wide; col-3 rect right-edge is at
+// COL_X[3] + NW_SMALL = 852 → right label margin = 1000 − 852 = 148.
+// Col-0 rect starts at COL_X[0] = 148 → left label margin = 148 (rect)
+// minus 10 for the label offset → 138, mirroring the right side. This
+// keeps long Thai income names ("เงินเดือน 941K · 69.4%") from being
+// clipped by the viewBox while the right column still has plenty of
+// room for expense labels of similar length.
+const COL_X = [148, 343, 573, 838];
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
 const C = {
