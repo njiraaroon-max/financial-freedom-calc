@@ -982,7 +982,7 @@ export default function ExcelCashflow({
                 className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-violet-50 text-violet-700 text-[13px] font-medium hover:bg-violet-100 transition"
                 title="แตะแถวเพื่อคูณคอลัมน์ต่อคอลัมน์ (เช่น 5% × เงินเดือน ทั้ง 12 เดือน)"
               >
-                <Zap size={14} /> คูณทั้งแถว
+                <Zap size={14} /> เลือกทั้งแถว
               </button>
             </div>
 
