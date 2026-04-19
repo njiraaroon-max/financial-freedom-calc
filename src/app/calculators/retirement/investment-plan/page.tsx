@@ -190,6 +190,13 @@ function InvestmentPlanPageInner() {
   // how required monthly savings change with return assumptions.
   const [hintReturn, setHintReturn] = useState<number>(0.05);
 
+  // Per-phase input-mode preference: monthly (default) or yearly.
+  // The store always holds monthlyAmount; this only affects how the editor
+  // displays/accepts the value (yearly = monthly × 12).
+  const [phaseInputMode, setPhaseInputMode] = useState<
+    Record<string, "monthly" | "yearly">
+  >({});
+
   // ── Timeline ↔ editor row sync ────────────────────────────────────
   // hoveredPhaseId: which phase is currently hovered (either the bar on the
   // timeline or the editor row). flashingPhaseId: briefly applied after a
@@ -595,70 +602,122 @@ function InvestmentPlanPageInner() {
           </div>
         </div>
 
-        {/* Shortcut hint — required monthly/yearly savings to hit the target */}
+        {/* Shortcut hint — required monthly/yearly savings to hit the target.
+            Layout: header → target summary → rate slider (0–20%) → big result
+            cards (or "covered" pill) → footnote. The slider and the inline
+            PercentInput stay in sync via shared `hintReturn` state. */}
         {shortage > 0 && (
-          <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3.5">
-            <div className="flex items-start gap-2">
-              <Lightbulb size={14} className="text-amber-500 mt-0.5 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <div className="text-[10px] font-bold tracking-wide uppercase text-amber-700 mb-1.5">
+          <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-orange-50/40 to-yellow-50/30 p-4 shadow-sm">
+            {/* Header */}
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="w-7 h-7 rounded-full bg-amber-400/15 grid place-items-center shrink-0">
+                <Lightbulb size={14} className="text-amber-600" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[10px] font-bold tracking-[0.12em] uppercase text-amber-700 leading-none">
                   แผนออมอย่างง่าย · Shortcut
                 </div>
-                {hintN <= 0 ? (
-                  <div className="text-[12px] text-red-600">
-                    เหลือเวลาถึงเกษียณ 0 ปี — ตั้งอายุเกษียณก่อน
-                  </div>
-                ) : hintAlreadyCovered ? (
-                  <div className="text-[12px] text-emerald-700 leading-relaxed">
-                    เงินต้นปัจจุบัน ฿{fmt(hintP)} เติบโตที่{" "}
+                <div className="text-[10.5px] text-amber-700/60 mt-0.5">
+                  DCA รายเดือนเท่ากันทุกเดือนจนถึงเกษียณ
+                </div>
+              </div>
+            </div>
+
+            {hintN <= 0 ? (
+              <div className="text-[12px] text-red-600 px-1">
+                เหลือเวลาถึงเกษียณ 0 ปี — ตั้งอายุเกษียณก่อน
+              </div>
+            ) : (
+              <>
+                {/* Target summary */}
+                <div className="text-[12px] text-gray-700 leading-relaxed mb-3 px-1">
+                  เป้าทุนเกษียณ{" "}
+                  <b className="text-red-600 tabular-nums">฿{fmt(hintS)}</b> ภายใน{" "}
+                  <b>{hintN} ปี</b>
+                  {hintP > 0 && (
+                    <>
+                      {" "}· เงินต้นปัจจุบัน{" "}
+                      <b className="tabular-nums">฿{fmt(hintP)}</b>
+                    </>
+                  )}
+                </div>
+
+                {/* Rate slider — 0% to 20%, step 0.5% */}
+                <div className="mb-3.5 px-1">
+                  <div className="flex items-baseline justify-between mb-1.5">
+                    <span className="text-[11px] font-semibold text-gray-600">
+                      ผลตอบแทนคาดหวัง
+                    </span>
                     <PercentInput
                       value={hintReturn}
                       onChange={setHintReturn}
                       min={0}
                       max={20}
                       ringClass="focus:ring-amber-400"
-                    />{" "}
-                    นาน {hintN} ปี ก็ครอบคลุมเป้าแล้ว ✓ ไม่ต้องออมเพิ่ม
+                    />
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={20}
+                    step={0.5}
+                    value={Math.max(0, Math.min(20, hintReturn * 100))}
+                    onChange={(e) => {
+                      const n = parseFloat(e.target.value);
+                      if (Number.isFinite(n)) setHintReturn(n / 100);
+                    }}
+                    aria-label="ปรับ % ผลตอบแทนคาดหวัง"
+                    className="w-full h-1.5 accent-amber-500 cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[9.5px] text-gray-400 mt-1 tabular-nums px-0.5">
+                    <span>0%</span>
+                    <span>5%</span>
+                    <span>10%</span>
+                    <span>15%</span>
+                    <span>20%</span>
+                  </div>
+                </div>
+
+                {/* Result */}
+                {hintAlreadyCovered ? (
+                  <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 flex items-center gap-2">
+                    <span className="text-emerald-600 text-base">✓</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[12px] font-bold text-emerald-800">
+                        ครอบคลุมเป้าแล้ว — ไม่ต้องออมเพิ่ม
+                      </div>
+                      <div className="text-[10.5px] text-emerald-700/80 mt-0.5">
+                        เงินต้นเติบโตที่ {(hintReturn * 100).toFixed(1)}% นาน {hintN} ปี ก็เพียงพอ
+                      </div>
+                    </div>
                   </div>
                 ) : (
-                  <>
-                    <div className="text-[12px] text-gray-700 leading-relaxed">
-                      เพื่อบรรลุเป้าทุนเกษียณ{" "}
-                      <b className="text-red-600">฿{fmt(hintS)}</b> ใน{" "}
-                      <b>{hintN} ปี</b> ที่ผลตอบแทน{" "}
-                      <PercentInput
-                        value={hintReturn}
-                        onChange={setHintReturn}
-                        min={0}
-                        max={20}
-                        ringClass="focus:ring-amber-400"
-                      />{" "}
-                      ต้องออมคงที่:
-                    </div>
-                    <div className="flex items-baseline flex-wrap gap-x-3 gap-y-1 mt-2">
-                      <div>
-                        <span className="text-[11px] text-gray-500">เดือนละ</span>{" "}
-                        <span className="text-lg font-extrabold text-[#1e3a5f] tabular-nums">
-                          ฿{fmt(hintMonthly)}
-                        </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="rounded-xl bg-white border border-amber-100 px-3.5 py-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                      <div className="text-[10px] text-gray-500 mb-0.5 font-medium">
+                        ออมเดือนละ
                       </div>
-                      <div className="text-gray-300">·</div>
-                      <div>
-                        <span className="text-[11px] text-gray-500">ปีละ</span>{" "}
-                        <span className="text-lg font-extrabold text-[#1e3a5f] tabular-nums">
-                          ฿{fmt(hintYearly)}
-                        </span>
+                      <div className="text-xl font-extrabold text-[#1e3a5f] tabular-nums leading-tight">
+                        ฿{fmt(hintMonthly)}
                       </div>
                     </div>
-                    {hintP > 0 && (
-                      <div className="text-[10.5px] text-gray-400 mt-1.5 leading-relaxed">
-                        คำนวณจากเงินต้น ฿{fmt(hintP)} เติบโตด้วยผลตอบแทนเดียวกัน
+                    <div className="rounded-xl bg-white border border-amber-100 px-3.5 py-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                      <div className="text-[10px] text-gray-500 mb-0.5 font-medium">
+                        ออมปีละ
                       </div>
-                    )}
-                  </>
+                      <div className="text-xl font-extrabold text-[#1e3a5f] tabular-nums leading-tight">
+                        ฿{fmt(hintYearly)}
+                      </div>
+                    </div>
+                  </div>
                 )}
-              </div>
-            </div>
+
+                {/* Formula footnote */}
+                <div className="text-[10px] text-gray-400 mt-2.5 leading-relaxed px-1">
+                  คิดจากสูตร FV ของ DCA รายเดือน · FV = PV·(1+r)<sup>N</sup> + 12·PMT·[((1+r)<sup>N</sup>−1) / r] · แก้หา PMT
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -776,23 +835,63 @@ function InvestmentPlanPageInner() {
                       </span>
                     </div>
 
-                    {/* Monthly amount */}
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[12px] text-gray-500 whitespace-nowrap">
-                        ออม/เดือน
-                      </span>
-                      <MoneyInput
-                        value={plan.monthlyAmount}
-                        onChange={(v) =>
-                          store.updateInvestmentPlan(plan.id, {
-                            monthlyAmount: v,
-                          })
-                        }
-                        unit="฿"
-                        className="glass w-28 text-xs font-semibold rounded-lg px-2 py-1 outline-none focus:ring-2 text-right"
-                        ringClass="focus:ring-[var(--color-primary)]"
-                      />
-                    </div>
+                    {/* Savings amount — toggle เดือน/ปี + adaptive input.
+                        Store always holds monthlyAmount; yearly mode just
+                        shows ×12 and divides on save. */}
+                    {(() => {
+                      const mode = phaseInputMode[plan.id] ?? "monthly";
+                      const displayValue =
+                        mode === "yearly"
+                          ? plan.monthlyAmount * 12
+                          : plan.monthlyAmount;
+                      const setMode = (next: "monthly" | "yearly") =>
+                        setPhaseInputMode((cur) => ({ ...cur, [plan.id]: next }));
+                      return (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[12px] text-gray-500 whitespace-nowrap">
+                            ออม
+                          </span>
+                          <div className="inline-flex rounded-md border border-gray-200 bg-gray-50 p-0.5 text-[10.5px] font-semibold">
+                            <button
+                              type="button"
+                              onClick={() => setMode("monthly")}
+                              className={`px-1.5 py-0.5 rounded transition ${
+                                mode === "monthly"
+                                  ? "bg-white text-[#1e3a5f] shadow-sm"
+                                  : "text-gray-400 hover:text-gray-600"
+                              }`}
+                              aria-pressed={mode === "monthly"}
+                            >
+                              เดือน
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setMode("yearly")}
+                              className={`px-1.5 py-0.5 rounded transition ${
+                                mode === "yearly"
+                                  ? "bg-white text-[#1e3a5f] shadow-sm"
+                                  : "text-gray-400 hover:text-gray-600"
+                              }`}
+                              aria-pressed={mode === "yearly"}
+                            >
+                              ปี
+                            </button>
+                          </div>
+                          <MoneyInput
+                            value={displayValue}
+                            onChange={(v) =>
+                              store.updateInvestmentPlan(plan.id, {
+                                monthlyAmount:
+                                  mode === "yearly" ? v / 12 : v,
+                              })
+                            }
+                            unit="฿"
+                            className="glass w-28 text-xs font-semibold rounded-lg px-2 py-1 outline-none focus:ring-2 text-right"
+                            ringClass="focus:ring-[var(--color-primary)]"
+                          />
+                        </div>
+                      );
+                    })()}
 
                     {/* Expected return — input + slider that fills remaining row */}
                     <div className="flex items-center gap-2 flex-1 min-w-[220px]">
