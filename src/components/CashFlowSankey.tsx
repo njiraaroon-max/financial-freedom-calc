@@ -318,10 +318,23 @@ export default function CashFlowSankey({ incomes, expenses, getAnnualTotal, year
 
   return (
     <div ref={wrapperRef} className="relative w-full select-none">
-      {/* Title row */}
+      {/* Title row — label on the left, gradient surplus/deficit pill on the right */}
       <div className="flex items-center justify-between mb-3 px-1">
-        <span className="text-[12px] text-gray-400">รายรับ-รายจ่ายรวมทั้งปี {year}</span>
-        <span className={`text-[12px] font-bold ${surplus >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+        <span className="font-display text-[12px] md:text-[13px] text-gray-500 tracking-tight">
+          รายรับ-รายจ่ายรวมทั้งปี {year}
+        </span>
+        <span
+          className="text-[11px] md:text-[12px] font-bold text-white px-3 py-1 rounded-full whitespace-nowrap"
+          style={{
+            background: surplus >= 0
+              ? "linear-gradient(135deg, #10b981 0%, #06b6d4 100%)"
+              : "linear-gradient(135deg, #f43f5e 0%, #f97316 100%)",
+            boxShadow: surplus >= 0
+              ? "0 4px 12px -2px rgba(16, 185, 129, 0.35)"
+              : "0 4px 12px -2px rgba(244, 63, 94, 0.35)",
+            letterSpacing: "0.01em",
+          }}
+        >
           {surplus >= 0 ? "✓ เหลือ" : "⚠ ขาด"} {fmtK(Math.abs(surplus))} / ปี
         </span>
       </div>

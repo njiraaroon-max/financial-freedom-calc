@@ -37,9 +37,9 @@ export default function PageHeader({
           )}
           {icon && !characterImg && icon}
           <div>
-            <h1 className="text-lg font-bold">{title}</h1>
+            <h1 className="font-display text-lg md:text-xl font-bold tracking-tight">{title}</h1>
             {subtitle && (
-              <p className="text-[13px] text-gray-400">{subtitle}</p>
+              <p className="text-[13px] md:text-[14px] text-gray-400">{subtitle}</p>
             )}
           </div>
         </div>

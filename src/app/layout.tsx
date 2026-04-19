@@ -1,8 +1,18 @@
 import type { Metadata, Viewport } from "next";
+import { IBM_Plex_Sans_Thai } from "next/font/google";
 import "./globals.css";
 import AppShell from "@/components/AppShell";
 import ToastContainer from "@/components/ToastContainer";
 import ConfirmDialog from "@/components/ConfirmDialog";
+
+// Display font — pair a characterful Thai display face with the system body font.
+// Exposed via CSS variable so it can be opt-in per element with `font-display`.
+const displayFont = IBM_Plex_Sans_Thai({
+  subsets: ["thai", "latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-display",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Financial Friend Calculator",
@@ -32,7 +42,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="th">
+    <html lang="th" className={displayFont.variable}>
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />

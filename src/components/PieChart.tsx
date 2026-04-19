@@ -101,18 +101,31 @@ export default function PieChart({ title, slices, size = 130 }: PieChartProps) {
 
   return (
     <div className="flex flex-col items-center">
-      <div className="text-[14px] md:text-[15px] font-bold text-gray-600 mb-2">{title}</div>
+      <div className="font-display text-[14px] md:text-[16px] font-bold text-gray-700 mb-2 tracking-tight">{title}</div>
       <svg
         viewBox="0 0 100 100"
-        className="w-full h-auto"
+        className="w-full h-auto drop-shadow-[0_4px_12px_rgba(30,41,92,0.08)]"
         style={{ maxWidth: `var(--pie-max, ${size}px)` }}
       >
         {paths.map((p, i) => (
-          <path key={i} d={p.path} fill={p.color} stroke="white" strokeWidth="0.5" />
+          <path
+            key={i}
+            d={p.path}
+            fill={p.color}
+            stroke="white"
+            strokeWidth="0.5"
+            className="pie-slice"
+            style={{ animationDelay: `${i * 70}ms` }}
+          />
         ))}
         {/* Center hole for donut */}
         <circle cx={cx} cy={cy} r="18" fill="white" />
-        <text x={cx} y={cy - 2} textAnchor="middle" dominantBaseline="middle" fill="#374151" fontSize="7" fontWeight="800">
+        <text
+          x={cx} y={cy - 2}
+          textAnchor="middle" dominantBaseline="middle"
+          fill="#374151" fontSize="7" fontWeight="800"
+          className="font-display"
+        >
           {(total).toLocaleString("th-TH")}
         </text>
         <text x={cx} y={cy + 6} textAnchor="middle" dominantBaseline="middle" fill="#9ca3af" fontSize="5">

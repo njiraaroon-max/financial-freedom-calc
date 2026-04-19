@@ -117,6 +117,18 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
+/* ─── Typography utilities ─── */
+@layer utilities {
+  /* Display font — IBM Plex Sans Thai, loaded in layout.tsx via next/font.
+     Opt-in per element: add `font-display` to headings / chart titles
+     where a characterful Thai face improves hierarchy. */
+  .font-display {
+    font-family: var(--font-display), -apple-system, BlinkMacSystemFont,
+      "Noto Sans Thai", "Sarabun", sans-serif;
+    letter-spacing: -0.01em;
+  }
+}
+
 /* ─── Glassmorphism utilities ─── */
 @layer utilities {
   .glass {
@@ -124,7 +136,12 @@ input[type="number"] {
     backdrop-filter: blur(20px) saturate(140%);
     -webkit-backdrop-filter: blur(20px) saturate(140%);
     border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
+    /* Outer drop shadow + inset top-edge highlight — gives a crisp "pane of
+       glass" feel without needing a ::before pseudo element (cleaner paint
+       order when cards contain absolutely-positioned children). */
+    box-shadow:
+      var(--glass-shadow),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.75);
   }
 
   .glass-strong {
@@ -132,7 +149,9 @@ input[type="number"] {
     backdrop-filter: blur(24px) saturate(160%);
     -webkit-backdrop-filter: blur(24px) saturate(160%);
     border: 1px solid var(--glass-border-strong);
-    box-shadow: var(--glass-shadow-lg);
+    box-shadow:
+      var(--glass-shadow-lg),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.85);
   }
 
   .glass-subtle {
@@ -202,6 +221,19 @@ input[type="number"] {
   0% { transform: scale(0); opacity: 0; }
   60% { transform: scale(1.15); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
+}
+
+/* Donut chart — staggered slice fade-in (opacity only, avoids SVG
+   transform-origin quirks that affect wedge shapes differently). */
+@keyframes pie-slice-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.pie-slice {
+  animation: pie-slice-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pie-slice { animation: none; }
 }
 
 /* ─── Print: report must stay paper-white (no glass/aurora) ─── */
