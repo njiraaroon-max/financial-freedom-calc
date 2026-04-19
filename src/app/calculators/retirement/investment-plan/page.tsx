@@ -645,7 +645,7 @@ function InvestmentPlanPageInner() {
                       <div className="text-gray-300">·</div>
                       <div>
                         <span className="text-[11px] text-gray-500">ปีละ</span>{" "}
-                        <span className="text-[13px] font-bold text-[#1e3a5f] tabular-nums">
+                        <span className="text-lg font-extrabold text-[#1e3a5f] tabular-nums">
                           ฿{fmt(hintYearly)}
                         </span>
                       </div>
