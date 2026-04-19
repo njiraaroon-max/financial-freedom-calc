@@ -21,13 +21,14 @@ import type { IncomeItem, ExpenseItem } from "@/types/cashflow";
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
 const W        = 1000;
-const H        = 560;
+const H        = 600;
 const NW_SMALL = 14;   // col 0, 3 (individual items)
 const NW_BIG   = 72;   // col 1, 2 (aggregate nodes) — wide enough for labels
 const GAP      = 15;   // gap between stacked items — more breathing room
 const GAP_CAT  = 48;   // extra gap between categories (fixed | variable+invest)
 const PAD_T    = 90;   // top space — room for the "above" floating category pill
-const PAD_B    = 90;   // bottom space — room for the "below" floating category pill
+const PAD_B    = 130;  // bottom space — extra room so the "below" variable pill
+                       // doesn't crowd whatever card sits under the Sankey
 const plotH    = H - PAD_T - PAD_B;
 
 // Left edge of each column

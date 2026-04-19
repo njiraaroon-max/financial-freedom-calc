@@ -18,7 +18,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { MoreVertical, Pencil, Tag, Trash2, Plus, Eye, EyeOff, MousePointerClick, Zap, X } from "lucide-react";
+import { MoreVertical, Pencil, Tag, Trash2, Plus, Eye, EyeOff, MousePointerClick, Zap, X, ChevronDown, ChevronUp, PieChart as PieChartIcon } from "lucide-react";
 import { MONTH_NAMES_TH, INCOME_TAX_CATEGORIES, EXPENSE_CATEGORIES } from "@/types/cashflow";
 import type { IncomeItem, ExpenseItem, ExpenseCategory } from "@/types/cashflow";
 import FormulaInput from "@/components/FormulaInput";
@@ -68,6 +68,9 @@ export default function ExcelCashflow({
   onAddExpense,
 }: Props) {
   const [optimize, setOptimize] = useState(false);
+  // Donut summary is collapsed by default — matches the Sankey card pattern
+  // at the top of the page, keeps the initial view focused on the grid.
+  const [showPies, setShowPies] = useState(false);
   const [editCell, setEditCell] = useState<{
     itemId: string;
     itemName: string;
@@ -672,10 +675,42 @@ export default function ExcelCashflow({
         </button>
       </div>
 
-      {/* Pie Charts — responsive: bigger on tablet/desktop */}
-      <div className="glass grid grid-cols-2 gap-3 md:gap-6 rounded-xl p-4 md:p-6 [--pie-max:120px] md:[--pie-max:200px] lg:[--pie-max:240px]">
-        <PieChart title="รายรับ" slices={incomeSlices} size={120} />
-        <PieChart title="รายจ่าย" slices={expenseSlices} size={120} />
+      {/* Pie Charts — collapsed by default, toggled by the pill button.
+          Animates via max-height so the layout below reflows smoothly. */}
+      <div>
+        <button
+          onClick={() => setShowPies((v) => !v)}
+          className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl glass hover:bg-white/70 transition"
+        >
+          <span className="flex items-center gap-2 text-[13px] md:text-sm font-bold text-gray-700">
+            <PieChartIcon size={16} className="text-indigo-500" />
+            สัดส่วนรายรับ / รายจ่าย (Donut)
+          </span>
+          <span className="flex items-center gap-1 text-[12px] md:text-[13px] text-gray-500">
+            {showPies ? (
+              <>
+                <ChevronUp size={15} /> ซ่อน
+              </>
+            ) : (
+              <>
+                <ChevronDown size={15} /> เปิดดู
+              </>
+            )}
+          </span>
+        </button>
+
+        <div
+          style={{
+            maxHeight: showPies ? "560px" : "0px",
+            overflow: "hidden",
+            transition: "max-height 0.35s cubic-bezier(0.4,0,0.2,1)",
+          }}
+        >
+          <div className="glass grid grid-cols-2 gap-3 md:gap-6 rounded-xl p-4 md:p-6 mt-3 [--pie-max:120px] md:[--pie-max:200px] lg:[--pie-max:240px]">
+            <PieChart title="รายรับ" slices={incomeSlices} size={120} />
+            <PieChart title="รายจ่าย" slices={expenseSlices} size={120} />
+          </div>
+        </div>
       </div>
 
       {/* Table */}

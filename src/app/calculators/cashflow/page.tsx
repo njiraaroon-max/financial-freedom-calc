@@ -272,7 +272,7 @@ export default function CashFlowPage() {
             fit the taller chart (H=560 viewBox) at laptop-width rendering. */}
         <div
           style={{
-            maxHeight: showSankey ? "900px" : "0px",
+            maxHeight: showSankey ? "960px" : "0px",
             overflow: "hidden",
             transition: "max-height 0.4s cubic-bezier(0.4,0,0.2,1)",
           }}
