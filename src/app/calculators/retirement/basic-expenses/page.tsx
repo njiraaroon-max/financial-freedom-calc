@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Save, Plus, Trash2, Info, X, Lightbulb, ChevronDown, Table2 } from "lucide-react";
+import { Save, Plus, Trash2, Info, X, Lightbulb, ChevronDown, Table2, Eye, EyeOff } from "lucide-react";
 
 /** Filled triangle — up (▲) / down (▼) — colored via `currentColor`. */
 function Triangle({ dir }: { dir: "up" | "down" }) {
@@ -62,6 +62,8 @@ export default function BasicExpensesPage() {
   const [showDiagramInfo, setShowDiagramInfo] = useState(false);
   const [showSensitivityInfo, setShowSensitivityInfo] = useState(false);
   const [showYearlyTable, setShowYearlyTable] = useState(false);
+  // Optimize: hide rows whose monthlyAmount is 0 to keep the list focused.
+  const [optimize, setOptimize] = useState(false);
 
   // Auto-sync age from profile
   useEffect(() => {
@@ -193,8 +195,40 @@ export default function BasicExpensesPage() {
 
         {/* Items */}
         <div className="glass rounded-2xl p-4">
-          <div className="text-xs font-bold text-gray-500 mb-3">
-            รายจ่ายพื้นฐาน (ราคาปัจจุบัน)
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-xs font-bold text-gray-500">
+              รายจ่ายพื้นฐาน (ราคาปัจจุบัน)
+            </div>
+            {(() => {
+              const hiddenCount = optimize
+                ? store.basicExpenses.filter((i) => i.monthlyAmount === 0).length
+                : 0;
+              return (
+                <div className="flex items-center gap-1.5">
+                  {optimize && hiddenCount > 0 && (
+                    <span className="text-[10px] font-medium text-gray-400">
+                      ซ่อน {hiddenCount}
+                    </span>
+                  )}
+                  <button
+                    onClick={() => setOptimize((v) => !v)}
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold transition ${
+                      optimize
+                        ? "bg-indigo-500 text-white shadow-sm"
+                        : "bg-white border border-gray-200 text-gray-600 hover:border-indigo-300"
+                    }`}
+                    title={
+                      optimize
+                        ? "แสดงทุกรายการ"
+                        : "ซ่อนรายการที่เป็น 0"
+                    }
+                  >
+                    {optimize ? <EyeOff size={11} /> : <Eye size={11} />}
+                    {optimize ? "Optimize: เปิด" : "Optimize"}
+                  </button>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Header row — grid columns differ based on master toggle.
@@ -218,9 +252,12 @@ export default function BasicExpensesPage() {
           )}
 
           <div>
-            {store.basicExpenses.map((item, idx) => {
+            {(optimize
+              ? store.basicExpenses.filter((i) => i.monthlyAmount !== 0)
+              : store.basicExpenses
+            ).map((item, idx, arr) => {
               const baseline = cfBaselineByItem[item.id] ?? 0;
-              const isLast = idx === store.basicExpenses.length - 1;
+              const isLast = idx === arr.length - 1;
               const rowBorder = isLast ? "" : "border-b border-gray-100";
               // Trash button: hidden by default on hover-capable devices
               // (desktop), revealed on row hover. On touch devices (iPad,
