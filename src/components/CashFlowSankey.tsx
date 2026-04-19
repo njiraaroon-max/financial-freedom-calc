@@ -21,13 +21,13 @@ import type { IncomeItem, ExpenseItem } from "@/types/cashflow";
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
 const W        = 1000;
-const H        = 440;
+const H        = 470;
 const NW_SMALL = 14;   // col 0, 3 (individual items)
 const NW_BIG   = 72;   // col 1, 2 (aggregate nodes) — wide enough for labels
-const GAP      = 10;
-const GAP_CAT  = 28;   // extra gap between categories at col2/col3
-const PAD_T    = 30;
-const PAD_B    = 30;
+const GAP      = 15;   // gap between stacked items — more breathing room
+const GAP_CAT  = 48;   // extra gap between categories (fixed | variable+invest)
+const PAD_T    = 24;
+const PAD_B    = 54;   // bottom space so chart doesn't touch edge
 const plotH    = H - PAD_T - PAD_B;
 
 // Left edge of each column
@@ -126,25 +126,25 @@ export default function CashFlowSankey({ incomes, expenses, getAnnualTotal, year
     const incItems = topN(
       incomes.map(x => ({ id: x.id, name: x.name, v: getAnnualTotal(x.id) }))
         .filter(x => x.v > 0).sort((a, b) => b.v - a.v),
-      6,
+      5,
     );
     const fixItems = topN(
       expenses.filter(e => e.expenseCategory === "fixed")
         .map(x => ({ id: x.id, name: x.name, v: getAnnualTotal(x.id), cat: "fixed" as const }))
         .filter(x => x.v > 0).sort((a, b) => b.v - a.v),
-      6,
+      5,
     );
     const varItems = topN(
       expenses.filter(e => e.expenseCategory === "variable")
         .map(x => ({ id: x.id, name: x.name, v: getAnnualTotal(x.id), cat: "variable" as const }))
         .filter(x => x.v > 0).sort((a, b) => b.v - a.v),
-      4,
+      3,
     );
     const invItems = topN(
       expenses.filter(e => e.expenseCategory === "investment")
         .map(x => ({ id: x.id, name: x.name, v: getAnnualTotal(x.id), cat: "invest" as const }))
         .filter(x => x.v > 0).sort((a, b) => b.v - a.v),
-      3,
+      2,
     );
 
     const totalIncome = incItems.reduce((s, x) => s + x.v, 0);
@@ -459,19 +459,28 @@ export default function CashFlowSankey({ incomes, expenses, getAnnualTotal, year
               fill={col1Node.color} rx={6}
               filter="url(#node-shadow)"
             />
-            {col1Node.h > 38 && (
+            {col1Node.h > 44 && (
               <>
+                {/* Transparent frame behind label for readability */}
+                <rect
+                  x={col1Node.x + 4}
+                  y={col1Node.y + col1Node.h / 2 - 22}
+                  width={col1Node.w - 8}
+                  height={44}
+                  fill="rgba(0,0,0,0.18)"
+                  rx={5}
+                />
                 <text
-                  x={col1Node.x + col1Node.w / 2} y={col1Node.y + col1Node.h / 2 - 5}
-                  textAnchor="middle" fontSize={14} fill="white" fontWeight="800"
-                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
+                  x={col1Node.x + col1Node.w / 2} y={col1Node.y + col1Node.h / 2 - 4}
+                  textAnchor="middle" fontSize={13} fill="white" fontWeight="800"
+                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
                 >
                   Income
                 </text>
                 <text
-                  x={col1Node.x + col1Node.w / 2} y={col1Node.y + col1Node.h / 2 + 14}
-                  textAnchor="middle" fontSize={13} fill="white" fontWeight="600"
-                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
+                  x={col1Node.x + col1Node.w / 2} y={col1Node.y + col1Node.h / 2 + 13}
+                  textAnchor="middle" fontSize={13} fill="white" fontWeight="700"
+                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
                 >
                   {fmtK(totalIncome)}
                 </text>
@@ -488,25 +497,36 @@ export default function CashFlowSankey({ incomes, expenses, getAnnualTotal, year
                 onMouseLeave={clearTooltip}
               >
                 <rect x={n.x} y={n.y} width={n.w} height={n.h} fill={n.color} rx={6} filter="url(#node-shadow)" />
-                {n.h > 38 && (() => {
+                {n.h > 54 && (() => {
                   const lines = n.name.split("+");
+                  const boxH = lines.length * 14 + 22;   // label lines + value line + padding
+                  const boxY = n.y + n.h / 2 - boxH / 2;
                   return (
                     <>
+                      {/* Transparent frame behind label — improves text contrast over ribbons */}
+                      <rect
+                        x={n.x + 4}
+                        y={boxY}
+                        width={n.w - 8}
+                        height={boxH}
+                        fill="rgba(0,0,0,0.18)"
+                        rx={5}
+                      />
                       {lines.map((line, li) => (
                         <text key={li}
                           x={n.x + n.w / 2}
-                          y={n.y + n.h / 2 - 8 + li * 14}
-                          textAnchor="middle" fontSize={12} fill="white" fontWeight="800"
-                          style={{ textShadow: "0 1px 2px rgba(0,0,0,0.25)" }}
+                          y={boxY + 14 + li * 14}
+                          textAnchor="middle" fontSize={11} fill="white" fontWeight="800"
+                          style={{ textShadow: "0 1px 2px rgba(0,0,0,0.35)" }}
                         >
                           {line.trim()}
                         </text>
                       ))}
                       <text
                         x={n.x + n.w / 2}
-                        y={n.y + n.h / 2 + lines.length * 7 + 6}
-                        textAnchor="middle" fontSize={12} fill="white" fontWeight="600"
-                        style={{ textShadow: "0 1px 2px rgba(0,0,0,0.25)" }}
+                        y={boxY + 14 + lines.length * 14 + 2}
+                        textAnchor="middle" fontSize={12} fill="white" fontWeight="700"
+                        style={{ textShadow: "0 1px 2px rgba(0,0,0,0.35)" }}
                       >
                         {fmtK(n.v)}
                       </text>
