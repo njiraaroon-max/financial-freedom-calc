@@ -231,11 +231,11 @@ function InvestmentPlanPageInner() {
     if (investResult.length === 0) return null;
 
     const chartW = 500;
-    const chartH = 280;
+    const chartH = 295;     // +15 to house rotated x-axis labels
     const leftPad = 55;
     const rightPad = 95;
     const topPad = 20;
-    const bottomPad = 30;
+    const bottomPad = 45;   // +15 so -45° rotated labels don't clip
     const plotW = chartW - leftPad - rightPad;
     const plotH = chartH - topPad - bottomPad;
 
@@ -311,15 +311,22 @@ function InvestmentPlanPageInner() {
           </g>
         ))}
 
-        {/* X-axis labels — every 5 years + first + last, so labels
-            don't crash into each other on iPad/laptop width. */}
+        {/* X-axis labels — every year, rotated -45° so 40+ ticks don't
+            collide. Anchor at "end" means the right edge of each label
+            sits just below its tick mark; the text then leans down-left
+            into the bottom padding area. */}
         {investResult.map((r, i) => {
-          const isFirst = i === 0;
-          const isLast = i === investResult.length - 1;
-          const isRoundAge = r.age % 5 === 0;
-          if (!isFirst && !isLast && !isRoundAge) return null;
+          const tx = idxToX(i);
+          const ty = chartH - 24;
           return (
-            <text key={i} x={idxToX(i)} y={chartH - 8} textAnchor="middle" className="text-[11px] fill-gray-400">
+            <text
+              key={i}
+              x={tx}
+              y={ty}
+              textAnchor="end"
+              className="text-[7px] fill-gray-400"
+              transform={`rotate(-45 ${tx} ${ty})`}
+            >
               {r.age}
             </text>
           );
