@@ -253,31 +253,8 @@ export default function CashFlowPage() {
         characterImg="/character/cashflow.png"
       />
 
-      <ExcelCashflow
-        incomes={incomes}
-        expenses={expenses}
-        getAnnualTotal={getAnnualTotal}
-        getCommonRatio={getCommonRatio}
-        onUpdateAmount={onUpdateAmountWithSync}
-        onFillRange={(id, from, to, value) => {
-          // Only write to [from..to]; leave other months untouched.
-          bulkFillRange(id, from, to, value, false);
-          // Salary-linked recalc if this was a 40(1) recurring income
-          const income = incomes.find((i) => i.id === id);
-          if (income?.taxCategory === "40(1)" && income.isRecurring) {
-            setTimeout(() => recalculateSalaryLinked(), 0);
-          }
-        }}
-        onRename={updateItemName}
-        onRemove={removeItem}
-        onOpenTag={onOpenTag}
-        onAddIncome={onAddIncome}
-        onAddExpense={onAddExpense}
-      />
-
-      {/* ─── Sankey Diagram Card ─────────────────────────────────────── */}
-      <div className="px-4 pt-4 pb-2">
-        {/* Toggle button */}
+      {/* ─── Sankey Diagram Card (top of page for quick overview) ──────── */}
+      <div className="px-4 pt-3 pb-1">
         <button
           onClick={() => setShowSankey((v) => !v)}
           className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-md active:scale-[0.98] transition"
@@ -311,6 +288,28 @@ export default function CashFlowPage() {
           </div>
         </div>
       </div>
+
+      <ExcelCashflow
+        incomes={incomes}
+        expenses={expenses}
+        getAnnualTotal={getAnnualTotal}
+        getCommonRatio={getCommonRatio}
+        onUpdateAmount={onUpdateAmountWithSync}
+        onFillRange={(id, from, to, value) => {
+          // Only write to [from..to]; leave other months untouched.
+          bulkFillRange(id, from, to, value, false);
+          // Salary-linked recalc if this was a 40(1) recurring income
+          const income = incomes.find((i) => i.id === id);
+          if (income?.taxCategory === "40(1)" && income.isRecurring) {
+            setTimeout(() => recalculateSalaryLinked(), 0);
+          }
+        }}
+        onRename={updateItemName}
+        onRemove={removeItem}
+        onOpenTag={onOpenTag}
+        onAddIncome={onAddIncome}
+        onAddExpense={onAddExpense}
+      />
 
       {/* Save & Clear Buttons */}
       <div className="px-4 pb-32 pt-2 space-y-3">
