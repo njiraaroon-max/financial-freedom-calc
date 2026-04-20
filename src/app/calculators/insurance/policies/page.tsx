@@ -834,14 +834,14 @@ export default function PortfolioDashboard() {
                     ? "กรมธรรม์ rider ของไทยส่วนใหญ่มีหัวขบวนเป็นประกันชีวิต — ใส่ทุนของหัวขบวนที่นี่ (เว้นว่างได้ถ้าไม่มี)"
                     : undefined;
                 return (
-              <div className={`grid ${form.policyType === "term" ? "grid-cols-2" : "grid-cols-3"} gap-2`}>
-                <div>
+              <div className={`grid ${form.policyType === "term" ? "grid-cols-2" : "grid-cols-3"} gap-2 items-end`}>
+                <div className="flex flex-col h-full">
                   <label className="text-[13px] font-bold text-gray-500 uppercase mb-1 block">{sumInsuredLabel}</label>
                   <MoneyInput
                     value={form.sumInsured}
                     onChange={(v) => setForm({ ...form, sumInsured: v })}
                     placeholder="3,000,000"
-                    className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                    className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 border border-gray-200 text-center font-bold mt-auto"
                     ringClass="focus:ring-blue-400"
                   />
                   {sumInsuredHint && (
@@ -849,24 +849,24 @@ export default function PortfolioDashboard() {
                   )}
                 </div>
                 {form.policyType !== "term" && (
-                  <div>
+                  <div className="flex flex-col h-full">
                     <label className="text-[13px] font-bold text-gray-500 uppercase mb-1 block">มูลค่าเวนคืน</label>
                     <MoneyInput
                       value={form.cashValue}
                       onChange={(v) => setForm({ ...form, cashValue: v })}
                       placeholder="0"
-                      className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                      className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 border border-gray-200 text-center font-bold mt-auto"
                       ringClass="focus:ring-blue-400"
                     />
                   </div>
                 )}
-                <div>
+                <div className="flex flex-col h-full">
                   <label className="text-[13px] font-bold text-gray-500 uppercase mb-1 block">เบี้ยที่จ่าย/ปี</label>
                   <MoneyInput
                     value={form.premium}
                     onChange={(v) => setForm({ ...form, premium: v })}
                     placeholder="55,000"
-                    className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 border border-gray-200 text-center font-bold"
+                    className="w-full text-sm bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 border border-gray-200 text-center font-bold mt-auto"
                     ringClass="focus:ring-blue-400"
                   />
                 </div>
