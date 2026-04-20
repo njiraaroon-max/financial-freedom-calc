@@ -301,6 +301,12 @@ export interface Pillar1Data {
   // ── TVM parameters ──
   inflationRate: number;            // อัตราเงินเฟ้อ (%)
   investmentReturn: number;         // ผลตอบแทนจากการลงทุน (%)
+  // ── Education-specific assumption ──
+  // เงินเฟ้อค่าเทอมต่อปี — ใช้เฉพาะการคำนวณทุนการศึกษาบุตร
+  // ไม่คิดผลตอบแทนการลงทุนใน pillar การศึกษาเพราะเงินก้อนนี้เป็นเงินในวันที่
+  // เจ้าของแผนไม่อยู่แล้ว ไม่สามารถสมมติว่าครอบครัวจะจัดการลงทุนอย่างไร
+  // (default 3% — เท่ากับ default inflationRate เดิมเพื่อ backward compat)
+  educationInflationRate: number;   // % ต่อปี
   // ── Legacy (kept for compat) ──
   familyExpenseMonthly: number;     // ค่าใช้จ่ายครอบครัว/เดือน
   familyAdjustmentYears: number;    // จำนวนปีที่ต้องดูแล
@@ -437,6 +443,8 @@ export const DEFAULT_PILLAR1: Pillar1Data = {
   // TVM
   inflationRate: 3,
   investmentReturn: 5,
+  // Education inflation (separate from general — no investment return applied)
+  educationInflationRate: 6,
   // Legacy
   familyExpenseMonthly: 0,
   familyAdjustmentYears: 5,
@@ -682,7 +690,7 @@ export const useInsuranceStore = create<InsuranceState>()(
     }),
     {
       name: "ffc-insurance",
-      version: 19,
+      version: 20,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
         if (version < 2) {
@@ -891,6 +899,21 @@ export const useInsuranceStore = create<InsuranceState>()(
                 if (typeof k.curriculumType !== "string") k.curriculumType = "thai";
                 if (typeof k.studyUntil !== "string") k.studyUntil = "bachelor";
               }
+            }
+          }
+        }
+        if (version < 20) {
+          // Add educationInflationRate (default 6% — typical Thai tuition inflation).
+          // Separate from general inflationRate so planners can model education
+          // inflation independently without affecting other calcs. Pillar-1 now
+          // treats education as a pure nominal-inflation problem (no investment
+          // return assumed, because on the day the plan owner is gone, we can't
+          // dictate how survivors invest the death benefit).
+          const rm = state.riskManagement as RiskManagementData | undefined;
+          if (rm && rm.pillar1) {
+            const p1 = rm.pillar1 as unknown as Record<string, unknown>;
+            if (typeof p1.educationInflationRate !== "number") {
+              p1.educationInflationRate = 6;
             }
           }
         }

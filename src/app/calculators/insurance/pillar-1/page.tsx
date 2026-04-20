@@ -156,6 +156,8 @@ export default function Pillar1Page() {
   const [showNeedsDetail, setShowNeedsDetail] = useState(false);
   const [openSteps, setOpenSteps] = useState<Record<number, boolean>>({ 1: false, 2: false, 3: false });
   const toggleStep = (n: number) => setOpenSteps((prev) => ({ ...prev, [n]: !prev[n] }));
+  // Collapsible year-by-year education cashflow table (combined across all children)
+  const [showEducationTable, setShowEducationTable] = useState(false);
 
   // ─── Save & mark completed ──────────────────────────────────────────────
   const [saveFlash, setSaveFlash] = useState(false);
@@ -432,11 +434,14 @@ export default function Pillar1Page() {
                 </div>
               )}
 
-              {/* ── Children / Education section (v19: age + curriculum picker) ── */}
+              {/* ── Children / Education section (v20: inflation-only model) ── */}
               {(p1.dependents || {}).children && (
                 <div className="bg-blue-50/50 rounded-xl p-3 space-y-3 border border-blue-100">
                   <div className="flex items-center justify-between">
-                    <div className="text-[14px] font-bold text-blue-700">ทุนการศึกษาบุตร</div>
+                    <div>
+                      <div className="text-[14px] font-bold text-blue-700">ทุนการศึกษาบุตร</div>
+                      <div className="text-[11px] text-blue-400/80 mt-0.5">คิดเงินเฟ้อค่าเทอม ไม่สมมติผลตอบแทนการลงทุน (เพราะเป็นเงินในวันที่เราไม่อยู่)</div>
+                    </div>
                     {!p1.useEducationPlan && (
                       <button
                         onClick={() => {
@@ -468,6 +473,39 @@ export default function Pillar1Page() {
 
                   {!p1.useEducationPlan && (
                     <div className="space-y-3">
+                      {/* Education-specific inflation (separate from general TVM inflation) */}
+                      <div className="bg-white/60 rounded-lg border border-blue-100 px-3 py-2">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="text-[13px] font-bold text-blue-700">อัตราเงินเฟ้อค่าเทอม</div>
+                            <div className="text-[11px] text-blue-400/80">inflate ค่าเทอมถึงปีที่เข้าเรียน จากนั้น "แช่แข็ง" ตลอดระดับชั้นนั้น</div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <input
+                              type="range"
+                              min={0}
+                              max={15}
+                              step={0.5}
+                              value={p1.educationInflationRate ?? 6}
+                              onChange={(e) => update({ educationInflationRate: Number(e.target.value) })}
+                              className="w-28 accent-blue-500"
+                            />
+                            <div className="flex items-center">
+                              <input
+                                type="number"
+                                min={0}
+                                max={30}
+                                step={0.5}
+                                value={p1.educationInflationRate ?? 6}
+                                onChange={(e) => update({ educationInflationRate: Math.max(0, Math.min(30, Number(e.target.value) || 0)) })}
+                                className="w-14 text-sm bg-white border border-blue-200 rounded-lg px-2 py-1 text-right font-bold text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                              />
+                              <span className="ml-1 text-[12px] text-blue-500 font-semibold">%</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
                       {(p1.educationChildren || []).length === 0 && (
                         <div className="text-[13px] text-blue-400 bg-blue-50 rounded-lg px-3 py-2">
                           กด &quot;+ เพิ่มบุตร&quot; แล้วกรอกอายุ + เลือกหลักสูตร ระบบจะจับคู่ระดับชั้นและคำนวณค่าเทอมตามช่วงราคาตลาดให้อัตโนมัติ
@@ -590,11 +628,13 @@ export default function Pillar1Page() {
                                   )}
                                 </div>
 
-                                {/* Subtotal */}
+                                {/* Subtotal — nominal inflation-adjusted (no investment return discount) */}
                                 {childCalc && childCalc.totalYears > 0 && (
-                                  <div className="text-[13px] text-blue-500 pl-1 space-y-0.5 bg-blue-50/50 rounded-md px-2 py-1.5">
-                                    <div>เหลืออีก <span className="font-bold">{childCalc.totalYears} ปี</span> | แบบตรง: {fmt(childCalc.simpleTotal)} บาท</div>
-                                    <div className="font-bold">TVM (PV): {fmt(childCalc.tvmTotal)} บาท</div>
+                                  <div className="text-[13px] text-blue-600 pl-1 bg-blue-50/50 rounded-md px-2 py-1.5">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <span>เหลืออีก <span className="font-bold">{childCalc.totalYears} ปี</span></span>
+                                      <span className="font-extrabold">{fmt(childCalc.simpleTotal)} บาท</span>
+                                    </div>
                                   </div>
                                 )}
                               </div>
@@ -608,22 +648,140 @@ export default function Pillar1Page() {
                         const hasChildren = (p1.educationChildren || []).length > 0;
                         if (!hasChildren) return null;
                         const eduTotal = analysis.eduFundTVM;
-                        const eduSimple = analysis.eduFundSimple;
                         return eduTotal > 0 ? (
-                          <div className="bg-gray-100 rounded-lg px-3 py-2 mt-1 space-y-0.5">
+                          <div className="bg-gray-100 rounded-lg px-3 py-2 mt-1">
                             <div className="flex items-center justify-between">
                               <span className="text-[13px] font-bold text-gray-600">รวมทุนการศึกษา ({(p1.educationChildren || []).length} คน)</span>
                               <span className="text-xs font-extrabold text-gray-700">{fmt(eduTotal)} บาท</span>
                             </div>
-                            {eduSimple !== eduTotal && (
-                              <div className="flex items-center justify-between">
-                                <span className="text-[13px] text-gray-400">แบบไม่คิด TVM</span>
-                                <span className="text-[13px] text-gray-400">{fmt(eduSimple)} บาท</span>
-                              </div>
-                            )}
                           </div>
                         ) : null;
                       })()}
+
+                      {/* ── Summary card: per-level breakdown per child ── */}
+                      {(() => {
+                        const withData = analysis.perChildEdu.filter((c) => c.totalYears > 0);
+                        if (withData.length === 0) return null;
+                        return (
+                          <div className="bg-white rounded-xl border border-blue-200 p-3 space-y-2.5">
+                            <div className="flex items-center gap-1.5">
+                              <div className="text-[13px] font-bold text-blue-700">สรุปค่าใช้จ่ายแต่ละระดับ</div>
+                              <span className="text-[11px] text-gray-400">(คิดเงินเฟ้อ {p1.educationInflationRate ?? 6}% — แช่แข็งต่อระดับ)</span>
+                            </div>
+                            {withData.map((child) => (
+                              <div key={child.id} className="border-t border-gray-100 pt-2 first:border-t-0 first:pt-0">
+                                <div className="flex items-center justify-between mb-1">
+                                  <div className="text-[13px] font-bold text-blue-700">{child.name || "บุตร"}</div>
+                                  <div className="text-[13px] font-extrabold text-blue-700">{fmt(child.simpleTotal)} บาท</div>
+                                </div>
+                                <div className="space-y-0.5">
+                                  {child.remaining.map((lv) => (
+                                    <div key={lv.key} className="flex items-center justify-between text-[12px] text-gray-500">
+                                      <span className="flex items-center gap-1.5 min-w-0">
+                                        <span className="text-blue-500 font-semibold shrink-0">{lv.label}</span>
+                                        <span className="text-gray-400 text-[11px] truncate">
+                                          ปี {lv.entryYearFromNow === 0 ? "นี้" : `+${lv.entryYearFromNow}`} · {fmt(lv.costPerYear)} × {lv.adjustedYears} ปี
+                                        </span>
+                                      </span>
+                                      <span className="font-bold text-gray-700 shrink-0 ml-2">{fmt(lv.subtotal)}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                            <div className="border-t border-blue-100 pt-2 flex items-center justify-between">
+                              <span className="text-[13px] font-bold text-blue-700">รวมทุกคน ({withData.length} คน)</span>
+                              <span className="text-sm font-extrabold text-blue-700">{fmt(analysis.eduFundTVM)} บาท</span>
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {/* ── Collapsible year-by-year cashflow table (all children combined) ── */}
+                      {analysis.educationYearly.length > 0 && (
+                        <div className="bg-white rounded-xl border border-blue-100 overflow-hidden">
+                          <button
+                            onClick={() => setShowEducationTable((v) => !v)}
+                            className="w-full flex items-center justify-between px-3 py-2 hover:bg-blue-50/50 transition-colors"
+                          >
+                            <span className="text-[13px] font-bold text-blue-700">
+                              ตารางค่าเทอมรายปี (รวมทุกคน)
+                            </span>
+                            <ChevronDown
+                              size={16}
+                              className={`text-blue-500 transition-transform ${showEducationTable ? "rotate-180" : ""}`}
+                            />
+                          </button>
+                          {showEducationTable && (
+                            <div className="border-t border-blue-100 max-h-96 overflow-y-auto">
+                              <table className="w-full text-[12px]">
+                                <thead className="bg-blue-50/60 sticky top-0">
+                                  <tr className="text-gray-500">
+                                    <th className="text-left px-3 py-1.5 font-semibold w-16">ปี</th>
+                                    {analysis.perChildEdu
+                                      .filter((c) => c.totalYears > 0)
+                                      .map((c) => (
+                                        <th key={c.id} className="text-right px-2 py-1.5 font-semibold">
+                                          {c.name || "บุตร"}
+                                        </th>
+                                      ))}
+                                    <th className="text-right px-3 py-1.5 font-bold text-blue-700">รวม</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {analysis.educationYearly.map((row) => {
+                                    const calendarYear = CURRENT_YEAR + row.yearFromNow;
+                                    const beYear = calendarYear + BE_OFFSET;
+                                    const byChildId = new Map(row.perChild.map((c) => [c.id, c]));
+                                    const activeChildren = analysis.perChildEdu.filter((c) => c.totalYears > 0);
+                                    return (
+                                      <tr key={row.yearFromNow} className="border-t border-gray-100 hover:bg-blue-50/30">
+                                        <td className="px-3 py-1.5 text-gray-500">
+                                          <div className="flex flex-col leading-tight">
+                                            <span className="text-gray-700 font-semibold">{beYear}</span>
+                                            <span className="text-[10px] text-gray-300">+{row.yearFromNow}</span>
+                                          </div>
+                                        </td>
+                                        {activeChildren.map((c) => {
+                                          const entry = byChildId.get(c.id);
+                                          return (
+                                            <td key={c.id} className="text-right px-2 py-1.5">
+                                              {entry ? (
+                                                <div className="flex flex-col leading-tight items-end">
+                                                  <span className="text-gray-700">{fmt(entry.amount)}</span>
+                                                  <span className="text-[10px] text-blue-400">{entry.levelLabel}</span>
+                                                </div>
+                                              ) : (
+                                                <span className="text-gray-200">—</span>
+                                              )}
+                                            </td>
+                                          );
+                                        })}
+                                        <td className="text-right px-3 py-1.5 font-bold text-blue-700">{fmt(row.total)}</td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                                <tfoot className="bg-blue-50/60 sticky bottom-0">
+                                  <tr className="border-t-2 border-blue-200">
+                                    <td className="px-3 py-1.5 font-bold text-blue-700">รวม</td>
+                                    {analysis.perChildEdu
+                                      .filter((c) => c.totalYears > 0)
+                                      .map((c) => (
+                                        <td key={c.id} className="text-right px-2 py-1.5 font-bold text-gray-700">
+                                          {fmt(c.simpleTotal)}
+                                        </td>
+                                      ))}
+                                    <td className="text-right px-3 py-1.5 font-extrabold text-blue-700">
+                                      {fmt(analysis.eduFundTVM)}
+                                    </td>
+                                  </tr>
+                                </tfoot>
+                              </table>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
 

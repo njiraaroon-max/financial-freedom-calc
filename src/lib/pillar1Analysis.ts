@@ -61,17 +61,40 @@ export interface Pillar1PerChildEdu {
   id: string;
   name: string;
   currentLevelKey: string;
+  /**
+   * Per-level breakdown for this child — each entry already reflects the
+   * frozen-within-level tuition (inflated to the entry year) × remaining years
+   * in that level. Used by the UI summary card.
+   */
   remaining: {
     key: string;
     label: string;
-    years: number;
-    costPerYear: number;
+    years: number;              // duration of the level (full)
+    costPerYear: number;        // tuitionFrozen (inflation-adjusted to entry year)
     enabled: boolean;
-    adjustedYears: number;
+    adjustedYears: number;      // years actually still to pay (may be < years)
+    entryYearFromNow: number;   // when this level's payments start (0 = this year)
+    subtotal: number;           // costPerYear × adjustedYears
   }[];
   totalYears: number;
   simpleTotal: number;
   tvmTotal: number;
+  /**
+   * Year-by-year cashflow from today. Index 0 = this year (year 1), index 1 =
+   * next year, etc. Used for the aggregate "cashflow by year" table.
+   */
+  yearly: {
+    yearFromNow: number;  // 0-based
+    amount: number;       // tuition due for this child in this year
+    levelKey: string;     // which level is being paid in this year
+    levelLabel: string;
+  }[];
+}
+
+export interface Pillar1EducationYearRow {
+  yearFromNow: number;          // 0 = this year
+  total: number;                // sum across all children
+  perChild: { id: string; name: string; amount: number; levelLabel: string }[];
 }
 
 export interface Pillar1Analysis {
@@ -103,6 +126,8 @@ export interface Pillar1Analysis {
   perChildEdu: Pillar1PerChildEdu[];
   eduFundSimple: number;
   eduFundTVM: number;
+  /** Aggregate year-by-year education cashflow (sum across all children). */
+  educationYearly: Pillar1EducationYearRow[];
 }
 
 // ─── Life policy filter ─────────────────────────────────────────────────────
@@ -161,27 +186,36 @@ export function computePillar1Analysis({
 
   // ── Education: per-child projection (age + curriculum based) ──
   //
-  // New model (v19+): each child carries { age, curriculumType, studyUntil }.
-  // From those we derive which education levels the child still has ahead,
-  // pull a suggested annual tuition from the tuition-lookup table for the
-  // chosen curriculum, and project cashflows year-by-year.
+  // Model (v20+): inflation-only, no investment-return discount.
   //
-  // Inflation & TVM convention (matches user requirement):
-  //   • Tuition for a level is set on the year the child ENTERS that level,
-  //     inflated to that year from today's lookup price.
-  //   • Within a level the tuition is FROZEN (school doesn't re-price each
-  //     year once enrolled). Each year pays that frozen amount.
-  //   • PV back to today uses the investmentReturn rate (risk-free-ish
-  //     discount — we assume the death benefit would be invested until spent).
+  // Rationale for dropping the PV/TVM discount for education specifically:
+  // this pillar models what a family will need AFTER the plan owner is gone.
+  // We cannot assume survivors will re-invest the death benefit at the main
+  // `investmentReturn` rate, so the honest planning number is the NOMINAL
+  // inflated total — the actual baht they will write out the door each year.
   //
-  // The legacy path (flat educationLevels[].costPerYear with per-level
-  // enable/disable) is still computed as a fallback when no children are
-  // defined, so existing users who haven't migrated their UI don't see zeros.
+  // Mechanics:
+  //   • Each child carries { age, curriculumType, studyUntil }.
+  //   • Walk levels from current level up through `studyUntil`.
+  //   • For each level, base tuition = midpoint of the lookup-table range for
+  //     the chosen curriculum (master → fallback to educationLevels[].costPerYear
+  //     or 0 since the lookup has no master's data).
+  //   • Tuition is INFLATED to the year the child enters the level (using
+  //     `educationInflationRate`), then FROZEN through the duration of the
+  //     level (schools don't re-price mid-programme).
+  //   • Simple total = sum of frozen tuition × years. That's the number the
+  //     family actually needs in nominal baht.
+  //   • `tvmTotal` is kept in the API surface and set equal to `simpleTotal`
+  //     so downstream consumers that still read `eduFundTVM` keep working.
+  //   • `yearly` = per-year cashflow for this child (for the aggregate table).
   const allLevels = p1.educationLevels || [];
   const children = p1.educationChildren || [];
 
-  const inflRate = inf / 100;
-  const retRate = ret / 100;
+  // Education inflation — default to the general inflation rate if not set
+  // (older persisted state). Falls back to 6% if neither is present.
+  const eduInfRaw = (p1 as Partial<{ educationInflationRate: number }>).educationInflationRate;
+  const eduInfPct = typeof eduInfRaw === "number" ? eduInfRaw : (inf ?? 6);
+  const eduInflRate = eduInfPct / 100;
 
   const perChildEdu: Pillar1PerChildEdu[] = children.map((child) => {
     const age = typeof child.age === "number" ? child.age : 6;
@@ -192,56 +226,56 @@ export function computePillar1Analysis({
     const startIdx = INSURANCE_LEVEL_SEQUENCE.indexOf(pos.levelKey);
     const stopIdx = INSURANCE_LEVEL_SEQUENCE.indexOf(studyUntil);
 
-    // Walk levels from current to studyUntil, projecting cashflows.
     const remaining: Pillar1PerChildEdu["remaining"] = [];
+    const yearly: Pillar1PerChildEdu["yearly"] = [];
     let cursorYear = pos.entryYearOffset; // year-from-now when NEXT unpaid tuition is due
     let totalYears = 0;
     let simpleTotal = 0;
-    let pvTotal = 0;
 
     if (startIdx >= 0 && stopIdx >= startIdx) {
       for (let i = startIdx; i <= stopIdx; i++) {
         const levelKey = INSURANCE_LEVEL_SEQUENCE[i];
+        const levelLabel = INSURANCE_LEVEL_LABEL[levelKey];
         const levelDuration = INSURANCE_LEVEL_YEARS[levelKey];
 
-        // Years still to pay for this level:
-        //   • Current in-progress level: reduce by years already completed.
-        //   • Future levels: pay the full duration.
         const yearsCompleted = i === startIdx ? Math.max(pos.yearInLevel - 1, 0) : 0;
         const yearsRemainingInLevel = Math.max(levelDuration - yearsCompleted, 0);
         if (yearsRemainingInLevel === 0) continue;
 
-        // Suggested annual tuition from lookup. master → null → fallback to
-        // the matching entry in educationLevels[].costPerYear (so master's can
-        // still be funded via the legacy level config) or zero.
         const suggested = suggestInsuranceTuition(levelKey, curriculum);
         const legacyLvl = allLevels.find((lv) => lv.key === levelKey);
         const basePerYear = suggested ?? legacyLvl?.costPerYear ?? 0;
 
-        // Tuition frozen at the year the child ENTERS this level (or today
-        // when already in-progress — cursorYear may be negative).
         const entryYearFromNow = Math.max(cursorYear, 0);
-        const tuitionFrozen = basePerYear * Math.pow(1 + inflRate, entryYearFromNow);
+        const tuitionFrozen = basePerYear * Math.pow(1 + eduInflRate, entryYearFromNow);
 
-        // Walk the remaining years of this level and accumulate cashflows.
         for (let y = 0; y < yearsRemainingInLevel; y++) {
           const yearFromNow = Math.max(cursorYear + y, 0);
           simpleTotal += tuitionFrozen;
-          pvTotal += tuitionFrozen / Math.pow(1 + retRate, yearFromNow);
+          yearly.push({
+            yearFromNow,
+            amount: tuitionFrozen,
+            levelKey,
+            levelLabel,
+          });
         }
         totalYears += yearsRemainingInLevel;
         cursorYear += yearsRemainingInLevel;
 
         remaining.push({
           key: levelKey,
-          label: INSURANCE_LEVEL_LABEL[levelKey],
+          label: levelLabel,
           years: levelDuration,
           costPerYear: Math.round(tuitionFrozen),
           enabled: true,
           adjustedYears: yearsRemainingInLevel,
+          entryYearFromNow,
+          subtotal: Math.round(tuitionFrozen * yearsRemainingInLevel),
         });
       }
     }
+
+    const roundedSimple = Math.round(simpleTotal);
 
     return {
       id: child.id,
@@ -249,10 +283,41 @@ export function computePillar1Analysis({
       currentLevelKey: pos.levelKey,
       remaining,
       totalYears,
-      simpleTotal: Math.round(simpleTotal),
-      tvmTotal: Math.round(pvTotal),
+      simpleTotal: roundedSimple,
+      // No investment-return discount for education (see module header).
+      tvmTotal: roundedSimple,
+      yearly,
     };
   });
+
+  // Aggregate year-by-year cashflow across all children.
+  const educationYearly = (() => {
+    const byYear = new Map<number, Pillar1EducationYearRow>();
+    for (const child of perChildEdu) {
+      for (const y of child.yearly) {
+        const row = byYear.get(y.yearFromNow) ?? {
+          yearFromNow: y.yearFromNow,
+          total: 0,
+          perChild: [],
+        };
+        row.total += y.amount;
+        row.perChild.push({
+          id: child.id,
+          name: child.name,
+          amount: y.amount,
+          levelLabel: y.levelLabel,
+        });
+        byYear.set(y.yearFromNow, row);
+      }
+    }
+    return Array.from(byYear.values())
+      .sort((a, b) => a.yearFromNow - b.yearFromNow)
+      .map((r) => ({
+        ...r,
+        total: Math.round(r.total),
+        perChild: r.perChild.map((c) => ({ ...c, amount: Math.round(c.amount) })),
+      }));
+  })();
 
   const eduFromChildren = perChildEdu.reduce((s, c) => s + c.tvmTotal, 0);
   const eduFromChildrenSimple = perChildEdu.reduce((s, c) => s + c.simpleTotal, 0);
@@ -365,5 +430,6 @@ export function computePillar1Analysis({
     perChildEdu,
     eduFundSimple,
     eduFundTVM,
+    educationYearly,
   };
 }
