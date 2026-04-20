@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2, X, ChevronDown, ChevronUp } from "lucide-react";
 import {
   useInsuranceStore,
@@ -24,14 +24,12 @@ import {
   getCategoryForType,
 } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
-import { useRetirementStore } from "@/store/retirement-store";
 import PageHeader from "@/components/PageHeader";
 import ThaiDatePicker from "@/components/ThaiDatePicker";
 import AgeScrollPicker from "@/components/AgeScrollPicker";
 import MoneyInput from "@/components/MoneyInput";
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
-const NAVY = "#1e3a5f";
 const CURRENT_YEAR = new Date().getFullYear();
 const BE_OFFSET = 543;
 
@@ -224,192 +222,6 @@ function PolicySummaryTable({ policies, birthYear }: { policies: InsurancePolicy
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// TAX DEDUCTION SECTION
-// ═══════════════════════════════════════════════════════════════════════════════
-function TaxDeduction({ policies }: { policies: InsurancePolicy[] }) {
-  const lifePolicies = policies.filter((p) => ["life", "saving", "health", "accident", "critical"].includes(p.group));
-  const healthPolicies = policies.filter((p) => ["health", "accident", "critical"].includes(p.group));
-  const pensionPolicies = policies.filter((p) => p.group === "pension");
-
-  const totalLife = lifePolicies.reduce((s, p) => s + p.premium, 0);
-  const totalHealth = healthPolicies.reduce((s, p) => s + p.premium, 0);
-  const totalPension = pensionPolicies.reduce((s, p) => s + p.premium, 0);
-
-  const lifeUsed = Math.min(totalLife, 100000);
-  const healthUsed = Math.min(totalHealth, 25000);
-  const pensionUsed = Math.min(totalPension, 200000);
-
-  const bars = [
-    { label: "ประกันชีวิต+สุขภาพ", limit: 100000, used: lifeUsed, color: NAVY },
-    { label: "ประกันสุขภาพ (sub-cap)", limit: 25000, used: healthUsed, color: "#0891b2" },
-    { label: "ประกันบำนาญ", limit: 200000, used: pensionUsed, color: "#6b21a8" },
-  ];
-
-  return (
-    <div className="glass rounded-xl p-4 md:p-6">
-      <h3 className="text-base font-bold text-gray-800 mb-4">สิทธิลดหย่อนภาษี ({CURRENT_YEAR + BE_OFFSET})</h3>
-      <div className="space-y-4">
-        {bars.map((b) => {
-          const pct = b.limit > 0 ? Math.min((b.used / b.limit) * 100, 100) : 0;
-          return (
-            <div key={b.label}>
-              <div className="flex items-center justify-between text-xs text-gray-700 mb-1.5">
-                <span className="font-semibold">{b.label} <span className="text-gray-400 font-normal">(เพดาน {fmt(b.limit)})</span></span>
-                <span className="font-bold text-sm" style={{ color: b.color }}>{pct.toFixed(0)}%</span>
-              </div>
-              <div className="h-7 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full rounded-full transition-all flex items-center justify-center" style={{ width: `${Math.max(pct, 8)}%`, background: b.color }}>
-                  <span className="text-[13px] font-bold text-white whitespace-nowrap px-2">
-                    ใช้ {fmt(b.used)}
-                  </span>
-                </div>
-              </div>
-              <div className="text-[13px] text-gray-400 mt-0.5 text-right">เหลือ {fmt(Math.max(b.limit - b.used, 0))} บาท</div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// PREMIUM BY AGE BRACKET — สรุปเบี้ยรวมแยกตามช่วงอายุ
-// ช่วงแรก: อายุปัจจุบัน → เกษียณ, หลังเกษียณ: ทีละ 10 ปี จนถึงอายุขัย
-// ═══════════════════════════════════════════════════════════════════════════════
-function PremiumByAgeBracket({ policies, birthYear, currentAge, retireAge: defaultRetireAge, lifeExpectancy: defaultLifeExpect }: {
-  policies: InsurancePolicy[]; birthYear: number; currentAge: number; retireAge: number; lifeExpectancy: number;
-}) {
-  const [retireAge, setRetireAge] = useState(defaultRetireAge);
-  const [lifeExpectancy, setLifeExpectancy] = useState(defaultLifeExpect);
-
-  const brackets = useMemo(() => {
-    if (policies.length === 0) return [];
-
-    type Bracket = { label: string; tag: string; fromAge: number; toAge: number; total: number; perYear: number; policies: { name: string; amount: number }[] };
-    const result: Bracket[] = [];
-
-    // Helper: compute premium for a bracket
-    const calcBracket = (fromAge: number, toAge: number, label: string, tag: string) => {
-      const fromYear = birthYear + fromAge;
-      const toYear = birthYear + toAge;
-      let total = 0;
-      const pList: { name: string; amount: number }[] = [];
-
-      for (const p of policies) {
-        const startY = getStartYear(p);
-        const payEndY = getPaymentEndYear(p, birthYear);
-        const overlapStart = Math.max(startY, fromYear);
-        const overlapEnd = Math.min(payEndY, toYear + 1);
-        const yearsOverlap = Math.max(0, overlapEnd - overlapStart);
-        if (yearsOverlap > 0) {
-          const amount = p.premium * yearsOverlap;
-          total += amount;
-          pList.push({ name: p.planName, amount });
-        }
-      }
-
-      const years = toAge - fromAge + 1;
-      if (total > 0) {
-        result.push({ label, tag, fromAge, toAge, total, perYear: Math.round(total / years), policies: pList });
-      }
-    };
-
-    // Bracket 1: อายุปัจจุบัน → เกษียณ
-    if (currentAge < retireAge) {
-      calcBracket(currentAge, retireAge - 1, `อายุ ${currentAge}-${retireAge - 1}`, "ก่อนเกษียณ");
-    }
-
-    // Brackets after retirement: every 10 years
-    const maxEndAge = Math.max(
-      lifeExpectancy,
-      ...policies.map((p) => getPaymentEndYear(p, birthYear) - birthYear)
-    );
-
-    for (let startAge = retireAge; startAge < maxEndAge; startAge += 10) {
-      const endAge = Math.min(startAge + 9, maxEndAge);
-      if (endAge < startAge) break;
-      calcBracket(startAge, endAge, `อายุ ${startAge}-${endAge}`, startAge === retireAge ? "หลังเกษียณ" : "");
-    }
-
-    return result;
-  }, [policies, birthYear, currentAge, retireAge, lifeExpectancy]);
-
-  if (brackets.length === 0) return null;
-
-  const maxTotal = Math.max(...brackets.map((b) => b.total));
-  const grandTotal = brackets.reduce((s, b) => s + b.total, 0);
-
-  return (
-    <div className="glass rounded-xl p-4 md:p-6">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-base font-bold text-gray-800">สรุปเบี้ยรวมตามช่วงอายุ</h3>
-        <div className="text-xs text-gray-400">รวมทั้งหมด <span className="font-bold text-gray-700">{fmt(grandTotal)}</span> บาท</div>
-      </div>
-
-      {/* Settings: retireAge & lifeExpectancy */}
-      <div className="flex items-center gap-4 mb-4">
-        <div className="flex items-center gap-1.5">
-          <span className="text-[13px] text-gray-500">เกษียณ</span>
-          <input type="text" inputMode="numeric" value={retireAge}
-            onChange={(e) => { const v = parseInt(e.target.value) || 0; setRetireAge(v); }}
-            className="w-10 text-center text-xs font-bold bg-gray-100 rounded-lg px-1 py-1 border border-gray-200 outline-none focus:ring-1 focus:ring-blue-400"
-          />
-          <span className="text-[13px] text-gray-400">ปี</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-[13px] text-gray-500">อายุขัย</span>
-          <input type="text" inputMode="numeric" value={lifeExpectancy}
-            onChange={(e) => { const v = parseInt(e.target.value) || 0; setLifeExpectancy(v); }}
-            className="w-10 text-center text-xs font-bold bg-gray-100 rounded-lg px-1 py-1 border border-gray-200 outline-none focus:ring-1 focus:ring-blue-400"
-          />
-          <span className="text-[13px] text-gray-400">ปี</span>
-        </div>
-      </div>
-      <div className="space-y-2.5">
-        {brackets.map((b, i) => {
-          const pct = maxTotal > 0 ? (b.total / maxTotal) * 100 : 0;
-          const isFirst = i === 0 && currentAge < retireAge;
-          return (
-            <div key={b.label}>
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className={`font-semibold ${isFirst ? "text-blue-600" : "text-gray-600"}`}>
-                  {b.label}
-                  {b.tag && <span className={`text-[13px] px-1.5 py-0.5 rounded-full ml-1 ${isFirst ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500"}`}>{b.tag}</span>}
-                </span>
-                <div className="text-right">
-                  <span className="font-bold text-gray-800">{fmt(b.total)} บาท</span>
-                  <span className="text-[13px] text-gray-400 ml-1">({fmt(b.perYear)}/ปี)</span>
-                </div>
-              </div>
-              <div className="h-6 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all flex items-center"
-                  style={{ width: `${Math.max(pct, 5)}%`, background: isFirst ? "#2563eb" : NAVY }}
-                >
-                  {pct > 25 && (
-                    <span className="text-[13px] font-bold text-white pl-2 whitespace-nowrap">
-                      {b.policies.length} กรมธรรม์
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 pl-1">
-                {b.policies.map((pp) => (
-                  <span key={pp.name} className="text-[13px] text-gray-400">
-                    {pp.name.length > 12 ? pp.name.slice(0, 10) + "…" : pp.name}: {fmtShort(pp.amount)}
-                  </span>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
 // POLICY CARD
 // ═══════════════════════════════════════════════════════════════════════════════
 function PolicyCard({ policy, birthYear, onEdit, onDelete }: {
@@ -466,14 +278,11 @@ function PolicyCard({ policy, birthYear, onEdit, onDelete }: {
 export default function PortfolioDashboard() {
   const store = useInsuranceStore();
   const profile = useProfileStore();
-  const retirementStore = useRetirementStore();
   const policies = store.policies;
 
   const currentAge = profile.getAge?.() || 35;
   const birthYear = CURRENT_YEAR - currentAge;
   const profileName = profile.name || "ผู้ใช้";
-  const retireAge = profile.retireAge || 60;
-  const lifeExpectancy = retirementStore.assumptions?.lifeExpectancy || 85;
 
   const totalPolicies = policies.length;
   const totalSumInsured = policies.reduce((s, p) => s + p.sumInsured, 0);
@@ -642,8 +451,6 @@ export default function PortfolioDashboard() {
             </div>
           </div>
           <PolicySummaryTable policies={policies} birthYear={birthYear} />
-          <TaxDeduction policies={policies} />
-          <PremiumByAgeBracket policies={policies} birthYear={birthYear} currentAge={currentAge} retireAge={retireAge} lifeExpectancy={lifeExpectancy} />
         </div>
       )}
 
