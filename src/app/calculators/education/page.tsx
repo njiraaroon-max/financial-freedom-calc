@@ -83,6 +83,7 @@ export default function EducationPage() {
 
   const [openSection, setOpenSection] = useState<string>("children");
   const [openChildId, setOpenChildId] = useState<string | null>(null);
+  const [showYearlyTable, setShowYearlyTable] = useState<boolean>(false);
 
   // Plan owner age — derive from profile-store birthDate (CE year)
   const ownerBirthDate = useProfileStore((s) => s.birthDate);
@@ -339,70 +340,8 @@ export default function EducationPage() {
             open={openSection === "projection"}
             onToggle={() => setOpenSection(openSection === "projection" ? "" : "projection")}
           >
-            <div className="overflow-x-auto">
-              <table className="w-full text-[14px]">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="py-2 px-2 text-left font-semibold text-gray-600">พ.ศ.</th>
-                    <th className="py-2 px-2 text-left font-semibold text-gray-600">อายุเจ้าของแผน</th>
-                    {children.map((c) => (
-                      <th key={c.id} className="py-2 px-2 text-right font-semibold text-gray-600">
-                        {c.name || "ลูก"}
-                      </th>
-                    ))}
-                    <th className="py-2 px-2 text-right font-bold text-blue-700">รวม</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {aggregated.rows.map((row) => {
-                    const ownerAge =
-                      ownerBirthYear !== null ? row.year - ownerBirthYear : null;
-                    return (
-                    <tr key={row.year} className="border-b border-gray-100 hover:bg-blue-50/30">
-                      <td className="py-1.5 px-2 text-gray-700">{row.yearBE}</td>
-                      <td className="py-1.5 px-2 text-gray-600">
-                        {ownerAge !== null ? `${ownerAge} ปี` : <span className="text-gray-300">—</span>}
-                      </td>
-                      {children.map((c) => {
-                        const entry = row.perChild.find((pc) => pc.childId === c.id);
-                        const style = entry ? LEVEL_STYLE[entry.levelKey] : null;
-                        return (
-                          <td key={c.id} className="py-1 px-1 text-right align-middle">
-                            {entry && style ? (
-                              <div className={`${style.cellBg} rounded-md px-2 py-1 inline-block min-w-[92px] text-right`}>
-                                <div className={`font-bold ${style.cellText}`}>{fmt(entry.tuition)}</div>
-                                <div className={`text-[13px] ${style.cellSubText} font-medium`}>
-                                  {entry.levelLabel} • อายุ {entry.age}
-                                </div>
-                              </div>
-                            ) : (
-                              <span className="text-gray-300">—</span>
-                            )}
-                          </td>
-                        );
-                      })}
-                      <td className="py-1.5 px-2 text-right font-bold text-blue-600">
-                        {fmt(row.totalTuition)}
-                      </td>
-                    </tr>
-                    );
-                  })}
-                </tbody>
-                <tfoot>
-                  <tr className="bg-blue-50 border-t-2 border-blue-300">
-                    <td colSpan={2 + children.length} className="py-2 px-2 text-xs font-bold text-blue-700">
-                      รวมทั้งสิ้น
-                    </td>
-                    <td className="py-2 px-2 text-right text-sm font-extrabold text-blue-700">
-                      {fmt(aggregated.grandTotal)}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-
-            {/* ─── Per-child breakdown by level ──────────────────────────────── */}
-            <div className="mt-5 pt-4 border-t border-gray-100">
+            {/* ─── Per-child breakdown by level (moved on top) ──────────────── */}
+            <div>
               <div className="flex items-center gap-2 mb-3">
                 <BookOpen size={14} className="text-indigo-600" />
                 <h4 className="text-[16px] font-bold text-gray-800">
@@ -516,6 +455,93 @@ export default function EducationPage() {
                   );
                 })}
               </div>
+            </div>
+
+            {/* ─── Collapsible yearly projection table ─────────────────────── */}
+            <div className="mt-5 pt-4 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => setShowYearlyTable((v) => !v)}
+                className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl bg-blue-50/50 hover:bg-blue-50 border border-blue-100 transition"
+              >
+                <div className="flex items-center gap-2">
+                  <Calendar size={14} className="text-blue-600" />
+                  <span className="text-[14px] font-bold text-gray-700">
+                    ตารางค่าเรียนปีต่อปี
+                  </span>
+                  <span className="text-[13px] text-gray-400">
+                    ({aggregated.rows.length} ปี · รวม {fmtShort(aggregated.grandTotal)} บาท)
+                  </span>
+                </div>
+                <ChevronDown
+                  size={16}
+                  className={`text-gray-500 transition-transform ${showYearlyTable ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {showYearlyTable && (
+                <div className="overflow-x-auto mt-3">
+                  <table className="w-full text-[14px]">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="py-2 px-2 text-left font-semibold text-gray-600">พ.ศ.</th>
+                        <th className="py-2 px-2 text-left font-semibold text-gray-600">อายุเจ้าของแผน</th>
+                        {children.map((c) => (
+                          <th key={c.id} className="py-2 px-2 text-right font-semibold text-gray-600">
+                            {c.name || "ลูก"}
+                          </th>
+                        ))}
+                        <th className="py-2 px-2 text-right font-bold text-blue-700">รวม</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {aggregated.rows.map((row) => {
+                        const ownerAge =
+                          ownerBirthYear !== null ? row.year - ownerBirthYear : null;
+                        return (
+                          <tr key={row.year} className="border-b border-gray-100 hover:bg-blue-50/30">
+                            <td className="py-1.5 px-2 text-gray-700">{row.yearBE}</td>
+                            <td className="py-1.5 px-2 text-gray-600">
+                              {ownerAge !== null ? `${ownerAge} ปี` : <span className="text-gray-300">—</span>}
+                            </td>
+                            {children.map((c) => {
+                              const entry = row.perChild.find((pc) => pc.childId === c.id);
+                              const style = entry ? LEVEL_STYLE[entry.levelKey] : null;
+                              return (
+                                <td key={c.id} className="py-1 px-1 text-right align-middle">
+                                  {entry && style ? (
+                                    <div className={`${style.cellBg} rounded-md px-2 py-1 inline-block min-w-[92px] text-right`}>
+                                      <div className={`font-bold ${style.cellText}`}>{fmt(entry.tuition)}</div>
+                                      <div className={`text-[13px] ${style.cellSubText} font-medium`}>
+                                        {entry.levelLabel} • อายุ {entry.age}
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <span className="text-gray-300">—</span>
+                                  )}
+                                </td>
+                              );
+                            })}
+                            <td className="py-1.5 px-2 text-right font-bold text-blue-600">
+                              {fmt(row.totalTuition)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                    <tfoot>
+                      <tr className="bg-blue-50 border-t-2 border-blue-300">
+                        <td colSpan={2 + children.length} className="py-2 px-2 text-xs font-bold text-blue-700">
+                          รวมทั้งสิ้น
+                        </td>
+                        <td className="py-2 px-2 text-right text-sm font-extrabold text-blue-700">
+                          {fmt(aggregated.grandTotal)}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              )}
             </div>
           </SectionCard>
         )}
