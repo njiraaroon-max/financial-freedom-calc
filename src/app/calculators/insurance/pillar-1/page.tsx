@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Shield, AlertTriangle, CheckCircle2, Info, X, ChevronDown } from "lucide-react";
+import { Shield, AlertTriangle, CheckCircle2, Info, X, ChevronDown, HandHeart, Users, GraduationCap } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import MoneyInput from "@/components/MoneyInput";
 import { useInsuranceStore, POLICY_TYPE_OPTIONS } from "@/store/insurance-store";
@@ -441,25 +441,53 @@ export default function Pillar1Page() {
               {/* ── Dependents selection ── */}
               <div>
                 <div className="text-xs font-bold text-gray-700 mb-2">บุคคลในความดูแล</div>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3">
                   {([
-                    { key: "parents" as const, label: "พ่อ / แม่" },
-                    { key: "family" as const, label: "ครอบครัว" },
-                    { key: "children" as const, label: "บุตร" },
+                    {
+                      key: "parents" as const,
+                      label: "พ่อ / แม่",
+                      desc: "ดูแลบุพการีต่อเนื่อง",
+                      Icon: HandHeart,
+                    },
+                    {
+                      key: "family" as const,
+                      label: "ครอบครัว",
+                      desc: "ค่าใช้จ่ายให้ครอบครัวปรับตัว",
+                      Icon: Users,
+                    },
+                    {
+                      key: "children" as const,
+                      label: "ลูก",
+                      desc: "ทุนการศึกษาจนเรียนจบ",
+                      Icon: GraduationCap,
+                    },
                   ]).map((dep) => {
                     const deps = p1.dependents || { parents: false, family: false, children: false };
                     const active = deps[dep.key];
+                    const Icon = dep.Icon;
                     return (
                       <button
                         key={dep.key}
                         onClick={() => update({ dependents: { ...deps, [dep.key]: !active } })}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                        className={`flex flex-col items-center justify-start gap-1.5 px-2 py-3 rounded-2xl border-2 transition-all ${
                           active
                             ? "bg-red-50 border-red-300 text-red-700 shadow-sm"
-                            : "bg-gray-50 border-gray-200 text-gray-400 hover:border-gray-300"
+                            : "bg-gray-50 border-gray-200 text-gray-400 hover:border-gray-300 hover:bg-gray-100"
                         }`}
                       >
-                        {dep.label}
+                        <Icon
+                          size={30}
+                          strokeWidth={1.75}
+                          className={active ? "text-red-500" : "text-gray-400"}
+                        />
+                        <div className="text-[13px] font-bold leading-tight mt-0.5">{dep.label}</div>
+                        <div
+                          className={`text-[10px] leading-snug text-center px-1 ${
+                            active ? "text-red-400" : "text-gray-400"
+                          }`}
+                        >
+                          {dep.desc}
+                        </div>
                       </button>
                     );
                   })}
