@@ -274,45 +274,66 @@ export default function Pillar1Page() {
                   <div className="text-[13px] text-gray-400 mt-0.5 leading-relaxed">หนี้สินทั้งหมดที่ไม่ได้มีประกันคุ้มครองวงเงินสินเชื่อ (MRTA) เช่น หนี้บัตรเครดิต, หนี้สินเชื่อส่วนบุคคล หรือหนี้บ้าน/รถที่ยังค้างอยู่</div>
                 </div>
 
-                {/* Debt items list */}
-                {(p1.debtItems || []).map((item: { name: string; amount: number }, idx: number) => (
-                  <div key={idx} className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      className="flex-1 min-w-0 text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      placeholder="ชื่อหนี้สิน"
-                      value={item.name}
-                      onChange={(e) => {
-                        const items = [...(p1.debtItems || [])];
-                        items[idx] = { ...items[idx], name: e.target.value };
-                        update({ debtItems: items });
-                      }}
-                    />
-                    <div className="flex items-center">
-                      <MoneyInput
-                        value={item.amount}
-                        onChange={(v) => {
-                          const items = [...(p1.debtItems || [])];
-                          items[idx] = { ...items[idx], amount: v };
-                          update({ debtItems: items });
+                {/* Debt items list — always shows at least one row so the user can
+                    type straight in without clicking "+ เพิ่มรายการหนี้สิน" first.
+                    When debtItems is empty we render a DRAFT row that is not yet in
+                    state; the first keystroke (name or amount) promotes it to a real
+                    item. Deleting the last real row returns to the draft-row display. */}
+                {(() => {
+                  const items = p1.debtItems || [];
+                  const isDraft = items.length === 0;
+                  const rendered = isDraft ? [{ name: "", amount: 0 }] : items;
+                  return rendered.map((item: { name: string; amount: number }, idx: number) => (
+                    <div key={isDraft ? "draft" : idx} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        className="flex-1 min-w-0 text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        placeholder="ชื่อหนี้สิน"
+                        value={item.name}
+                        onChange={(e) => {
+                          if (isDraft) {
+                            update({ debtItems: [{ name: e.target.value, amount: 0 }] });
+                          } else {
+                            const next = [...items];
+                            next[idx] = { ...next[idx], name: e.target.value };
+                            update({ debtItems: next });
+                          }
                         }}
-                        unit="บาท"
-                        className="w-36 text-sm text-right font-bold bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2"
-                        ringClass="focus:ring-blue-400"
                       />
+                      <div className="flex items-center">
+                        <MoneyInput
+                          value={item.amount}
+                          onChange={(v) => {
+                            if (isDraft) {
+                              update({ debtItems: [{ name: "", amount: v }] });
+                            } else {
+                              const next = [...items];
+                              next[idx] = { ...next[idx], amount: v };
+                              update({ debtItems: next });
+                            }
+                          }}
+                          unit="บาท"
+                          className="w-36 text-sm text-right font-bold bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2"
+                          ringClass="focus:ring-blue-400"
+                        />
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (isDraft) return; // nothing to delete yet
+                          const next = [...items];
+                          next.splice(idx, 1);
+                          update({ debtItems: next });
+                        }}
+                        className={`shrink-0 transition-colors ${
+                          isDraft ? "text-gray-200 cursor-default" : "text-gray-300 hover:text-red-400"
+                        }`}
+                        aria-label="ลบรายการ"
+                      >
+                        <X size={16} />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => {
-                        const items = [...(p1.debtItems || [])];
-                        items.splice(idx, 1);
-                        update({ debtItems: items });
-                      }}
-                      className="text-gray-300 hover:text-red-400 transition-colors shrink-0"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                ))}
+                  ));
+                })()}
 
                 {/* Add debt button */}
                 <button
