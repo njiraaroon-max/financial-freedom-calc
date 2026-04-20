@@ -6,7 +6,6 @@ import PageHeader from "@/components/PageHeader";
 import MoneyInput from "@/components/MoneyInput";
 import { useInsuranceStore, POLICY_TYPE_OPTIONS } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
-import { GanttChart, StepLineChart } from "@/components/InsuranceCharts";
 import { useBalanceSheetStore } from "@/store/balance-sheet-store";
 import { useGoalsStore } from "@/store/goals-store";
 import { useRetirementStore } from "@/store/retirement-store";
@@ -256,14 +255,6 @@ export default function Pillar1Page() {
             เพื่อให้มั่นใจว่าคนที่รักจะดำรงชีวิตต่อไปได้
           </p>
         </div>
-
-        {/* ─── Charts: Gantt + Step Line ────────────────────────────── */}
-        {store.policies.length > 0 && (
-          <div className="mx-1 space-y-3">
-            <GanttChart policies={store.policies} birthYear={birthYear} currentAge={currentAge} />
-            <StepLineChart policies={store.policies} birthYear={birthYear} currentAge={currentAge} />
-          </div>
-        )}
 
         {/* ─── Step Progress Bar ─────────────────────────────────── */}
         <div className="glass mx-1 rounded-2xl p-4">

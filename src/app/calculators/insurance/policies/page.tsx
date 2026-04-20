@@ -28,6 +28,7 @@ import PageHeader from "@/components/PageHeader";
 import ThaiDatePicker from "@/components/ThaiDatePicker";
 import AgeScrollPicker from "@/components/AgeScrollPicker";
 import MoneyInput from "@/components/MoneyInput";
+import { GanttChart, StepLineChart } from "@/components/InsuranceCharts";
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 const CURRENT_YEAR = new Date().getFullYear();
@@ -451,6 +452,8 @@ export default function PortfolioDashboard() {
             </div>
           </div>
           <PolicySummaryTable policies={policies} birthYear={birthYear} />
+          <GanttChart policies={policies} birthYear={birthYear} currentAge={currentAge} />
+          <StepLineChart policies={policies} birthYear={birthYear} currentAge={currentAge} />
         </div>
       )}
 
