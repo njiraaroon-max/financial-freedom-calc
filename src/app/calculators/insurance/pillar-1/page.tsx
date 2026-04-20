@@ -270,7 +270,7 @@ export default function Pillar1Page() {
               {/* ── Debt Clearance ── */}
               <div className="space-y-2.5">
                 <div>
-                  <div className="text-xs font-bold text-gray-700">Debt Clearance: ค่าปิดยอดหนี้สินคงค้าง</div>
+                  <div className="text-xs font-bold text-gray-700">ค่าปิดยอดหนี้สินคงค้าง</div>
                   <div className="text-[13px] text-gray-400 mt-0.5 leading-relaxed">หนี้สินทั้งหมดที่ไม่ได้มีประกันคุ้มครองวงเงินสินเชื่อ (MRTA) เช่น หนี้บัตรเครดิต, หนี้สินเชื่อส่วนบุคคล หรือหนี้บ้าน/รถที่ยังค้างอยู่</div>
                 </div>
 
