@@ -12,6 +12,7 @@ import { useProfileStore } from "@/store/profile-store";
 import { useBalanceSheetStore } from "@/store/balance-sheet-store";
 import { useVariableStore } from "@/store/variable-store";
 import { useGoalsStore } from "@/store/goals-store";
+import { useRetirementStore } from "@/store/retirement-store";
 import { computePillar1Analysis } from "@/lib/pillar1Analysis";
 import { computePillar2Analysis } from "@/lib/pillar2Analysis";
 
@@ -134,8 +135,12 @@ export default function InsuranceHubPage() {
   const balanceSheet = useBalanceSheetStore();
   const variableStore = useVariableStore();
   const goalsStore = useGoalsStore();
+  const retirement = useRetirementStore();
   const policies = store.policies;
   const rm = store.riskManagement;
+  // Shared inflation assumption (from retirement planner) — keeps Pillar-1
+  // numbers on this overview identical to the planning page.
+  const generalInflationPct = (retirement.assumptions.generalInflation ?? 0.03) * 100;
 
   const currentAge = profile.getAge?.() || 35;
   const annualIncome = (profile.salary || 0) * 12;
@@ -163,6 +168,7 @@ export default function InsuranceHubPage() {
       balanceSheetDebts: totalDebtsFromBS,
       balanceSheetLiquid: liquidAssetsFromBS,
       educationGoalsTotal,
+      generalInflation: generalInflationPct,
     });
 
     const pct = a.totalNeed > 0 ? Math.round((a.totalHave / a.totalNeed) * 100) : 0;
@@ -181,7 +187,7 @@ export default function InsuranceHubPage() {
       status,
       lifePolicies: a.lifePolicies.length,
     };
-  }, [policies, rm, balanceSheet, goalsStore.goals]);
+  }, [policies, rm, balanceSheet, goalsStore.goals, generalInflationPct]);
 
   // ─── Pillar 2: Health & Accident ───────────────────────────────────────
   // Uses the shared helper so the 6-category evaluation here matches the

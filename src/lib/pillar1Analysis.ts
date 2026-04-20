@@ -55,6 +55,13 @@ export interface Pillar1AnalysisInputs {
   balanceSheetLiquid: number;
   /** Sum of goals whose category === "education" (from Goals store). */
   educationGoalsTotal: number;
+  /**
+   * General inflation rate (in percent, e.g. 3 for 3%) shared across the app
+   * — pulled from `useRetirementStore().assumptions.generalInflation` so the
+   * Pillar-1 income-needs projection stays consistent with the retirement
+   * planner. Falls back to `p1.inflationRate` (legacy field) when not given.
+   */
+  generalInflation?: number;
 }
 
 export interface Pillar1PerChildEdu {
@@ -152,9 +159,16 @@ export function computePillar1Analysis({
   balanceSheetDebts,
   balanceSheetLiquid,
   educationGoalsTotal,
+  generalInflation,
 }: Pillar1AnalysisInputs): Pillar1Analysis {
-  const inf = p1.inflationRate ?? 3;
-  const ret = p1.investmentReturn ?? 5;
+  // Inflation is sourced from the shared retirement-planner assumption so the
+  // two planners stay in sync. Legacy `p1.inflationRate` is only used as a
+  // fallback when the caller didn't pass `generalInflation` (older callsites).
+  const inf = typeof generalInflation === "number" ? generalInflation : (p1.inflationRate ?? 3);
+  // Investment return on the death benefit is hard-coded to 0% for this pillar:
+  // on the day it matters, the plan owner isn't around to steer survivors'
+  // investment decisions, so we plan for the honest nominal-inflated total.
+  const ret = 0;
 
   // Life policies (any life-category policy with sumInsured)
   const lifePolicies = filterLifePolicies(policies);

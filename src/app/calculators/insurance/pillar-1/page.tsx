@@ -9,6 +9,7 @@ import { useProfileStore } from "@/store/profile-store";
 import { GanttChart, StepLineChart } from "@/components/InsuranceCharts";
 import { useBalanceSheetStore } from "@/store/balance-sheet-store";
 import { useGoalsStore } from "@/store/goals-store";
+import { useRetirementStore } from "@/store/retirement-store";
 import {
   pvAnnuity,
   simpleAnnuity,
@@ -108,6 +109,54 @@ function NumberInput({ label, value, onChange, suffix = "ปี" }: {
   );
 }
 
+// ─── Compact age input (draft-string pattern) ─────────────────────────────────
+// Using plain `type="number"` with `value={age}` let users type "015" because
+// browsers don't strip leading zeros for controlled numeric inputs. This small
+// component mirrors the pattern used by NumberInput above: we track a local
+// string draft while focused so the user sees exactly what they typed, and
+// emit a parsed integer (clamped to [min,max]) to the parent via onChange.
+function AgeBox({
+  value,
+  onChange,
+  min = 0,
+  max = 24,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  min?: number;
+  max?: number;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const display =
+    draft !== null ? draft : Number.isFinite(value) && value > 0 ? String(value) : "";
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      value={display}
+      onFocus={(e) => {
+        setDraft(Number.isFinite(value) && value > 0 ? String(value) : "");
+        e.currentTarget.select();
+      }}
+      onChange={(e) => {
+        const raw = e.target.value.replace(/\D/g, "");
+        // Strip leading zeros visually (but allow the empty string).
+        const cleaned = raw.replace(/^0+(?=\d)/, "");
+        setDraft(cleaned);
+        if (cleaned === "") {
+          onChange(0);
+          return;
+        }
+        const n = parseInt(cleaned, 10);
+        if (Number.isFinite(n)) onChange(Math.max(min, Math.min(max, n)));
+      }}
+      onBlur={() => setDraft(null)}
+      placeholder="0"
+      className="w-full text-sm bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-center font-bold text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+    />
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN PAGE — Pillar 1: Income Protection & Life Insurance
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -116,9 +165,18 @@ export default function Pillar1Page() {
   const profile = useProfileStore();
   const balanceSheet = useBalanceSheetStore();
   const goalsStore = useGoalsStore();
+  const retirement = useRetirementStore();
 
   const p1 = store.riskManagement.pillar1;
   const update = store.updatePillar1;
+
+  // ─── Shared inflation assumption ────────────────────────────────────────
+  // Pillar-1 income-needs (parent support, family, custom items) are inflated
+  // at the SAME rate used by the retirement planner so the two stay in sync.
+  // Investment return is pinned at 0% — on the day this money is needed, the
+  // plan owner is gone and we can't assume survivors will invest the lump sum
+  // productively.  Education uses its own separate rate (p1.educationInflationRate).
+  const generalInflationPct = (retirement.assumptions.generalInflation ?? 0.03) * 100;
 
   const currentAge = profile.getAge?.() || 35;
   const birthYear = CURRENT_YEAR - currentAge;
@@ -147,8 +205,9 @@ export default function Pillar1Page() {
         balanceSheetDebts: totalDebtsFromBS,
         balanceSheetLiquid: liquidAssetsFromBS,
         educationGoalsTotal: totalEducationFromPlan,
+        generalInflation: generalInflationPct,
       }),
-    [p1, store.policies, totalDebtsFromBS, liquidAssetsFromBS, totalEducationFromPlan],
+    [p1, store.policies, totalDebtsFromBS, liquidAssetsFromBS, totalEducationFromPlan, generalInflationPct],
   );
 
   // ─── Info modal ─────────────────────────────────────────────────────────
@@ -370,27 +429,13 @@ export default function Pillar1Page() {
               <span className="text-[13px] font-bold text-red-700">B. ค่าใช้จ่ายต่อเนื่อง (Income Needs)</span>
             </div>
             <div className="p-3 space-y-4">
-              {/* ── TVM Parameters ── */}
-              <div className="bg-gray-50 rounded-xl p-3 space-y-2 border border-gray-100">
-                <div className="text-[14px] font-bold text-gray-600">สมมติฐาน Time Value of Money</div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <NumberInput label="อัตราเงินเฟ้อ" value={p1.inflationRate ?? 3} onChange={(v) => update({ inflationRate: v })} suffix="%" />
-                  <NumberInput label="ผลตอบแทนการลงทุน" value={p1.investmentReturn ?? 5} onChange={(v) => update({ investmentReturn: v })} suffix="%" />
-                </div>
-                {(() => {
-                  const realRate = ((1 + (p1.investmentReturn ?? 5) / 100) / (1 + (p1.inflationRate ?? 3) / 100) - 1) * 100;
-                  const isNegative = realRate < 0;
-                  return (
-                    <div className={`text-[13px] pl-1 ${isNegative ? "text-amber-600 font-bold" : "text-gray-400"}`}>
-                      Real Rate ≈ {realRate.toFixed(2)}% ต่อปี
-                      {isNegative && (
-                        <span className="ml-1 inline-flex items-center gap-0.5 text-amber-600">
-                          <AlertTriangle size={10} /> อัตราเงินเฟ้อสูงกว่าผลตอบแทน — PV จะสูงกว่าแบบคูณตรง
-                        </span>
-                      )}
-                    </div>
-                  );
-                })()}
+              {/* ── Global assumption banner ──
+                  No TVM knobs here anymore — the whole pillar assumes that the
+                  death benefit sits uninvested (return = 0%) and only inflates
+                  with the app's shared rate from the retirement assumptions. */}
+              <div className="bg-gray-50 rounded-xl px-3 py-2 border border-gray-100 text-[12px] text-gray-500 leading-relaxed">
+                <span className="font-bold text-gray-700">สมมติฐาน: </span>
+                คิดเงินเฟ้อจาก <span className="font-bold text-gray-700">สมมติฐาน Retirement</span> ({generalInflationPct.toFixed(1)}%) · ผลตอบแทนการลงทุน = 0% (เพราะเป็นเงินในวันที่เราไม่อยู่ ไม่สมมติว่าครอบครัวจะเอาไปลงทุน)
               </div>
 
               {/* ── Dependents selection ── */}
@@ -431,8 +476,9 @@ export default function Pillar1Page() {
                   </div>
                   {p1.parentSupportMonthly > 0 && (
                     <div className="text-[13px] text-orange-500 pl-1 space-y-0.5">
-                      <div>แบบตรง: {fmt(simpleAnnuity(p1.parentSupportMonthly, p1.parentSupportYears))} บาท</div>
-                      <div className="font-bold">TVM: {fmt(pvAnnuity(p1.parentSupportMonthly, p1.parentSupportYears, p1.inflationRate ?? 3, p1.investmentReturn ?? 5))} บาท</div>
+                      <div className="text-[11px] text-orange-400">คิดเงินเฟ้อ {generalInflationPct.toFixed(1)}% · ผลตอบแทน 0%</div>
+                      <div>แบบตรง (ไม่คิดเฟ้อ): {fmt(simpleAnnuity(p1.parentSupportMonthly, p1.parentSupportYears))} บาท</div>
+                      <div className="font-bold">รวม (คิดเฟ้อ): {fmt(pvAnnuity(p1.parentSupportMonthly, p1.parentSupportYears, generalInflationPct, 0))} บาท</div>
                     </div>
                   )}
                 </div>
@@ -448,8 +494,9 @@ export default function Pillar1Page() {
                   </div>
                   {p1.familyExpenseMonthlyNew > 0 && (
                     <div className="text-[13px] text-pink-500 pl-1 space-y-0.5">
-                      <div>แบบตรง: {fmt(simpleAnnuity(p1.familyExpenseMonthlyNew, p1.familyAdjustmentYearsNew))} บาท</div>
-                      <div className="font-bold">TVM: {fmt(pvAnnuity(p1.familyExpenseMonthlyNew, p1.familyAdjustmentYearsNew, p1.inflationRate ?? 3, p1.investmentReturn ?? 5))} บาท</div>
+                      <div className="text-[11px] text-pink-400">คิดเงินเฟ้อ {generalInflationPct.toFixed(1)}% · ผลตอบแทน 0%</div>
+                      <div>แบบตรง (ไม่คิดเฟ้อ): {fmt(simpleAnnuity(p1.familyExpenseMonthlyNew, p1.familyAdjustmentYearsNew))} บาท</div>
+                      <div className="font-bold">รวม (คิดเฟ้อ): {fmt(pvAnnuity(p1.familyExpenseMonthlyNew, p1.familyAdjustmentYearsNew, generalInflationPct, 0))} บาท</div>
                     </div>
                   )}
                 </div>
@@ -581,13 +628,11 @@ export default function Pillar1Page() {
                                 <div className="grid grid-cols-3 gap-2">
                                   <div>
                                     <label className="text-[11px] text-gray-500 block mb-0.5">อายุ (ปี)</label>
-                                    <input
-                                      type="number"
+                                    <AgeBox
+                                      value={age}
                                       min={0}
                                       max={24}
-                                      value={age}
-                                      onChange={(e) => {
-                                        const newAge = Math.max(0, Math.min(24, Number(e.target.value) || 0));
+                                      onChange={(newAge) => {
                                         const newPos = ageToLevelPosition(newAge);
                                         const kids = [...(p1.educationChildren || [])];
                                         kids[cidx] = {
@@ -599,7 +644,6 @@ export default function Pillar1Page() {
                                         };
                                         update({ educationChildren: kids });
                                       }}
-                                      className="w-full text-sm bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-center font-bold text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
                                     />
                                   </div>
                                   <div>
@@ -887,7 +931,7 @@ export default function Pillar1Page() {
                     </div>
                     {item.monthlyAmount > 0 && item.years > 0 && (
                       <div className="text-[13px] text-gray-400 pl-1">
-                        TVM: {fmt(pvAnnuity(item.monthlyAmount, item.years, p1.inflationRate ?? 3, p1.investmentReturn ?? 5))} บาท
+                        รวม (คิดเฟ้อ {generalInflationPct.toFixed(1)}%): <span className="font-bold">{fmt(pvAnnuity(item.monthlyAmount, item.years, generalInflationPct, 0))}</span> บาท
                         <span className="text-gray-300 mx-1">|</span>
                         ตรง: {fmt(simpleAnnuity(item.monthlyAmount, item.years))} บาท
                       </div>
