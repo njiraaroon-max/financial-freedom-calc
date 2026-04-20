@@ -26,6 +26,7 @@ import {
   type InsuranceLevelKey,
 } from "@/data/education-tuition-lookup";
 import { flushAllStores } from "@/lib/sync/flush-all";
+import AllianzQuoteCard from "@/components/allianz/QuoteCard";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(n: number): string {
@@ -1166,7 +1167,6 @@ export default function Pillar1Page() {
                 <div className="text-[13px] text-red-400 mt-0.5">บาท</div>
                 <div className="text-[13px] text-gray-500 mt-3 space-y-0.5">
                   <div>ควรเพิ่มทุนประกันชีวิตอีก <span className="font-bold text-gray-700">{fmtShort(analysis.gap)}</span> บาท</div>
-                  <div>เบี้ยประมาณ <span className="font-bold text-gray-700">{fmt(Math.round(analysis.gap * 3 / 1000))} - {fmt(Math.round(analysis.gap * 5 / 1000))}</span> บาท/ปี (Term 20 ปี)</div>
                 </div>
                 <a href="/calculators/insurance/policies?add=true"
                   className="inline-block mt-4 px-5 py-2.5 rounded-xl bg-[#1e3a5f] text-white text-xs font-bold hover:bg-[#2d5a8e] active:scale-[0.98] transition shadow-md">
@@ -1175,6 +1175,14 @@ export default function Pillar1Page() {
               </>
             )}
           </div>
+
+          {/* ── Allianz real-rate quote (only when gap > 0) ── */}
+          {analysis.gap > 0 && (
+            <AllianzQuoteCard
+              sumAssured={analysis.gap}
+              currentAge={profile.getAge?.() || 35}
+            />
+          )}
 
         </div>}
         </div>

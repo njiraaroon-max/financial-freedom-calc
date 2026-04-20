@@ -1,0 +1,16 @@
+{
+  "_meta": {
+    "generated_at": "2026-04-20",
+    "notes": "Plans for products where has_plans=true. plan_id referenced in premium_rates.plan_id."
+  },
+  "plans": [
+    {"id": 101, "product_id": 1, "plan_code": "15/6", "plan_name_th": "มาย ดับเบิล พลัส 15/6", "coverage_years": 15, "premium_years": 6, "coverage_until_age": null, "premium_until_age": null},
+    {"id": 102, "product_id": 1, "plan_code": "18/10", "plan_name_th": "มาย ดับเบิล พลัส 18/10", "coverage_years": 18, "premium_years": 10, "coverage_until_age": null, "premium_until_age": null},
+    {"id": 103, "product_id": 1, "plan_code": "22/15", "plan_name_th": "มาย ดับเบิล พลัส 22/15", "coverage_years": 22, "premium_years": 15, "coverage_until_age": null, "premium_until_age": null},
+    {"id": 104, "product_id": 1, "plan_code": "25/20", "plan_name_th": "มาย ดับเบิล พลัส 25/20", "coverage_years": 25, "premium_years": 20, "coverage_until_age": null, "premium_until_age": null},
+    {"id": 105, "product_id": 5, "plan_code": "A85/10", "plan_name_th": "อยุธยาชีวิตมั่นคง A85/10", "coverage_years": null, "premium_years": 10, "coverage_until_age": 85, "premium_until_age": null},
+    {"id": 106, "product_id": 5, "plan_code": "A85/15", "plan_name_th": "อยุธยาชีวิตมั่นคง A85/15", "coverage_years": null, "premium_years": 15, "coverage_until_age": 85, "premium_until_age": null},
+    {"id": 107, "product_id": 5, "plan_code": "A85/20", "plan_name_th": "อยุธยาชีวิตมั่นคง A85/20", "coverage_years": null, "premium_years": 20, "coverage_until_age": 85, "premium_until_age": null},
+    {"id": 108, "product_id": 5, "plan_code": "A85/25", "plan_name_th": "อยุธยาชีวิตมั่นคง A85/25", "coverage_years": null, "premium_years": 25, "coverage_until_age": 85, "premium_until_age": null}
+  ]
+}

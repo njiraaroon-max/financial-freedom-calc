@@ -1,0 +1,17 @@
+{
+  "_meta": {
+    "generated_at": "2026-04-20",
+    "notes": "Multipliers applied when has_occ_multiplier=true. Class 1-2 = base (1.00). Class 3 = 1.30. Class 4 = 1.45. Applies to HB, HBP, HBCI, CI48, CI48B, CIMC."
+  },
+  "multipliers": [
+    {"product_id": 27, "occupation_class": 1, "multiplier": 1.00},
+    {"product_id": 27, "occupation_class": 2, "multiplier": 1.00},
+    {"product_id": 27, "occupation_class": 3, "multiplier": 1.30},
+    {"product_id": 27, "occupation_class": 4, "multiplier": 1.45},
+
+    {"product_id": 29, "occupation_class": 1, "multiplier": 1.00},
+    {"product_id": 29, "occupation_class": 2, "multiplier": 1.00},
+    {"product_id": 29, "occupation_class": 3, "multiplier": 1.30},
+    {"product_id": 29, "occupation_class": 4, "multiplier": 1.45}
+  ]
+}

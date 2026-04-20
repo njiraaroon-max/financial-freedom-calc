@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "allianz:spotcheck": "tsx src/lib/allianz/__tests__/spotcheck.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
