@@ -67,12 +67,29 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
+/** A main product is "level-premium" (locked at purchase age) unless it
+ *  behaves as yearly-renewable term — in our dataset that's flagged by having
+ *  `max_renewal_age` set (TM1) while still being category=1. */
+function isLevelPremium(product: Product): boolean {
+  if (product.category !== 1) return false;
+  return product.max_renewal_age == null;
+}
+
 // ─── Main premium ──────────────────────────────────────────────────────────
+/**
+ * @param age        The iteration year's age (used for paying-period check).
+ * @param currentAge Purchase age.
+ * @param rateAge    Age to use for the rate-table lookup. Default = `age`
+ *                   (yearly-renewable behaviour). Pass `currentAge` for
+ *                   level-premium products so the rate is locked at purchase.
+ *                   `cashflow.ts` decides per product via `isLevelPremium`.
+ */
 export function calcMainPremium(
   main: CalcMainInput,
   age: number,
   gender: Gender,
   currentAge: number,
+  rateAge?: number,
 ): PremiumResult {
   const warnings: string[] = [];
 
@@ -99,12 +116,15 @@ export function calcMainPremium(
     }
   }
 
-  // Rate lookup
-  const rate = getRate(product.code, main.planCode, age, gender, currentAge);
+  // Rate lookup — level-premium products lock rate at purchase age, otherwise
+  // it reprices each year (TM1 / annual-renewable term).
+  const effectiveRateAge =
+    rateAge ?? (isLevelPremium(product) ? currentAge : age);
+  const rate = getRate(product.code, main.planCode, effectiveRateAge, gender, currentAge);
   if (!rate) {
     return {
       premium: 0,
-      warnings: [`${product.code} อายุ ${age}: ไม่พบอัตราเบี้ย`],
+      warnings: [`${product.code} อายุ ${effectiveRateAge}: ไม่พบอัตราเบี้ย`],
     };
   }
 

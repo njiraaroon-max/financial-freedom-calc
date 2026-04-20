@@ -190,6 +190,51 @@ check("MSI1808 18-year schedule — pays for 18 years then stops", () => {
   assert.equal(paying[paying.length - 1].age, 37);
 });
 
+check("MWLA9021 is level-premium — flat across all 21 paying years", () => {
+  // A90/21 is traditional whole-life with level premium.  Buying at 36 M,
+  // every one of the 21 paying years must charge the SAME amount (age-36 rate),
+  // not an ascending schedule.
+  const input: CalcInput = {
+    currentAge: 36,
+    retireAge: 60,
+    gender: "M",
+    occupationClass: 1,
+    main: { productCode: "MWLA9021", sumAssured: 10_000_000, premiumYears: 21 },
+    riders: [],
+  };
+  const out = calculateCashflow(input);
+  const paying = out.cashflow.filter((y) => y.mainPremium > 0);
+  assert.equal(paying.length, 21, `expected 21 paying years, got ${paying.length}`);
+  const first = paying[0].mainPremium;
+  for (const y of paying) {
+    assert.equal(
+      y.mainPremium,
+      first,
+      `year ${y.age}: expected flat ${first}, got ${y.mainPremium}`,
+    );
+  }
+});
+
+check("TM1 is yearly-renewable — premium rises with age", () => {
+  // TM1 (Term ปีต่อปี) has max_renewal_age=89 → reprices each year.
+  const input: CalcInput = {
+    currentAge: 36,
+    retireAge: 60,
+    gender: "M",
+    occupationClass: 1,
+    main: { productCode: "TM1", sumAssured: 1_000_000, premiumYears: 20 },
+    riders: [],
+  };
+  const out = calculateCashflow(input);
+  const year36 = out.cashflow.find((y) => y.age === 36);
+  const year50 = out.cashflow.find((y) => y.age === 50);
+  assert.ok(year36 && year50, "expected ages 36 and 50 in cashflow");
+  assert.ok(
+    year50.mainPremium > year36.mainPremium,
+    `TM1 should reprice: age 50 (${year50.mainPremium}) > age 36 (${year36.mainPremium})`,
+  );
+});
+
 check("HB rider stops at max_renewal_age 69", () => {
   const input: CalcInput = {
     currentAge: 50,
