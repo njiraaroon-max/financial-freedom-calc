@@ -182,8 +182,12 @@ export function calcRiderPremium(
   let amount = 0;
   const isDaily =
     product.rider_type === "DAILY_HB" || product.rider_type === "DAILY_HB_CI";
-  const isPlanLevelHealth =
-    product.has_plans &&
+  // Flat-premium health rider: the stored rate IS the full annual premium, no
+  // per-unit scaling. Driven purely by rate_per=1 — covers both plan-level
+  // products (HS_S, HSMHPSK, HSMHPDC, OPDMSK, OPDMDC) and single-variant
+  // products without plans (HSMFCPN/OPDMFCPN/DVMFCPN families).
+  const isFlatPremium =
+    product.rate_per === 1 &&
     (product.rider_type === "IPD" ||
       product.rider_type === "OPD" ||
       product.rider_type === "DENTAL");
@@ -196,9 +200,8 @@ export function calcRiderPremium(
         warnings: [`${product.code}: ต้องระบุค่ารักษาพยาบาลรายวัน`],
       };
     }
-  } else if (isPlanLevelHealth) {
-    // Plan-level IPD/OPD/DENTAL: the rate IS the full annual premium for the
-    // chosen plan, no per-unit scaling. Force units = 1.
+  } else if (isFlatPremium) {
+    // Rate is the full annual premium — force units = 1 via amount=rate_per=1.
     amount = product.rate_per;
   } else {
     amount = rider.sumAssured ?? 0;

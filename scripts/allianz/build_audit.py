@@ -350,6 +350,12 @@ build_rate_sheet("Rider HSMHPDC ดับเบิลฯ", "HSMHPDC", "ปลด
                  extra_note="4 แผน: ND1/ND2/ND3 อายุ 11-89 + D1 อายุ 1ด1ว-89 · ต่ออายุถึง 89 (71+ เฉพาะต่ออายุ)")
 build_rate_sheet("Rider OPDMDC ดับเบิลฯ OPD", "OPDMDC", "OPD ปลดล็อค ดับเบิล แคร์ (แบบ ค)",
                  extra_note="13 แผน · แผน 400-2,000 คุ้มแต่ 1ด1ว · แผน 2,500+ เริ่ม 11 · ต่ออายุถึง 69")
+build_rate_sheet("Rider HSMFCPN BDMS", "HSMFCPN_BDMS", "เฟิร์สคลาส อัลตร้า แพลทินัม IPD (รพ.กำหนด)",
+                 extra_note="แผนเดียว · อายุรับ 11–70 · ต่ออายุถึง 98 (71+ เฉพาะต่ออายุ)")
+build_rate_sheet("Rider OPDMFCPN BDMS", "OPDMFCPN_BDMS", "เฟิร์สคลาส อัลตร้า แพลทินัม OPD (รพ.กำหนด)",
+                 extra_note="แผนเดียว · ต้องมี HSMFCPN_BDMS · ต่ออายุถึง 98 (71+ เฉพาะต่ออายุ)")
+build_rate_sheet("Rider DVMFCPN BDMS", "DVMFCPN_BDMS", "เฟิร์สคลาส อัลตร้า แพลทินัม ทันตกรรม (รพ.กำหนด)",
+                 extra_note="ค่าทำฟันเหมาจ่าย 9,738 บาท/ปี (unisex, ไม่มีคูณอาชีพ) · ต่ออายุถึง 98")
 build_rate_sheet("Rider CI48", "CI48", "โรคร้ายแรง 48 (CI48)", extra_note="rate คิดต่อ 1,000 ทุน CI")
 
 # Tier 1 batch additions (Apr 2026)

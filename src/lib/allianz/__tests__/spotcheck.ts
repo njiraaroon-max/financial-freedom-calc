@@ -996,6 +996,96 @@ check("OPDMDC rider stops at max_renewal_age 69", () => {
   assert.ok(maxAge <= 69, `OPDMDC should stop at 69, max = ${maxAge}`);
 });
 
+// ═══ Tier 2 Batch 11 — First Class Ultra Platinum BDMS trio ════════════════
+section("HSMFCPN_BDMS + OPDMFCPN_BDMS + DVMFCPN_BDMS (เฟิร์สคลาส อัลตร้า แพลทินัม รพ.กำหนด)");
+
+check("HSMFCPN_BDMS age 30 M → 36,004 (no plans, flat premium)", () => {
+  const res = calcRiderPremium(
+    { productCode: "HSMFCPN_BDMS" }, 30, "M", 1, 30);
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 36004);
+});
+
+check("HSMFCPN_BDMS age 45 F → 53,383", () => {
+  const res = calcRiderPremium(
+    { productCode: "HSMFCPN_BDMS" }, 45, "F", 1, 45);
+  assert.equal(res.premium, 53383);
+});
+
+check("HSMFCPN_BDMS age 98 M renewal → 693,462", () => {
+  const r = getRate("HSMFCPN_BDMS", undefined, 98, "M", 70);
+  assert.ok(r);
+  assert.equal(r.rate, 693462);
+  assert.equal(r.is_renewal_only, true);
+});
+
+check("HSMFCPN_BDMS age 55 M occ 4 → 59,384 × 1.45 = 86,106.8", () => {
+  const res = calcRiderPremium(
+    { productCode: "HSMFCPN_BDMS" }, 55, "M", 4, 55);
+  assert.equal(res.premium, 86106.8);
+});
+
+check("HSMFCPN_BDMS rider stops at max_renewal_age 98", () => {
+  const input: CalcInput = {
+    currentAge: 90,
+    retireAge: 105,
+    gender: "M",
+    occupationClass: 1,
+    main: { productCode: "MSI1808", sumAssured: 1_000_000, premiumYears: 8 },
+    riders: [{ productCode: "HSMFCPN_BDMS" }],
+  };
+  const out = calculateCashflow(input);
+  const paying = out.cashflow.filter((y) =>
+    y.ridersPremium.some((r) => r.code === "HSMFCPN_BDMS" && r.premium > 0),
+  );
+  const maxAge = Math.max(...paying.map((y) => y.age));
+  assert.ok(maxAge <= 98, `HSMFCPN_BDMS should stop at 98, max = ${maxAge}`);
+});
+
+check("OPDMFCPN_BDMS age 40 F → 44,069", () => {
+  const res = calcRiderPremium(
+    { productCode: "OPDMFCPN_BDMS" }, 40, "F", 1, 40);
+  assert.equal(res.premium, 44069);
+});
+
+check("OPDMFCPN_BDMS age 50 M occ 3 → 48,728 × 1.30 = 63,346.4", () => {
+  const res = calcRiderPremium(
+    { productCode: "OPDMFCPN_BDMS" }, 50, "M", 3, 50);
+  assert.equal(res.premium, 63346.4);
+});
+
+check("OPDMFCPN_BDMS age 85-90* F renewal → 131,046", () => {
+  const r = getRate("OPDMFCPN_BDMS", undefined, 87, "F", 60);
+  assert.ok(r);
+  assert.equal(r.rate, 131046);
+  assert.equal(r.is_renewal_only, true);
+});
+
+check("DVMFCPN_BDMS age 30 M → 9,738 (flat dental, unisex)", () => {
+  const res = calcRiderPremium(
+    { productCode: "DVMFCPN_BDMS" }, 30, "M", 1, 30);
+  assert.equal(res.premium, 9738);
+});
+
+check("DVMFCPN_BDMS age 60 F → 9,738 (same premium M=F)", () => {
+  const res = calcRiderPremium(
+    { productCode: "DVMFCPN_BDMS" }, 60, "F", 1, 60);
+  assert.equal(res.premium, 9738);
+});
+
+check("DVMFCPN_BDMS age 85 M occ 4 → 9,738 (no occ multiplier on dental)", () => {
+  const res = calcRiderPremium(
+    { productCode: "DVMFCPN_BDMS" }, 85, "M", 4, 60);
+  assert.equal(res.premium, 9738, "dental ignores occupation class");
+});
+
+check("DVMFCPN_BDMS age 98 renewal-only → 9,738", () => {
+  const r = getRate("DVMFCPN_BDMS", undefined, 98, "M", 60);
+  assert.ok(r);
+  assert.equal(r.rate, 9738);
+  assert.equal(r.is_renewal_only, true);
+});
+
 // ═══════════════════════════════════════════════════════════════════════════
 console.log(`\n${passed}/${passed + failed} checks passed.`);
 if (failed > 0) {
