@@ -19,6 +19,14 @@ import {
 } from "../../../components/allianz/compare/urlState";
 import type { BundleConfig } from "../../../components/allianz/compare/BundleColumn";
 import type { CalcInput, CashflowYear } from "../types";
+import { NHS_CATEGORIES, getCategory, formatBenefit } from "../nhs";
+import {
+  PRODUCT_BENEFITS,
+  getPlanBenefits,
+  getBenefitValue,
+  rankBenefit,
+  winnerIndex,
+} from "../benefits";
 
 let passed = 0;
 let failed = 0;
@@ -1702,6 +1710,171 @@ check("decode handles missing gender/occ gracefully", () => {
   assert.equal(decoded.bundles.length, 1);
   assert.equal(decoded.gender, null);
   assert.equal(decoded.occClass, null);
+});
+
+// ═══ §X  NHS-13 schema + health_benefits.json seed data ════════════════════
+section("NHS-13 schema");
+
+check("NHS has exactly 22 rows (13 groups, some with sub-rows)", () => {
+  // Groups 1,2,4,6 have sub-categories; rest are single entries.
+  // 3 + 4 + 1 + 4 + 1 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 22
+  assert.equal(NHS_CATEGORIES.length, 22);
+});
+
+check("NHS category ids are unique", () => {
+  const ids = NHS_CATEGORIES.map((c) => c.id);
+  assert.equal(new Set(ids).size, ids.length);
+});
+
+check("getCategory('1.1') resolves with unit THB/day", () => {
+  const c = getCategory("1.1");
+  assert.equal(c.group, 1);
+  assert.equal(c.defaultUnit, "THB/day");
+});
+
+check("getCategory('1.3') resolves with unit days/year", () => {
+  const c = getCategory("1.3");
+  assert.equal(c.defaultUnit, "days/year");
+});
+
+check("formatBenefit: number + THB/day → Thai-formatted with unit", () => {
+  assert.equal(formatBenefit(4500, "THB/day"), "4,500 บ./วัน");
+});
+
+check("formatBenefit: as-charged → ตามจริง", () => {
+  assert.equal(formatBenefit("as-charged", "THB/day"), "ตามจริง");
+});
+
+check("formatBenefit: null → em-dash", () => {
+  assert.equal(formatBenefit(null, "THB/day"), "—");
+});
+
+check("formatBenefit: included → รวม (bundled into other cap)", () => {
+  assert.equal(formatBenefit("included", "THB/admission"), "รวม");
+});
+
+section("health_benefits.json — HS_S seed data");
+
+check("HS_S product registered with 2 plans (1500 + 4500)", () => {
+  const hs = PRODUCT_BENEFITS.find((p) => p.productCode === "HS_S");
+  assert.ok(hs, "HS_S not in health_benefits.json");
+  assert.equal(hs.plans.length, 2);
+});
+
+check("HS_S plan 1500: NHS-1.1 = 1500 (ค่าห้อง)", () => {
+  const plan = getPlanBenefits("HS_S", "1500");
+  assert.ok(plan, "plan 1500 missing");
+  assert.equal(getBenefitValue(plan, "1.1"), 1500);
+});
+
+check("HS_S plan 1500: NHS-3 = 800 (ค่าแพทย์)", () => {
+  const plan = getPlanBenefits("HS_S", "1500");
+  assert.ok(plan);
+  assert.equal(getBenefitValue(plan, "3"), 800);
+});
+
+check("HS_S plan 1500: NHS-13 = 20000 (ผ่าตัดเล็ก)", () => {
+  const plan = getPlanBenefits("HS_S", "1500");
+  assert.ok(plan);
+  assert.equal(getBenefitValue(plan, "13"), 20000);
+});
+
+check("HS_S plan 1500: NHS-8,9,10,11 all explicitly null (not covered)", () => {
+  const plan = getPlanBenefits("HS_S", "1500");
+  assert.ok(plan);
+  assert.equal(getBenefitValue(plan, "8"), null);
+  assert.equal(getBenefitValue(plan, "9"), null);
+  assert.equal(getBenefitValue(plan, "10"), null);
+  assert.equal(getBenefitValue(plan, "11"), null);
+});
+
+check("HS_S plan 4500: NHS-1.1 = 4500, NHS-3 = 1500, NHS-13 = 34000", () => {
+  const plan = getPlanBenefits("HS_S", "4500");
+  assert.ok(plan);
+  assert.equal(getBenefitValue(plan, "1.1"), 4500);
+  assert.equal(getBenefitValue(plan, "3"), 1500);
+  assert.equal(getBenefitValue(plan, "13"), 34000);
+});
+
+check("HS_S source tagged as 'seed' (trusted)", () => {
+  const plan = getPlanBenefits("HS_S", "1500");
+  assert.ok(plan);
+  assert.equal(plan.source, "seed");
+});
+
+section("health_benefits.json — HSMHPDC + HSMFCPN_BDMS");
+
+check("HSMHPDC plan 3000: NHS-1.1 = 3000, NHS-1.2 = 6000 (ICU 2×)", () => {
+  const plan = getPlanBenefits("HSMHPDC", "3000");
+  assert.ok(plan);
+  assert.equal(getBenefitValue(plan, "1.1"), 3000);
+  assert.equal(getBenefitValue(plan, "1.2"), 6000);
+});
+
+check("HSMFCPN_BDMS: NHS-1.1 = 25000 (Platinum-tier room rate)", () => {
+  const plan = getPlanBenefits("HSMFCPN_BDMS");
+  assert.ok(plan);
+  assert.equal(getBenefitValue(plan, "1.1"), 25000);
+});
+
+check("HSMFCPN_BDMS: most categories are 'as-charged' (unlimited within cap)", () => {
+  const plan = getPlanBenefits("HSMFCPN_BDMS");
+  assert.ok(plan);
+  assert.equal(getBenefitValue(plan, "2.1"), "as-charged");
+  assert.equal(getBenefitValue(plan, "3"),   "as-charged");
+  assert.equal(getBenefitValue(plan, "10"),  "as-charged");
+});
+
+check("HSMFCPN_BDMS annualCap = 25,000,000 baht", () => {
+  const plan = getPlanBenefits("HSMFCPN_BDMS");
+  assert.ok(plan);
+  assert.equal(plan.annualCap, 25_000_000);
+});
+
+section("benefits.ts — ranking + winnerIndex");
+
+check("rankBenefit: as-charged > any finite number", () => {
+  assert.ok(rankBenefit("as-charged") > rankBenefit(1_000_000));
+});
+
+check("rankBenefit: null and undefined both sort last", () => {
+  assert.equal(rankBenefit(null), Number.NEGATIVE_INFINITY);
+  assert.equal(rankBenefit(undefined), Number.NEGATIVE_INFINITY);
+});
+
+check("winnerIndex picks as-charged over number", () => {
+  const idx = winnerIndex([1500, "as-charged", 4500]);
+  assert.equal(idx, 1);
+});
+
+check("winnerIndex picks highest number when no as-charged", () => {
+  const idx = winnerIndex([1500, 3000, 4500]);
+  assert.equal(idx, 2);
+});
+
+check("winnerIndex returns null when all unrankable", () => {
+  const idx = winnerIndex([null, undefined, "included"]);
+  assert.equal(idx, null);
+});
+
+check("winnerIndex returns null on tie at the top", () => {
+  // Two plans both paying 4500/day → no single winner, avoid misleading ★
+  const idx = winnerIndex([4500, 1500, 4500]);
+  assert.equal(idx, null);
+});
+
+check("winnerIndex HS_S 1500 vs 4500 vs HSMFCPN_BDMS on NHS-1.1", () => {
+  const p1 = getPlanBenefits("HS_S", "1500");
+  const p2 = getPlanBenefits("HS_S", "4500");
+  const p3 = getPlanBenefits("HSMFCPN_BDMS");
+  assert.ok(p1 && p2 && p3);
+  const cells = [
+    getBenefitValue(p1, "1.1"),
+    getBenefitValue(p2, "1.1"),
+    getBenefitValue(p3, "1.1"),
+  ];
+  // 1500 < 4500 < 25000 → HSMFCPN_BDMS wins
+  assert.equal(winnerIndex(cells), 2);
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -11,11 +11,12 @@
 // the policies page (future wiring).
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Users, Plus, Trash2, Link2, Check } from "lucide-react";
+import { Users, Plus, Trash2, Link2, Check, Wallet, Stethoscope } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import BundleColumn, { type BundleConfig } from "@/components/allianz/compare/BundleColumn";
 import CompareOverlayChart from "@/components/allianz/compare/CompareOverlayChart";
 import CompareSummaryTable from "@/components/allianz/compare/CompareSummaryTable";
+import BenefitCompareTable from "@/components/allianz/compare/BenefitCompareTable";
 import {
   MAIN_PRESETS,
   RIDER_PRESETS,
@@ -150,6 +151,10 @@ export default function ComparePage() {
   const [occClass, setOccClass] = useState<OccClass>(1);
   const [adoptedIdx, setAdoptedIdx] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
+  // Tab switcher: "cost" = overlay chart + summary table (original flow),
+  // "benefits" = NHS-13 coverage table.  Both live in the same page so the
+  // applicant bar + bundle columns stay fixed as context.
+  const [activeTab, setActiveTab] = useState<"cost" | "benefits">("cost");
   const hydrated = useRef(false);
   const addPolicy = useInsuranceStore((s) => s.addPolicy);
   const salary = useProfileStore((s) => s.salary);
@@ -289,6 +294,12 @@ export default function ComparePage() {
     sumAssured: b.sumAssured,
   }));
 
+  const benefitBundles = bundles.map((b) => ({
+    label: b.label,
+    color: b.color,
+    riderIds: b.riderIds,
+  }));
+
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
       <PageHeader
@@ -398,11 +409,47 @@ export default function ComparePage() {
           ))}
         </div>
 
-        {/* ─── Overlay chart ──────────────────────────────────── */}
-        <CompareOverlayChart bundles={overlayBundles} />
+        {/* ─── Tab switcher ───────────────────────────────────── */}
+        {/* "Cost" tab is the original compare view (chart + summary table).
+            "Benefits" tab shows NHS-13 coverage side-by-side.  We keep both
+            under one URL so shared links still land on the same bundles —
+            the tab is purely a UI affordance (not persisted). */}
+        <div className="flex items-center gap-1 p-1 rounded-xl bg-white/40 border border-gray-200 w-fit">
+          <button
+            type="button"
+            onClick={() => setActiveTab("cost")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] transition ${
+              activeTab === "cost"
+                ? "bg-indigo-600 text-white font-bold shadow-sm"
+                : "text-gray-600 hover:bg-white/60"
+            }`}
+          >
+            <Wallet size={14} />
+            เบี้ย + Renewal Shocks
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("benefits")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] transition ${
+              activeTab === "benefits"
+                ? "bg-indigo-600 text-white font-bold shadow-sm"
+                : "text-gray-600 hover:bg-white/60"
+            }`}
+          >
+            <Stethoscope size={14} />
+            ความคุ้มครอง (NHS 13)
+          </button>
+        </div>
 
-        {/* ─── Summary table ──────────────────────────────────── */}
-        <CompareSummaryTable bundles={summaryBundles} annualIncome={annualIncome} />
+        {/* ─── Active tab content ─────────────────────────────── */}
+        {activeTab === "cost" ? (
+          <>
+            <CompareOverlayChart bundles={overlayBundles} />
+            <CompareSummaryTable bundles={summaryBundles} annualIncome={annualIncome} />
+          </>
+        ) : (
+          <BenefitCompareTable bundles={benefitBundles} />
+        )}
 
         {/* ─── Hint footer ────────────────────────────────────── */}
         <div className="text-[12px] text-gray-400 text-center py-2 leading-relaxed">

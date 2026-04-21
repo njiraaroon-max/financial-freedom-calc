@@ -1,0 +1,185 @@
+{
+  "_meta": {
+    "schema": "NHS-13 (Thailand OIC New Health Standard 2564)",
+    "generated_at": "2026-04-21",
+    "coverage": "Phase A demo — 3 of 15 target products seeded.  The rest are pending vision extraction from *_Benefit images (not yet in manifest).",
+    "legend": {
+      "values": {
+        "number": "fixed baht amount (unit shown in nhs.ts category metadata)",
+        "as-charged": "\u0e15\u0e32\u0e21\u0e08\u0e23\u0e34\u0e07 (unlimited within annual cap)",
+        "included": "covered, but bundled into another cap (see note)",
+        "null": "explicitly not covered"
+      },
+      "source": {
+        "seed": "values handed to us by product owner — trusted",
+        "brochure": "transcribed from public Allianz brochure/infographic",
+        "vision": "auto-extracted from benefit-table image (needs audit)",
+        "estimate": "rough positioning for UI preview only"
+      }
+    }
+  },
+
+  "products": [
+    {
+      "productCode": "HS_S",
+      "productNameTh": "\u0e40\u0e2d\u0e0a\u0e40\u0e2d\u0e2a",
+      "riderKind": "IPD",
+      "plans": [
+        {
+          "productCode": "HS_S",
+          "planCode": "1500",
+          "planLabel": "\u0e41\u0e1c\u0e19 1500",
+          "network": "ANY",
+          "annualCap": 200000,
+          "source": "seed",
+          "note": "\u0e19\u0e2d\u0e19 \u0e23\u0e1e. \u0e40\u0e1a\u0e34\u0e01\u0e04\u0e48\u0e32\u0e43\u0e0a\u0e49\u0e08\u0e48\u0e32\u0e22\u0e40\u0e1b\u0e47\u0e19\u0e23\u0e32\u0e22\u0e41\u0e1e\u0e47\u0e01\u0e40\u0e08\u0e08 (\u0e2b\u0e21\u0e27\u0e14 2-4, 13) \u2014 \u0e44\u0e21\u0e48\u0e23\u0e27\u0e21 \u0e40\u0e27\u0e0a\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e4c\u0e1f\u0e37\u0e49\u0e19\u0e1f\u0e39/\u0e25\u0e49\u0e32\u0e07\u0e44\u0e15/\u0e21\u0e30\u0e40\u0e23\u0e47\u0e07/Targeted",
+          "benefits": {
+            "1.1": 1500,
+            "1.2": 3000,
+            "1.3": 180,
+            "3": 800,
+            "8": null,
+            "9": null,
+            "10": null,
+            "11": null,
+            "13": 20000
+          }
+        },
+        {
+          "productCode": "HS_S",
+          "planCode": "4500",
+          "planLabel": "\u0e41\u0e1c\u0e19 4500",
+          "network": "ANY",
+          "annualCap": 500000,
+          "source": "seed",
+          "note": "\u0e40\u0e1b\u0e47\u0e19\u0e23\u0e32\u0e22\u0e41\u0e1e\u0e47\u0e01\u0e40\u0e08\u0e08 \u2014 \u0e44\u0e21\u0e48\u0e23\u0e27\u0e21 \u0e40\u0e27\u0e0a\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e4c\u0e1f\u0e37\u0e49\u0e19\u0e1f\u0e39/\u0e25\u0e49\u0e32\u0e07\u0e44\u0e15/\u0e21\u0e30\u0e40\u0e23\u0e47\u0e07/Targeted",
+          "benefits": {
+            "1.1": 4500,
+            "1.2": 9000,
+            "1.3": 180,
+            "3": 1500,
+            "8": null,
+            "9": null,
+            "10": null,
+            "11": null,
+            "13": 34000
+          }
+        }
+      ]
+    },
+
+    {
+      "productCode": "HSMHPDC",
+      "productNameTh": "\u0e1b\u0e25\u0e14\u0e25\u0e47\u0e2d\u0e04 \u0e14\u0e31\u0e1a\u0e40\u0e1a\u0e34\u0e25 \u0e41\u0e04\u0e23\u0e4c",
+      "riderKind": "IPD",
+      "plans": [
+        {
+          "productCode": "HSMHPDC",
+          "planCode": "3000",
+          "planLabel": "\u0e41\u0e1c\u0e19 3000",
+          "network": "ANY",
+          "annualCap": 1000000,
+          "source": "brochure",
+          "note": "\u0e40\u0e2b\u0e21\u0e32\u0e08\u0e48\u0e32\u0e22\u0e43\u0e19\u0e27\u0e07\u0e40\u0e07\u0e34\u0e19\u0e23\u0e27\u0e21 (\u0e2b\u0e21\u0e27\u0e14 2-4, 7, 8, 12, 13) \u2014 \u0e04\u0e48\u0e32\u0e2b\u0e49\u0e2d\u0e07\u0e41\u0e22\u0e01\u0e15\u0e32\u0e21\u0e41\u0e1c\u0e19. \u0e21\u0e30\u0e40\u0e23\u0e47\u0e07/\u0e25\u0e49\u0e32\u0e07\u0e44\u0e15\u0e08\u0e48\u0e32\u0e22\u0e15\u0e32\u0e21\u0e08\u0e23\u0e34\u0e07",
+          "benefits": {
+            "1.1": 3000,
+            "1.2": 6000,
+            "1.3": 365,
+            "2.1": "included",
+            "2.2": "included",
+            "2.3": "included",
+            "2.4": "included",
+            "3": "included",
+            "4.1": "included",
+            "4.2": "included",
+            "4.3": "included",
+            "4.4": "included",
+            "5": "included",
+            "6.1": "included",
+            "6.2": "included",
+            "7": "included",
+            "8": "included",
+            "9": "as-charged",
+            "10": "as-charged",
+            "11": "as-charged",
+            "12": "included",
+            "13": "included"
+          }
+        },
+        {
+          "productCode": "HSMHPDC",
+          "planCode": "6000",
+          "planLabel": "\u0e41\u0e1c\u0e19 6000",
+          "network": "ANY",
+          "annualCap": 2000000,
+          "source": "brochure",
+          "benefits": {
+            "1.1": 6000,
+            "1.2": 12000,
+            "1.3": 365,
+            "2.1": "included",
+            "2.2": "included",
+            "2.3": "included",
+            "2.4": "included",
+            "3": "included",
+            "4.1": "included",
+            "4.2": "included",
+            "4.3": "included",
+            "4.4": "included",
+            "5": "included",
+            "6.1": "included",
+            "6.2": "included",
+            "7": "included",
+            "8": "included",
+            "9": "as-charged",
+            "10": "as-charged",
+            "11": "as-charged",
+            "12": "included",
+            "13": "included"
+          }
+        }
+      ]
+    },
+
+    {
+      "productCode": "HSMFCPN_BDMS",
+      "productNameTh": "\u0e40\u0e1f\u0e34\u0e23\u0e4c\u0e2a\u0e04\u0e25\u0e32\u0e2a \u0e2d\u0e31\u0e25\u0e15\u0e23\u0e49\u0e32 \u0e41\u0e1e\u0e25\u0e17\u0e34\u0e19\u0e31\u0e21 (\u0e23\u0e1e.\u0e01\u0e33\u0e2b\u0e19\u0e14)",
+      "riderKind": "IPD",
+      "plans": [
+        {
+          "productCode": "HSMFCPN_BDMS",
+          "planCode": "25000",
+          "planLabel": "\u0e41\u0e1c\u0e19 25000",
+          "network": "BDMS",
+          "annualCap": 25000000,
+          "source": "brochure",
+          "note": "\u0e43\u0e0a\u0e49\u0e44\u0e14\u0e49\u0e40\u0e09\u0e1e\u0e32\u0e30 \u0e23\u0e1e. \u0e01\u0e25\u0e38\u0e48\u0e21 BDMS \u2014 \u0e40\u0e1a\u0e35\u0e49\u0e22\u0e15\u0e48\u0e33 \u0e04\u0e39\u0e48\u0e40\u0e04\u0e22\u0e01\u0e31\u0e1a HSMFCPN_ALL",
+          "benefits": {
+            "1.1": 25000,
+            "1.2": 50000,
+            "1.3": 365,
+            "2.1": "as-charged",
+            "2.2": "as-charged",
+            "2.3": "as-charged",
+            "2.4": "as-charged",
+            "3": "as-charged",
+            "4.1": "as-charged",
+            "4.2": "as-charged",
+            "4.3": "as-charged",
+            "4.4": "as-charged",
+            "5": "as-charged",
+            "6.1": "as-charged",
+            "6.2": "as-charged",
+            "7": "as-charged",
+            "8": 200000,
+            "9": "as-charged",
+            "10": "as-charged",
+            "11": "as-charged",
+            "12": 10000,
+            "13": "as-charged"
+          }
+        }
+      ]
+    }
+  ]
+}
