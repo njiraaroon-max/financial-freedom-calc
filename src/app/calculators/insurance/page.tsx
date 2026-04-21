@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import {
   Shield, HeartPulse, Home, Landmark, Wallet, Plus,
   ClipboardList, ChevronRight, AlertCircle, CheckCircle2, TrendingUp,
+  Scale, Sparkles,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { useInsuranceStore } from "@/store/insurance-store";
@@ -681,6 +682,44 @@ export default function InsuranceHubPage() {
             </div>
           </div>
         )}
+
+        {/* ═══ DECISION TOOLS ══════════════════════════════════════ */}
+        <div className="mx-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+          <Link href="/calculators/insurance/compare">
+            <div className="glass rounded-2xl p-4 flex items-start gap-3 hover:brightness-[1.03] active:scale-[0.99] transition-all cursor-pointer h-full">
+              <div className="w-11 h-11 rounded-xl shrink-0 flex items-center justify-center shadow-sm"
+                style={{ background: "linear-gradient(135deg, #8b5cf6, #6d28d9)" }}>
+                <Scale size={22} className="text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <div className="text-sm font-bold text-gray-800">เปรียบเทียบแผน</div>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-violet-100 text-violet-700">NEW</span>
+                </div>
+                <div className="text-[12px] text-gray-500 mt-0.5 leading-relaxed">
+                  วาง 2-3 bundle เคียงกัน ดูเบี้ยรายปี + renewal shock ทุกช่วงอายุ
+                </div>
+              </div>
+              <ChevronRight size={16} className="text-gray-300 shrink-0 self-center" />
+            </div>
+          </Link>
+
+          <Link href="/calculators/insurance/policies">
+            <div className="glass rounded-2xl p-4 flex items-start gap-3 hover:brightness-[1.03] active:scale-[0.99] transition-all cursor-pointer h-full">
+              <div className="w-11 h-11 rounded-xl shrink-0 flex items-center justify-center shadow-sm"
+                style={{ background: "linear-gradient(135deg, #0891b2, #0e7490)" }}>
+                <Sparkles size={22} className="text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-bold text-gray-800">คลังกรมธรรม์</div>
+                <div className="text-[12px] text-gray-500 mt-0.5 leading-relaxed">
+                  จัดการและดู Gantt / Step-line ของกรมธรรม์ทั้งหมด
+                </div>
+              </div>
+              <ChevronRight size={16} className="text-gray-300 shrink-0 self-center" />
+            </div>
+          </Link>
+        </div>
 
         {/* ═══ OVERALL SCORE ═══════════════════════════════════════ */}
         <div className="mx-1 text-center py-2">

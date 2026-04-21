@@ -12,6 +12,12 @@ import { getRate } from "../rates";
 import { calculateCashflow } from "../cashflow";
 import { allianzAge } from "../age";
 import { detectRenewalShocks, biggestShock } from "../shocks";
+import {
+  encodeBundle,
+  encodeCompareState,
+  decodeCompareState,
+} from "../../../components/allianz/compare/urlState";
+import type { BundleConfig } from "../../../components/allianz/compare/BundleColumn";
 import type { CalcInput, CashflowYear } from "../types";
 
 let passed = 0;
@@ -1624,6 +1630,78 @@ check("end-to-end: HSMFCBN_BDMS M SA=1M triggers multiple shocks", () => {
   for (const expected of [66, 76, 81]) {
     assert.ok(ages.includes(expected), `missing shock at age ${expected}; got ${ages.join(",")}`);
   }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+
+section("Compare urlState — encode / decode round-trip");
+
+const sampleBundle: BundleConfig = {
+  label: "A",
+  color: "#1e3a5f",
+  mainCode: "MWLA9906",
+  sumAssured: 10_000_000,
+  riderIds: ["ipd-ultra-bdms", "ci-1m"],
+  birthDate: "1991-04-21",
+  policyStartDate: "2026-04-21",
+};
+
+check("encodeBundle → colon-delimited shape", () => {
+  const s = encodeBundle(sampleBundle);
+  assert.equal(s, "MWLA9906:10000000:ipd-ultra-bdms,ci-1m:1991-04-21:2026-04-21");
+});
+
+check("encode + decode round-trip preserves 2 bundles", () => {
+  const qs = encodeCompareState({
+    bundles: [sampleBundle, { ...sampleBundle, label: "B", mainCode: "T1010", sumAssured: 3_000_000, riderIds: [] }],
+    gender: "M",
+    occClass: 1,
+  });
+  const decoded = decodeCompareState(new URLSearchParams(qs));
+  assert.equal(decoded.bundles.length, 2);
+  assert.equal(decoded.bundles[0].mainCode, "MWLA9906");
+  assert.equal(decoded.bundles[0].sumAssured, 10_000_000);
+  assert.deepEqual(decoded.bundles[0].riderIds, ["ipd-ultra-bdms", "ci-1m"]);
+  assert.equal(decoded.bundles[1].mainCode, "T1010");
+  assert.deepEqual(decoded.bundles[1].riderIds, []);
+  assert.equal(decoded.gender, "M");
+  assert.equal(decoded.occClass, 1);
+});
+
+check("decode drops unknown rider ids silently", () => {
+  const sp = new URLSearchParams();
+  sp.set("a", "MWLA9906:10000000:ipd-ultra-bdms,FAKE-RIDER,ci-1m:1991-04-21:2026-04-21");
+  sp.set("b", "T1010:3000000::1991-04-21:2026-04-21");
+  sp.set("g", "F");
+  sp.set("occ", "3");
+  const decoded = decodeCompareState(sp);
+  assert.equal(decoded.bundles.length, 2);
+  assert.deepEqual(decoded.bundles[0].riderIds, ["ipd-ultra-bdms", "ci-1m"]);
+  assert.equal(decoded.gender, "F");
+  assert.equal(decoded.occClass, 3);
+});
+
+check("decode rejects unknown mainCode (returns 0 parseable bundles)", () => {
+  const sp = new URLSearchParams();
+  sp.set("a", "NOT_A_REAL_CODE:1000000::1991-04-21:2026-04-21");
+  const decoded = decodeCompareState(sp);
+  assert.equal(decoded.bundles.length, 0);
+});
+
+check("decode rejects bad date format", () => {
+  const sp = new URLSearchParams();
+  sp.set("a", "MWLA9906:10000000::not-a-date:2026-04-21");
+  const decoded = decodeCompareState(sp);
+  assert.equal(decoded.bundles.length, 0);
+});
+
+check("decode handles missing gender/occ gracefully", () => {
+  const sp = new URLSearchParams();
+  sp.set("a", "T1010:1000000::1991-04-21:2026-04-21");
+  const decoded = decodeCompareState(sp);
+  assert.equal(decoded.bundles.length, 1);
+  assert.equal(decoded.gender, null);
+  assert.equal(decoded.occClass, null);
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

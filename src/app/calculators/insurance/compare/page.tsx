@@ -10,8 +10,8 @@
 // store.  Users who want to "adopt" a bundle can link straight through to
 // the policies page (future wiring).
 
-import { useMemo, useState } from "react";
-import { Users, Plus, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Users, Plus, Trash2, Link2, Check } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import BundleColumn, { type BundleConfig } from "@/components/allianz/compare/BundleColumn";
 import CompareOverlayChart from "@/components/allianz/compare/CompareOverlayChart";
@@ -22,9 +22,16 @@ import {
   BUNDLE_COLORS,
   BUNDLE_LABELS,
 } from "@/components/allianz/compare/presets";
+import {
+  decodeCompareState,
+  encodeCompareState,
+} from "@/components/allianz/compare/urlState";
 import { calculateCashflow } from "@/lib/allianz/cashflow";
 import { allianzAge } from "@/lib/allianz/age";
 import { detectRenewalShocks } from "@/lib/allianz/shocks";
+import { buildPolicyFromQuote } from "@/lib/allianz/toPolicy";
+import { useInsuranceStore } from "@/store/insurance-store";
+import { useProfileStore } from "@/store/profile-store";
 import type { CalcInput, CalcRiderInput, Gender, OccClass } from "@/lib/allianz/types";
 
 // ─── Defaults ─────────────────────────────────────────────────────────────
@@ -141,6 +148,50 @@ export default function ComparePage() {
   ]);
   const [gender, setGender] = useState<Gender>("M");
   const [occClass, setOccClass] = useState<OccClass>(1);
+  const [adoptedIdx, setAdoptedIdx] = useState<number | null>(null);
+  const [copied, setCopied] = useState(false);
+  const hydrated = useRef(false);
+  const addPolicy = useInsuranceStore((s) => s.addPolicy);
+  const salary = useProfileStore((s) => s.salary);
+  const annualIncome = salary * 12;
+
+  // ─── Hydrate from URL once on mount ──────────────────────────────────
+  // This runs before the bundles ever render so the first paint already
+  // reflects the shared link's state.
+  useEffect(() => {
+    if (hydrated.current) return;
+    hydrated.current = true;
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    if (![...sp.keys()].length) return;
+    const decoded = decodeCompareState(sp);
+    if (decoded.bundles.length >= 2) setBundles(decoded.bundles);
+    if (decoded.gender) setGender(decoded.gender);
+    if (decoded.occClass) setOccClass(decoded.occClass);
+  }, []);
+
+  // ─── Mirror state back to URL (replaceState — no history spam) ───────
+  useEffect(() => {
+    if (!hydrated.current || typeof window === "undefined") return;
+    const qs = encodeCompareState({ bundles, gender, occClass });
+    const next = `${window.location.pathname}?${qs}`;
+    if (next !== window.location.pathname + window.location.search) {
+      window.history.replaceState(null, "", next);
+    }
+  }, [bundles, gender, occClass]);
+
+  const copyShareLink = async () => {
+    if (typeof window === "undefined") return;
+    const url = window.location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers — show the URL in a prompt
+      window.prompt("คัดลอก URL นี้:", url);
+    }
+  };
 
   const evals = useMemo(
     () => bundles.map((b) => evaluateBundle(b, gender, occClass)),
@@ -154,6 +205,59 @@ export default function ComparePage() {
   const addBundle = () => {
     if (bundles.length >= 3) return;
     setBundles((prev) => [...prev, makeDefaultBundle(prev.length)]);
+  };
+
+  // ─── Adopt: push every product in a bundle into the insurance store ──
+  // Main policy first, then each rider priced at the derived age.  We use
+  // the cashflow's firstYear entry as the "shopping price" — that's what
+  // the user saw on screen when they clicked the button.
+  const adoptBundle = (idx: number) => {
+    const b = bundles[idx];
+    const ev = evals[idx];
+    if (!b || !ev || ev.errors.length > 0 || ev.derivedAge == null) return;
+    const firstYear = ev.cashflow.find((y) => y.totalPremium > 0);
+    if (!firstYear) return;
+
+    const preset = MAIN_PRESETS.find((p) => p.code === b.mainCode);
+
+    // ── Main policy
+    const mainPayload = buildPolicyFromQuote({
+      productCode: b.mainCode,
+      planCode: preset?.planCode,
+      premium: firstYear.mainPremium,
+      sumInsured: b.sumAssured,
+      premiumYears: preset?.premiumYears ?? 1,
+      coverageEndAge: preset?.coverageEndAge,
+      currentAge: ev.derivedAge,
+    });
+    if (mainPayload) addPolicy(mainPayload);
+
+    // ── Riders (skip zero-premium — usually a rider aged out immediately)
+    for (const r of firstYear.ridersPremium) {
+      if (r.premium <= 0) continue;
+      const riderPreset = RIDER_PRESETS.find(
+        (rp) => b.riderIds.includes(rp.id) && rp.code === r.code,
+      );
+      const riderPayload = buildPolicyFromQuote({
+        productCode: r.code,
+        planCode: riderPreset?.planCode,
+        premium: r.premium,
+        sumInsured: 0,
+        // Riders renew annually — store as a 1-year bucket so the policies
+        // page will show the first-year premium without implying a fixed
+        // multi-year payment schedule.
+        premiumYears: 1,
+        currentAge: ev.derivedAge,
+        ...(riderPreset?.dailyBenefit ? { dailyBenefit: riderPreset.dailyBenefit } : {}),
+        ...(riderPreset?.sumAssured && riderPreset.kind === "CI"
+          ? { ciLumpSum: riderPreset.sumAssured }
+          : {}),
+      });
+      if (riderPayload) addPolicy(riderPayload);
+    }
+
+    setAdoptedIdx(idx);
+    setTimeout(() => setAdoptedIdx((cur) => (cur === idx ? null : cur)), 2500);
   };
 
   const removeBundle = (idx: number) => {
@@ -182,6 +286,7 @@ export default function ComparePage() {
     cashflow: evals[i].cashflow,
     shocks: evals[i].shocks,
     lifetimeTotal: evals[i].summary.totalPaid,
+    sumAssured: b.sumAssured,
   }));
 
   return (
@@ -235,6 +340,19 @@ export default function ComparePage() {
             </div>
           </div>
           <div className="ml-auto flex items-center gap-2">
+            <button
+              type="button"
+              onClick={copyShareLink}
+              className={`flex items-center gap-1.5 text-[13px] px-3 py-1.5 rounded-xl border transition ${
+                copied
+                  ? "bg-emerald-500 text-white border-emerald-600"
+                  : "bg-white/60 text-gray-600 border-gray-200 hover:bg-gray-50"
+              }`}
+              title="คัดลอกลิงก์เพื่อแชร์การเปรียบเทียบนี้"
+            >
+              {copied ? <Check size={14} /> : <Link2 size={14} />}
+              {copied ? "คัดลอกแล้ว" : "แชร์ลิงก์"}
+            </button>
             {bundles.length < 3 && (
               <button
                 type="button"
@@ -262,6 +380,8 @@ export default function ComparePage() {
                 derivedAge={evals[i].derivedAge}
                 errors={evals[i].errors}
                 firstYearPremium={evals[i].firstYearPremium}
+                onAdopt={() => adoptBundle(i)}
+                adopted={adoptedIdx === i}
               />
               {bundles.length > 2 && (
                 <button
@@ -282,7 +402,7 @@ export default function ComparePage() {
         <CompareOverlayChart bundles={overlayBundles} />
 
         {/* ─── Summary table ──────────────────────────────────── */}
-        <CompareSummaryTable bundles={summaryBundles} />
+        <CompareSummaryTable bundles={summaryBundles} annualIncome={annualIncome} />
 
         {/* ─── Hint footer ────────────────────────────────────── */}
         <div className="text-[12px] text-gray-400 text-center py-2 leading-relaxed">

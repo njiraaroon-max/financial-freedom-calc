@@ -10,7 +10,7 @@
 // years) routes through /calculators/insurance/policies.
 
 import { useEffect, useMemo } from "react";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Check, Download } from "lucide-react";
 import { MAIN_PRESETS, RIDER_PRESETS } from "./presets";
 import type { MainPreset, RiderPreset } from "./presets";
 
@@ -35,6 +35,11 @@ export interface BundleColumnProps {
   errors?: string[];
   /** Per-year premium @ the derived age (for the "ค่าเบี้ยปีแรก" preview). */
   firstYearPremium?: number;
+  /** When provided, renders an "Adopt" button that imports this bundle into
+   *  the insurance store.  Parent owns the write — we just notify. */
+  onAdopt?: () => void;
+  /** Latch to show "✓ นำเข้าแล้ว" feedback for a few seconds after adopting. */
+  adopted?: boolean;
 }
 
 const SA_PRESETS = [1_000_000, 3_000_000, 5_000_000, 10_000_000];
@@ -49,6 +54,8 @@ export default function BundleColumn({
   derivedAge,
   errors = [],
   firstYearPremium,
+  onAdopt,
+  adopted,
 }: BundleColumnProps) {
   const main: MainPreset | undefined = useMemo(
     () => MAIN_PRESETS.find((p) => p.code === value.mainCode),
@@ -235,6 +242,34 @@ export default function BundleColumn({
             <div key={i}>• {e}</div>
           ))}
         </div>
+      )}
+
+      {/* ─── Adopt button ─────────────────────────────────────── */}
+      {onAdopt && (
+        <button
+          type="button"
+          onClick={onAdopt}
+          disabled={hasErrors || !firstYearPremium}
+          className={`mt-auto w-full rounded-xl px-3 py-2 text-[13px] font-bold transition-all flex items-center justify-center gap-1.5 ${
+            adopted
+              ? "bg-emerald-500 text-white shadow-sm"
+              : hasErrors || !firstYearPremium
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-indigo-600 text-white hover:bg-indigo-700 active:scale-[0.98] shadow-sm"
+          }`}
+        >
+          {adopted ? (
+            <>
+              <Check size={14} />
+              นำเข้าแล้ว
+            </>
+          ) : (
+            <>
+              <Download size={14} />
+              ใส่ Bundle นี้ลงกรมธรรม์
+            </>
+          )}
+        </button>
       )}
     </div>
   );
