@@ -503,6 +503,176 @@
       "coverage_until_age": 69,
       "premium_years": null,
       "premium_until_age": 69
+    },
+    {
+      "id": 533,
+      "product_id": 73,
+      "plan_code": "400",
+      "plan_name_th": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (ค) — วงเงิน 400 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 534,
+      "product_id": 73,
+      "plan_code": "500",
+      "plan_name_th": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (ค) — วงเงิน 500 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 535,
+      "product_id": 73,
+      "plan_code": "600",
+      "plan_name_th": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (ค) — วงเงิน 600 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 536,
+      "product_id": 73,
+      "plan_code": "700",
+      "plan_name_th": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (ค) — วงเงิน 700 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 537,
+      "product_id": 73,
+      "plan_code": "800",
+      "plan_name_th": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (ค) — วงเงิน 800 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 538,
+      "product_id": 73,
+      "plan_code": "900",
+      "plan_name_th": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (ค) — วงเงิน 900 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 539,
+      "product_id": 73,
+      "plan_code": "1000",
+      "plan_name_th": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (ค) — วงเงิน 1,000 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 540,
+      "product_id": 73,
+      "plan_code": "1500",
+      "plan_name_th": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (ค) — วงเงิน 1,500 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 541,
+      "product_id": 73,
+      "plan_code": "2000",
+      "plan_name_th": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (ค) — วงเงิน 2,000 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 542,
+      "product_id": 73,
+      "plan_code": "2500",
+      "plan_name_th": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (ค) — วงเงิน 2,500 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 543,
+      "product_id": 73,
+      "plan_code": "3000",
+      "plan_name_th": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (ค) — วงเงิน 3,000 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 544,
+      "product_id": 73,
+      "plan_code": "3500",
+      "plan_name_th": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (ค) — วงเงิน 3,500 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 545,
+      "product_id": 73,
+      "plan_code": "4000",
+      "plan_name_th": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (ค) — วงเงิน 4,000 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 546,
+      "product_id": 73,
+      "plan_code": "4500",
+      "plan_name_th": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (ค) — วงเงิน 4,500 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 547,
+      "product_id": 73,
+      "plan_code": "5000",
+      "plan_name_th": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (ค) — วงเงิน 5,000 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 548,
+      "product_id": 73,
+      "plan_code": "5500",
+      "plan_name_th": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (ค) — วงเงิน 5,500 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 549,
+      "product_id": 73,
+      "plan_code": "6000",
+      "plan_name_th": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (ค) — วงเงิน 6,000 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
     }
   ]
 }

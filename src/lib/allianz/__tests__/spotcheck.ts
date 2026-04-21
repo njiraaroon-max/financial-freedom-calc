@@ -1138,6 +1138,77 @@ check("HSMFCPN_ALL rider stops at max_renewal_age 98", () => {
   assert.ok(maxAge <= 98, `HSMFCPN_ALL should stop at 98, max = ${maxAge}`);
 });
 
+// ═══ Tier 2 Batch 13 — OPDMFCPD (OPD เฟิร์สคลาส อัลตร้า แพลทินัม แบบ ค) ═════
+section("OPDMFCPD (plan-tiered OPD — 17 plans, any hospital)");
+
+check("OPDMFCPD plan 400 age 30 M → 1,650 (flat 11-60 male)", () => {
+  const res = calcRiderPremium(
+    { productCode: "OPDMFCPD", planCode: "400" }, 30, "M", 1, 30);
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 1650);
+});
+
+check("OPDMFCPD plan 1000 age 11 F → 3,750 (11-15 M=F)", () => {
+  const res = calcRiderPremium(
+    { productCode: "OPDMFCPD", planCode: "1000" }, 11, "F", 1, 11);
+  assert.equal(res.premium, 3750);
+});
+
+check("OPDMFCPD plan 1000 age 30 F → 5,250 (16-55 F band)", () => {
+  const res = calcRiderPremium(
+    { productCode: "OPDMFCPD", planCode: "1000" }, 30, "F", 1, 30);
+  assert.equal(res.premium, 5250);
+});
+
+check("OPDMFCPD plan 6000 age 55 M → 21,250 (top plan base)", () => {
+  const res = calcRiderPremium(
+    { productCode: "OPDMFCPD", planCode: "6000" }, 55, "M", 1, 55);
+  assert.equal(res.premium, 21250);
+});
+
+check("OPDMFCPD plan 2000 age 63 F renewal → 30,450 (3× base)", () => {
+  const r = getRate("OPDMFCPD", "2000", 63, "F", 55);
+  assert.ok(r);
+  assert.equal(r.rate, 30450);
+  assert.equal(r.is_renewal_only, true);
+});
+
+check("OPDMFCPD plan 5000 age 68 M renewal → 88,750 (5× male base)", () => {
+  const r = getRate("OPDMFCPD", "5000", 68, "M", 55);
+  assert.ok(r);
+  assert.equal(r.rate, 88750);
+  assert.equal(r.is_renewal_only, true);
+});
+
+check("OPDMFCPD plan 1500 age 40 M occ 3 → 5,500 × 1.30 = 7,150", () => {
+  const res = calcRiderPremium(
+    { productCode: "OPDMFCPD", planCode: "1500" }, 40, "M", 3, 40);
+  assert.equal(res.premium, 7150);
+});
+
+check("OPDMFCPD plan 3000 age 50 F occ 4 → 15,050 × 1.45 = 21,822.5", () => {
+  const res = calcRiderPremium(
+    { productCode: "OPDMFCPD", planCode: "3000" }, 50, "F", 4, 50);
+  assert.equal(res.premium, 21822.5);
+});
+
+check("OPDMFCPD rider stops at max_renewal_age 69", () => {
+  const input: CalcInput = {
+    currentAge: 60,
+    retireAge: 105,
+    gender: "M",
+    occupationClass: 1,
+    main: { productCode: "MSI1808", sumAssured: 1_000_000, premiumYears: 8 },
+    riders: [{ productCode: "OPDMFCPD", planCode: "1000" }],
+  };
+  const out = calculateCashflow(input);
+  const paying = out.cashflow.filter((y) =>
+    y.ridersPremium.some((r) => r.code === "OPDMFCPD" && r.premium > 0),
+  );
+  const maxAge = Math.max(...paying.map((y) => y.age));
+  assert.ok(maxAge <= 69, `OPDMFCPD should stop at 69, max = ${maxAge}`);
+});
+
 // ═══════════════════════════════════════════════════════════════════════════
 console.log(`\n${passed}/${passed + failed} checks passed.`);
 if (failed > 0) {

@@ -358,6 +358,8 @@ build_rate_sheet("Rider DVMFCPN BDMS", "DVMFCPN_BDMS", "เฟิร์สคล
                  extra_note="ค่าทำฟันเหมาจ่าย 9,738 บาท/ปี (unisex, ไม่มีคูณอาชีพ) · ต่ออายุถึง 98")
 build_rate_sheet("Rider HSMFCPN ALL", "HSMFCPN_ALL", "เฟิร์สคลาส อัลตร้า แพลทินัม IPD (ทุกรพ.)",
                  extra_note="แผนเดียว · อายุรับ 11–70 · ต่ออายุถึง 98 · เบี้ยสูงกว่าเวอร์ชัน BDMS ~10–15%")
+build_rate_sheet("Rider OPDMFCPD", "OPDMFCPD", "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (แบบ ค)",
+                 extra_note="17 แผน (วงเงิน 400–6,000/ครั้ง) · อายุรับ 11–60 · ต่ออายุถึง 69 (61+ เฉพาะต่ออายุ)")
 build_rate_sheet("Rider CI48", "CI48", "โรคร้ายแรง 48 (CI48)", extra_note="rate คิดต่อ 1,000 ทุน CI")
 
 # Tier 1 batch additions (Apr 2026)

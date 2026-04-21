@@ -17,7 +17,8 @@
       "tier2_batch9_hsmhpsk_opdmsk": "completed (HSMHPSK 2 plans × 17 bands, OPDMSK 13 plans × 5 bands, plan-level flat annual premium, renewal-only bands per source)",
       "tier2_batch10_hsmhpdc_opdmdc": "completed (HSMHPDC 4 plans: ND1/ND2/ND3 ages 11-89 + D1 ages 1m1d-89; OPDMDC 13 plans × 7 bands with 9-plan baby bands)",
       "tier2_batch11_fcpn_bdms": "completed (HSMFCPN_BDMS + OPDMFCPN_BDMS + DVMFCPN_BDMS — First Class Ultra Platinum, BDMS hospital network, flat annual premium, single-variant no-plan, renewal to 98)",
-      "tier2_batch12_hsmfcpn_all": "completed (HSMFCPN_ALL non-BDMS IPD — single variant, rate_per=1 flat annual, renewal to 98, any-hospital network)"
+      "tier2_batch12_hsmfcpn_all": "completed (HSMFCPN_ALL non-BDMS IPD — single variant, rate_per=1 flat annual, renewal to 98, any-hospital network)",
+      "tier2_batch13_opdmfcpd": "completed (OPDMFCPD plan-tiered OPD — 17 plans × 5 bands × M/F, rate_per=1 flat annual, renewal to 69, occ multipliers 1.30/1.45)"
     }
   },
   "rates": [
@@ -34238,6 +34239,1706 @@
       "age_max": 98,
       "gender": "F",
       "rate": 558049,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 533,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "M",
+      "rate": 1650,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 533,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "F",
+      "rate": 1650,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 533,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "M",
+      "rate": 1650,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 533,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "F",
+      "rate": 2310,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 533,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "M",
+      "rate": 1650,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 533,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "F",
+      "rate": 2310,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 533,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "M",
+      "rate": 4950,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 533,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "F",
+      "rate": 6930,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 533,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "M",
+      "rate": 8250,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 533,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "F",
+      "rate": 9900,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 534,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "M",
+      "rate": 2000,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 534,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "F",
+      "rate": 2000,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 534,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "M",
+      "rate": 2000,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 534,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "F",
+      "rate": 2800,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 534,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "M",
+      "rate": 2000,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 534,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "F",
+      "rate": 2800,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 534,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "M",
+      "rate": 6000,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 534,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "F",
+      "rate": 8400,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 534,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "M",
+      "rate": 10000,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 534,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "F",
+      "rate": 12000,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 535,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "M",
+      "rate": 2350,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 535,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "F",
+      "rate": 2350,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 535,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "M",
+      "rate": 2350,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 535,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "F",
+      "rate": 3290,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 535,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "M",
+      "rate": 2350,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 535,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "F",
+      "rate": 3290,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 535,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "M",
+      "rate": 7050,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 535,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "F",
+      "rate": 9870,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 535,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "M",
+      "rate": 11750,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 535,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "F",
+      "rate": 14100,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 536,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "M",
+      "rate": 2700,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 536,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "F",
+      "rate": 2700,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 536,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "M",
+      "rate": 2700,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 536,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "F",
+      "rate": 3780,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 536,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "M",
+      "rate": 2700,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 536,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "F",
+      "rate": 3780,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 536,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "M",
+      "rate": 8100,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 536,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "F",
+      "rate": 11340,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 536,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "M",
+      "rate": 13500,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 536,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "F",
+      "rate": 16200,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 537,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "M",
+      "rate": 3050,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 537,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "F",
+      "rate": 3050,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 537,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "M",
+      "rate": 3050,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 537,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "F",
+      "rate": 4270,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 537,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "M",
+      "rate": 3050,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 537,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "F",
+      "rate": 4270,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 537,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "M",
+      "rate": 9150,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 537,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "F",
+      "rate": 12810,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 537,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "M",
+      "rate": 15250,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 537,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "F",
+      "rate": 18300,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 538,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "M",
+      "rate": 3400,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 538,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "F",
+      "rate": 3400,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 538,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "M",
+      "rate": 3400,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 538,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "F",
+      "rate": 4760,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 538,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "M",
+      "rate": 3400,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 538,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "F",
+      "rate": 4760,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 538,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "M",
+      "rate": 10200,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 538,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "F",
+      "rate": 14280,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 538,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "M",
+      "rate": 17000,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 538,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "F",
+      "rate": 20400,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 539,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "M",
+      "rate": 3750,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 539,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "F",
+      "rate": 3750,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 539,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "M",
+      "rate": 3750,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 539,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "F",
+      "rate": 5250,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 539,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "M",
+      "rate": 3750,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 539,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "F",
+      "rate": 5250,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 539,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "M",
+      "rate": 11250,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 539,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "F",
+      "rate": 15750,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 539,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "M",
+      "rate": 18750,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 539,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "F",
+      "rate": 22500,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 540,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "M",
+      "rate": 5500,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 540,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "F",
+      "rate": 5500,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 540,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "M",
+      "rate": 5500,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 540,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "F",
+      "rate": 7700,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 540,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "M",
+      "rate": 5500,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 540,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "F",
+      "rate": 7700,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 540,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "M",
+      "rate": 16500,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 540,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "F",
+      "rate": 23100,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 540,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "M",
+      "rate": 27500,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 540,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "F",
+      "rate": 33000,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 541,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "M",
+      "rate": 7250,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 541,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "F",
+      "rate": 7250,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 541,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "M",
+      "rate": 7250,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 541,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "F",
+      "rate": 10150,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 541,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "M",
+      "rate": 7250,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 541,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "F",
+      "rate": 10150,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 541,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "M",
+      "rate": 21750,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 541,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "F",
+      "rate": 30450,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 541,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "M",
+      "rate": 36250,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 541,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "F",
+      "rate": 43500,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 542,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "M",
+      "rate": 9000,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 542,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "F",
+      "rate": 9000,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 542,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "M",
+      "rate": 9000,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 542,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "F",
+      "rate": 12600,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 542,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "M",
+      "rate": 9000,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 542,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "F",
+      "rate": 12600,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 542,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "M",
+      "rate": 27000,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 542,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "F",
+      "rate": 37800,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 542,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "M",
+      "rate": 45000,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 542,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "F",
+      "rate": 54000,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 543,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "M",
+      "rate": 10750,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 543,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "F",
+      "rate": 10750,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 543,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "M",
+      "rate": 10750,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 543,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "F",
+      "rate": 15050,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 543,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "M",
+      "rate": 10750,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 543,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "F",
+      "rate": 15050,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 543,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "M",
+      "rate": 32250,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 543,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "F",
+      "rate": 45150,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 543,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "M",
+      "rate": 53750,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 543,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "F",
+      "rate": 64500,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 544,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "M",
+      "rate": 12500,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 544,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "F",
+      "rate": 12500,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 544,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "M",
+      "rate": 12500,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 544,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "F",
+      "rate": 17500,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 544,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "M",
+      "rate": 12500,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 544,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "F",
+      "rate": 17500,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 544,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "M",
+      "rate": 37500,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 544,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "F",
+      "rate": 52500,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 544,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "M",
+      "rate": 62500,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 544,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "F",
+      "rate": 75000,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 545,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "M",
+      "rate": 14250,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 545,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "F",
+      "rate": 14250,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 545,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "M",
+      "rate": 14250,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 545,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "F",
+      "rate": 19950,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 545,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "M",
+      "rate": 14250,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 545,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "F",
+      "rate": 19950,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 545,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "M",
+      "rate": 42750,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 545,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "F",
+      "rate": 59850,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 545,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "M",
+      "rate": 71250,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 545,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "F",
+      "rate": 85500,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 546,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "M",
+      "rate": 16000,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 546,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "F",
+      "rate": 16000,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 546,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "M",
+      "rate": 16000,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 546,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "F",
+      "rate": 22400,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 546,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "M",
+      "rate": 16000,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 546,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "F",
+      "rate": 22400,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 546,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "M",
+      "rate": 48000,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 546,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "F",
+      "rate": 67200,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 546,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "M",
+      "rate": 80000,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 546,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "F",
+      "rate": 96000,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 547,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "M",
+      "rate": 17750,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 547,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "F",
+      "rate": 17750,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 547,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "M",
+      "rate": 17750,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 547,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "F",
+      "rate": 24850,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 547,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "M",
+      "rate": 17750,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 547,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "F",
+      "rate": 24850,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 547,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "M",
+      "rate": 53250,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 547,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "F",
+      "rate": 74550,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 547,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "M",
+      "rate": 88750,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 547,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "F",
+      "rate": 106500,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 548,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "M",
+      "rate": 19500,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 548,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "F",
+      "rate": 19500,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 548,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "M",
+      "rate": 19500,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 548,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "F",
+      "rate": 27300,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 548,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "M",
+      "rate": 19500,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 548,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "F",
+      "rate": 27300,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 548,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "M",
+      "rate": 58500,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 548,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "F",
+      "rate": 81900,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 548,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "M",
+      "rate": 97500,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 548,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "F",
+      "rate": 117000,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 549,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "M",
+      "rate": 21250,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 549,
+      "age_min": 11,
+      "age_max": 15,
+      "gender": "F",
+      "rate": 21250,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 549,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "M",
+      "rate": 21250,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 549,
+      "age_min": 16,
+      "age_max": 55,
+      "gender": "F",
+      "rate": 29750,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 549,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "M",
+      "rate": 21250,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 549,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "F",
+      "rate": 29750,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 549,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "M",
+      "rate": 63750,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 549,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "F",
+      "rate": 89250,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 549,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "M",
+      "rate": 106250,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 73,
+      "plan_id": 549,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "F",
+      "rate": 127500,
       "is_renewal_only": true,
       "confidence": "high"
     }
