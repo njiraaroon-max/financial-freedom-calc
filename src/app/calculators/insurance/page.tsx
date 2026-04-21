@@ -685,7 +685,7 @@ export default function InsuranceHubPage() {
 
         {/* ═══ DECISION TOOLS ══════════════════════════════════════ */}
         <div className="mx-1 grid grid-cols-1 md:grid-cols-2 gap-3">
-          <Link href="/calculators/insurance/compare">
+          <Link href="/calculators/insurance/policies?tab=compare">
             <div className="glass rounded-2xl p-4 flex items-start gap-3 hover:brightness-[1.03] active:scale-[0.99] transition-all cursor-pointer h-full">
               <div className="w-11 h-11 rounded-xl shrink-0 flex items-center justify-center shadow-sm"
                 style={{ background: "linear-gradient(135deg, #8b5cf6, #6d28d9)" }}>

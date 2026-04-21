@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, X, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Pencil, Trash2, X, ChevronDown, ChevronUp, Wallet, Scale } from "lucide-react";
 import {
   useInsuranceStore,
   InsurancePolicy,
@@ -29,6 +29,7 @@ import ThaiDatePicker from "@/components/ThaiDatePicker";
 import AgeScrollPicker from "@/components/AgeScrollPicker";
 import MoneyInput from "@/components/MoneyInput";
 import { GanttChart, StepLineChart } from "@/components/InsuranceCharts";
+import CompareWorkspace from "@/components/allianz/compare/CompareWorkspace";
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 const CURRENT_YEAR = new Date().getFullYear();
@@ -295,13 +296,35 @@ export default function PortfolioDashboard() {
   const [form, setForm] = useState<FormState>(defaultForm());
   const [formError, setFormError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<InsurancePolicy | null>(null);
+  // Top-level tab: "mine" = portfolio (default), "compare" = shopping-cart
+  // comparator embedded from <CompareWorkspace />.  Synced to ?tab=compare so
+  // deep links + back-button work.  We bypass CompareWorkspace's own urlSync
+  // because its colon-delimited bundle encoding would clobber ?tab=.
+  const [topTab, setTopTab] = useState<"mine" | "compare">("mine");
 
   const openAdd = () => { setForm(defaultForm()); setEditingId(null); setFormError(""); setShowModal(true); };
 
-  // Auto-open add modal when ?add=true
+  // Auto-open add modal when ?add=true; land on compare tab when ?tab=compare
   useEffect(() => {
-    if (typeof window !== "undefined" && window.location.search.includes("add=true")) openAdd();
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    if (sp.get("add") === "true") openAdd();
+    if (sp.get("tab") === "compare") setTopTab("compare");
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Mirror topTab to ?tab=compare (drop it on the portfolio tab so the URL
+  // stays clean by default).  replaceState — no history spam when toggling.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    if (topTab === "compare") sp.set("tab", "compare");
+    else sp.delete("tab");
+    const qs = sp.toString();
+    const next = `${window.location.pathname}${qs ? `?${qs}` : ""}`;
+    if (next !== window.location.pathname + window.location.search) {
+      window.history.replaceState(null, "", next);
+    }
+  }, [topTab]);
 
   const openEdit = (p: InsurancePolicy) => {
     setForm({
@@ -404,6 +427,46 @@ export default function PortfolioDashboard() {
         </div>
       </div>
 
+      {/* ─── Top tab switcher: กรมธรรม์ของฉัน vs เปรียบเทียบแผน ─── */}
+      {/* Sits under the header stats so totals stay visible regardless of
+          which tab is active.  The switcher styles match the inner cost/
+          benefits tabs from CompareWorkspace so users recognize the pattern. */}
+      <div className="mx-2 mb-3">
+        <div className="flex items-center gap-1 p-1 rounded-xl bg-white/40 border border-gray-200 w-fit">
+          <button
+            type="button"
+            onClick={() => setTopTab("mine")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] transition ${
+              topTab === "mine"
+                ? "bg-[#1e3a5f] text-white font-bold shadow-sm"
+                : "text-gray-600 hover:bg-white/60"
+            }`}
+          >
+            <Wallet size={14} />
+            กรมธรรม์ของฉัน
+          </button>
+          <button
+            type="button"
+            onClick={() => setTopTab("compare")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] transition ${
+              topTab === "compare"
+                ? "bg-[#1e3a5f] text-white font-bold shadow-sm"
+                : "text-gray-600 hover:bg-white/60"
+            }`}
+          >
+            <Scale size={14} />
+            เปรียบเทียบแผน
+          </button>
+        </div>
+      </div>
+
+      {topTab === "compare" ? (
+        /* ─── Compare tab: embed CompareWorkspace without its own URL sync ── */
+        <div className="mx-2 pb-8">
+          <CompareWorkspace />
+        </div>
+      ) : (
+        <>
       {/* Pension NPV entry point */}
       {annuityCount > 0 && (
         <div className="mx-2 mb-3">
@@ -455,6 +518,8 @@ export default function PortfolioDashboard() {
           <GanttChart policies={policies} birthYear={birthYear} currentAge={currentAge} />
           <StepLineChart policies={policies} birthYear={birthYear} currentAge={currentAge} />
         </div>
+      )}
+        </>
       )}
 
       {/* ═══ ADD/EDIT MODAL ═══ */}
