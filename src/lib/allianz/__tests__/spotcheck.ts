@@ -278,6 +278,56 @@ check("TRC 20/20 age 40 M → 8.94 per 1000", () => {
   assert.equal(r.rate, 8.94);
 });
 
+// ─── Tier 1 Batch 2 — CI48B ─────────────────────────────────────────────────
+
+check("CI48B age 0 (1 เดือน 1 วัน) M → 4.03 per 1000", () => {
+  const r = getRate("CI48B", undefined, 0, "M", 0);
+  assert.ok(r, "expected a rate row");
+  assert.equal(r.rate, 4.03);
+});
+
+check("CI48B age 40 M → 5.16 per 1000 (sharp step at 40)", () => {
+  const r = getRate("CI48B", undefined, 40, "M", 40);
+  assert.ok(r, "expected a rate row");
+  assert.equal(r.rate, 5.16);
+});
+
+check("CI48B age 50 F → 11.50 per 1000", () => {
+  const r = getRate("CI48B", undefined, 50, "F", 50);
+  assert.ok(r, "expected a rate row");
+  assert.equal(r.rate, 11.50);
+});
+
+check("CI48B sumAssured 1M, age 40 M → 5,160 (flat rate, no occ mult)", () => {
+  // has_occ_multiplier=false per source "สำหรับขั้นอาชีพ 1-4" flat column.
+  // 5.16 × 1000 = 5,160 regardless of occupation class.
+  const res = calcRiderPremium(
+    { productCode: "CI48B", sumAssured: 1_000_000 },
+    40,
+    "M",
+    3, // class 3 should NOT inflate the premium for CI48B
+    40,
+  );
+  assert.equal(res.premium, 5160);
+});
+
+check("CI48B rider stops at max_renewal_age 84", () => {
+  const input: CalcInput = {
+    currentAge: 50,
+    retireAge: 60,
+    gender: "M",
+    occupationClass: 1,
+    main: { productCode: "MSI1808", sumAssured: 1_000_000, premiumYears: 8 },
+    riders: [{ productCode: "CI48B", sumAssured: 500_000 }],
+  };
+  const out = calculateCashflow(input);
+  const paying = out.cashflow.filter((y) =>
+    y.ridersPremium.some((r) => r.code === "CI48B" && r.premium > 0),
+  );
+  const maxAge = Math.max(...paying.map((y) => y.age));
+  assert.ok(maxAge <= 84, `CI48B should stop at 84, saw ${maxAge}`);
+});
+
 check("HB rider stops at max_renewal_age 69", () => {
   const input: CalcInput = {
     currentAge: 50,
