@@ -98,15 +98,27 @@ export interface RiderPreset {
 export const RIDER_PRESETS: RiderPreset[] = [
   // IPD — First Class Ultra Platinum
   { id: "ipd-ultra-bdms",   code: "HSMFCPN_BDMS", kind: "IPD",  label: "IPD Ultra Platinum (BDMS)", sub: "First Class Ultra Platinum — รพ.กำหนด" },
-  { id: "ipd-ultra-all",    code: "HSMFCPN_ALL",  kind: "IPD",  label: "IPD Ultra Platinum (ทั่วโลก)", sub: "First Class Ultra Platinum — รพ.ใดก็ได้" },
+  { id: "ipd-ultra-all",    code: "HSMFCPN_ALL",  kind: "IPD",  label: "IPD Ultra Platinum (ALL)", sub: "First Class Ultra Platinum — รพ.ใดก็ได้" },
   // IPD — First Class Beyond Platinum
   { id: "ipd-beyond-bdms",  code: "HSMFCBN_BDMS", kind: "IPD",  label: "IPD Beyond Platinum (BDMS)", sub: "First Class Beyond Platinum — รพ.กำหนด (สูง)" },
-  { id: "ipd-beyond-all",   code: "HSMFCBN_ALL",  kind: "IPD",  label: "IPD Beyond Platinum (ทั่วโลก)", sub: "First Class Beyond Platinum — รพ.ใดก็ได้ (สูงสุด)" },
+  { id: "ipd-beyond-all",   code: "HSMFCBN_ALL",  kind: "IPD",  label: "IPD Beyond Platinum (ALL)", sub: "First Class Beyond Platinum — รพ.ใดก็ได้ (สูงสุด)" },
+  // IPD — ปลดล็อค ดับเบิล แคร์ (HSMHPDC) — 4 plans (ND = no co-pay, D = with co-pay)
+  { id: "ipd-double-nd1",   code: "HSMHPDC", planCode: "ND1", kind: "IPD", label: "ปลดล็อค ดับเบิล แคร์ ND1", sub: "แผน 1 — ไม่มีค่าใช้จ่ายร่วม" },
+  { id: "ipd-double-nd2",   code: "HSMHPDC", planCode: "ND2", kind: "IPD", label: "ปลดล็อค ดับเบิล แคร์ ND2", sub: "แผน 2 — ไม่มีค่าใช้จ่ายร่วม" },
+  { id: "ipd-double-nd3",   code: "HSMHPDC", planCode: "ND3", kind: "IPD", label: "ปลดล็อค ดับเบิล แคร์ ND3", sub: "แผน 3 — ไม่มีค่าใช้จ่ายร่วม" },
+  { id: "ipd-double-d1",    code: "HSMHPDC", planCode: "D1",  kind: "IPD", label: "ปลดล็อค ดับเบิล แคร์ D1",  sub: "แผน 1 — มีค่าใช้จ่ายร่วม (เบี้ยถูกกว่า)" },
   // OPD companions
   { id: "opd-ultra-bdms",   code: "OPDMFCPD",     kind: "OPD",  label: "OPD Ultra Platinum (BDMS)", sub: "คู่กับ First Class Ultra BDMS" },
-  { id: "opd-ultra-all",    code: "OPDMFCPN_ALL", kind: "OPD",  label: "OPD Ultra Platinum (ทั่วโลก)" },
+  { id: "opd-ultra-all",    code: "OPDMFCPN_ALL", kind: "OPD",  label: "OPD Ultra Platinum (ALL)" },
+  // OPD companion for ปลดล็อค ดับเบิล แคร์ (OPDMDC) — 6 curated picks (400..4,000 range)
+  { id: "opd-double-500",   code: "OPDMDC", planCode: "500",  kind: "OPD", label: "OPD ดับเบิล แคร์ (ค) 500 บาท/ครั้ง",   sub: "คู่กับปลดล็อค ดับเบิล แคร์" },
+  { id: "opd-double-1000",  code: "OPDMDC", planCode: "1000", kind: "OPD", label: "OPD ดับเบิล แคร์ (ค) 1,000 บาท/ครั้ง", sub: "คู่กับปลดล็อค ดับเบิล แคร์" },
+  { id: "opd-double-1500",  code: "OPDMDC", planCode: "1500", kind: "OPD", label: "OPD ดับเบิล แคร์ (ค) 1,500 บาท/ครั้ง", sub: "คู่กับปลดล็อค ดับเบิล แคร์" },
+  { id: "opd-double-2000",  code: "OPDMDC", planCode: "2000", kind: "OPD", label: "OPD ดับเบิล แคร์ (ค) 2,000 บาท/ครั้ง", sub: "คู่กับปลดล็อค ดับเบิล แคร์" },
+  { id: "opd-double-3000",  code: "OPDMDC", planCode: "3000", kind: "OPD", label: "OPD ดับเบิล แคร์ (ค) 3,000 บาท/ครั้ง", sub: "คู่กับปลดล็อค ดับเบิล แคร์" },
+  { id: "opd-double-4000",  code: "OPDMDC", planCode: "4000", kind: "OPD", label: "OPD ดับเบิล แคร์ (ค) 4,000 บาท/ครั้ง", sub: "คู่กับปลดล็อค ดับเบิล แคร์" },
   // Dental
-  { id: "dental-any",       code: "DVMFCPN_ALL",  kind: "DENTAL", label: "ทันตกรรม (ทั่วโลก)", sub: "First Class ทันตกรรม" },
+  { id: "dental-any",       code: "DVMFCPN_ALL",  kind: "DENTAL", label: "ทันตกรรม (ALL)", sub: "First Class ทันตกรรม" },
   // Daily Hospital Benefit — user picks benefit amount
   { id: "hb-1000",          code: "HB", kind: "HB", label: "HB 1,000 บาท/วัน",  dailyBenefit: 1000 },
   { id: "hb-2000",          code: "HB", kind: "HB", label: "HB 2,000 บาท/วัน",  dailyBenefit: 2000 },
