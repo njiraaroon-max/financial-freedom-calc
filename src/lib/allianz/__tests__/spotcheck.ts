@@ -11,7 +11,8 @@ import { calcMainPremium, calcRiderPremium } from "../premium";
 import { getRate } from "../rates";
 import { calculateCashflow } from "../cashflow";
 import { allianzAge } from "../age";
-import type { CalcInput } from "../types";
+import { detectRenewalShocks, biggestShock } from "../shocks";
+import type { CalcInput, CashflowYear } from "../types";
 
 let passed = 0;
 let failed = 0;
@@ -1509,6 +1510,120 @@ check("Other products unaffected — MSI1808 ทุน 500k OK (no sum_min)", ()
   const out = calculateCashflow(input);
   const sumMinErr = out.errors.find((e) => e.includes("ขั้นต่ำ"));
   assert.equal(sumMinErr, undefined);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+
+section("detectRenewalShocks — year-over-year premium jump detector");
+
+// ─── Helper to build a minimal CashflowYear ──────────────────────────────
+function cf(age: number, totalPremium: number): CashflowYear {
+  return { age, mainPremium: totalPremium, ridersPremium: [], totalPremium, warnings: [] };
+}
+
+check("no shocks when premium is flat", () => {
+  const flow: CashflowYear[] = [cf(30, 10_000), cf(31, 10_000), cf(32, 10_000)];
+  assert.equal(detectRenewalShocks(flow).length, 0);
+});
+
+check("no shocks when jumps are under threshold (default 20%)", () => {
+  // +10% y/y — should not trigger at default threshold
+  const flow: CashflowYear[] = [cf(30, 10_000), cf(31, 11_000), cf(32, 12_100)];
+  assert.equal(detectRenewalShocks(flow).length, 0);
+});
+
+check("detects single upward jump above threshold", () => {
+  const flow: CashflowYear[] = [cf(70, 400_000), cf(71, 545_000)];
+  const shocks = detectRenewalShocks(flow);
+  assert.equal(shocks.length, 1);
+  assert.equal(shocks[0].age, 71);
+  assert.equal(shocks[0].prevPremium, 400_000);
+  assert.equal(shocks[0].newPremium, 545_000);
+  assert.ok(shocks[0].jumpPct > 0.36 && shocks[0].jumpPct < 0.37);
+});
+
+check("detects multiple shocks in ascending age order", () => {
+  // Mirrors HSMFCBN_BDMS M-band transitions at ages 66, 71, 76, 81
+  const flow: CashflowYear[] = [
+    cf(65, 326_249), cf(66, 423_553), // +29.8%
+    cf(67, 423_553), cf(68, 423_553), cf(69, 423_553), cf(70, 423_553),
+    cf(71, 545_719), // +28.8%
+    cf(72, 545_719), cf(73, 545_719), cf(74, 545_719), cf(75, 545_719),
+    cf(76, 788_489), // +44.5%
+    cf(77, 788_489), cf(78, 788_489), cf(79, 788_489), cf(80, 788_489),
+    cf(81, 1_166_060), // +47.9%
+  ];
+  const shocks = detectRenewalShocks(flow);
+  assert.equal(shocks.length, 4);
+  assert.deepEqual(shocks.map((s) => s.age), [66, 71, 76, 81]);
+});
+
+check("threshold override: 10% captures smaller jumps", () => {
+  const flow: CashflowYear[] = [cf(30, 10_000), cf(31, 11_500)]; // +15%
+  assert.equal(detectRenewalShocks(flow, { threshold: 0.20 }).length, 0);
+  assert.equal(detectRenewalShocks(flow, { threshold: 0.10 }).length, 1);
+});
+
+check("downward drops are NOT shocks (main policy ending)", () => {
+  const flow: CashflowYear[] = [cf(49, 50_000), cf(50, 20_000), cf(51, 20_000)];
+  assert.equal(detectRenewalShocks(flow).length, 0);
+});
+
+check("zero-premium years are skipped (rider aged out)", () => {
+  const flow: CashflowYear[] = [cf(69, 100_000), cf(70, 0), cf(71, 100_000)];
+  // age 69→70 drops to 0 (not a jump); age 70→71 prev is 0 (skip)
+  assert.equal(detectRenewalShocks(flow).length, 0);
+});
+
+check("biggestShock returns the largest jump by percentage", () => {
+  const flow: CashflowYear[] = [
+    cf(65, 326_249), cf(66, 423_553), // +29.8%
+    cf(80, 788_489), cf(81, 1_166_060), // +47.9%  ← biggest
+  ];
+  // NB: the age-70s gap breaks adjacency; we just want two comparable jumps.
+  const flat: CashflowYear[] = [
+    cf(65, 326_249), cf(66, 423_553),
+    cf(67, 423_553), cf(68, 423_553), cf(69, 423_553), cf(70, 423_553),
+    cf(71, 423_553), cf(72, 423_553), cf(73, 423_553), cf(74, 423_553),
+    cf(75, 423_553), cf(76, 423_553), cf(77, 423_553), cf(78, 423_553),
+    cf(79, 423_553), cf(80, 788_489), // +86% — the biggest
+    cf(81, 1_166_060), // +47.9%
+  ];
+  void flow;
+  const big = biggestShock(flat);
+  assert.ok(big !== null);
+  assert.equal(big!.age, 80);
+  assert.ok(big!.jumpPct > 0.85 && big!.jumpPct < 0.87);
+});
+
+check("biggestShock returns null for a flat cashflow", () => {
+  const flow: CashflowYear[] = [cf(30, 10_000), cf(31, 10_000)];
+  assert.equal(biggestShock(flow), null);
+});
+
+check("end-to-end: HSMFCBN_BDMS M SA=1M triggers multiple shocks", () => {
+  const input: CalcInput = {
+    currentAge: 30,
+    retireAge: 60,
+    gender: "M",
+    occupationClass: 1,
+    main: { productCode: "T1010", sumAssured: 1_000_000, premiumYears: 10 },
+    riders: [{ productCode: "HSMFCBN_BDMS" }],
+  };
+  const out = calculateCashflow(input);
+  assert.equal(out.errors.length, 0);
+  const shocks = detectRenewalShocks(out.cashflow);
+  // HSMFCBN_BDMS has rising M-band jumps of 21% (56), 28% (66), 28% (71),
+  // 44% (76), 47% (81) — we just assert multiple distinct shocks surface.
+  assert.ok(
+    shocks.length >= 4,
+    `expected ≥4 shocks, got ${shocks.length}: ${shocks.map((s) => s.age).join(",")}`,
+  );
+  // Expected shock ages for this product/gender.
+  const ages = shocks.map((s) => s.age);
+  for (const expected of [66, 76, 81]) {
+    assert.ok(ages.includes(expected), `missing shock at age ${expected}; got ${ages.join(",")}`);
+  }
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
