@@ -342,6 +342,10 @@ build_rate_sheet("Rider HBP", "HBP", "ค่ารักษาพยาบาล
                  extra_note="rate คิดต่อ 100 บาทเบี้ยรายวัน · เริ่มรับตั้งแต่ 1ปี1วัน · ต่ออายุถึง 69")
 build_rate_sheet("Rider HS_S เอชเอส", "HS_S", "คุ้มครองสุขภาพ เอชเอส (HS)",
                  extra_note="4 แผน · rate = เบี้ยเต็มต่อปีตามแผน · ต่ออายุถึง 89 (71+ เฉพาะต่ออายุ)")
+build_rate_sheet("Rider HSMHPSK สบายฯ", "HSMHPSK", "ปลดล็อค สบายกระเป๋า (IPD)",
+                 extra_note="2 แผน (ไม่มี/มีค่าใช้จ่ายร่วม) · rate = เบี้ยเต็มต่อปี · ต่ออายุถึง 89 (70+ เฉพาะต่ออายุ)")
+build_rate_sheet("Rider OPDMSK สบายฯ OPD", "OPDMSK", "OPD ปลดล็อค สบายกระเป๋า (แบบ ข)",
+                 extra_note="13 แผน (วงเงิน 400–4,000/วัน) · ต้องมี HSMHPSK · ต่ออายุถึง 69 (61+ เฉพาะต่ออายุ)")
 build_rate_sheet("Rider CI48", "CI48", "โรคร้ายแรง 48 (CI48)", extra_note="rate คิดต่อ 1,000 ทุน CI")
 
 # Tier 1 batch additions (Apr 2026)

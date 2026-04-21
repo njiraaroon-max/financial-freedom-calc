@@ -183,6 +183,156 @@
       "coverage_until_age": 89,
       "premium_years": null,
       "premium_until_age": 89
+    },
+    {
+      "id": 501,
+      "product_id": 42,
+      "plan_code": "ND",
+      "plan_name_th": "ปลดล็อค สบายกระเป๋า — แบบไม่มีค่าใช้จ่ายร่วม",
+      "coverage_years": null,
+      "coverage_until_age": 89,
+      "premium_years": null,
+      "premium_until_age": 89
+    },
+    {
+      "id": 502,
+      "product_id": 42,
+      "plan_code": "D",
+      "plan_name_th": "ปลดล็อค สบายกระเป๋า — แบบมีค่าใช้จ่ายร่วม",
+      "coverage_years": null,
+      "coverage_until_age": 89,
+      "premium_years": null,
+      "premium_until_age": 89
+    },
+    {
+      "id": 503,
+      "product_id": 43,
+      "plan_code": "400",
+      "plan_name_th": "OPD สบายกระเป๋า — วงเงิน 400 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 504,
+      "product_id": 43,
+      "plan_code": "500",
+      "plan_name_th": "OPD สบายกระเป๋า — วงเงิน 500 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 505,
+      "product_id": 43,
+      "plan_code": "600",
+      "plan_name_th": "OPD สบายกระเป๋า — วงเงิน 600 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 506,
+      "product_id": 43,
+      "plan_code": "700",
+      "plan_name_th": "OPD สบายกระเป๋า — วงเงิน 700 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 507,
+      "product_id": 43,
+      "plan_code": "800",
+      "plan_name_th": "OPD สบายกระเป๋า — วงเงิน 800 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 508,
+      "product_id": 43,
+      "plan_code": "900",
+      "plan_name_th": "OPD สบายกระเป๋า — วงเงิน 900 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 509,
+      "product_id": 43,
+      "plan_code": "1000",
+      "plan_name_th": "OPD สบายกระเป๋า — วงเงิน 1,000 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 510,
+      "product_id": 43,
+      "plan_code": "1500",
+      "plan_name_th": "OPD สบายกระเป๋า — วงเงิน 1,500 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 511,
+      "product_id": 43,
+      "plan_code": "2000",
+      "plan_name_th": "OPD สบายกระเป๋า — วงเงิน 2,000 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 512,
+      "product_id": 43,
+      "plan_code": "2500",
+      "plan_name_th": "OPD สบายกระเป๋า — วงเงิน 2,500 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 513,
+      "product_id": 43,
+      "plan_code": "3000",
+      "plan_name_th": "OPD สบายกระเป๋า — วงเงิน 3,000 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 514,
+      "product_id": 43,
+      "plan_code": "3500",
+      "plan_name_th": "OPD สบายกระเป๋า — วงเงิน 3,500 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
+    },
+    {
+      "id": 515,
+      "product_id": 43,
+      "plan_code": "4000",
+      "plan_name_th": "OPD สบายกระเป๋า — วงเงิน 4,000 บาท",
+      "coverage_years": null,
+      "coverage_until_age": 69,
+      "premium_years": null,
+      "premium_until_age": 69
     }
   ]
 }

@@ -740,6 +740,120 @@ check("HB rider stops at max_renewal_age 69", () => {
   assert.ok(maxAge <= 69, `HB should stop at 69, max seen = ${maxAge}`);
 });
 
+// ═══ Tier 2 Batch 9 — HSMHPSK + OPDMSK ═════════════════════════════════════
+section("HSMHPSK + OPDMSK (ปลดล็อค สบายกระเป๋า IPD + OPD)");
+
+check("HSMHPSK plan ND age 30 M → 13,451 (no-deductible flat)", () => {
+  const res = calcRiderPremium(
+    { productCode: "HSMHPSK", planCode: "ND" }, 30, "M", 1, 30);
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 13451);
+});
+
+check("HSMHPSK plan D age 45 F → 13,354 (with-deductible flat)", () => {
+  const res = calcRiderPremium(
+    { productCode: "HSMHPSK", planCode: "D" }, 45, "F", 1, 45);
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 13354);
+});
+
+check("HSMHPSK plan ND age 11-15 M=F → 14,675 / 13,509", () => {
+  const rm = getRate("HSMHPSK", "ND", 13, "M", 13);
+  const rf = getRate("HSMHPSK", "ND", 13, "F", 13);
+  assert.equal(rm?.rate, 14675);
+  assert.equal(rf?.rate, 13509);
+});
+
+check("HSMHPSK plan ND age 70 M → 67,253 renewal-only (entered earlier)", () => {
+  const r = getRate("HSMHPSK", "ND", 70, "M", 65);
+  assert.ok(r, "expected renewal row at 70");
+  assert.equal(r.rate, 67253);
+  assert.equal(r.is_renewal_only, true);
+});
+
+check("HSMHPSK plan D age 60 F occ 3 → 23,707 × 1.30 = 30,819.1", () => {
+  const res = calcRiderPremium(
+    { productCode: "HSMHPSK", planCode: "D" }, 60, "F", 3, 60);
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 30819.1);
+});
+
+check("HSMHPSK plan ND age 55 M occ 4 → 26,902 × 1.45 = 39,007.9", () => {
+  const res = calcRiderPremium(
+    { productCode: "HSMHPSK", planCode: "ND" }, 55, "M", 4, 55);
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 39007.9);
+});
+
+check("HSMHPSK rider stops at max_renewal_age 89", () => {
+  const input: CalcInput = {
+    currentAge: 70,
+    retireAge: 95,
+    gender: "M",
+    occupationClass: 1,
+    main: { productCode: "MSI1808", sumAssured: 1_000_000, premiumYears: 8 },
+    riders: [{ productCode: "HSMHPSK", planCode: "ND" }],
+  };
+  const out = calculateCashflow(input);
+  const paying = out.cashflow.filter((y) =>
+    y.ridersPremium.some((r) => r.code === "HSMHPSK" && r.premium > 0),
+  );
+  const maxAge = Math.max(...paying.map((y) => y.age));
+  assert.ok(maxAge <= 89, `HSMHPSK should stop at 89, max = ${maxAge}`);
+});
+
+check("OPDMSK plan 1000 age 30 M → 3,750", () => {
+  const res = calcRiderPremium(
+    { productCode: "OPDMSK", planCode: "1000" }, 30, "M", 1, 30);
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 3750);
+});
+
+check("OPDMSK plan 1000 age 40 F → 5,250 (F band 16-55)", () => {
+  const res = calcRiderPremium(
+    { productCode: "OPDMSK", planCode: "1000" }, 40, "F", 1, 40);
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 5250);
+});
+
+check("OPDMSK plan 4000 age 11-15 M=F → 14,250 (identical at youngest)", () => {
+  const rm = getRate("OPDMSK", "4000", 13, "M", 13);
+  const rf = getRate("OPDMSK", "4000", 13, "F", 13);
+  assert.equal(rm?.rate, 14250);
+  assert.equal(rf?.rate, 14250);
+});
+
+check("OPDMSK plan 2000 age 65 F → 30,450 renewal-only", () => {
+  const r = getRate("OPDMSK", "2000", 65, "F", 60);
+  assert.ok(r);
+  assert.equal(r.rate, 30450);
+  assert.equal(r.is_renewal_only, true);
+});
+
+check("OPDMSK plan 500 age 58 M occ 3 → 2,000 × 1.30 = 2,600", () => {
+  const res = calcRiderPremium(
+    { productCode: "OPDMSK", planCode: "500" }, 58, "M", 3, 58);
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 2600);
+});
+
+check("OPDMSK rider stops at max_renewal_age 69", () => {
+  const input: CalcInput = {
+    currentAge: 60,
+    retireAge: 80,
+    gender: "F",
+    occupationClass: 1,
+    main: { productCode: "MSI1808", sumAssured: 1_000_000, premiumYears: 8 },
+    riders: [{ productCode: "OPDMSK", planCode: "1000" }],
+  };
+  const out = calculateCashflow(input);
+  const paying = out.cashflow.filter((y) =>
+    y.ridersPremium.some((r) => r.code === "OPDMSK" && r.premium > 0),
+  );
+  const maxAge = Math.max(...paying.map((y) => y.age));
+  assert.ok(maxAge <= 69, `OPDMSK should stop at 69, max = ${maxAge}`);
+});
+
 // ═══════════════════════════════════════════════════════════════════════════
 console.log(`\n${passed}/${passed + failed} checks passed.`);
 if (failed > 0) {
