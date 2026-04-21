@@ -14,6 +14,7 @@ import { X, Plus, Check, Download } from "lucide-react";
 import { MAIN_PRESETS, RIDER_PRESETS } from "./presets";
 import type { MainPreset, RiderPreset } from "./presets";
 import ThaiDatePicker from "@/components/ThaiDatePicker";
+import MoneyInput from "@/components/MoneyInput";
 
 // ─── Bundle config (exported — used by compare page + chart) ──────────────
 export interface BundleConfig {
@@ -212,13 +213,12 @@ export default function BundleColumn({
             );
           })}
         </div>
-        <input
-          type="number"
-          className="w-full rounded-xl border border-gray-200 bg-white/70 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
-          value={value.sumAssured || ""}
-          onChange={(e) => onChange({ ...value, sumAssured: Number(e.target.value) || 0 })}
-          min={0}
-          step={100000}
+        <MoneyInput
+          value={value.sumAssured}
+          onChange={(n) => onChange({ ...value, sumAssured: n })}
+          unit="บาท"
+          className="w-full rounded-xl border border-gray-200 bg-white/70 px-3 py-2 text-sm text-right font-semibold focus:outline-none focus:ring-2"
+          ringClass="focus:ring-indigo-300"
         />
       </div>
 
