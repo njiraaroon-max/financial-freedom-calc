@@ -13,6 +13,7 @@ import { useEffect, useMemo } from "react";
 import { X, Plus, Check, Download } from "lucide-react";
 import { MAIN_PRESETS, RIDER_PRESETS } from "./presets";
 import type { MainPreset, RiderPreset } from "./presets";
+import ThaiDatePicker from "@/components/ThaiDatePicker";
 
 // ─── Bundle config (exported — used by compare page + chart) ──────────────
 export interface BundleConfig {
@@ -209,20 +210,16 @@ export default function BundleColumn({
       <div className="grid grid-cols-2 gap-2">
         <div>
           <div className="text-[11px] font-semibold text-gray-500 mb-1.5 tracking-wide">วันเกิด</div>
-          <input
-            type="date"
-            className="w-full rounded-xl border border-gray-200 bg-white/70 px-3 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-indigo-300"
+          <ThaiDatePicker
             value={value.birthDate}
-            onChange={(e) => onChange({ ...value, birthDate: e.target.value })}
+            onChange={(v) => onChange({ ...value, birthDate: v })}
           />
         </div>
         <div>
           <div className="text-[11px] font-semibold text-gray-500 mb-1.5 tracking-wide">วันเริ่มกรมธรรม์</div>
-          <input
-            type="date"
-            className="w-full rounded-xl border border-gray-200 bg-white/70 px-3 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-indigo-300"
+          <ThaiDatePicker
             value={value.policyStartDate}
-            onChange={(e) => onChange({ ...value, policyStartDate: e.target.value })}
+            onChange={(v) => onChange({ ...value, policyStartDate: v })}
           />
         </div>
       </div>
