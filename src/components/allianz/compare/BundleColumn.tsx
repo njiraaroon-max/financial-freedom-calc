@@ -24,6 +24,10 @@ export interface BundleConfig {
   riderIds: string[];      // RiderPreset.id values
   birthDate: string;       // YYYY-MM-DD
   policyStartDate: string; // YYYY-MM-DD
+  /** When the selected main preset carries `variants` (e.g. SLA85 → A85/10,
+   *  /15, /20, /25), this holds the chosen plan_code.  Absent means "use the
+   *  preset's default planCode".  Ignored when the preset has no variants. */
+  planVariant?: string;
 }
 
 // ─── Component props ──────────────────────────────────────────────────────
@@ -67,6 +71,29 @@ export default function BundleColumn({
   useEffect(() => {
     if (value.mainCode === "MWLA9906" && value.sumAssured < 10_000_000) {
       onChange({ ...value, sumAssured: 10_000_000 });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value.mainCode]);
+
+  // Keep `planVariant` coherent with the current main preset:
+  //   • no variants on preset  → drop any stale planVariant
+  //   • has variants but current value doesn't match any → snap to default
+  useEffect(() => {
+    if (!main) return;
+    if (!main.variants || main.variants.length === 0) {
+      if (value.planVariant != null) {
+        const { planVariant: _drop, ...rest } = value;
+        void _drop;
+        onChange({ ...rest });
+      }
+      return;
+    }
+    const matches = main.variants.some((v) => v.planCode === value.planVariant);
+    if (!matches) {
+      const fallback =
+        main.variants.find((v) => v.planCode === main.planCode)?.planCode ??
+        main.variants[0].planCode;
+      onChange({ ...value, planVariant: fallback });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value.mainCode]);
@@ -125,6 +152,31 @@ export default function BundleColumn({
         </select>
         {main?.sub && (
           <div className="text-[11px] text-gray-400 mt-1 leading-tight">{main.sub}</div>
+        )}
+        {/* Plan-variant pill picker — only rendered when the preset carries
+         *  multiple plan variants (e.g. SLA85 → /10, /15, /20, /25). */}
+        {main?.variants && main.variants.length > 0 && (
+          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+            {main.variants.map((v) => {
+              const effective = value.planVariant ?? main.planCode;
+              const active = effective === v.planCode;
+              return (
+                <button
+                  key={v.planCode}
+                  type="button"
+                  onClick={() => onChange({ ...value, planVariant: v.planCode })}
+                  className={`text-[11px] px-2 py-0.5 rounded-full border transition ${
+                    active
+                      ? "border-indigo-500 bg-indigo-50 text-indigo-700 font-bold"
+                      : "border-gray-200 bg-white/60 text-gray-500 hover:bg-gray-50"
+                  }`}
+                  title={`จ่ายเบี้ย ${v.premiumYears} ปี${v.coverageEndAge ? ` / คุ้มครองถึง ${v.coverageEndAge}` : ""}`}
+                >
+                  {v.label}
+                </button>
+              );
+            })}
+          </div>
         )}
       </div>
 

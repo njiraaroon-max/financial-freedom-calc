@@ -6,13 +6,25 @@
 // rider SA/HB defaults) so the summary table can compute lifetime totals
 // without hard-coding per-product logic.
 
+/** A selectable sub-variant of a MainPreset (e.g. A85/10 vs /15 vs /20 vs /25).
+ *  When a preset has `variants`, the BundleColumn renders a pill picker and
+ *  stores the chosen planCode in `BundleConfig.planVariant`.  If the bundle
+ *  doesn't carry a `planVariant`, the preset's own `planCode` is the default. */
+export interface PlanVariant {
+  planCode: string;      // Allianz plan_code (e.g. "A85/20")
+  label: string;         // short pill text (e.g. "/20")
+  premiumYears: number;
+  coverageEndAge?: number;
+}
+
 export interface MainPreset {
   code: string;
-  planCode?: string;
+  planCode?: string;     // default plan_code (matches one variant when variants present)
   label: string;
   sub: string;
   premiumYears: number;
   coverageEndAge?: number;
+  variants?: PlanVariant[];
 }
 
 export const MAIN_PRESETS: MainPreset[] = [
@@ -21,8 +33,49 @@ export const MAIN_PRESETS: MainPreset[] = [
   { code: "MWLA9906", label: "Wealth Legacy A99/6", sub: "มาย เวลท์ เลกาซี A99/6 (มีเงินปันผล, ทุนขั้นต่ำ 10MB)", premiumYears: 6, coverageEndAge: 99 },
   { code: "MWLA9920", label: "Whole Life A99/20", sub: "มาย โฮล ไลฟ์ A99/20 (มีเงินปันผล)", premiumYears: 20, coverageEndAge: 99 },
   { code: "TM1", label: "Term ปีต่อปี", sub: "อยุธยาชั่วระยะเวลา", premiumYears: 1 },
-  { code: "SLA85", planCode: "A85/20", label: "ชีวิตมั่นคง A85/20", sub: "อยุธยาชีวิตมั่นคง A85/20", premiumYears: 20, coverageEndAge: 85 },
+  {
+    code: "SLA85",
+    planCode: "A85/20",
+    label: "ชีวิตมั่นคง A85",
+    sub: "อยุธยาชีวิตมั่นคง A85 — เลือกระยะจ่ายเบี้ย",
+    premiumYears: 20,
+    coverageEndAge: 85,
+    variants: [
+      { planCode: "A85/10", label: "/10", premiumYears: 10, coverageEndAge: 85 },
+      { planCode: "A85/15", label: "/15", premiumYears: 15, coverageEndAge: 85 },
+      { planCode: "A85/20", label: "/20", premiumYears: 20, coverageEndAge: 85 },
+      { planCode: "A85/25", label: "/25", premiumYears: 25, coverageEndAge: 85 },
+    ],
+  },
 ];
+
+/** Resolve the effective (planCode, premiumYears, coverageEndAge) for a bundle
+ *  given its preset and optional user-selected `planVariant`.  When the preset
+ *  has no variants, the preset's own fields win.  When the preset has variants
+ *  but the bundle's `planVariant` doesn't match any of them (or is absent),
+ *  we fall back to the preset's default `planCode`. */
+export function resolveMainPlan(
+  preset: MainPreset | undefined,
+  planVariant: string | undefined,
+): { planCode: string | undefined; premiumYears: number | undefined; coverageEndAge: number | undefined } {
+  if (!preset) return { planCode: undefined, premiumYears: undefined, coverageEndAge: undefined };
+  if (preset.variants && preset.variants.length > 0) {
+    const chosen =
+      preset.variants.find((v) => v.planCode === planVariant) ??
+      preset.variants.find((v) => v.planCode === preset.planCode) ??
+      preset.variants[0];
+    return {
+      planCode: chosen.planCode,
+      premiumYears: chosen.premiumYears,
+      coverageEndAge: chosen.coverageEndAge,
+    };
+  }
+  return {
+    planCode: preset.planCode,
+    premiumYears: preset.premiumYears,
+    coverageEndAge: preset.coverageEndAge,
+  };
+}
 
 // ─── Rider presets ────────────────────────────────────────────────────────
 // Each entry fully describes one rider configuration: product code + any

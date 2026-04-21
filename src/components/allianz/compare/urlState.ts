@@ -4,15 +4,19 @@
 //
 // Format (each field colon-delimited, always in the same order):
 //
-//   ?a=<mainCode>:<sumAssured>:<rider,ids,csv>:<birth>:<start>
+//   ?a=<mainCode>:<sumAssured>:<rider,ids,csv>:<birth>:<start>[:<planVariant>]
 //   &b=<...>
 //   &c=<...>          ← optional (2-bundle views omit this)
 //   &g=M|F
 //   &occ=1|3|4
 //
+// The trailing `planVariant` segment is optional — only emitted when a main
+// preset with variants (e.g. SLA85) is selected.  5-segment links from before
+// this field existed still decode cleanly (back-compat with old share URLs).
+//
 // Example:
 //   ?a=MWLA9906:10000000:ipd-ultra-bdms:1991-04-21:2026-04-21
-//   &b=T1010:3000000:ipd-beyond-bdms,ci-1m:1991-04-21:2026-04-21
+//   &b=SLA85:3000000:ipd-beyond-bdms,ci-1m:1991-04-21:2026-04-21:A85/15
 //   &g=M&occ=1
 //
 // Robustness rules:
@@ -29,13 +33,17 @@ import type { Gender, OccClass } from "@/lib/allianz/types";
 
 // ─── Encode ───────────────────────────────────────────────────────────────
 export function encodeBundle(b: BundleConfig): string {
-  return [
+  const parts = [
     b.mainCode,
     String(Math.max(0, Math.round(b.sumAssured))),
     b.riderIds.join(","),
     b.birthDate,
     b.policyStartDate,
-  ].join(":");
+  ];
+  // Only include the trailing planVariant segment when it's actually set.
+  // Keeps URLs compact for the majority of presets (no variants).
+  if (b.planVariant) parts.push(b.planVariant);
+  return parts.join(":");
 }
 
 export function encodeCompareState(opts: {
@@ -58,10 +66,11 @@ function parseBundle(raw: string | null, idx: number): BundleConfig | null {
   if (!raw) return null;
   const parts = raw.split(":");
   if (parts.length < 5) return null;
-  const [mainCode, saStr, riderCsv, birthDate, policyStartDate] = parts;
+  const [mainCode, saStr, riderCsv, birthDate, policyStartDate, planVariantRaw] = parts;
 
   // Guardrails — don't crash on garbage input
-  if (!MAIN_PRESETS.some((p) => p.code === mainCode)) return null;
+  const preset = MAIN_PRESETS.find((p) => p.code === mainCode);
+  if (!preset) return null;
   const sumAssured = Math.max(0, Number(saStr));
   if (!Number.isFinite(sumAssured)) return null;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) return null;
@@ -71,6 +80,13 @@ function parseBundle(raw: string | null, idx: number): BundleConfig | null {
     .filter((id) => RIDER_PRESETS.some((r) => r.id === id))
     .slice(0, 3);
 
+  // Drop planVariant silently if it doesn't match any variant of the selected
+  // preset (URL may come from a different build where variants changed).
+  const planVariant =
+    planVariantRaw && preset.variants?.some((v) => v.planCode === planVariantRaw)
+      ? planVariantRaw
+      : undefined;
+
   return {
     label: BUNDLE_LABELS[idx] ?? "?",
     color: BUNDLE_COLORS[idx] ?? "#555",
@@ -79,6 +95,7 @@ function parseBundle(raw: string | null, idx: number): BundleConfig | null {
     riderIds,
     birthDate,
     policyStartDate,
+    ...(planVariant ? { planVariant } : {}),
   };
 }
 

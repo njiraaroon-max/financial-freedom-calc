@@ -1712,6 +1712,90 @@ check("decode handles missing gender/occ gracefully", () => {
   assert.equal(decoded.occClass, null);
 });
 
+// ─── planVariant round-trip (SLA85 A85/10…/25) ────────────────────────────
+check("encodeBundle appends planVariant as 6th segment when present", () => {
+  const sla85Bundle: BundleConfig = {
+    ...sampleBundle,
+    mainCode: "SLA85",
+    planVariant: "A85/15",
+  };
+  const s = encodeBundle(sla85Bundle);
+  assert.ok(s.endsWith(":A85/15"), `expected trailing :A85/15, got ${s}`);
+  // Still 6 colon-separated parts
+  assert.equal(s.split(":").length, 6);
+});
+
+check("encodeBundle omits planVariant segment when absent (5 parts)", () => {
+  const s = encodeBundle(sampleBundle);
+  assert.equal(s.split(":").length, 5);
+});
+
+check("encode + decode round-trip preserves SLA85 planVariant", () => {
+  const bundleA: BundleConfig = { ...sampleBundle, mainCode: "SLA85", planVariant: "A85/10" };
+  const bundleB: BundleConfig = { ...sampleBundle, label: "B", mainCode: "SLA85", planVariant: "A85/25" };
+  const qs = encodeCompareState({ bundles: [bundleA, bundleB], gender: "M", occClass: 1 });
+  const decoded = decodeCompareState(new URLSearchParams(qs));
+  assert.equal(decoded.bundles[0].planVariant, "A85/10");
+  assert.equal(decoded.bundles[1].planVariant, "A85/25");
+});
+
+check("decode drops unknown planVariant silently (keeps rest of bundle)", () => {
+  const sp = new URLSearchParams();
+  // "A85/99" isn't a valid variant → planVariant should come back undefined
+  sp.set("a", "SLA85:1000000::1991-04-21:2026-04-21:A85/99");
+  const decoded = decodeCompareState(sp);
+  assert.equal(decoded.bundles.length, 1);
+  assert.equal(decoded.bundles[0].mainCode, "SLA85");
+  assert.equal(decoded.bundles[0].planVariant, undefined);
+});
+
+check("decode accepts 5-segment legacy URLs (no planVariant)", () => {
+  const sp = new URLSearchParams();
+  sp.set("a", "SLA85:1000000::1991-04-21:2026-04-21");
+  const decoded = decodeCompareState(sp);
+  assert.equal(decoded.bundles.length, 1);
+  assert.equal(decoded.bundles[0].planVariant, undefined);
+});
+
+section("Compare presets — resolveMainPlan");
+
+check("resolveMainPlan: preset w/o variants → preset fields", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { MAIN_PRESETS: M, resolveMainPlan } = require("../../../components/allianz/compare/presets");
+  const mwla = M.find((p: { code: string }) => p.code === "MWLA9906");
+  const r = resolveMainPlan(mwla, undefined);
+  assert.equal(r.planCode, undefined); // MWLA9906 has no planCode
+  assert.equal(r.premiumYears, 6);
+  assert.equal(r.coverageEndAge, 99);
+});
+
+check("resolveMainPlan: SLA85 w/o variant → default A85/20", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { MAIN_PRESETS: M, resolveMainPlan } = require("../../../components/allianz/compare/presets");
+  const sla = M.find((p: { code: string }) => p.code === "SLA85");
+  const r = resolveMainPlan(sla, undefined);
+  assert.equal(r.planCode, "A85/20");
+  assert.equal(r.premiumYears, 20);
+  assert.equal(r.coverageEndAge, 85);
+});
+
+check("resolveMainPlan: SLA85 with A85/10 variant → 10-year plan", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { MAIN_PRESETS: M, resolveMainPlan } = require("../../../components/allianz/compare/presets");
+  const sla = M.find((p: { code: string }) => p.code === "SLA85");
+  const r = resolveMainPlan(sla, "A85/10");
+  assert.equal(r.planCode, "A85/10");
+  assert.equal(r.premiumYears, 10);
+});
+
+check("resolveMainPlan: SLA85 with unknown variant → falls back to default", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { MAIN_PRESETS: M, resolveMainPlan } = require("../../../components/allianz/compare/presets");
+  const sla = M.find((p: { code: string }) => p.code === "SLA85");
+  const r = resolveMainPlan(sla, "A85/bogus");
+  assert.equal(r.planCode, "A85/20");
+});
+
 // ═══ §X  NHS-13 schema + health_benefits.json seed data ════════════════════
 section("NHS-13 schema");
 

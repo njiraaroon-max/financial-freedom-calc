@@ -18,7 +18,7 @@ import BundleColumn, { type BundleConfig } from "./BundleColumn";
 import CompareOverlayChart from "./CompareOverlayChart";
 import CompareSummaryTable from "./CompareSummaryTable";
 import BenefitCompareTable from "./BenefitCompareTable";
-import { MAIN_PRESETS, RIDER_PRESETS, BUNDLE_COLORS, BUNDLE_LABELS } from "./presets";
+import { MAIN_PRESETS, RIDER_PRESETS, BUNDLE_COLORS, BUNDLE_LABELS, resolveMainPlan } from "./presets";
 import { decodeCompareState, encodeCompareState } from "./urlState";
 import { calculateCashflow } from "@/lib/allianz/cashflow";
 import { allianzAge } from "@/lib/allianz/age";
@@ -106,6 +106,7 @@ function evaluateBundle(
     }));
 
   const preset = MAIN_PRESETS.find((p) => p.code === b.mainCode);
+  const mainPlan = resolveMainPlan(preset, b.planVariant);
   const input: CalcInput = {
     birthDate: b.birthDate,
     policyStartDate: b.policyStartDate,
@@ -114,9 +115,9 @@ function evaluateBundle(
     occupationClass: occClass,
     main: {
       productCode: b.mainCode,
-      planCode: preset?.planCode,
+      planCode: mainPlan.planCode,
       sumAssured: b.sumAssured,
-      premiumYears: preset?.premiumYears,
+      premiumYears: mainPlan.premiumYears,
     },
     riders,
   };
@@ -214,14 +215,15 @@ export default function CompareWorkspace({ urlSync = false }: CompareWorkspacePr
     if (!firstYear) return;
 
     const preset = MAIN_PRESETS.find((p) => p.code === b.mainCode);
+    const mainPlan = resolveMainPlan(preset, b.planVariant);
 
     const mainPayload = buildPolicyFromQuote({
       productCode: b.mainCode,
-      planCode: preset?.planCode,
+      planCode: mainPlan.planCode,
       premium: firstYear.mainPremium,
       sumInsured: b.sumAssured,
-      premiumYears: preset?.premiumYears ?? 1,
-      coverageEndAge: preset?.coverageEndAge,
+      premiumYears: mainPlan.premiumYears ?? 1,
+      coverageEndAge: mainPlan.coverageEndAge,
       currentAge: ev.derivedAge,
     });
     if (mainPayload) addPolicy(mainPayload);
