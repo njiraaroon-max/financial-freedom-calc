@@ -359,6 +359,43 @@ check("CIMC 1M sumAssured, age 45 F, occ 3 → 11.62 × 1000 × 1.30 = 15,106", 
   assert.equal(res.premium, 15_106);
 });
 
+// ─── Tier 1 Batch 4 — CBN (confidence=medium, pending human audit) ─────────
+
+check("CBN แผน 1 age 30 M → 801 per 1000", () => {
+  const r = getRate("CBN", "แผน 1", 30, "M", 30);
+  assert.ok(r, "expected a rate row");
+  assert.equal(r.rate, 801);
+});
+
+check("CBN แผน 3 age 40 F → 9,786 per 1000", () => {
+  const r = getRate("CBN", "แผน 3", 40, "F", 40);
+  assert.ok(r, "expected a rate row");
+  assert.equal(r.rate, 9786);
+});
+
+check("CBN แผน 2 age 16 F → 724 per 1000 (youngest entry)", () => {
+  const r = getRate("CBN", "แผน 2", 16, "F", 16);
+  assert.ok(r, "expected a rate row");
+  assert.equal(r.rate, 724);
+});
+
+check("CBN rider stops at max_renewal_age 84", () => {
+  const input: CalcInput = {
+    currentAge: 60,
+    retireAge: 60,
+    gender: "M",
+    occupationClass: 1,
+    main: { productCode: "MSI1808", sumAssured: 1_000_000, premiumYears: 8 },
+    riders: [{ productCode: "CBN", planCode: "แผน 1", sumAssured: 500_000 }],
+  };
+  const out = calculateCashflow(input);
+  const paying = out.cashflow.filter((y) =>
+    y.ridersPremium.some((r) => r.code === "CBN" && r.premium > 0),
+  );
+  const maxAge = Math.max(...paying.map((y) => y.age));
+  assert.ok(maxAge <= 84, `CBN should stop at 84, saw ${maxAge}`);
+});
+
 check("HB rider stops at max_renewal_age 69", () => {
   const input: CalcInput = {
     currentAge: 50,

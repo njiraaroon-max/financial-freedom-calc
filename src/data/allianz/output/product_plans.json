@@ -113,6 +113,36 @@
       "premium_years": 20,
       "coverage_until_age": null,
       "premium_until_age": null
+    },
+    {
+      "id": 301,
+      "product_id": 31,
+      "plan_code": "แผน 1",
+      "plan_name_th": "CBN แผน 1",
+      "coverage_years": null,
+      "premium_years": null,
+      "coverage_until_age": null,
+      "premium_until_age": null
+    },
+    {
+      "id": 302,
+      "product_id": 31,
+      "plan_code": "แผน 2",
+      "plan_name_th": "CBN แผน 2",
+      "coverage_years": null,
+      "premium_years": null,
+      "coverage_until_age": null,
+      "premium_until_age": null
+    },
+    {
+      "id": 303,
+      "product_id": 31,
+      "plan_code": "แผน 3",
+      "plan_name_th": "CBN แผน 3",
+      "coverage_years": null,
+      "premium_years": null,
+      "coverage_until_age": null,
+      "premium_until_age": null
     }
   ]
 }
