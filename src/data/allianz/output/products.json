@@ -131,7 +131,8 @@
       "entry_age_max": 70,
       "max_renewal_age": null,
       "requires_product_code": null,
-      "product_type": "life"
+      "product_type": "life",
+      "sum_min": 10000000
     },
     {
       "id": 7,

@@ -110,7 +110,15 @@ export interface CalcRiderInput {
 }
 
 export interface CalcInput {
-  currentAge: number;
+  /** Allianz insurance age at policy start. Either pass this directly OR
+   * supply `birthDate` + `policyStartDate` and let the engine compute it
+   * using the Allianz rounding rule (>6 months since last birthday → +1). */
+  currentAge?: number;
+  /** ISO "YYYY-MM-DD" or Date. When provided together with `policyStartDate`,
+   * `currentAge` is derived and overrides any explicit `currentAge`. */
+  birthDate?: string | Date;
+  /** ISO "YYYY-MM-DD" or Date. Defaults to "today" when only `birthDate` is given. */
+  policyStartDate?: string | Date;
   retireAge: number;
   gender: Gender;
   occupationClass: OccClass;

@@ -10,6 +10,7 @@ import { strict as assert } from "node:assert";
 import { calcMainPremium, calcRiderPremium } from "../premium";
 import { getRate } from "../rates";
 import { calculateCashflow } from "../cashflow";
+import { allianzAge } from "../age";
 import type { CalcInput } from "../types";
 
 let passed = 0;
@@ -1388,6 +1389,126 @@ check("HSMFCBN_ALL rider stops at max_renewal_age 98", () => {
   );
   const maxAge = Math.max(...paying.map((y) => y.age));
   assert.ok(maxAge <= 98, `HSMFCBN_ALL should stop at 98, max = ${maxAge}`);
+});
+
+// ═══ Allianz insurance-age rounding (>6 months since birthday → +1) ════════
+section("allianzAge — Allianz >6-month rounding rule");
+
+check("exact birthday: 1990-01-15 → 2024-01-15 = 34 years", () => {
+  assert.equal(allianzAge("1990-01-15", "2024-01-15"), 34);
+});
+
+check("exactly 6 months past birthday → no round up (34)", () => {
+  assert.equal(allianzAge("1990-01-15", "2024-07-15"), 34);
+});
+
+check("6 months + 1 day past birthday → +1 (35)", () => {
+  assert.equal(allianzAge("1990-01-15", "2024-07-16"), 35);
+});
+
+check("11 months past birthday → +1 (35)", () => {
+  assert.equal(allianzAge("1990-01-15", "2024-12-15"), 35);
+});
+
+check("1 day before next birthday → +1 (35)", () => {
+  assert.equal(allianzAge("1990-01-15", "2025-01-14"), 35);
+});
+
+check("Feb 29 leap edge: 1992-02-29 → 2024-02-28 = 31 (day count negative)", () => {
+  // Feb 28 is one day short of the 32nd birthday on Feb 29 → still 31 completed
+  // years, 11 months, ~30 days since last birthday (Feb 29 2023) → rounds to 32.
+  assert.equal(allianzAge("1992-02-29", "2024-02-28"), 32);
+});
+
+check("policyStart < birth throws", () => {
+  assert.throws(
+    () => allianzAge("2000-01-01", "1999-12-31"),
+    /precedes birthDate/,
+  );
+});
+
+check("CalcInput uses allianzAge when birthDate given", () => {
+  // Born 1990-03-15, policy starts 2024-10-20 → 34 yr 7 mo 5 d → 35.
+  const input: CalcInput = {
+    birthDate: "1990-03-15",
+    policyStartDate: "2024-10-20",
+    retireAge: 60,
+    gender: "M",
+    occupationClass: 1,
+    main: { productCode: "MSI1808", sumAssured: 1_000_000, premiumYears: 8 },
+    riders: [{ productCode: "HSMFCPN_BDMS" }],
+  };
+  const out = calculateCashflow(input);
+  assert.equal(out.errors.length, 0, out.errors.join("; "));
+  // First cashflow year should be at Allianz age 35, not 34.
+  assert.equal(out.cashflow[0].age, 35);
+  // HSMFCPN_BDMS band 31-35 M = 38,334 (via Batch 11 rates).
+  assert.equal(out.cashflow[0].ridersPremium[0].premium, 38334);
+});
+
+check("CalcInput birthDate overrides explicit currentAge", () => {
+  const input: CalcInput = {
+    currentAge: 20, // should be ignored
+    birthDate: "1990-03-15",
+    policyStartDate: "2024-10-20",
+    retireAge: 60,
+    gender: "M",
+    occupationClass: 1,
+    main: { productCode: "MSI1808", sumAssured: 1_000_000, premiumYears: 8 },
+    riders: [],
+  };
+  const out = calculateCashflow(input);
+  assert.equal(out.cashflow[0].age, 35);
+});
+
+// ═══ Wealth Legacy A99/6 minimum sum-assured gate (10,000,000) ═════════════
+section("MWLA9906 sum_min = 10,000,000 baht");
+
+check("MWLA9906 tuน 5M → error (below sum_min)", () => {
+  const input: CalcInput = {
+    currentAge: 40,
+    retireAge: 60,
+    gender: "F",
+    occupationClass: 1,
+    main: { productCode: "MWLA9906", sumAssured: 5_000_000 },
+    riders: [],
+  };
+  const out = calculateCashflow(input);
+  assert.ok(out.errors.length > 0, "expected sum_min error");
+  assert.ok(
+    out.errors.some((e) => e.includes("10,000,000")),
+    `expected error to cite 10,000,000 — got: ${out.errors.join(" | ")}`,
+  );
+  assert.equal(out.cashflow.length, 0);
+});
+
+check("MWLA9906 ทุน 10M → no sum_min error", () => {
+  const input: CalcInput = {
+    currentAge: 40,
+    retireAge: 60,
+    gender: "F",
+    occupationClass: 1,
+    main: { productCode: "MWLA9906", sumAssured: 10_000_000 },
+    riders: [],
+  };
+  const out = calculateCashflow(input);
+  // Accept either no errors or only non-sum_min errors (missing rate entries).
+  const sumMinErr = out.errors.find((e) => e.includes("ขั้นต่ำ"));
+  assert.equal(sumMinErr, undefined, `unexpected sum_min error: ${sumMinErr}`);
+});
+
+check("Other products unaffected — MSI1808 ทุน 500k OK (no sum_min)", () => {
+  const input: CalcInput = {
+    currentAge: 30,
+    retireAge: 60,
+    gender: "M",
+    occupationClass: 1,
+    main: { productCode: "MSI1808", sumAssured: 500_000, premiumYears: 8 },
+    riders: [],
+  };
+  const out = calculateCashflow(input);
+  const sumMinErr = out.errors.find((e) => e.includes("ขั้นต่ำ"));
+  assert.equal(sumMinErr, undefined);
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

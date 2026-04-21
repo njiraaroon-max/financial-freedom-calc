@@ -9,6 +9,8 @@
 // once every product returns `stopped=true` — or at a hard cap (age 110) so
 // malformed data can't create an infinite projection.
 
+import { allianzAge } from "./age";
+import { getProductByCode } from "./data";
 import { calcMainPremium, calcRiderPremium } from "./premium";
 import { resolvePlan } from "./rates";
 import type {
@@ -18,12 +20,29 @@ import type {
   RiderPremium,
 } from "./types";
 
+/**
+ * Resolve `currentAge` from the CalcInput. If `birthDate` is supplied, it
+ * wins — computed via Allianz's ">6 months → +1" rounding rule. Otherwise
+ * falls back to the explicit `currentAge` field.
+ */
+function resolveCurrentAge(input: CalcInput): number | null {
+  if (input.birthDate != null) {
+    const start = input.policyStartDate ?? new Date();
+    try {
+      return allianzAge(input.birthDate, start);
+    } catch {
+      return null;
+    }
+  }
+  return input.currentAge ?? null;
+}
+
 const ABSOLUTE_AGE_CAP = 110;
 
 function resolveMainCoverageEnd(
   input: CalcInput,
+  currentAge: number,
 ): { endAge: number | null; warnings: string[] } {
-  const { currentAge } = input;
   const resolved = resolvePlan(input.main.productCode, input.main.planCode);
   if (!resolved) return { endAge: null, warnings: [] };
   const { product, plan } = resolved;
@@ -47,16 +66,42 @@ function resolveMainCoverageEnd(
 }
 
 export function calculateCashflow(input: CalcInput): CalcOutput {
-  const { currentAge, retireAge, gender, occupationClass, main, riders } = input;
+  const { retireAge, gender, occupationClass, main, riders } = input;
   const errors: string[] = [];
   const cashflow: CashflowYear[] = [];
 
+  const currentAge = resolveCurrentAge(input) ?? NaN;
+
   if (!Number.isFinite(currentAge) || currentAge < 0) {
-    errors.push("currentAge ไม่ถูกต้อง");
+    errors.push(
+      input.birthDate != null
+        ? "birthDate/policyStartDate ไม่ถูกต้อง"
+        : "currentAge ไม่ถูกต้อง",
+    );
   }
   if (!Number.isFinite(retireAge) || retireAge < currentAge) {
     errors.push("retireAge ต้องมากกว่าหรือเท่ากับ currentAge");
   }
+
+  // Sum-assured floor validation (e.g. Wealth Legacy A99/6 requires ≥ 10M).
+  // Reject early — an under-minimum policy can't be issued in real life, so
+  // continuing would hand the user a meaningless cashflow.
+  const mainProduct = getProductByCode(main.productCode);
+  if (mainProduct?.sum_min != null && main.sumAssured < mainProduct.sum_min) {
+    errors.push(
+      `${mainProduct.name_th} ต้องมีทุนประกันขั้นต่ำ ` +
+        `${mainProduct.sum_min.toLocaleString("en-US")} บาท ` +
+        `(ใส่มา ${main.sumAssured.toLocaleString("en-US")})`,
+    );
+  }
+  if (mainProduct?.sum_max != null && main.sumAssured > mainProduct.sum_max) {
+    errors.push(
+      `${mainProduct.name_th} ทุนประกันสูงสุด ` +
+        `${mainProduct.sum_max.toLocaleString("en-US")} บาท ` +
+        `(ใส่มา ${main.sumAssured.toLocaleString("en-US")})`,
+    );
+  }
+
   if (errors.length > 0) {
     return {
       cashflow: [],
@@ -65,7 +110,7 @@ export function calculateCashflow(input: CalcInput): CalcOutput {
     };
   }
 
-  const { endAge: mainEndAge } = resolveMainCoverageEnd(input);
+  const { endAge: mainEndAge } = resolveMainCoverageEnd(input, currentAge);
 
   // Run until both the paying period and every rider's renewal window are done.
   // Hard cap at ABSOLUTE_AGE_CAP to protect against degenerate data.
