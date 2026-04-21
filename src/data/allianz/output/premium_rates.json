@@ -11,7 +11,8 @@
       "tier1_batch3": "completed (CIMC 20 bands × M/F ages 1m1d–98*, 71+ renewal-only)",
       "tier1_batch4": "completed (CBN 3 plans × M/F × ages 16-84*, confidence=medium — dense thumbnail source, needs human verification)",
       "sla85": "completed (A85/10 age 0-65, A85/15 age 0-65, A85/20 age 0-65, A85/25 age 0-60 — all M/F, level-premium per source)",
-      "mdp": "completed (15/6 flat 230 ANY age 1mo1d-65, 18/10 ages 0-65, 22/15 ages 0-60, 25/20 ages 0-60 — all M/F, level-premium)"
+      "mdp": "completed (15/6 flat 230 ANY age 1mo1d-65, 18/10 ages 0-65, 22/15 ages 0-60, 25/20 ages 0-60 — all M/F, level-premium)",
+      "tier2_batch7_hbp": "completed (HBP 10 age bands × ANY, occ 1-4 multipliers, 61-65 and 66-69 renewal-only per source)"
     }
   },
   "rates": [
@@ -26753,6 +26754,106 @@
       "gender": "F",
       "rate": 74.78,
       "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 28,
+      "plan_id": null,
+      "age_min": 1,
+      "age_max": 5,
+      "gender": "ANY",
+      "rate": 171,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 28,
+      "plan_id": null,
+      "age_min": 6,
+      "age_max": 15,
+      "gender": "ANY",
+      "rate": 157,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 28,
+      "plan_id": null,
+      "age_min": 16,
+      "age_max": 35,
+      "gender": "ANY",
+      "rate": 174,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 28,
+      "plan_id": null,
+      "age_min": 36,
+      "age_max": 40,
+      "gender": "ANY",
+      "rate": 191,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 28,
+      "plan_id": null,
+      "age_min": 41,
+      "age_max": 45,
+      "gender": "ANY",
+      "rate": 209,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 28,
+      "plan_id": null,
+      "age_min": 46,
+      "age_max": 50,
+      "gender": "ANY",
+      "rate": 226,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 28,
+      "plan_id": null,
+      "age_min": 51,
+      "age_max": 55,
+      "gender": "ANY",
+      "rate": 244,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 28,
+      "plan_id": null,
+      "age_min": 56,
+      "age_max": 60,
+      "gender": "ANY",
+      "rate": 261,
+      "is_renewal_only": false,
+      "confidence": "high"
+    },
+    {
+      "product_id": 28,
+      "plan_id": null,
+      "age_min": 61,
+      "age_max": 65,
+      "gender": "ANY",
+      "rate": 522,
+      "is_renewal_only": true,
+      "confidence": "high"
+    },
+    {
+      "product_id": 28,
+      "plan_id": null,
+      "age_min": 66,
+      "age_max": 69,
+      "gender": "ANY",
+      "rate": 696,
+      "is_renewal_only": true,
       "confidence": "high"
     }
   ]

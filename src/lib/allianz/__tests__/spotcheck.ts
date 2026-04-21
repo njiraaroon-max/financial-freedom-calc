@@ -545,6 +545,79 @@ check("MDP 25/20 is level-premium — age 40 M purchase flat across all 20 years
   }
 });
 
+// ─── HBP (ค่ารักษาพยาบาลรายวันพิเศษ) — Tier 2 Batch 7 ────────────────────
+
+check("HBP age 1-5 ANY → 171 per 100 baht/day", () => {
+  const r = getRate("HBP", undefined, 3, "M", 3);
+  assert.ok(r, "expected a rate row");
+  assert.equal(r.rate, 171);
+});
+
+check("HBP age 16-35 ANY → 174 per 100 baht/day", () => {
+  const r = getRate("HBP", undefined, 25, "F", 25);
+  assert.ok(r);
+  assert.equal(r.rate, 174);
+});
+
+check("HBP age 56-60 ANY → 261 per 100 baht/day", () => {
+  const r = getRate("HBP", undefined, 58, "M", 58);
+  assert.ok(r);
+  assert.equal(r.rate, 261);
+});
+
+check("HBP daily 1000 baht/day, age 25 M occ 1 → 174 × 10 × 1.00 = 1,740", () => {
+  const res = calcRiderPremium(
+    { productCode: "HBP", dailyBenefit: 1000 },
+    25,
+    "M",
+    1,
+    25,
+  );
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 1740);
+});
+
+check("HBP daily 1000 baht/day, age 50 F occ 3 → 226 × 10 × 1.30 = 2,938", () => {
+  const res = calcRiderPremium(
+    { productCode: "HBP", dailyBenefit: 1000 },
+    50,
+    "F",
+    3,
+    50,
+  );
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 2938);
+});
+
+check("HBP daily 2000 baht/day, age 45 M occ 4 → 209 × 20 × 1.45 = 6,061", () => {
+  const res = calcRiderPremium(
+    { productCode: "HBP", dailyBenefit: 2000 },
+    45,
+    "M",
+    4,
+    45,
+  );
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 6061);
+});
+
+check("HBP rider stops at max_renewal_age 69 (two renewal-only bands 61-65, 66-69)", () => {
+  const input: CalcInput = {
+    currentAge: 50,
+    retireAge: 60,
+    gender: "M",
+    occupationClass: 1,
+    main: { productCode: "MSI1808", sumAssured: 1_000_000, premiumYears: 8 },
+    riders: [{ productCode: "HBP", dailyBenefit: 1000 }],
+  };
+  const out = calculateCashflow(input);
+  const hbpPaying = out.cashflow.filter((y) =>
+    y.ridersPremium.some((r) => r.code === "HBP" && r.premium > 0),
+  );
+  const maxAge = Math.max(...hbpPaying.map((y) => y.age));
+  assert.ok(maxAge <= 69, `HBP should stop at 69, max seen = ${maxAge}`);
+});
+
 check("HB rider stops at max_renewal_age 69", () => {
   const input: CalcInput = {
     currentAge: 50,
