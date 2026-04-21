@@ -16,6 +16,8 @@
 # misc
 .DS_Store
 *.pem
+# Office lock files (created when xlsx/docx is open)
+~$*
 
 # debug
 npm-debug.log*
