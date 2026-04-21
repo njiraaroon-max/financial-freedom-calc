@@ -328,6 +328,37 @@ check("CI48B rider stops at max_renewal_age 84", () => {
   assert.ok(maxAge <= 84, `CI48B should stop at 84, saw ${maxAge}`);
 });
 
+// ─── Tier 1 Batch 3 — CIMC ──────────────────────────────────────────────────
+
+check("CIMC age 25 F → 4.51 per 1000 (band 21-25)", () => {
+  const r = getRate("CIMC", undefined, 25, "F", 25);
+  assert.ok(r, "expected a rate row");
+  assert.equal(r.rate, 4.51);
+});
+
+check("CIMC age 36 M → 9.12 per 1000 (band 36-40)", () => {
+  const r = getRate("CIMC", undefined, 36, "M", 36);
+  assert.ok(r, "expected a rate row");
+  assert.equal(r.rate, 9.12);
+});
+
+check("CIMC age 70 M → 154.18 per 1000 (last non-renewal band)", () => {
+  const r = getRate("CIMC", undefined, 70, "M", 70);
+  assert.ok(r, "expected a rate row");
+  assert.equal(r.rate, 154.18);
+});
+
+check("CIMC 1M sumAssured, age 45 F, occ 3 → 11.62 × 1000 × 1.30 = 15,106", () => {
+  const res = calcRiderPremium(
+    { productCode: "CIMC", sumAssured: 1_000_000 },
+    45,
+    "F",
+    3,
+    45,
+  );
+  assert.equal(res.premium, 15_106);
+});
+
 check("HB rider stops at max_renewal_age 69", () => {
   const input: CalcInput = {
     currentAge: 50,
