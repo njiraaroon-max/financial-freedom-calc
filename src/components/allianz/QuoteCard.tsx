@@ -75,6 +75,14 @@ const PRESETS: Preset[] = [
     sub: "อยุธยาชั่วระยะเวลา",
     premiumYears: 1,
   },
+  {
+    productCode: "SLA85",
+    planCode: "A85/20",
+    label: "ชีวิตมั่นคง A85/20",
+    sub: "อยุธยาชีวิตมั่นคง A85/20 (จ่าย 20 ปี คุ้มครองถึง 85)",
+    premiumYears: 20,
+    coverageEndAge: 85,
+  },
 ];
 
 // ─── Rider presets ────────────────────────────────────────────────────────

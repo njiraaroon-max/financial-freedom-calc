@@ -454,6 +454,97 @@ check("SLA A85/10 is level-premium — age 36 purchase flat across all 10 years"
   }
 });
 
+// ─── MDP (มาย ดับเบิล พลัส) — 4 plans from user-provided crops ────────────
+
+check("MDP 15/6 flat rate — age 30 M = age 60 F = 230", () => {
+  const r1 = getRate("MDP", "15/6", 30, "M", 30);
+  const r2 = getRate("MDP", "15/6", 60, "F", 60);
+  assert.ok(r1 && r2, "expected rate rows");
+  assert.equal(r1.rate, 230);
+  assert.equal(r2.rate, 230);
+});
+
+check("MDP 18/10 age 50 M → 139.08 per 1000", () => {
+  const r = getRate("MDP", "18/10", 50, "M", 50);
+  assert.ok(r);
+  assert.equal(r.rate, 139.08);
+});
+
+check("MDP 18/10 age 65 F → 147.55 per 1000 (last entry)", () => {
+  const r = getRate("MDP", "18/10", 65, "F", 65);
+  assert.ok(r);
+  assert.equal(r.rate, 147.55);
+});
+
+check("MDP 22/15 age 40 F → 91.21 (female dips mid-life)", () => {
+  const r = getRate("MDP", "22/15", 40, "F", 40);
+  assert.ok(r);
+  assert.equal(r.rate, 91.21);
+});
+
+check("MDP 22/15 age 57 F → 89.87 (lowest point, before rebound)", () => {
+  const r = getRate("MDP", "22/15", 57, "F", 57);
+  assert.ok(r);
+  assert.equal(r.rate, 89.87);
+});
+
+check("MDP 25/20 age 30 M → 69.21 per 1000", () => {
+  const r = getRate("MDP", "25/20", 30, "M", 30);
+  assert.ok(r);
+  assert.equal(r.rate, 69.21);
+});
+
+check("MDP 25/20 age 60 M → 81.26 per 1000 (last payable entry)", () => {
+  const r = getRate("MDP", "25/20", 60, "M", 60);
+  assert.ok(r);
+  assert.equal(r.rate, 81.26);
+});
+
+check("MDP 18/10 1M sumAssured, age 50 M → 137,830 (rate 139.08 − 1.25 discount)", () => {
+  // size discount tier 1M-1.99M for plan 102 = 1.25 baht per unit
+  // (139.08 − 1.25) × 1000 units = 137,830
+  const res = calcMainPremium(
+    { productCode: "MDP", planCode: "18/10", sumAssured: 1_000_000 },
+    50,
+    "M",
+    50,
+  );
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 137_830);
+});
+
+check("MDP 22/15 3M sumAssured, age 30 F → 269,340 (rate 91.28 − 1.50 × 3000)", () => {
+  // verifies corrected 2M-4.99M tier discount (1.50, was 1.75 in earlier data)
+  // (91.28 − 1.50) × 3000 units = 269,340
+  const res = calcMainPremium(
+    { productCode: "MDP", planCode: "22/15", sumAssured: 3_000_000 },
+    30,
+    "F",
+    30,
+  );
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 269_340);
+});
+
+check("MDP 25/20 is level-premium — age 40 M purchase flat across all 20 years", () => {
+  const input: CalcInput = {
+    currentAge: 40,
+    retireAge: 60,
+    gender: "M",
+    occupationClass: 1,
+    main: { productCode: "MDP", planCode: "25/20", sumAssured: 1_000_000 },
+    riders: [],
+  };
+  const out = calculateCashflow(input);
+  const paying = out.cashflow.filter((y) => y.mainPremium > 0);
+  assert.equal(paying.length, 20, `expected 20 paying years, got ${paying.length}`);
+  const first = paying[0].mainPremium;
+  for (const y of paying) {
+    assert.equal(y.mainPremium, first,
+      `year ${y.age}: expected flat ${first}, got ${y.mainPremium}`);
+  }
+});
+
 check("HB rider stops at max_renewal_age 69", () => {
   const input: CalcInput = {
     currentAge: 50,

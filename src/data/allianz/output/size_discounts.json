@@ -4,45 +4,243 @@
     "notes": "Premium discount per unit (per rate_per) based on sum assured tier. Only applies when product.has_size_discount=true."
   },
   "discounts": [
-    {"product_id": 6, "plan_id": null, "sum_min": 0, "sum_max": 299999, "discount_rate": 0},
-    {"product_id": 6, "plan_id": null, "sum_min": 300000, "sum_max": 499999, "discount_rate": 0.5},
-    {"product_id": 6, "plan_id": null, "sum_min": 500000, "sum_max": 999999999, "discount_rate": 1.0},
-
-    {"product_id": 8, "plan_id": null, "sum_min": 0, "sum_max": 999999, "discount_rate": 0},
-    {"product_id": 8, "plan_id": null, "sum_min": 1000000, "sum_max": 999999999, "discount_rate": 0.5},
-
-    {"product_id": 1, "plan_id": 101, "sum_min": 0, "sum_max": 599999, "discount_rate": 0},
-    {"product_id": 1, "plan_id": 101, "sum_min": 600000, "sum_max": 999999, "discount_rate": 0.5},
-    {"product_id": 1, "plan_id": 101, "sum_min": 1000000, "sum_max": 1999999, "discount_rate": 1.0},
-    {"product_id": 1, "plan_id": 101, "sum_min": 2000000, "sum_max": 4999999, "discount_rate": 1.5},
-    {"product_id": 1, "plan_id": 101, "sum_min": 5000000, "sum_max": 999999999, "discount_rate": 2.0},
-
-    {"product_id": 1, "plan_id": 102, "sum_min": 0, "sum_max": 299999, "discount_rate": 0},
-    {"product_id": 1, "plan_id": 102, "sum_min": 300000, "sum_max": 499999, "discount_rate": 0.5},
-    {"product_id": 1, "plan_id": 102, "sum_min": 500000, "sum_max": 999999, "discount_rate": 1.0},
-    {"product_id": 1, "plan_id": 102, "sum_min": 1000000, "sum_max": 1999999, "discount_rate": 1.25},
-    {"product_id": 1, "plan_id": 102, "sum_min": 2000000, "sum_max": 4999999, "discount_rate": 1.75},
-    {"product_id": 1, "plan_id": 102, "sum_min": 5000000, "sum_max": 999999999, "discount_rate": 2.0},
-
-    {"product_id": 1, "plan_id": 103, "sum_min": 0, "sum_max": 299999, "discount_rate": 0},
-    {"product_id": 1, "plan_id": 103, "sum_min": 300000, "sum_max": 499999, "discount_rate": 0.5},
-    {"product_id": 1, "plan_id": 103, "sum_min": 500000, "sum_max": 999999, "discount_rate": 1.0},
-    {"product_id": 1, "plan_id": 103, "sum_min": 1000000, "sum_max": 1999999, "discount_rate": 1.25},
-    {"product_id": 1, "plan_id": 103, "sum_min": 2000000, "sum_max": 4999999, "discount_rate": 1.75},
-    {"product_id": 1, "plan_id": 103, "sum_min": 5000000, "sum_max": 999999999, "discount_rate": 2.0},
-
-    {"product_id": 1, "plan_id": 104, "sum_min": 0, "sum_max": 299999, "discount_rate": 0},
-    {"product_id": 1, "plan_id": 104, "sum_min": 300000, "sum_max": 499999, "discount_rate": 0.5},
-    {"product_id": 1, "plan_id": 104, "sum_min": 500000, "sum_max": 999999, "discount_rate": 1.0},
-    {"product_id": 1, "plan_id": 104, "sum_min": 1000000, "sum_max": 1999999, "discount_rate": 1.25},
-    {"product_id": 1, "plan_id": 104, "sum_min": 2000000, "sum_max": 4999999, "discount_rate": 1.75},
-    {"product_id": 1, "plan_id": 104, "sum_min": 5000000, "sum_max": 999999999, "discount_rate": 2.0},
-
-    {"product_id": 5, "plan_id": null, "sum_min": 0, "sum_max": 299999, "discount_rate": 0},
-    {"product_id": 5, "plan_id": null, "sum_min": 300000, "sum_max": 499999, "discount_rate": 0.5},
-    {"product_id": 5, "plan_id": null, "sum_min": 500000, "sum_max": 999999, "discount_rate": 1.0},
-    {"product_id": 5, "plan_id": null, "sum_min": 1000000, "sum_max": 1999999, "discount_rate": 1.25},
-    {"product_id": 5, "plan_id": null, "sum_min": 2000000, "sum_max": 4999999, "discount_rate": 1.5},
-    {"product_id": 5, "plan_id": null, "sum_min": 5000000, "sum_max": 999999999, "discount_rate": 2.0}
+    {
+      "product_id": 6,
+      "plan_id": null,
+      "sum_min": 0,
+      "sum_max": 299999,
+      "discount_rate": 0
+    },
+    {
+      "product_id": 6,
+      "plan_id": null,
+      "sum_min": 300000,
+      "sum_max": 499999,
+      "discount_rate": 0.5
+    },
+    {
+      "product_id": 6,
+      "plan_id": null,
+      "sum_min": 500000,
+      "sum_max": 999999999,
+      "discount_rate": 1.0
+    },
+    {
+      "product_id": 8,
+      "plan_id": null,
+      "sum_min": 0,
+      "sum_max": 999999,
+      "discount_rate": 0
+    },
+    {
+      "product_id": 8,
+      "plan_id": null,
+      "sum_min": 1000000,
+      "sum_max": 999999999,
+      "discount_rate": 0.5
+    },
+    {
+      "product_id": 1,
+      "plan_id": 101,
+      "sum_min": 0,
+      "sum_max": 599999,
+      "discount_rate": 0
+    },
+    {
+      "product_id": 1,
+      "plan_id": 101,
+      "sum_min": 600000,
+      "sum_max": 999999,
+      "discount_rate": 0.5
+    },
+    {
+      "product_id": 1,
+      "plan_id": 101,
+      "sum_min": 1000000,
+      "sum_max": 1999999,
+      "discount_rate": 1.0
+    },
+    {
+      "product_id": 1,
+      "plan_id": 101,
+      "sum_min": 2000000,
+      "sum_max": 4999999,
+      "discount_rate": 1.5
+    },
+    {
+      "product_id": 1,
+      "plan_id": 101,
+      "sum_min": 5000000,
+      "sum_max": 999999999,
+      "discount_rate": 2.0
+    },
+    {
+      "product_id": 1,
+      "plan_id": 102,
+      "sum_min": 0,
+      "sum_max": 299999,
+      "discount_rate": 0
+    },
+    {
+      "product_id": 1,
+      "plan_id": 102,
+      "sum_min": 300000,
+      "sum_max": 499999,
+      "discount_rate": 0.5
+    },
+    {
+      "product_id": 1,
+      "plan_id": 102,
+      "sum_min": 500000,
+      "sum_max": 999999,
+      "discount_rate": 1.0
+    },
+    {
+      "product_id": 1,
+      "plan_id": 102,
+      "sum_min": 1000000,
+      "sum_max": 1999999,
+      "discount_rate": 1.25
+    },
+    {
+      "product_id": 1,
+      "plan_id": 102,
+      "sum_min": 2000000,
+      "sum_max": 4999999,
+      "discount_rate": 1.5
+    },
+    {
+      "product_id": 1,
+      "plan_id": 102,
+      "sum_min": 5000000,
+      "sum_max": 999999999,
+      "discount_rate": 2.0
+    },
+    {
+      "product_id": 1,
+      "plan_id": 103,
+      "sum_min": 0,
+      "sum_max": 299999,
+      "discount_rate": 0
+    },
+    {
+      "product_id": 1,
+      "plan_id": 103,
+      "sum_min": 300000,
+      "sum_max": 499999,
+      "discount_rate": 0.5
+    },
+    {
+      "product_id": 1,
+      "plan_id": 103,
+      "sum_min": 500000,
+      "sum_max": 999999,
+      "discount_rate": 1.0
+    },
+    {
+      "product_id": 1,
+      "plan_id": 103,
+      "sum_min": 1000000,
+      "sum_max": 1999999,
+      "discount_rate": 1.25
+    },
+    {
+      "product_id": 1,
+      "plan_id": 103,
+      "sum_min": 2000000,
+      "sum_max": 4999999,
+      "discount_rate": 1.5
+    },
+    {
+      "product_id": 1,
+      "plan_id": 103,
+      "sum_min": 5000000,
+      "sum_max": 999999999,
+      "discount_rate": 2.0
+    },
+    {
+      "product_id": 1,
+      "plan_id": 104,
+      "sum_min": 0,
+      "sum_max": 299999,
+      "discount_rate": 0
+    },
+    {
+      "product_id": 1,
+      "plan_id": 104,
+      "sum_min": 300000,
+      "sum_max": 499999,
+      "discount_rate": 0.5
+    },
+    {
+      "product_id": 1,
+      "plan_id": 104,
+      "sum_min": 500000,
+      "sum_max": 999999,
+      "discount_rate": 1.0
+    },
+    {
+      "product_id": 1,
+      "plan_id": 104,
+      "sum_min": 1000000,
+      "sum_max": 1999999,
+      "discount_rate": 1.25
+    },
+    {
+      "product_id": 1,
+      "plan_id": 104,
+      "sum_min": 2000000,
+      "sum_max": 4999999,
+      "discount_rate": 1.5
+    },
+    {
+      "product_id": 1,
+      "plan_id": 104,
+      "sum_min": 5000000,
+      "sum_max": 999999999,
+      "discount_rate": 2.0
+    },
+    {
+      "product_id": 5,
+      "plan_id": null,
+      "sum_min": 0,
+      "sum_max": 299999,
+      "discount_rate": 0
+    },
+    {
+      "product_id": 5,
+      "plan_id": null,
+      "sum_min": 300000,
+      "sum_max": 499999,
+      "discount_rate": 0.5
+    },
+    {
+      "product_id": 5,
+      "plan_id": null,
+      "sum_min": 500000,
+      "sum_max": 999999,
+      "discount_rate": 1.0
+    },
+    {
+      "product_id": 5,
+      "plan_id": null,
+      "sum_min": 1000000,
+      "sum_max": 1999999,
+      "discount_rate": 1.25
+    },
+    {
+      "product_id": 5,
+      "plan_id": null,
+      "sum_min": 2000000,
+      "sum_max": 4999999,
+      "discount_rate": 1.5
+    },
+    {
+      "product_id": 5,
+      "plan_id": null,
+      "sum_min": 5000000,
+      "sum_max": 999999999,
+      "discount_rate": 2.0
+    }
   ]
 }
