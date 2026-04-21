@@ -235,6 +235,49 @@ check("TM1 is yearly-renewable — premium rises with age", () => {
   );
 });
 
+// ─── Tier 1 Batch 1 — CB, TRN, TRC ─────────────────────────────────────────
+
+check("CB (Cancer) age 36 M → 1.30 per 1000", () => {
+  const r = getRate("CB", undefined, 36, "M", 36);
+  assert.ok(r, "expected a rate row");
+  assert.equal(r.rate, 1.30);
+});
+
+check("CB (Cancer) age 36 F → 2.30 per 1000", () => {
+  const r = getRate("CB", undefined, 36, "F", 36);
+  assert.ok(r, "expected a rate row");
+  assert.equal(r.rate, 2.30);
+});
+
+check("CB sumAssured 1M, age 50 M, occ 3 → 5.40 × 1000 × 1.30 = 7,020", () => {
+  const res = calcRiderPremium(
+    { productCode: "CB", sumAssured: 1_000_000 },
+    50,
+    "M",
+    3,
+    50,
+  );
+  assert.equal(res.premium, 7020);
+});
+
+check("TRN 5/5 age 30 M → 4.91 per 1000", () => {
+  const r = getRate("TRN", undefined, 30, "M", 30);
+  assert.ok(r, "expected a rate row");
+  assert.equal(r.rate, 4.91);
+});
+
+check("TRC 10/10 age 30 F → 2.80 per 1000", () => {
+  const r = getRate("TRC", "10/10", 30, "F", 30);
+  assert.ok(r, "expected a rate row");
+  assert.equal(r.rate, 2.80);
+});
+
+check("TRC 20/20 age 40 M → 8.94 per 1000", () => {
+  const r = getRate("TRC", "20/20", 40, "M", 40);
+  assert.ok(r, "expected a rate row");
+  assert.equal(r.rate, 8.94);
+});
+
 check("HB rider stops at max_renewal_age 69", () => {
   const input: CalcInput = {
     currentAge: 50,
