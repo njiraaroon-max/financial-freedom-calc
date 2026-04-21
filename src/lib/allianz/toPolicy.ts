@@ -133,6 +133,11 @@ export function buildPolicyFromQuote(
     category,
     group,
     policyType,
+    // First-class pricer identifiers so downstream features can re-run the
+    // Allianz engine age-by-age on this policy.
+    productCode: product.code,
+    ...(input.planCode ? { planCode: input.planCode } : {}),
+    ...(input.dailyBenefit ? { dailyBenefit: input.dailyBenefit } : {}),
     paymentMode: "years",
     paymentYears: input.premiumYears,
     paymentEndAge: 0,

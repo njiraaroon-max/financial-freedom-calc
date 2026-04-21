@@ -1796,6 +1796,200 @@ check("resolveMainPlan: SLA85 with unknown variant → falls back to default", (
   assert.equal(r.planCode, "A85/20");
 });
 
+// ─── policyPricing — re-price adopted policies across ages ────────────────
+section("policyPricing — computeAllianzPremiumByAge");
+
+// Build a fake InsurancePolicy stub just for the pricer; only the fields
+// policyPricing reads are populated.  Keeps the test free of the full store
+// shape / id-generator.
+function makeStubPolicy(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "stub",
+    planName: "stub",
+    company: "Allianz Ayudhya",
+    policyNumber: "",
+    category: "life" as const,
+    group: "health" as const,
+    policyType: "health" as const,
+    paymentMode: "years" as const,
+    paymentYears: 1,
+    paymentEndAge: 0,
+    lastPayDate: "",
+    startDate: "",
+    coverageMode: "age" as const,
+    coverageEndAge: 80,
+    coverageYears: 0,
+    endDate: "",
+    sumInsured: 0,
+    premium: 0,
+    cashValue: 0,
+    details: "",
+    notes: "",
+    order: 0,
+    ...overrides,
+  } as unknown as Parameters<
+    typeof import("../policyPricing").computeAllianzPremiumByAge
+  >[0]["policies"][number];
+}
+
+check("isPriceableAllianzHealthPolicy: accepts IPD rider (HSMFCPN_BDMS)", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { isPriceableAllianzHealthPolicy } = require("../policyPricing");
+  const p = makeStubPolicy({
+    productCode: "HSMFCPN_BDMS",
+    planCode: "500",
+    dailyBenefit: 25000,
+  });
+  assert.equal(isPriceableAllianzHealthPolicy(p), true);
+});
+
+check("isPriceableAllianzHealthPolicy: rejects non-Allianz company", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { isPriceableAllianzHealthPolicy } = require("../policyPricing");
+  const p = makeStubPolicy({ company: "Muang Thai", productCode: "HSMFCPN_BDMS" });
+  assert.equal(isPriceableAllianzHealthPolicy(p), false);
+});
+
+check("isPriceableAllianzHealthPolicy: rejects missing productCode", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { isPriceableAllianzHealthPolicy } = require("../policyPricing");
+  const p = makeStubPolicy({});
+  assert.equal(isPriceableAllianzHealthPolicy(p), false);
+});
+
+check("isPriceableAllianzHealthPolicy: rejects main-product code (SLA85)", () => {
+  // SLA85 is category=1 (main), not a rider → out of scope for Pillar-2.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { isPriceableAllianzHealthPolicy } = require("../policyPricing");
+  const p = makeStubPolicy({ productCode: "SLA85" });
+  assert.equal(isPriceableAllianzHealthPolicy(p), false);
+});
+
+check("computeAllianzPremiumByAge: empty policies → all zeros", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { computeAllianzPremiumByAge } = require("../policyPricing");
+  const result = computeAllianzPremiumByAge({
+    policies: [],
+    currentAge: 35,
+    ageFrom: 35,
+    ageTo: 40,
+    gender: "M",
+    occClass: 1,
+  });
+  for (let age = 35; age <= 40; age++) {
+    assert.equal(result[age].total, 0);
+  }
+});
+
+check("computeAllianzPremiumByAge: premium grows with age on CI rider", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { computeAllianzPremiumByAge } = require("../policyPricing");
+  const p = makeStubPolicy({
+    id: "ci1",
+    productCode: "CI48",
+    sumInsured: 1_000_000,
+    coverageEndAge: 80,
+  });
+  const result = computeAllianzPremiumByAge({
+    policies: [p],
+    currentAge: 30,
+    ageFrom: 30,
+    ageTo: 60,
+    gender: "M",
+    occClass: 1,
+  });
+  // CI rates are age-banded & rise with age → 60-year premium > 30-year
+  assert.ok(result[60].total > result[30].total, `expected 60yo > 30yo, got ${result[60].total} vs ${result[30].total}`);
+  // And both should be positive
+  assert.ok(result[30].total > 0);
+});
+
+check("computeAllianzPremiumByAge: zeros beyond coverage end age", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { computeAllianzPremiumByAge } = require("../policyPricing");
+  const p = makeStubPolicy({
+    id: "ci2",
+    productCode: "CI48",
+    sumInsured: 1_000_000,
+    coverageEndAge: 50, // unusually early, so we can see the cutoff
+  });
+  const result = computeAllianzPremiumByAge({
+    policies: [p],
+    currentAge: 30,
+    ageFrom: 48,
+    ageTo: 55,
+    gender: "M",
+    occClass: 1,
+  });
+  assert.ok(result[50].total > 0);
+  // 51 and up → past coverageEndAge → 0
+  assert.equal(result[51].total, 0);
+  assert.equal(result[55].total, 0);
+});
+
+check("computeAllianzPremiumByAge: sums across multiple policies", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { computeAllianzPremiumByAge } = require("../policyPricing");
+  const a = makeStubPolicy({
+    id: "ci-a",
+    productCode: "CI48",
+    sumInsured: 1_000_000,
+    coverageEndAge: 80,
+  });
+  const b = makeStubPolicy({
+    id: "ci-b",
+    productCode: "CI48",
+    sumInsured: 2_000_000,
+    coverageEndAge: 80,
+  });
+  const result = computeAllianzPremiumByAge({
+    policies: [a, b],
+    currentAge: 40,
+    ageFrom: 40,
+    ageTo: 40,
+    gender: "M",
+    occClass: 1,
+  });
+  // b has 2× sum assured → roughly 2× premium; total ≈ 3× a's solo premium
+  assert.ok(
+    result[40].perPolicy["ci-a"] > 0 && result[40].perPolicy["ci-b"] > 0,
+    "both policies should contribute",
+  );
+  assert.ok(
+    Math.abs(result[40].perPolicy["ci-b"] - 2 * result[40].perPolicy["ci-a"]) < 2,
+    `b should be ≈ 2× a, got a=${result[40].perPolicy["ci-a"]} b=${result[40].perPolicy["ci-b"]}`,
+  );
+});
+
+check("bucketByAge: averages premiums inside a 5-year band", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { bucketByAge } = require("../policyPricing");
+  const fakeByAge = {
+    36: { total: 20000, perPolicy: {} },
+    37: { total: 21000, perPolicy: {} },
+    38: { total: 22000, perPolicy: {} },
+    39: { total: 23000, perPolicy: {} },
+    40: { total: 24000, perPolicy: {} },
+  };
+  const brackets = bucketByAge(fakeByAge, 36, 40, 5);
+  assert.equal(brackets.length, 1);
+  assert.equal(brackets[0].ageFrom, 36);
+  assert.equal(brackets[0].ageTo, 40);
+  assert.equal(brackets[0].annualPremium, 22000); // avg of 20..24k
+});
+
+check("bucketByAge: clips last bracket to endAge (51-52 not 51-55)", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { bucketByAge } = require("../policyPricing");
+  const byAge: Record<number, { total: number; perPolicy: object }> = {};
+  for (let age = 46; age <= 52; age++) byAge[age] = { total: 1000 * age, perPolicy: {} };
+  const brackets = bucketByAge(byAge, 46, 52, 5);
+  assert.equal(brackets.length, 2);
+  assert.equal(brackets[0].ageTo, 50);
+  assert.equal(brackets[1].ageFrom, 51);
+  assert.equal(brackets[1].ageTo, 52); // clipped, not 55
+});
+
 // ═══ §X  NHS-13 schema + health_benefits.json seed data ════════════════════
 section("NHS-13 schema");
 

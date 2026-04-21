@@ -81,6 +81,15 @@ export interface InsurancePolicy {
   group: PolicyGroup;
   policyType: PolicyType;
 
+  /** When a policy is adopted from the Allianz calculator/compare flow, these
+   *  identify the underlying rate-table row so other features (e.g. Pillar-2
+   *  "ดึงจากกรมธรรม์ Allianz") can re-price the policy age-by-age instead
+   *  of treating `premium` as a single flat number.  Left undefined for
+   *  manually-entered or non-Allianz policies. */
+  productCode?: string;        // Allianz product code (e.g. "SLA85", "HSMFCPN_BDMS")
+  planCode?: string;           // Plan variant within the product (e.g. "A85/20")
+  dailyBenefit?: number;       // HB-style riders: baht/day benefit used for pricing
+
   // Payment period
   paymentMode: PaymentMode;   // "years" | "age" | "date"
   paymentYears: number;       // จ่ายเบี้ยกี่ปี (mode=years)
