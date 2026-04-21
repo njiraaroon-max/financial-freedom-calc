@@ -111,7 +111,15 @@ export function getRates(productId: number, planId: number | null): PremiumRate[
 }
 
 export function getSizeDiscounts(productId: number, planId: number | null): SizeDiscount[] {
-  return discountsByProductPlan.get(`${productId}:${planId ?? 0}`) ?? [];
+  // Plan-specific discounts win; fall back to the product-level (plan_id=null)
+  // schedule when a product uses a single table across all its plans
+  // (e.g. SLA85's 4 A85/X plans share one size-discount schedule).
+  const planSpecific = discountsByProductPlan.get(`${productId}:${planId ?? 0}`);
+  if (planSpecific && planSpecific.length > 0) return planSpecific;
+  if (planId != null) {
+    return discountsByProductPlan.get(`${productId}:0`) ?? [];
+  }
+  return [];
 }
 
 export function getOccMultiplier(productId: number, occClass: OccClass): number {

@@ -396,6 +396,64 @@ check("CBN rider stops at max_renewal_age 84", () => {
   assert.ok(maxAge <= 84, `CBN should stop at 84, saw ${maxAge}`);
 });
 
+// ─── SLA85 — all 4 plans from user-provided high-res crops ─────────────────
+
+check("SLA A85/10 age 36 M → 82.28 per 1000", () => {
+  const r = getRate("SLA85", "A85/10", 36, "M", 36);
+  assert.ok(r, "expected a rate row");
+  assert.equal(r.rate, 82.28);
+});
+
+check("SLA A85/15 age 40 F → 54.41 per 1000", () => {
+  const r = getRate("SLA85", "A85/15", 40, "F", 40);
+  assert.ok(r, "expected a rate row");
+  assert.equal(r.rate, 54.41);
+});
+
+check("SLA A85/20 age 30 M → 42.23 per 1000", () => {
+  const r = getRate("SLA85", "A85/20", 30, "M", 30);
+  assert.ok(r, "expected a rate row");
+  assert.equal(r.rate, 42.23);
+});
+
+check("SLA A85/25 age 60 M → 74.32 per 1000 (last payable entry)", () => {
+  const r = getRate("SLA85", "A85/25", 60, "M", 60);
+  assert.ok(r, "expected a rate row");
+  assert.equal(r.rate, 74.32);
+});
+
+check("SLA A85/10 1M sumAssured, age 36 M → 81,030 (rate 82.28 − 1.25 discount)", () => {
+  // size discount tier 1,000,000-1,999,999 = 1.25 baht per unit (1000 sum)
+  // (82.28 - 1.25) × 1000 units = 81,030
+  const res = calcMainPremium(
+    { productCode: "SLA85", planCode: "A85/10", sumAssured: 1_000_000 },
+    36,
+    "M",
+    36,
+  );
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 81_030);
+});
+
+check("SLA A85/10 is level-premium — age 36 purchase flat across all 10 years", () => {
+  const input: CalcInput = {
+    currentAge: 36,
+    retireAge: 60,
+    gender: "M",
+    occupationClass: 1,
+    main: { productCode: "SLA85", planCode: "A85/10", sumAssured: 1_000_000 },
+    riders: [],
+  };
+  const out = calculateCashflow(input);
+  const paying = out.cashflow.filter((y) => y.mainPremium > 0);
+  assert.equal(paying.length, 10, `expected 10 paying years, got ${paying.length}`);
+  const first = paying[0].mainPremium;
+  for (const y of paying) {
+    assert.equal(y.mainPremium, first,
+      `year ${y.age}: expected flat ${first}, got ${y.mainPremium}`);
+  }
+});
+
 check("HB rider stops at max_renewal_age 69", () => {
   const input: CalcInput = {
     currentAge: 50,
