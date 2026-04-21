@@ -848,16 +848,10 @@ export default function AllianzQuoteCard({
           {/* Footer summary + import */}
           {portfolioSummary.allocated > 0 && (
             <div className="px-4 py-3 bg-gradient-to-b from-gray-50 to-white border-t border-gray-100">
-              <div className="flex items-baseline justify-between text-[13px] text-gray-500 mb-1">
+              <div className="flex items-baseline justify-between text-[13px] text-gray-500 mb-3">
                 <span>เบี้ยรวม/ปี</span>
                 <span className="text-base font-extrabold text-[#003781]">
                   {fmt(portfolioSummary.totalPerYear)} บาท
-                </span>
-              </div>
-              <div className="flex items-baseline justify-between text-[11px] text-gray-500 mb-3">
-                <span>เบี้ยรวมตลอดสัญญา</span>
-                <span className="font-bold text-gray-700">
-                  {fmtShort(portfolioSummary.totalAllYears)} บาท
                 </span>
               </div>
               <button
