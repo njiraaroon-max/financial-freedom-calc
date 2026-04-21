@@ -346,6 +346,10 @@ build_rate_sheet("Rider HSMHPSK สบายฯ", "HSMHPSK", "ปลดล็อ
                  extra_note="2 แผน (ไม่มี/มีค่าใช้จ่ายร่วม) · rate = เบี้ยเต็มต่อปี · ต่ออายุถึง 89 (70+ เฉพาะต่ออายุ)")
 build_rate_sheet("Rider OPDMSK สบายฯ OPD", "OPDMSK", "OPD ปลดล็อค สบายกระเป๋า (แบบ ข)",
                  extra_note="13 แผน (วงเงิน 400–4,000/วัน) · ต้องมี HSMHPSK · ต่ออายุถึง 69 (61+ เฉพาะต่ออายุ)")
+build_rate_sheet("Rider HSMHPDC ดับเบิลฯ", "HSMHPDC", "ปลดล็อค ดับเบิล แคร์ (IPD)",
+                 extra_note="4 แผน: ND1/ND2/ND3 อายุ 11-89 + D1 อายุ 1ด1ว-89 · ต่ออายุถึง 89 (71+ เฉพาะต่ออายุ)")
+build_rate_sheet("Rider OPDMDC ดับเบิลฯ OPD", "OPDMDC", "OPD ปลดล็อค ดับเบิล แคร์ (แบบ ค)",
+                 extra_note="13 แผน · แผน 400-2,000 คุ้มแต่ 1ด1ว · แผน 2,500+ เริ่ม 11 · ต่ออายุถึง 69")
 build_rate_sheet("Rider CI48", "CI48", "โรคร้ายแรง 48 (CI48)", extra_note="rate คิดต่อ 1,000 ทุน CI")
 
 # Tier 1 batch additions (Apr 2026)

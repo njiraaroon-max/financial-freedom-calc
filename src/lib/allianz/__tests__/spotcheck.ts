@@ -854,6 +854,148 @@ check("OPDMSK rider stops at max_renewal_age 69", () => {
   assert.ok(maxAge <= 69, `OPDMSK should stop at 69, max = ${maxAge}`);
 });
 
+// ═══ Tier 2 Batch 10 — HSMHPDC + OPDMDC ═══════════════════════════════════
+section("HSMHPDC + OPDMDC (ปลดล็อค ดับเบิล แคร์ IPD + OPD)");
+
+check("HSMHPDC plan ND1 age 30 M → 18,326 (no-deductible flat)", () => {
+  const res = calcRiderPremium(
+    { productCode: "HSMHPDC", planCode: "ND1" }, 30, "M", 1, 30);
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 18326);
+});
+
+check("HSMHPDC plan ND3 age 50 F → 86,267 (highest-tier no-deductible)", () => {
+  const res = calcRiderPremium(
+    { productCode: "HSMHPDC", planCode: "ND3" }, 50, "F", 1, 50);
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 86267);
+});
+
+check("HSMHPDC plan ND2 age 66-70 M → 137,116 (last entry band)", () => {
+  const r = getRate("HSMHPDC", "ND2", 68, "M", 68);
+  assert.ok(r);
+  assert.equal(r.rate, 137116);
+  assert.equal(r.is_renewal_only, false);
+});
+
+check("HSMHPDC plan D1 age 0 (baby) M → 46,167 (with-deductible covers 1m1d)", () => {
+  const r = getRate("HSMHPDC", "D1", 0, "M", 0);
+  assert.ok(r);
+  assert.equal(r.rate, 46167);
+});
+
+check("HSMHPDC plan D1 age 8 F → 23,948 (baby band 6-10)", () => {
+  const r = getRate("HSMHPDC", "D1", 8, "F", 8);
+  assert.ok(r);
+  assert.equal(r.rate, 23948);
+});
+
+check("HSMHPDC plan D1 age 75 M → 94,621 renewal-only", () => {
+  const r = getRate("HSMHPDC", "D1", 75, "M", 65);
+  assert.ok(r);
+  assert.equal(r.rate, 94621);
+  assert.equal(r.is_renewal_only, true);
+});
+
+check("HSMHPDC plan ND1 age 45 F occ 3 → 31,286 × 1.30 = 40,671.8", () => {
+  const res = calcRiderPremium(
+    { productCode: "HSMHPDC", planCode: "ND1" }, 45, "F", 3, 45);
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 40671.8);
+});
+
+check("HSMHPDC plan ND3 age 40 M occ 4 → 54,098 × 1.45 = 78,442.1", () => {
+  const res = calcRiderPremium(
+    { productCode: "HSMHPDC", planCode: "ND3" }, 40, "M", 4, 40);
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 78442.1);
+});
+
+check("HSMHPDC rider stops at max_renewal_age 89", () => {
+  const input: CalcInput = {
+    currentAge: 70,
+    retireAge: 95,
+    gender: "F",
+    occupationClass: 1,
+    main: { productCode: "MSI1808", sumAssured: 1_000_000, premiumYears: 8 },
+    riders: [{ productCode: "HSMHPDC", planCode: "ND1" }],
+  };
+  const out = calculateCashflow(input);
+  const paying = out.cashflow.filter((y) =>
+    y.ridersPremium.some((r) => r.code === "HSMHPDC" && r.premium > 0),
+  );
+  const maxAge = Math.max(...paying.map((y) => y.age));
+  assert.ok(maxAge <= 89, `HSMHPDC should stop at 89, max = ${maxAge}`);
+});
+
+check("OPDMDC plan 1000 age 30 M → 3,750", () => {
+  const res = calcRiderPremium(
+    { productCode: "OPDMDC", planCode: "1000" }, 30, "M", 1, 30);
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 3750);
+});
+
+check("OPDMDC plan 2000 age 3 M → 20,300 (baby band 1m1d-5)", () => {
+  const r = getRate("OPDMDC", "2000", 3, "M", 3);
+  assert.ok(r);
+  assert.equal(r.rate, 20300);
+});
+
+check("OPDMDC plan 2500 age 3 — no row (baby bands only cover 400-2000)", () => {
+  const r = getRate("OPDMDC", "2500", 3, "M", 3);
+  assert.equal(r, null, "baby bands should not cover plans 2500+");
+});
+
+check("OPDMDC plan 4000 age 11-15 M=F → 14,250", () => {
+  const rm = getRate("OPDMDC", "4000", 13, "M", 13);
+  const rf = getRate("OPDMDC", "4000", 13, "F", 13);
+  assert.equal(rm?.rate, 14250);
+  assert.equal(rf?.rate, 14250);
+});
+
+check("OPDMDC plan 1000 age 50 F → 5,250 (F band 16-55)", () => {
+  const r = getRate("OPDMDC", "1000", 50, "F", 50);
+  assert.ok(r);
+  assert.equal(r.rate, 5250);
+});
+
+check("OPDMDC plan 2000 age 65 F → 30,450 renewal-only", () => {
+  const r = getRate("OPDMDC", "2000", 65, "F", 60);
+  assert.ok(r);
+  assert.equal(r.rate, 30450);
+  assert.equal(r.is_renewal_only, true);
+});
+
+check("OPDMDC plan 4000 age 66-69 F → 85,500 (differs from OPDMSK 99,750)", () => {
+  const r = getRate("OPDMDC", "4000", 67, "F", 60);
+  assert.ok(r);
+  assert.equal(r.rate, 85500);
+});
+
+check("OPDMDC plan 500 age 40 M occ 4 → 2,000 × 1.45 = 2,900", () => {
+  const res = calcRiderPremium(
+    { productCode: "OPDMDC", planCode: "500" }, 40, "M", 4, 40);
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 2900);
+});
+
+check("OPDMDC rider stops at max_renewal_age 69", () => {
+  const input: CalcInput = {
+    currentAge: 60,
+    retireAge: 80,
+    gender: "M",
+    occupationClass: 1,
+    main: { productCode: "MSI1808", sumAssured: 1_000_000, premiumYears: 8 },
+    riders: [{ productCode: "OPDMDC", planCode: "1000" }],
+  };
+  const out = calculateCashflow(input);
+  const paying = out.cashflow.filter((y) =>
+    y.ridersPremium.some((r) => r.code === "OPDMDC" && r.premium > 0),
+  );
+  const maxAge = Math.max(...paying.map((y) => y.age));
+  assert.ok(maxAge <= 69, `OPDMDC should stop at 69, max = ${maxAge}`);
+});
+
 // ═══════════════════════════════════════════════════════════════════════════
 console.log(`\n${passed}/${passed + failed} checks passed.`);
 if (failed > 0) {
