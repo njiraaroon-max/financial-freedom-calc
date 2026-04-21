@@ -144,11 +144,21 @@ export default function BundleColumn({
           value={value.mainCode}
           onChange={(e) => onChange({ ...value, mainCode: e.target.value })}
         >
-          {MAIN_PRESETS.map((p) => (
-            <option key={p.code} value={p.code}>
-              {p.label}
-            </option>
-          ))}
+          {(["life", "annuity", "savings"] as const).map((grp) => {
+            const items = MAIN_PRESETS.filter((p) => (p.group ?? "life") === grp);
+            if (items.length === 0) return null;
+            const heading =
+              grp === "life" ? "ประกันชีวิต" : grp === "annuity" ? "บำนาญ" : "ออมทรัพย์";
+            return (
+              <optgroup key={grp} label={heading}>
+                {items.map((p) => (
+                  <option key={p.code} value={p.code}>
+                    {p.label}
+                  </option>
+                ))}
+              </optgroup>
+            );
+          })}
         </select>
         {main?.sub && (
           <div className="text-[11px] text-gray-400 mt-1 leading-tight">{main.sub}</div>

@@ -17,6 +17,9 @@ export interface PlanVariant {
   coverageEndAge?: number;
 }
 
+/** Main-product bucket — used to render `<optgroup>`s in the picker. */
+export type MainGroup = "life" | "annuity" | "savings";
+
 export interface MainPreset {
   code: string;
   planCode?: string;     // default plan_code (matches one variant when variants present)
@@ -25,14 +28,13 @@ export interface MainPreset {
   premiumYears: number;
   coverageEndAge?: number;
   variants?: PlanVariant[];
+  /** Dropdown section — defaults to "life" when omitted. */
+  group?: MainGroup;
 }
 
 export const MAIN_PRESETS: MainPreset[] = [
-  { code: "T1010", label: "Term 10 ปี", sub: "อยุธยาเฉพาะกาล 10/10", premiumYears: 10 },
-  { code: "MWLA9021", label: "Whole Life A90/21", sub: "มาย โฮล ไลฟ์ A90/21", premiumYears: 21, coverageEndAge: 90 },
-  { code: "MWLA9906", label: "Wealth Legacy A99/6", sub: "มาย เวลท์ เลกาซี A99/6 (มีเงินปันผล, ทุนขั้นต่ำ 10MB)", premiumYears: 6, coverageEndAge: 99 },
-  { code: "MWLA9920", label: "Whole Life A99/20", sub: "มาย โฮล ไลฟ์ A99/20 (มีเงินปันผล)", premiumYears: 20, coverageEndAge: 99 },
-  { code: "TM1", label: "Term ปีต่อปี", sub: "อยุธยาชั่วระยะเวลา", premiumYears: 1 },
+  // ─── Life (ประกันชีวิต) ───────────────────────────────────────────────
+  { code: "MWLA9021", label: "Whole Life A90/21", sub: "มาย โฮล ไลฟ์ A90/21", premiumYears: 21, coverageEndAge: 90, group: "life" },
   {
     code: "SLA85",
     planCode: "A85/20",
@@ -40,6 +42,7 @@ export const MAIN_PRESETS: MainPreset[] = [
     sub: "อยุธยาชีวิตมั่นคง A85 — เลือกระยะจ่ายเบี้ย",
     premiumYears: 20,
     coverageEndAge: 85,
+    group: "life",
     variants: [
       { planCode: "A85/10", label: "/10", premiumYears: 10, coverageEndAge: 85 },
       { planCode: "A85/15", label: "/15", premiumYears: 15, coverageEndAge: 85 },
@@ -47,6 +50,32 @@ export const MAIN_PRESETS: MainPreset[] = [
       { planCode: "A85/25", label: "/25", premiumYears: 25, coverageEndAge: 85 },
     ],
   },
+  { code: "MWLA9920", label: "Whole Life A99/20", sub: "มาย โฮล ไลฟ์ A99/20 (มีเงินปันผล)", premiumYears: 20, coverageEndAge: 99, group: "life" },
+  { code: "MWLA9906", label: "Wealth Legacy A99/6", sub: "มาย เวลท์ เลกาซี A99/6 (มีเงินปันผล, ทุนขั้นต่ำ 10MB)", premiumYears: 6, coverageEndAge: 99, group: "life" },
+  { code: "T1010", label: "Term 10/10", sub: "อยุธยาเฉพาะกาล 10/10 (คุ้มครอง 10 ปี / จ่ายเบี้ย 10 ปี)", premiumYears: 10, group: "life" },
+  { code: "TM1", label: "Term ปีต่อปี (1/1)", sub: "อยุธยาชั่วระยะเวลา — ต่ออายุรายปี", premiumYears: 1, group: "life" },
+
+  // ─── Annuity (บำนาญ) ──────────────────────────────────────────────────
+  { code: "MAFA9005", label: "บำนาญไฟว์ A90/5", sub: "มาย บำนาญ ไฟว์ A90/5 — เข้าซื้อช่วงอายุ 40-55 / จ่ายเบี้ย 5 ปี (มีเงินปันผล)", premiumYears: 5, coverageEndAge: 90, group: "annuity" },
+  { code: "MAPA85A55", label: "บำนาญพลัส A85/A55", sub: "มาย บำนาญ พลัส — เข้าซื้ออายุ 25-50 / จ่ายเบี้ยถึงอายุ 55 / คุ้มครองถึง 85", premiumYears: 25, coverageEndAge: 85, group: "annuity" },
+
+  // ─── Endowment / Savings (ออมทรัพย์) ──────────────────────────────────
+  {
+    code: "MDP",
+    planCode: "18/10",
+    label: "My Double Plus",
+    sub: "มาย ดับเบิล พลัส (มีเงินปันผล) — เลือกแผนตามระยะเวลา",
+    premiumYears: 10,
+    group: "savings",
+    variants: [
+      { planCode: "15/6",  label: "15/6",  premiumYears: 6 },
+      { planCode: "18/10", label: "18/10", premiumYears: 10 },
+      { planCode: "22/15", label: "22/15", premiumYears: 15 },
+      { planCode: "25/20", label: "25/20", premiumYears: 20 },
+    ],
+  },
+  { code: "MSI1808", label: "My Smart Index 18/8", sub: "มาย สมาร์ต อินเด็กซ์ 18/8 — ผลตอบแทนตามดัชนีอ้างอิง / คุ้มครอง 18 ปี / จ่าย 8 ปี", premiumYears: 8, group: "savings" },
+  { code: "MQR1206", label: "My Quick Return 12/6", sub: "มาย ควิก รีเทิร์น 12/6 (มีเงินปันผล) — คุ้มครอง 12 ปี / จ่ายเบี้ย 6 ปี", premiumYears: 6, group: "savings" },
 ];
 
 /** Resolve the effective (planCode, premiumYears, coverageEndAge) for a bundle
