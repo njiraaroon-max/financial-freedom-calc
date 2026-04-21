@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { Save, User, Briefcase, Heart, Calendar, Banknote, Clock, ShieldCheck, Trash2 } from "lucide-react";
-import { useProfileStore, OCCUPATION_OPTIONS, MARITAL_OPTIONS } from "@/store/profile-store";
+import { useProfileStore, OCCUPATION_OPTIONS, MARITAL_OPTIONS, GENDER_OPTIONS } from "@/store/profile-store";
 import { flushAllStores } from "@/lib/sync/flush-all";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 import ThaiDatePicker from "@/components/ThaiDatePicker";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import MoneyInput from "@/components/MoneyInput";
-import type { OccupationType, MaritalStatus } from "@/store/profile-store";
+import type { OccupationType, MaritalStatus, Gender } from "@/store/profile-store";
 
 function fmt(n: number): string {
   if (n === 0) return "";
@@ -19,6 +19,7 @@ function fmt(n: number): string {
 interface DraftProfile {
   name: string;
   birthDate: string;
+  gender: Gender;
   occupation: OccupationType;
   maritalStatus: MaritalStatus;
   numberOfChildren: number;
@@ -35,6 +36,7 @@ export default function PersonalInfoPage() {
   const [draft, setDraft] = useState<DraftProfile>({
     name: profile.name,
     birthDate: profile.birthDate,
+    gender: profile.gender,
     occupation: profile.occupation,
     maritalStatus: profile.maritalStatus,
     numberOfChildren: profile.numberOfChildren,
@@ -54,6 +56,7 @@ export default function PersonalInfoPage() {
       setDraft({
         name: s.name,
         birthDate: s.birthDate,
+        gender: s.gender,
         occupation: s.occupation,
         maritalStatus: s.maritalStatus,
         numberOfChildren: s.numberOfChildren,
@@ -81,6 +84,7 @@ export default function PersonalInfoPage() {
     // 1. Push draft → zustand store (localStorage is synchronous).
     profile.updateProfile("name", draft.name);
     profile.updateProfile("birthDate", draft.birthDate);
+    profile.updateProfile("gender", draft.gender);
     profile.updateProfile("occupation", draft.occupation);
     profile.updateProfile("maritalStatus", draft.maritalStatus);
     profile.updateProfile("numberOfChildren", draft.numberOfChildren);
@@ -153,6 +157,31 @@ export default function PersonalInfoPage() {
                 อายุปัจจุบัน: {draftAge} ปี
               </div>
             )}
+          </div>
+
+          <div>
+            <label className="text-[14px] text-gray-500 mb-2 block">
+              <User size={11} className="inline mr-1" />
+              เพศ
+            </label>
+            <div className="flex gap-2">
+              {GENDER_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => updateDraft("gender", opt.value as Gender)}
+                  className={`flex-1 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                    draft.gender === opt.value
+                      ? "bg-[var(--color-primary)] text-white shadow"
+                      : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <div className="text-[11px] text-gray-400 mt-1">
+              ใช้คำนวณเบี้ยประกันชีวิต/สุขภาพของ Allianz (ต่างเพศ อัตราต่างกัน)
+            </div>
           </div>
 
           <div>

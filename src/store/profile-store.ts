@@ -5,11 +5,13 @@ import { persist } from "zustand/middleware";
 
 export type OccupationType = "private" | "government" | "freelance";
 export type MaritalStatus = "single" | "married" | "married_with_children";
+export type Gender = "M" | "F";
 
 export interface ProfileState {
   // ข้อมูลส่วนตัว
   name: string;
   birthDate: string;            // YYYY-MM-DD
+  gender: Gender;               // M | F  — used by Allianz pricer (age+gender rates)
   occupation: OccupationType;
   maritalStatus: MaritalStatus;
   numberOfChildren: number;
@@ -35,6 +37,7 @@ export interface ProfileState {
 const DEFAULT_PROFILE = {
   name: "",
   birthDate: "",
+  gender: "M" as Gender,
   occupation: "private" as OccupationType,
   maritalStatus: "single" as MaritalStatus,
   numberOfChildren: 0,
@@ -80,4 +83,9 @@ export const MARITAL_OPTIONS = [
   { value: "single" as const, label: "โสด", description: "" },
   { value: "married" as const, label: "แต่งงาน (ไม่มีบุตร)", description: "" },
   { value: "married_with_children" as const, label: "แต่งงาน (มีบุตร)", description: "" },
+];
+
+export const GENDER_OPTIONS = [
+  { value: "M" as const, label: "ชาย" },
+  { value: "F" as const, label: "หญิง" },
 ];

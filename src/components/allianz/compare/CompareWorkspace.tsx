@@ -143,7 +143,19 @@ export default function CompareWorkspace({ urlSync = false }: CompareWorkspacePr
     makeDefaultBundle(1),
     makeDefaultBundle(2),
   ]);
-  const [gender, setGender] = useState<Gender>("M");
+  // Gender defaults from profile; share-links can override via `?g=M|F`
+  // (receiver may want to see "what if I were male/female" without changing
+  // their own profile — `g` wins over profile when present).
+  const profileGender = useProfileStore((s) => s.gender);
+  const setProfileGender = useProfileStore((s) => s.updateProfile);
+  const [genderOverride, setGenderOverride] = useState<Gender | null>(null);
+  const gender: Gender = genderOverride ?? profileGender;
+  const setGender = (g: Gender) => {
+    // Clicking the pill writes through to the profile store when there's no
+    // share-link override in effect; otherwise it adjusts the local override.
+    if (genderOverride != null) setGenderOverride(g);
+    else setProfileGender("gender", g);
+  };
   const [occClass, setOccClass] = useState<OccClass>(1);
   const [adoptedIdx, setAdoptedIdx] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
@@ -166,7 +178,9 @@ export default function CompareWorkspace({ urlSync = false }: CompareWorkspacePr
     if (![...sp.keys()].length) return;
     const decoded = decodeCompareState(sp);
     if (decoded.bundles.length >= 2) setBundles(decoded.bundles);
-    if (decoded.gender) setGender(decoded.gender);
+    // Share-link gender is an override — keep profile untouched, let the
+    // recipient tinker temporarily (different from their own stored profile).
+    if (decoded.gender) setGenderOverride(decoded.gender);
     if (decoded.occClass) setOccClass(decoded.occClass);
   }, [urlSync]);
 

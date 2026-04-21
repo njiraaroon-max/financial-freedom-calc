@@ -29,6 +29,7 @@ import { getProductByCode } from "@/lib/allianz/data";
 import { buildPolicyFromQuote } from "@/lib/allianz/toPolicy";
 import type { Gender, OccClass, CalcRiderInput } from "@/lib/allianz/types";
 import { useInsuranceStore } from "@/store/insurance-store";
+import { useProfileStore } from "@/store/profile-store";
 
 // ─── Quote presets ────────────────────────────────────────────────────────
 interface Preset {
@@ -141,10 +142,15 @@ function emptyAllocations(): Record<string, Allocation> {
 export default function AllianzQuoteCard({
   sumAssured,
   currentAge,
-  initialGender = "M",
+  initialGender,
 }: AllianzQuoteCardProps) {
   const [mode, setMode] = useState<Mode>("preset");
-  const [gender, setGender] = useState<Gender>(initialGender);
+  // Gender: prop (if provided) > profile store > "M" default.  Clicking the
+  // toggle writes through to the profile so every other page picks it up.
+  const profileGender = useProfileStore((s) => s.gender);
+  const setProfileGender = useProfileStore((s) => s.updateProfile);
+  const gender: Gender = initialGender ?? profileGender;
+  const setGender = (g: Gender) => setProfileGender("gender", g);
 
   // Preset-mode shared state
   const [occClass, setOccClass] = useState<OccClass>(1);
