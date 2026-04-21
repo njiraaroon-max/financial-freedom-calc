@@ -1796,6 +1796,49 @@ check("resolveMainPlan: SLA85 with unknown variant → falls back to default", (
   assert.equal(r.planCode, "A85/20");
 });
 
+check("resolveMainPlan: MAPA85A55 at age 30 → premiumYears = 55−30 = 25", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { MAIN_PRESETS: M, resolveMainPlan } = require("../../../components/allianz/compare/presets");
+  const mapa = M.find((p: { code: string }) => p.code === "MAPA85A55");
+  const r = resolveMainPlan(mapa, undefined, 30);
+  assert.equal(r.premiumYears, 25);
+  assert.equal(r.coverageEndAge, 85);
+});
+
+check("resolveMainPlan: MAPA85A55 at age 50 → premiumYears = 55−50 = 5", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { MAIN_PRESETS: M, resolveMainPlan } = require("../../../components/allianz/compare/presets");
+  const mapa = M.find((p: { code: string }) => p.code === "MAPA85A55");
+  const r = resolveMainPlan(mapa, undefined, 50);
+  assert.equal(r.premiumYears, 5);
+});
+
+check("resolveMainPlan: MAPA85A55 without currentAge → keeps flat default", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { MAIN_PRESETS: M, resolveMainPlan } = require("../../../components/allianz/compare/presets");
+  const mapa = M.find((p: { code: string }) => p.code === "MAPA85A55");
+  const r = resolveMainPlan(mapa, undefined);
+  // Falls back to the preset's flat premiumYears — does NOT apply paymentEndAge.
+  assert.equal(r.premiumYears, 25);
+});
+
+check("resolveMainPlan: MAPA85A55 beyond paymentEndAge → clamped to 1 (no negative)", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { MAIN_PRESETS: M, resolveMainPlan } = require("../../../components/allianz/compare/presets");
+  const mapa = M.find((p: { code: string }) => p.code === "MAPA85A55");
+  // Age 60 > paymentEndAge 55 → would give -5 without the clamp.
+  const r = resolveMainPlan(mapa, undefined, 60);
+  assert.equal(r.premiumYears, 1);
+});
+
+check("resolveMainPlan: SLA85 (no paymentEndAge) ignores currentAge", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { MAIN_PRESETS: M, resolveMainPlan } = require("../../../components/allianz/compare/presets");
+  const sla = M.find((p: { code: string }) => p.code === "SLA85");
+  const r = resolveMainPlan(sla, "A85/15", 40);
+  assert.equal(r.premiumYears, 15); // still uses variant's 15
+});
+
 // ─── policyPricing — re-price adopted policies across ages ────────────────
 section("policyPricing — computeAllianzPremiumByAge");
 

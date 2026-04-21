@@ -30,6 +30,11 @@ export interface MainPreset {
   variants?: PlanVariant[];
   /** Dropdown section — defaults to "life" when omitted. */
   group?: MainGroup;
+  /** For products that pay "until age X" (e.g. MAPA85A55 pay-to-55):
+   *  when set, `resolveMainPlan` overrides `premiumYears` with
+   *  max(1, paymentEndAge − currentAge) at pricing time.  Fallback to
+   *  the flat `premiumYears` field if no currentAge is supplied. */
+  paymentEndAge?: number;
 }
 
 export const MAIN_PRESETS: MainPreset[] = [
@@ -57,7 +62,7 @@ export const MAIN_PRESETS: MainPreset[] = [
 
   // ─── Annuity (บำนาญ) ──────────────────────────────────────────────────
   { code: "MAFA9005", label: "บำนาญไฟว์ A90/5", sub: "มาย บำนาญ ไฟว์ A90/5 — เข้าซื้อช่วงอายุ 40-55 / จ่ายเบี้ย 5 ปี (มีเงินปันผล)", premiumYears: 5, coverageEndAge: 90, group: "annuity" },
-  { code: "MAPA85A55", label: "บำนาญพลัส A85/A55", sub: "มาย บำนาญ พลัส — เข้าซื้ออายุ 25-50 / จ่ายเบี้ยถึงอายุ 55 / คุ้มครองถึง 85", premiumYears: 25, coverageEndAge: 85, group: "annuity" },
+  { code: "MAPA85A55", label: "บำนาญพลัส A85/A55", sub: "มาย บำนาญ พลัส — เข้าซื้ออายุ 25-50 / จ่ายเบี้ยถึงอายุ 55 / คุ้มครองถึง 85", premiumYears: 25, coverageEndAge: 85, paymentEndAge: 55, group: "annuity" },
 
   // ─── Endowment / Savings (ออมทรัพย์) ──────────────────────────────────
   {
@@ -82,28 +87,46 @@ export const MAIN_PRESETS: MainPreset[] = [
  *  given its preset and optional user-selected `planVariant`.  When the preset
  *  has no variants, the preset's own fields win.  When the preset has variants
  *  but the bundle's `planVariant` doesn't match any of them (or is absent),
- *  we fall back to the preset's default `planCode`. */
+ *  we fall back to the preset's default `planCode`.
+ *
+ *  `currentAge` is optional.  When a preset carries `paymentEndAge` (products
+ *  that pay "จ่ายเบี้ยถึงอายุ X" like บำนาญพลัส), we compute
+ *  `premiumYears = max(1, paymentEndAge − currentAge)` so the NPV math covers
+ *  exactly the right number of pay-years for this buyer.  Variants can carry
+ *  their own `paymentEndAge` too; theirs wins. */
 export function resolveMainPlan(
   preset: MainPreset | undefined,
   planVariant: string | undefined,
+  currentAge?: number,
 ): { planCode: string | undefined; premiumYears: number | undefined; coverageEndAge: number | undefined } {
   if (!preset) return { planCode: undefined, premiumYears: undefined, coverageEndAge: undefined };
+
+  // Base resolution — pick variant or fall back to preset defaults.
+  let planCode: string | undefined;
+  let premiumYears: number | undefined;
+  let coverageEndAge: number | undefined;
+  let paymentEndAge: number | undefined = preset.paymentEndAge;
+
   if (preset.variants && preset.variants.length > 0) {
     const chosen =
       preset.variants.find((v) => v.planCode === planVariant) ??
       preset.variants.find((v) => v.planCode === preset.planCode) ??
       preset.variants[0];
-    return {
-      planCode: chosen.planCode,
-      premiumYears: chosen.premiumYears,
-      coverageEndAge: chosen.coverageEndAge,
-    };
+    planCode = chosen.planCode;
+    premiumYears = chosen.premiumYears;
+    coverageEndAge = chosen.coverageEndAge;
+  } else {
+    planCode = preset.planCode;
+    premiumYears = preset.premiumYears;
+    coverageEndAge = preset.coverageEndAge;
   }
-  return {
-    planCode: preset.planCode,
-    premiumYears: preset.premiumYears,
-    coverageEndAge: preset.coverageEndAge,
-  };
+
+  // Pay-until-age override: turn `paymentEndAge` into a concrete years count.
+  if (paymentEndAge != null && currentAge != null && Number.isFinite(currentAge)) {
+    premiumYears = Math.max(1, paymentEndAge - currentAge);
+  }
+
+  return { planCode, premiumYears, coverageEndAge };
 }
 
 // ─── Rider presets ────────────────────────────────────────────────────────

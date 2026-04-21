@@ -106,7 +106,7 @@ function evaluateBundle(
     }));
 
   const preset = MAIN_PRESETS.find((p) => p.code === b.mainCode);
-  const mainPlan = resolveMainPlan(preset, b.planVariant);
+  const mainPlan = resolveMainPlan(preset, b.planVariant, derivedAge);
   const input: CalcInput = {
     birthDate: b.birthDate,
     policyStartDate: b.policyStartDate,
@@ -229,7 +229,7 @@ export default function CompareWorkspace({ urlSync = false }: CompareWorkspacePr
     if (!firstYear) return;
 
     const preset = MAIN_PRESETS.find((p) => p.code === b.mainCode);
-    const mainPlan = resolveMainPlan(preset, b.planVariant);
+    const mainPlan = resolveMainPlan(preset, b.planVariant, ev.derivedAge);
 
     const mainPayload = buildPolicyFromQuote({
       productCode: b.mainCode,
