@@ -676,19 +676,46 @@ export default function AllianzQuoteCard({
         <>
           {/* Progress banner */}
           <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-b from-blue-50/60 to-white">
-            <div className="flex items-baseline justify-between mb-1.5">
-              <div className="text-[13px] text-gray-500">
-                จัดสรรแล้ว{" "}
-                <span className="text-sm font-extrabold text-[#003781]">
-                  {fmtShort(portfolioSummary.allocated)}
-                </span>{" "}
-                / {fmtShort(sumAssured)}
+            {/* Hero: remaining / done */}
+            <div className="flex items-end justify-between gap-3 mb-2">
+              <div className="min-w-0">
+                {portfolioSummary.remaining > 0 ? (
+                  <>
+                    <div className="text-[11px] font-bold uppercase tracking-wide text-amber-600">
+                      ยังขาดอีก
+                    </div>
+                    <div className="text-2xl font-extrabold text-amber-600 leading-tight">
+                      {fmtShort(portfolioSummary.remaining)}
+                      <span className="text-sm font-bold text-amber-500 ml-1">บาท</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-[11px] font-bold uppercase tracking-wide text-emerald-600">
+                      ครบทุนแล้ว
+                    </div>
+                    <div className="text-2xl font-extrabold text-emerald-600 leading-tight">
+                      ✓ {fmtShort(portfolioSummary.allocated)}
+                      <span className="text-sm font-bold text-emerald-500 ml-1">บาท</span>
+                    </div>
+                  </>
+                )}
               </div>
-              <div className="text-[11px] text-gray-400">
-                {portfolioSummary.pct.toFixed(0)}%
+              <div className="text-right shrink-0">
+                <div className="text-[11px] text-gray-400">
+                  จัดสรรแล้ว
+                </div>
+                <div className="text-[13px] font-bold text-gray-700 tabular-nums">
+                  {fmtShort(portfolioSummary.allocated)} / {fmtShort(sumAssured)}
+                </div>
+                <div className="text-[11px] text-gray-400">
+                  {portfolioSummary.pct.toFixed(0)}%
+                </div>
               </div>
             </div>
-            <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+
+            {/* Progress bar */}
+            <div className="h-2.5 rounded-full bg-gray-200 overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all ${
                   portfolioSummary.pct >= 100
@@ -700,24 +727,18 @@ export default function AllianzQuoteCard({
                 style={{ width: `${portfolioSummary.pct}%` }}
               />
             </div>
-            <div className="mt-1.5 flex items-center justify-between text-[11px] text-gray-500">
-              <span>
-                {portfolioSummary.remaining > 0 ? (
-                  <>เหลืออีก <span className="font-bold text-gray-700">{fmtShort(portfolioSummary.remaining)}</span></>
-                ) : (
-                  <span className="text-emerald-600 font-bold">ครบทุนแล้ว ✓</span>
-                )}
-              </span>
-              {portfolioSummary.allocated > 0 && (
+
+            {portfolioSummary.allocated > 0 && (
+              <div className="mt-2 flex justify-end">
                 <button
                   type="button"
                   onClick={clearAll}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-[11px] text-gray-400 hover:text-gray-600 underline-offset-2 hover:underline"
                 >
                   ล้างทั้งหมด
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Allocation rows */}
