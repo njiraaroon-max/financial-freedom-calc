@@ -2,9 +2,10 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { HeartPulse, Building2, ShieldCheck, AlertTriangle, CheckCircle2, TrendingUp, Info, X, ChevronDown, ChevronRight, Send, ArrowLeft } from "lucide-react";
+import { HeartPulse, Building2, ShieldCheck, AlertTriangle, CheckCircle2, TrendingUp, Info, X, ChevronDown, ChevronRight, Send, ArrowLeft, Package } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import MoneyInput from "@/components/MoneyInput";
+import ImportFromPoliciesModal from "@/components/allianz/ImportFromPoliciesModal";
 import { useInsuranceStore, HospitalTier, PremiumBracket } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
 import { useRetirementStore } from "@/store/retirement-store";
@@ -346,6 +347,7 @@ export default function Pillar2Page() {
   const [showPremiumDetail, setShowPremiumDetail] = useState(false);
   const [saveFlash, setSaveFlash] = useState(false);
   const [npvSent, setNpvSent] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
   const isAlreadySaved = store.completedSteps?.pillar2 || false;
 
   const handleSave = async () => {
@@ -1016,7 +1018,17 @@ export default function Pillar2Page() {
 
           {/* Premium brackets */}
           <div className="space-y-2">
-            <div className="text-[14px] font-bold text-gray-600">เบี้ยประกันสุขภาพตามช่วงอายุ</div>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="text-[14px] font-bold text-gray-600">เบี้ยประกันสุขภาพตามช่วงอายุ</div>
+              <button
+                onClick={() => setImportModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-50 border border-teal-200 text-teal-700 text-[12px] font-bold hover:bg-teal-100 transition"
+                title="ใช้กรมธรรม์ Allianz ที่บันทึกไว้มาคำนวณเบี้ยตามอายุอัตโนมัติ"
+              >
+                <Package size={13} />
+                ดึงจากกรมธรรม์ Allianz
+              </button>
+            </div>
             {(p2.premiumBrackets || []).map((bracket: PremiumBracket, idx: number) => (
               <div key={idx} className="flex items-center gap-2">
                 <div className="flex items-center gap-1 shrink-0">
@@ -1434,6 +1446,17 @@ export default function Pillar2Page() {
           </div>
         </div>
       )}
+
+      {/* ═══ Allianz policy import modal ═══ */}
+      <ImportFromPoliciesModal
+        open={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+        policies={store.policies}
+        currentAge={currentAge}
+        gender={profile.gender}
+        existingBrackets={(p2.premiumBrackets || []) as PremiumBracket[]}
+        onCommit={(brackets) => update({ premiumBrackets: brackets })}
+      />
     </div>
   );
 }
