@@ -1086,6 +1086,58 @@ check("DVMFCPN_BDMS age 98 renewal-only → 9,738", () => {
   assert.equal(r.is_renewal_only, true);
 });
 
+// ═══ Tier 2 Batch 12 — HSMFCPN_ALL (non-BDMS, any hospital) ════════════════
+section("HSMFCPN_ALL (เฟิร์สคลาส อัลตร้า แพลทินัม IPD — non-BDMS)");
+
+check("HSMFCPN_ALL age 30 M → 40,004 (non-BDMS > BDMS 36,004)", () => {
+  const res = calcRiderPremium(
+    { productCode: "HSMFCPN_ALL" }, 30, "M", 1, 30);
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 40004);
+});
+
+check("HSMFCPN_ALL age 45 F → 59,314", () => {
+  const res = calcRiderPremium(
+    { productCode: "HSMFCPN_ALL" }, 45, "F", 1, 45);
+  assert.equal(res.premium, 59314);
+});
+
+check("HSMFCPN_ALL age 98 M renewal → 770,507 (non-BDMS peak)", () => {
+  const r = getRate("HSMFCPN_ALL", undefined, 98, "M", 70);
+  assert.ok(r);
+  assert.equal(r.rate, 770507);
+  assert.equal(r.is_renewal_only, true);
+});
+
+check("HSMFCPN_ALL age 60 F occ 3 → 79,311 × 1.30 = 103,104.3", () => {
+  const res = calcRiderPremium(
+    { productCode: "HSMFCPN_ALL" }, 60, "F", 3, 60);
+  assert.equal(res.premium, 103104.3);
+});
+
+check("HSMFCPN_ALL age 40 M occ 4 → 45,938 × 1.45 = 66,610.1", () => {
+  const res = calcRiderPremium(
+    { productCode: "HSMFCPN_ALL" }, 40, "M", 4, 40);
+  assert.equal(res.premium, 66610.1);
+});
+
+check("HSMFCPN_ALL rider stops at max_renewal_age 98", () => {
+  const input: CalcInput = {
+    currentAge: 90,
+    retireAge: 105,
+    gender: "F",
+    occupationClass: 1,
+    main: { productCode: "MSI1808", sumAssured: 1_000_000, premiumYears: 8 },
+    riders: [{ productCode: "HSMFCPN_ALL" }],
+  };
+  const out = calculateCashflow(input);
+  const paying = out.cashflow.filter((y) =>
+    y.ridersPremium.some((r) => r.code === "HSMFCPN_ALL" && r.premium > 0),
+  );
+  const maxAge = Math.max(...paying.map((y) => y.age));
+  assert.ok(maxAge <= 98, `HSMFCPN_ALL should stop at 98, max = ${maxAge}`);
+});
+
 // ═══════════════════════════════════════════════════════════════════════════
 console.log(`\n${passed}/${passed + failed} checks passed.`);
 if (failed > 0) {
