@@ -180,7 +180,15 @@ export function calcRiderPremium(
 
   // Units differ by rider type
   let amount = 0;
-  if (product.rider_type === "DAILY_HB" || product.rider_type === "DAILY_HB_CI") {
+  const isDaily =
+    product.rider_type === "DAILY_HB" || product.rider_type === "DAILY_HB_CI";
+  const isPlanLevelHealth =
+    product.has_plans &&
+    (product.rider_type === "IPD" ||
+      product.rider_type === "OPD" ||
+      product.rider_type === "DENTAL");
+
+  if (isDaily) {
     amount = rider.dailyBenefit ?? 0;
     if (amount <= 0) {
       return {
@@ -188,6 +196,10 @@ export function calcRiderPremium(
         warnings: [`${product.code}: ต้องระบุค่ารักษาพยาบาลรายวัน`],
       };
     }
+  } else if (isPlanLevelHealth) {
+    // Plan-level IPD/OPD/DENTAL: the rate IS the full annual premium for the
+    // chosen plan, no per-unit scaling. Force units = 1.
+    amount = product.rate_per;
   } else {
     amount = rider.sumAssured ?? 0;
     if (amount <= 0) {

@@ -35,7 +35,9 @@ export interface Product {
   name_th: string;
   category: Category;
   rider_type: RiderType | null;
-  rate_per: 1000 | 100;
+  /** 1000 = rate per 1,000 sum-assured; 100 = rate per 100 baht/day (HB);
+   *  1 = rate is full annual premium (plan-level IPD/OPD/DENTAL riders). */
+  rate_per: 1000 | 100 | 1;
   gender_mode: GenderMode;
   has_plans: boolean;
   has_occ_multiplier: boolean;

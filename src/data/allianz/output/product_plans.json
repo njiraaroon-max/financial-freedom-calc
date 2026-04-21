@@ -143,6 +143,46 @@
       "premium_years": null,
       "coverage_until_age": null,
       "premium_until_age": null
+    },
+    {
+      "id": 401,
+      "product_id": 46,
+      "plan_code": "1",
+      "plan_name_th": "เอชเอส แผน 1",
+      "coverage_years": null,
+      "coverage_until_age": 89,
+      "premium_years": null,
+      "premium_until_age": 89
+    },
+    {
+      "id": 402,
+      "product_id": 46,
+      "plan_code": "2",
+      "plan_name_th": "เอชเอส แผน 2",
+      "coverage_years": null,
+      "coverage_until_age": 89,
+      "premium_years": null,
+      "premium_until_age": 89
+    },
+    {
+      "id": 403,
+      "product_id": 46,
+      "plan_code": "3",
+      "plan_name_th": "เอชเอส แผน 3",
+      "coverage_years": null,
+      "coverage_until_age": 89,
+      "premium_years": null,
+      "premium_until_age": 89
+    },
+    {
+      "id": 404,
+      "product_id": 46,
+      "plan_code": "4",
+      "plan_name_th": "เอชเอส แผน 4",
+      "coverage_years": null,
+      "coverage_until_age": 89,
+      "premium_years": null,
+      "premium_until_age": 89
     }
   ]
 }

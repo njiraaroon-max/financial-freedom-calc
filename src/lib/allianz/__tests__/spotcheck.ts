@@ -618,6 +618,111 @@ check("HBP rider stops at max_renewal_age 69 (two renewal-only bands 61-65, 66-6
   assert.ok(maxAge <= 69, `HBP should stop at 69, max seen = ${maxAge}`);
 });
 
+// ─── HS_S (เอชเอส) — Tier 2 Batch 8, 4 plans plan-level IPD ──────────────
+
+check("HS_S plan 1 age 30 M → 6,065 baht/year (plan-level flat)", () => {
+  const r = getRate("HS_S", "1", 30, "M", 30);
+  assert.ok(r, "expected a rate row");
+  assert.equal(r.rate, 6065);
+});
+
+check("HS_S plan 4 age 45 F → 21,224 baht/year", () => {
+  const r = getRate("HS_S", "4", 45, "F", 45);
+  assert.ok(r);
+  assert.equal(r.rate, 21224);
+});
+
+check("HS_S plan 2 age 11-15 M = F → 10,382 (identical at youngest band)", () => {
+  const rm = getRate("HS_S", "2", 13, "M", 13);
+  const rf = getRate("HS_S", "2", 13, "F", 13);
+  assert.ok(rm && rf);
+  assert.equal(rm.rate, 10382);
+  assert.equal(rf.rate, 10382);
+});
+
+check("HS_S plan 3 age 70 M → 42,744 (last entry band before renewal-only)", () => {
+  const r = getRate("HS_S", "3", 70, "M", 70);
+  assert.ok(r);
+  assert.equal(r.rate, 42744);
+  assert.equal(r.is_renewal_only, false);
+});
+
+check("HS_S plan 1 age 75 F → 50,949 renewal-only (entered earlier)", () => {
+  // age=75 is renewal-only; valid only if policy was entered before age 75.
+  const r = getRate("HS_S", "1", 75, "F", 65);  // currentAge 65 → renewal at 75 ok
+  assert.ok(r);
+  assert.equal(r.rate, 50949);
+  assert.equal(r.is_renewal_only, true);
+});
+
+check("HS_S plan 2, age 40 M occ 1 → 9,583 (rate = full annual premium)", () => {
+  const res = calcRiderPremium(
+    { productCode: "HS_S", planCode: "2" },
+    40,
+    "M",
+    1,
+    40,
+  );
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 9583);
+});
+
+check("HS_S plan 3, age 50 F occ 3 → 19,235 × 1.30 = 25,005.5", () => {
+  const res = calcRiderPremium(
+    { productCode: "HS_S", planCode: "3" },
+    50,
+    "F",
+    3,
+    50,
+  );
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 25005.5);
+});
+
+check("HS_S plan 4, age 60 M occ 4 → 27,210 × 1.45 = 39,454.5", () => {
+  const res = calcRiderPremium(
+    { productCode: "HS_S", planCode: "4" },
+    60,
+    "M",
+    4,
+    60,
+  );
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 39454.5);
+});
+
+check("HS_S requires planCode — missing plan returns warning", () => {
+  const res = calcRiderPremium(
+    { productCode: "HS_S" },
+    40,
+    "M",
+    1,
+    40,
+  );
+  assert.equal(res.premium, 0);
+  assert.ok(
+    res.warnings.some((w) => w.includes("ต้องเลือกแผน")),
+    `expected plan warning, got ${JSON.stringify(res.warnings)}`,
+  );
+});
+
+check("HS_S rider stops at max_renewal_age 89", () => {
+  const input: CalcInput = {
+    currentAge: 70,
+    retireAge: 90,
+    gender: "M",
+    occupationClass: 1,
+    main: { productCode: "MSI1808", sumAssured: 1_000_000, premiumYears: 8 },
+    riders: [{ productCode: "HS_S", planCode: "2" }],
+  };
+  const out = calculateCashflow(input);
+  const hsPaying = out.cashflow.filter((y) =>
+    y.ridersPremium.some((r) => r.code === "HS_S" && r.premium > 0),
+  );
+  const maxAge = Math.max(...hsPaying.map((y) => y.age));
+  assert.ok(maxAge <= 89, `HS_S should stop at 89, max seen = ${maxAge}`);
+});
+
 check("HB rider stops at max_renewal_age 69", () => {
   const input: CalcInput = {
     currentAge: 50,
