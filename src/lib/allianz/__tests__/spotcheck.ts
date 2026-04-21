@@ -1286,6 +1286,58 @@ check("DVMFCPN_ALL rider stops at max_renewal_age 98", () => {
   assert.ok(maxAge <= 98, `DVMFCPN_ALL should stop at 98, max = ${maxAge}`);
 });
 
+// ═══ Tier 2 Batch 15 — HSMFCBN_BDMS (Beyond Platinum IPD, BDMS) ════════════
+section("HSMFCBN_BDMS (เฟิร์สคลาส อัลตร้า บียอนด์ แพลทินัม IPD — BDMS)");
+
+check("HSMFCBN_BDMS age 30 M → 111,072 (Beyond ~3× Ultra Platinum 36,004)", () => {
+  const res = calcRiderPremium(
+    { productCode: "HSMFCBN_BDMS" }, 30, "M", 1, 30);
+  assert.deepEqual(res.warnings, []);
+  assert.equal(res.premium, 111072);
+});
+
+check("HSMFCBN_BDMS age 45 F → 197,701", () => {
+  const res = calcRiderPremium(
+    { productCode: "HSMFCBN_BDMS" }, 45, "F", 1, 45);
+  assert.equal(res.premium, 197701);
+});
+
+check("HSMFCBN_BDMS age 98 M renewal → 1,712,186 (Beyond peak)", () => {
+  const r = getRate("HSMFCBN_BDMS", undefined, 98, "M", 70);
+  assert.ok(r);
+  assert.equal(r.rate, 1712186);
+  assert.equal(r.is_renewal_only, true);
+});
+
+check("HSMFCBN_BDMS age 55 M occ 3 → 208,908 × 1.30 = 271,580.4", () => {
+  const res = calcRiderPremium(
+    { productCode: "HSMFCBN_BDMS" }, 55, "M", 3, 55);
+  assert.equal(res.premium, 271580.4);
+});
+
+check("HSMFCBN_BDMS age 40 F occ 4 → 179,023 × 1.45 = 259,583.35", () => {
+  const res = calcRiderPremium(
+    { productCode: "HSMFCBN_BDMS" }, 40, "F", 4, 40);
+  assert.equal(res.premium, 259583.35);
+});
+
+check("HSMFCBN_BDMS rider stops at max_renewal_age 98", () => {
+  const input: CalcInput = {
+    currentAge: 90,
+    retireAge: 105,
+    gender: "F",
+    occupationClass: 1,
+    main: { productCode: "MSI1808", sumAssured: 1_000_000, premiumYears: 8 },
+    riders: [{ productCode: "HSMFCBN_BDMS" }],
+  };
+  const out = calculateCashflow(input);
+  const paying = out.cashflow.filter((y) =>
+    y.ridersPremium.some((r) => r.code === "HSMFCBN_BDMS" && r.premium > 0),
+  );
+  const maxAge = Math.max(...paying.map((y) => y.age));
+  assert.ok(maxAge <= 98, `HSMFCBN_BDMS should stop at 98, max = ${maxAge}`);
+});
+
 // ═══════════════════════════════════════════════════════════════════════════
 console.log(`\n${passed}/${passed + failed} checks passed.`);
 if (failed > 0) {

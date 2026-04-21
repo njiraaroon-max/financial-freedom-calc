@@ -364,6 +364,8 @@ build_rate_sheet("Rider OPDMFCPN ALL", "OPDMFCPN_ALL", "เฟิร์สคล
                  extra_note="แผนเดียว · อายุรับ 11–70 · ต่ออายุถึง 98 · เบี้ยสูงกว่าเวอร์ชัน BDMS ~5–10%")
 build_rate_sheet("Rider DVMFCPN ALL", "DVMFCPN_ALL", "เฟิร์สคลาส อัลตร้า แพลทินัม ทันตกรรม (ทุกรพ.)",
                  extra_note="ค่าทำฟันเหมาจ่าย 10,820 บาท/ปี (unisex, ไม่มีคูณอาชีพ) · ต่ออายุถึง 98")
+build_rate_sheet("Rider HSMFCBN BDMS", "HSMFCBN_BDMS", "เฟิร์สคลาส อัลตร้า บียอนด์ แพลทินัม IPD (รพ.กำหนด)",
+                 extra_note="แผนเดียว · Beyond Platinum (เทียร์สูงกว่า Ultra ~3×) · อายุรับ 11–70 · ต่ออายุถึง 98")
 build_rate_sheet("Rider CI48", "CI48", "โรคร้ายแรง 48 (CI48)", extra_note="rate คิดต่อ 1,000 ทุน CI")
 
 # Tier 1 batch additions (Apr 2026)
