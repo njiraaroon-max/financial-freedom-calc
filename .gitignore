@@ -36,3 +36,8 @@ next-env.d.ts
 
 # claude
 .claude/
+
+# Allianz dev artefacts — scraped source images + raw catalog exports
+scripts/allianz/images/
+src/data/allianz-products-health.csv
+src/data/allianz-products.json
