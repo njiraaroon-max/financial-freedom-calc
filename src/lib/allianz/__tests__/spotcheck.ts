@@ -37,6 +37,12 @@ import {
   KNOWN_BROCHURE_GAPS,
   BROCHURES,
 } from "../../../data/allianz/brochures";
+import {
+  CI_PRODUCTS,
+  CI_CATEGORIES,
+  getCIPlan,
+  formatCICell,
+} from "../ci";
 
 let passed = 0;
 let failed = 0;
@@ -2414,6 +2420,126 @@ check("Every KNOWN_BROCHURE_GAPS entry is still referenced by at least one prese
     orphans,
     [],
     `KNOWN_BROCHURE_GAPS entries with no corresponding preset (remove them): ${orphans.join(", ")}`,
+  );
+});
+
+// ─── CI / Cancer lump-sum compare data ─────────────────────────────────────
+// Phase D: lump_sum_benefits.json feeds a descriptive compare surface for
+// CI48 / CI48B / CIMC / CBN.  Unlike the NHS-13 table, cells are pre-formatted
+// Thai strings — so these checks guard structure (right families, right plan
+// counts, right cells populated), not numeric correctness.
+section("CI / Cancer lump-sum benefits (Phase D)");
+
+check("CI_PRODUCTS has 4 products (CI48, CI48B, CIMC, CBN)", () => {
+  const codes = CI_PRODUCTS.map((p) => p.productCode).sort();
+  assert.deepEqual(codes, ["CBN", "CI48", "CI48B", "CIMC"]);
+});
+
+check("CI48 resolves single-flat plan with 100% one-shot payout cell", () => {
+  const plan = getCIPlan("CI48");
+  assert.ok(plan, "CI48 plan must exist");
+  assert.equal(plan.family, "single-flat");
+  assert.equal(plan.source, "seed");
+  assert.equal(plan.cells["max-claims"], "1 ครั้ง");
+  // Cancer-reimburse cells don't apply — must be explicit null, not undefined.
+  assert.equal(plan.cells["cancer-per-cap"], null);
+  assert.equal(plan.cells["cancer-total-cap"], null);
+  assert.equal(plan.cells["cancer-daily-room"], null);
+});
+
+check("CI48B is single-tiered with 170% cumulative cap", () => {
+  const plan = getCIPlan("CI48B");
+  assert.ok(plan);
+  assert.equal(plan.family, "single-tiered");
+  assert.ok(plan.cells["max-lifetime"]?.includes("170%"));
+  assert.ok(plan.cells["group-pay"]?.includes("G1 100%"));
+});
+
+check("CIMC is multi-claim with 840% / 13-claim ceiling", () => {
+  const plan = getCIPlan("CIMC");
+  assert.ok(plan);
+  assert.equal(plan.family, "multi-claim");
+  assert.ok(plan.cells["max-lifetime"]?.includes("840%"));
+  assert.ok(plan.cells["max-claims"]?.includes("13"));
+  // CIMC does pay a death benefit (100% SA minus prior claims).
+  assert.ok(plan.cells["death-benefit"], "CIMC must have a death benefit cell");
+});
+
+check("CBN has 3 plans resolvable by Thai planCode", () => {
+  const prod = CI_PRODUCTS.find((p) => p.productCode === "CBN");
+  assert.ok(prod, "CBN product must exist");
+  assert.equal(prod.plans.length, 3);
+  for (const code of ["แผน 1", "แผน 2", "แผน 3"]) {
+    const plan = getCIPlan("CBN", code);
+    assert.ok(plan, `CBN ${code} must resolve`);
+    assert.equal(plan.family, "cancer-reimburse");
+    // Cancer-reimburse *must* populate the three cancer-specific cells.
+    assert.ok(plan.cells["cancer-per-cap"], `${code} needs cancer-per-cap`);
+    assert.ok(plan.cells["cancer-total-cap"], `${code} needs cancer-total-cap`);
+    assert.ok(plan.cells["cancer-daily-room"], `${code} needs cancer-daily-room`);
+  }
+});
+
+check("CBN plan totals scale 3MB → 6MB → 9MB across plans 1/2/3", () => {
+  const p1 = getCIPlan("CBN", "แผน 1");
+  const p2 = getCIPlan("CBN", "แผน 2");
+  const p3 = getCIPlan("CBN", "แผน 3");
+  assert.ok(p1?.cells["max-lifetime"]?.includes("3 ล้าน"));
+  assert.ok(p2?.cells["max-lifetime"]?.includes("6 ล้าน"));
+  assert.ok(p3?.cells["max-lifetime"]?.includes("9 ล้าน"));
+});
+
+check("Every CI plan has a source field in {seed,brochure,vision,estimate}", () => {
+  const valid = new Set(["seed", "brochure", "vision", "estimate"]);
+  for (const prod of CI_PRODUCTS) {
+    for (const plan of prod.plans) {
+      assert.ok(
+        valid.has(plan.source),
+        `${prod.productCode}/${plan.planCode ?? "(single)"} has invalid source: ${plan.source}`,
+      );
+    }
+  }
+});
+
+check("Only CBN plans populate the cancer-reimburse cells", () => {
+  // All SA-based products (CI48/CI48B/CIMC) must mark the three cancer cells
+  // as explicit null — any non-null leaks CBN semantics into the wrong row.
+  for (const prod of CI_PRODUCTS) {
+    if (prod.productCode === "CBN") continue;
+    for (const plan of prod.plans) {
+      assert.equal(
+        plan.cells["cancer-per-cap"],
+        null,
+        `${prod.productCode} must have cancer-per-cap = null`,
+      );
+      assert.equal(plan.cells["cancer-total-cap"], null);
+      assert.equal(plan.cells["cancer-daily-room"], null);
+    }
+  }
+});
+
+check("CI_CATEGORIES covers all 15 compare rows across 5 groups", () => {
+  assert.equal(CI_CATEGORIES.length, 15);
+  const groups = new Set(CI_CATEGORIES.map((c) => c.group));
+  assert.deepEqual([...groups].sort(), [1, 2, 3, 4, 5]);
+});
+
+check("formatCICell handles null / undefined / string correctly", () => {
+  assert.equal(formatCICell(undefined), "—");
+  assert.equal(formatCICell(null), "ไม่มี");
+  assert.equal(formatCICell("100%"), "100%");
+});
+
+check("Every CI plan's brochure state is known", () => {
+  // Same drift guard as presets, scoped to CI products: every productCode
+  // must either have a brochure mapped or live in KNOWN_BROCHURE_GAPS.
+  const unknowns = CI_PRODUCTS
+    .map((p) => p.productCode)
+    .filter((c) => !isBrochureStateKnown(c));
+  assert.deepEqual(
+    unknowns,
+    [],
+    `CI product codes with unknown brochure state: ${unknowns.join(", ")}`,
   );
 });
 

@@ -13,11 +13,12 @@
 //                       "แชร์ลิงก์" button is hidden (no URL to copy)
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, Trash2, Link2, Check, Wallet, Stethoscope } from "lucide-react";
+import { Plus, Trash2, Link2, Check, Wallet, Stethoscope, HeartPulse } from "lucide-react";
 import BundleColumn, { type BundleConfig } from "./BundleColumn";
 import CompareOverlayChart from "./CompareOverlayChart";
 import CompareSummaryTable from "./CompareSummaryTable";
 import BenefitCompareTable from "./BenefitCompareTable";
+import CICompareTable from "./CICompareTable";
 import { MAIN_PRESETS, RIDER_PRESETS, BUNDLE_COLORS, BUNDLE_LABELS, resolveMainPlan } from "./presets";
 import { decodeCompareState, encodeCompareState } from "./urlState";
 import { calculateCashflow } from "@/lib/allianz/cashflow";
@@ -159,7 +160,7 @@ export default function CompareWorkspace({ urlSync = false }: CompareWorkspacePr
   const [occClass, setOccClass] = useState<OccClass>(1);
   const [adoptedIdx, setAdoptedIdx] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<"cost" | "benefits">("cost");
+  const [activeTab, setActiveTab] = useState<"cost" | "benefits" | "ci">("cost");
   const hydrated = useRef(false);
   const addPolicy = useInsuranceStore((s) => s.addPolicy);
   const salary = useProfileStore((s) => s.salary);
@@ -429,17 +430,29 @@ export default function CompareWorkspace({ urlSync = false }: CompareWorkspacePr
           <Stethoscope size={14} />
           ความคุ้มครอง (NHS 13)
         </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("ci")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] transition ${
+            activeTab === "ci"
+              ? "bg-indigo-600 text-white font-bold shadow-sm"
+              : "text-gray-600 hover:bg-white/60"
+          }`}
+        >
+          <HeartPulse size={14} />
+          CI / มะเร็ง
+        </button>
       </div>
 
       {/* ─── Active tab content ─────────────────────────────── */}
-      {activeTab === "cost" ? (
+      {activeTab === "cost" && (
         <>
           <CompareOverlayChart bundles={overlayBundles} />
           <CompareSummaryTable bundles={summaryBundles} annualIncome={annualIncome} />
         </>
-      ) : (
-        <BenefitCompareTable bundles={benefitBundles} />
       )}
+      {activeTab === "benefits" && <BenefitCompareTable bundles={benefitBundles} />}
+      {activeTab === "ci" && <CICompareTable bundles={benefitBundles} />}
 
       {/* ─── Hint footer ────────────────────────────────────── */}
       <div className="text-[12px] text-gray-400 text-center py-2 leading-relaxed">

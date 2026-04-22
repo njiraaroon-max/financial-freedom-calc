@@ -1,0 +1,184 @@
+{
+  "_meta": {
+    "generated_at": "2026-04-22",
+    "schema": "CI / Cancer lump-sum rider comparison — see src/lib/allianz/ci.ts",
+    "coverage": "Phase D v1 — CI48 (products.json metadata), CI48B (brochure Apr-2026), CIMC (brochure Apr-2026), CBN (brochure Apr-2026). HBCI combo and HB/HBP daily riders intentionally out of scope — they belong in a separate daily-benefit compare surface.",
+    "notes": "Cells are pre-formatted Thai strings. Missing keys = 'not disclosed'. null = 'explicitly absent' (shown as 'ไม่มี'). Cancer reimbursement products (CBN) populate 'cancer-*' cells; all others leave them undefined."
+  },
+  "products": [
+    {
+      "productCode": "CI48",
+      "productNameTh": "โรคร้ายแรง 48 (คลาสสิก)",
+      "plans": [
+        {
+          "productCode": "CI48",
+          "productNameTh": "โรคร้ายแรง 48 (คลาสสิก)",
+          "family": "single-flat",
+          "source": "seed",
+          "note": "รุ่นคลาสสิก — จ่าย 100% SA เมื่อตรวจพบโรคร้ายแรงครั้งแรก สัญญาสิ้นสุดทันทีหลังเคลม",
+          "cells": {
+            "family": "CI คลาสสิก",
+            "illnesses": "48 โรค",
+            "structure": "จ่ายครั้งเดียว 100% SA",
+            "max-lifetime": "100%",
+            "max-claims": "1 ครั้ง",
+            "group-pay": "G1: 100% × 1 ครั้ง (สิ้นสุดสัญญา)",
+            "entry-range": "16 - 60 ปี",
+            "renewable-to": "69 ปี",
+            "coverage-to": "70 ปี",
+            "waiting-days": "60 วัน",
+            "death-benefit": null,
+            "pediatric": null,
+            "cancer-per-cap": null,
+            "cancer-total-cap": null,
+            "cancer-daily-room": null
+          }
+        }
+      ]
+    },
+    {
+      "productCode": "CI48B",
+      "productNameTh": "โรคร้ายแรง 48 บียอนด์",
+      "plans": [
+        {
+          "productCode": "CI48B",
+          "productNameTh": "โรคร้ายแรง 48 บียอนด์",
+          "family": "single-tiered",
+          "source": "brochure",
+          "note": "75 โรคใน 5 กลุ่ม — G1 (51 โรคหลัก) + TPD/G2 (เด็ก) จ่าย 100%; G3 (21 โรครอง) 50%; G4+G5 10%. สะสมตลอดสัญญาสูงสุด 170% ของ SA. เคลม G1/G2 เต็ม 100% → สัญญาสิ้นสุด",
+          "cells": {
+            "family": "CI Beyond (แบ่งกลุ่ม)",
+            "illnesses": "75 โรค ใน 5 กลุ่ม",
+            "structure": "จ่ายแบ่งกลุ่ม 100/100/50/10/10%",
+            "max-lifetime": "170% (สะสม)",
+            "max-claims": "ได้หลายกลุ่ม (G1 หรือ G2 เต็ม 100% = จบ)",
+            "group-pay": "G1 100% (51 โรคหลัก) / G2 100% (TPD+เด็ก) / G3 50% (21 โรค) / G4 10% / G5 10%",
+            "entry-range": "16 - 70 ปี",
+            "renewable-to": "84 ปี",
+            "coverage-to": "85 ปี",
+            "waiting-days": "60 วัน (โรคทั่วไป) / 90 วัน (โรคมะเร็ง+หัวใจ)",
+            "death-benefit": null,
+            "pediatric": "✓ (กลุ่ม G2 รวมโรคเด็ก)",
+            "cancer-per-cap": null,
+            "cancer-total-cap": null,
+            "cancer-daily-room": null
+          }
+        }
+      ]
+    },
+    {
+      "productCode": "CIMC",
+      "productNameTh": "โรคร้ายแรง มัลติ แคร์",
+      "plans": [
+        {
+          "productCode": "CIMC",
+          "productNameTh": "โรคร้ายแรง มัลติ แคร์",
+          "family": "multi-claim",
+          "source": "brochure",
+          "note": "81 โรคใน 5 กลุ่ม — G1 (52 โรคหลัก) เคลมได้ 6 ครั้ง + Re-diagnosed CI สำหรับ 3 โรคชั้นนำ (รวม 600% max). G2 (21) 50% × 4 ครั้ง = 200%. G3 20%, G4+G5 10% อย่างละ 1 ครั้ง. รวมสะสม 840% / 13 ครั้งตลอดสัญญา. เสียชีวิต 100% หักเคลมที่รับไปแล้ว",
+          "cells": {
+            "family": "Multi-Care (เคลมซ้ำ)",
+            "illnesses": "81 โรค ใน 5 กลุ่ม",
+            "structure": "เคลมซ้ำได้หลายครั้งต่อกลุ่ม",
+            "max-lifetime": "840% (สะสม)",
+            "max-claims": "13 ครั้ง",
+            "group-pay": "G1 100% × 6 (+Re-diag 3 โรค, รวม 600%) / G2 50% × 4 (200%) / G3 20% × 1 / G4 10% × 1 / G5 10% × 1",
+            "entry-range": "1 ด 1 ว - 70 ปี",
+            "renewable-to": "98 ปี",
+            "coverage-to": "99 ปี",
+            "waiting-days": "60 วัน (โรคทั่วไป) / 90 วัน (โรคมะเร็ง+หัวใจ)",
+            "death-benefit": "100% SA − เคลมที่รับไปแล้ว",
+            "pediatric": "✓ (รับตั้งแต่ 1 เดือน 1 วัน)",
+            "cancer-per-cap": null,
+            "cancer-total-cap": null,
+            "cancer-daily-room": null
+          }
+        }
+      ]
+    },
+    {
+      "productCode": "CBN",
+      "productNameTh": "มะเร็งหายห่วง",
+      "plans": [
+        {
+          "productCode": "CBN",
+          "planCode": "แผน 1",
+          "planLabel": "แผน 1 (1MB/มะเร็ง · 3MB รวม)",
+          "productNameTh": "มะเร็งหายห่วง",
+          "family": "cancer-reimburse",
+          "source": "brochure",
+          "note": "เบิกตามจริง เฉพาะค่ารักษามะเร็ง — ค่าห้อง 3,000/วัน + ค่าใช้จ่าย รพ.อื่นตามจริง + ผ่าตัดตามจริง + OPD ทางเลือก/จิตวิทยา/ภาพบำบัด อย่างละ 1,500/ครั้ง max 10 ครั้ง + เสียชีวิต 15,000",
+          "cells": {
+            "family": "Cancer (เบิกตามจริง)",
+            "illnesses": "เฉพาะมะเร็ง (ทุกระยะ)",
+            "structure": "เบิกตามจริง (ไม่ใช่ก้อน)",
+            "max-lifetime": "ไม่เกิน 3 ล้านบาท",
+            "max-claims": "ไม่จำกัด (ภายในวงเงิน)",
+            "group-pay": "ไม่ใช้ (เบิกตามจริง)",
+            "entry-range": "16 - 70 ปี",
+            "renewable-to": "84 ปี",
+            "coverage-to": "85 ปี",
+            "waiting-days": "90 วัน",
+            "death-benefit": "15,000 บาท",
+            "pediatric": null,
+            "cancer-per-cap": "1,000,000 บาท / มะเร็ง 1 ชนิด",
+            "cancer-total-cap": "3,000,000 บาท",
+            "cancer-daily-room": "3,000 บาท/วัน"
+          }
+        },
+        {
+          "productCode": "CBN",
+          "planCode": "แผน 2",
+          "planLabel": "แผน 2 (2MB/มะเร็ง · 6MB รวม)",
+          "productNameTh": "มะเร็งหายห่วง",
+          "family": "cancer-reimburse",
+          "source": "brochure",
+          "note": "วงเงินใหญ่กว่าแผน 1 — ค่าห้อง 4,000/วัน + OPD ทางเลือก 2,000/ครั้ง max 20 ครั้ง + เสียชีวิต 30,000",
+          "cells": {
+            "family": "Cancer (เบิกตามจริง)",
+            "illnesses": "เฉพาะมะเร็ง (ทุกระยะ)",
+            "structure": "เบิกตามจริง (ไม่ใช่ก้อน)",
+            "max-lifetime": "ไม่เกิน 6 ล้านบาท",
+            "max-claims": "ไม่จำกัด (ภายในวงเงิน)",
+            "group-pay": "ไม่ใช้ (เบิกตามจริง)",
+            "entry-range": "16 - 70 ปี",
+            "renewable-to": "84 ปี",
+            "coverage-to": "85 ปี",
+            "waiting-days": "90 วัน",
+            "death-benefit": "30,000 บาท",
+            "pediatric": null,
+            "cancer-per-cap": "2,000,000 บาท / มะเร็ง 1 ชนิด",
+            "cancer-total-cap": "6,000,000 บาท",
+            "cancer-daily-room": "4,000 บาท/วัน"
+          }
+        },
+        {
+          "productCode": "CBN",
+          "planCode": "แผน 3",
+          "planLabel": "แผน 3 (3MB/มะเร็ง · 9MB รวม)",
+          "productNameTh": "มะเร็งหายห่วง",
+          "family": "cancer-reimburse",
+          "source": "brochure",
+          "note": "วงเงินสูงสุด — ค่าห้อง 5,000/วัน + OPD ทางเลือก 2,500/ครั้ง max 30 ครั้ง + เสียชีวิต 60,000",
+          "cells": {
+            "family": "Cancer (เบิกตามจริง)",
+            "illnesses": "เฉพาะมะเร็ง (ทุกระยะ)",
+            "structure": "เบิกตามจริง (ไม่ใช่ก้อน)",
+            "max-lifetime": "ไม่เกิน 9 ล้านบาท",
+            "max-claims": "ไม่จำกัด (ภายในวงเงิน)",
+            "group-pay": "ไม่ใช้ (เบิกตามจริง)",
+            "entry-range": "16 - 70 ปี",
+            "renewable-to": "84 ปี",
+            "coverage-to": "85 ปี",
+            "waiting-days": "90 วัน",
+            "death-benefit": "60,000 บาท",
+            "pediatric": null,
+            "cancer-per-cap": "3,000,000 บาท / มะเร็ง 1 ชนิด",
+            "cancer-total-cap": "9,000,000 บาท",
+            "cancer-daily-room": "5,000 บาท/วัน"
+          }
+        }
+      ]
+    }
+  ]
+}
