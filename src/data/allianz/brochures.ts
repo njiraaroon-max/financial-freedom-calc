@@ -26,14 +26,18 @@ export const BROCHURES: Record<string, string> = {
   MAFA9005:  "/brochures/MAFA9005_Brochure.pdf",
   MAPA85A55: "/brochures/MAPA85A55_Brochure.pdf",
 
-  // Riders — First Class Ultra Platinum @ BDMS (IPD + OPD (ค) + Dental share one brochure)
+  // Riders — First Class Ultra @ BDMS (brochure covers Platinum + Beyond IPD
+  // tiers, OPD แบบ ค, and Dental — one PDF for the whole BDMS package)
   HSMFCPN_BDMS:  "/brochures/MFC_Ultra_BDMS_Brochure.pdf",
+  HSMFCBN_BDMS:  "/brochures/MFC_Ultra_BDMS_Brochure.pdf",
   OPDMFCPN_BDMS: "/brochures/MFC_Ultra_BDMS_Brochure.pdf",
   OPDMFCPD:      "/brochures/MFC_Ultra_BDMS_Brochure.pdf",
   DVMFCPN_BDMS:  "/brochures/MFC_Ultra_BDMS_Brochure.pdf",
 
-  // Riders — First Class Ultra Platinum @ ALL (IPD + OPD + Dental share one brochure)
+  // Riders — First Class Ultra @ ALL (brochure covers Platinum + Beyond IPD
+  // tiers, OPD, and Dental — one PDF for the whole ALL-network package)
   HSMFCPN_ALL:  "/brochures/MFC_Ultra_ALL_Brochure.pdf",
+  HSMFCBN_ALL:  "/brochures/MFC_Ultra_ALL_Brochure.pdf",
   OPDMFCPN_ALL: "/brochures/MFC_Ultra_ALL_Brochure.pdf",
   DVMFCPN_ALL:  "/brochures/MFC_Ultra_ALL_Brochure.pdf",
 
@@ -86,8 +90,6 @@ export const KNOWN_BROCHURE_GAPS: Record<string, string> = {
   // Newer / different tier — brochure not yet in /public/brochures.
   MWLA9021:      "Brochure PDF pending (Whole Life A90/21)",
   TM1:           "Brochure PDF pending (Term ปีต่อปี 1/1)",
-  HSMFCBN_BDMS:  "Brochure PDF pending (First Class Beyond Platinum @ BDMS)",
-  HSMFCBN_ALL:   "Brochure PDF pending (First Class Beyond Platinum @ ALL)",
   HSMHPDC:       "Brochure PDF pending (ปลดล็อค ดับเบิล แคร์ IPD)",
   OPDMDC:        "Brochure PDF pending (ปลดล็อค ดับเบิล แคร์ OPD)",
 };
