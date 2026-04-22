@@ -12,7 +12,7 @@
 //                        the whole basket.
 
 import { useMemo, useState } from "react";
-import { ChevronDown, Plus, Check, Briefcase, Wand2 } from "lucide-react";
+import { ChevronDown, Plus, Check, Briefcase, Wand2, FileText } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -30,6 +30,7 @@ import { buildPolicyFromQuote } from "@/lib/allianz/toPolicy";
 import type { Gender, OccClass, CalcRiderInput } from "@/lib/allianz/types";
 import { useInsuranceStore } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
+import { getBrochureUrl } from "@/data/allianz/brochures";
 
 // ─── Quote presets ────────────────────────────────────────────────────────
 interface Preset {
@@ -537,6 +538,7 @@ export default function AllianzQuoteCard({
                       <div className="text-[13px] text-gray-400 truncate">
                         {q.preset.sub}
                       </div>
+                      <BrochureLinkSm code={q.preset.productCode} />
                     </div>
                     <div className="text-right shrink-0">
                       {hasData ? (
@@ -774,6 +776,7 @@ export default function AllianzQuoteCard({
                       <div className="text-[13px] text-gray-400 truncate">
                         {q.preset.sub} · จ่าย {q.preset.premiumYears} ปี
                       </div>
+                      <BrochureLinkSm code={q.preset.productCode} />
                     </div>
                   </div>
 
@@ -920,6 +923,27 @@ export default function AllianzQuoteCard({
         ตัวเลขเป็นประมาณการก่อนพิจารณารับประกัน
       </div>
     </div>
+  );
+}
+
+// ─── Brochure link (inline under the preset title) ────────────────────────
+// Silent when the product has no bundled PDF, so callers can mount
+// unconditionally without poking the layout.
+function BrochureLinkSm({ code }: { code: string }) {
+  const url = getBrochureUrl(code);
+  if (!url) return null;
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => e.stopPropagation()}
+      className="inline-flex items-center gap-1 mt-0.5 text-[11px] text-indigo-600 hover:text-indigo-800 hover:underline transition"
+      title="เปิดโบรชัวร์ในแท็บใหม่"
+    >
+      <FileText size={11} />
+      ดูโบรชัวร์
+    </a>
   );
 }
 

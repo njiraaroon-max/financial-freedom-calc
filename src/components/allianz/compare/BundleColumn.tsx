@@ -10,11 +10,12 @@
 // years) routes through /calculators/insurance/policies.
 
 import { useEffect, useMemo } from "react";
-import { X, Plus, Check, Download } from "lucide-react";
+import { X, Plus, Check, Download, FileText } from "lucide-react";
 import { MAIN_PRESETS, RIDER_PRESETS } from "./presets";
 import type { MainPreset, RiderPreset } from "./presets";
 import ThaiDatePicker from "@/components/ThaiDatePicker";
 import MoneyInput from "@/components/MoneyInput";
+import { getBrochureUrl } from "@/data/allianz/brochures";
 
 // ─── Bundle config (exported — used by compare page + chart) ──────────────
 export interface BundleConfig {
@@ -164,6 +165,8 @@ export default function BundleColumn({
         {main?.sub && (
           <div className="text-[11px] text-gray-400 mt-1 leading-tight">{main.sub}</div>
         )}
+        <BrochureLink code={main?.code} className="mt-1" />
+
         {/* Plan-variant pill picker — only rendered when the preset carries
          *  multiple plan variants (e.g. SLA85 → /10, /15, /20, /25). */}
         {main?.variants && main.variants.length > 0 && (
@@ -238,6 +241,7 @@ export default function BundleColumn({
               <div className="flex-1 min-w-0">
                 <div className="text-[13px] font-semibold text-gray-800 truncate">{r.label}</div>
                 {r.sub && <div className="text-[11px] text-gray-400 truncate">{r.sub}</div>}
+                <BrochureLink code={r.code} compact />
               </div>
               <button
                 type="button"
@@ -335,6 +339,38 @@ export default function BundleColumn({
 }
 
 // ─── Small helpers ────────────────────────────────────────────────────────
+
+/** Inline "📄 ดูโบรชัวร์" link.  Renders nothing when the product has no
+ *  bundled PDF, so parents can always mount it unconditionally and keep the
+ *  layout honest. */
+function BrochureLink({
+  code,
+  className,
+  compact,
+}: {
+  code: string | undefined;
+  className?: string;
+  compact?: boolean;
+}) {
+  const url = getBrochureUrl(code);
+  if (!url) return null;
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => e.stopPropagation()}
+      className={`inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 hover:underline transition ${
+        compact ? "text-[10px]" : "text-[11px]"
+      } ${className ?? ""}`}
+      title="เปิดโบรชัวร์ในแท็บใหม่"
+    >
+      <FileText size={compact ? 10 : 11} />
+      ดูโบรชัวร์
+    </a>
+  );
+}
+
 function RiderKindPill({ kind }: { kind: RiderPreset["kind"] }) {
   const cfg: Record<RiderPreset["kind"], { bg: string; text: string; label: string }> = {
     IPD:    { bg: "bg-cyan-100",   text: "text-cyan-700",   label: "IPD"    },

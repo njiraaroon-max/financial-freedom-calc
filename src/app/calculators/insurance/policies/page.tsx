@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, X, ChevronDown, ChevronUp, Wallet, Scale } from "lucide-react";
+import { Plus, Pencil, Trash2, X, ChevronDown, ChevronUp, Wallet, Scale, FileText } from "lucide-react";
 import {
   useInsuranceStore,
   InsurancePolicy,
@@ -30,6 +30,7 @@ import AgeScrollPicker from "@/components/AgeScrollPicker";
 import MoneyInput from "@/components/MoneyInput";
 import { GanttChart, StepLineChart } from "@/components/InsuranceCharts";
 import CompareWorkspace from "@/components/allianz/compare/CompareWorkspace";
+import { getBrochureUrl } from "@/data/allianz/brochures";
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 const CURRENT_YEAR = new Date().getFullYear();
@@ -259,6 +260,22 @@ function PolicyCard({ policy, birthYear, onEdit, onDelete }: {
             <div>ทุนประกัน: <span className="font-bold text-gray-700">{fmt(policy.sumInsured)}</span></div>
           </div>
           {policy.notes && <div className="text-[13px] text-gray-400 mt-1">หมายเหตุ: {policy.notes}</div>}
+          {(() => {
+            const url = getBrochureUrl(policy.productCode);
+            return url ? (
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1 mt-2 text-[12px] text-indigo-600 hover:text-indigo-800 hover:underline transition"
+                title="เปิดโบรชัวร์ในแท็บใหม่"
+              >
+                <FileText size={12} />
+                ดูโบรชัวร์ (PDF)
+              </a>
+            ) : null;
+          })()}
           <div className="flex gap-2 mt-2">
             <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-[13px] font-medium hover:bg-blue-100">
               <Pencil size={12} /> แก้ไข

@@ -14,7 +14,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { X, Package } from "lucide-react";
+import { X, Package, FileText } from "lucide-react";
 import type { InsurancePolicy, PremiumBracket } from "@/store/insurance-store";
 import type { Gender, OccClass } from "@/lib/allianz/types";
 import {
@@ -22,6 +22,7 @@ import {
   computeBracketsFromPolicies,
 } from "@/lib/allianz/policyPricing";
 import { getProductByCode } from "@/lib/allianz/data";
+import { getBrochureUrl } from "@/data/allianz/brochures";
 
 interface Props {
   open: boolean;
@@ -232,6 +233,22 @@ export default function ImportFromPoliciesModal({
                       <div className="flex-1 min-w-0">
                         <div className="text-[13px] font-bold text-gray-800 truncate">{title}</div>
                         {sub && <div className="text-[12px] text-gray-500 truncate">{sub}</div>}
+                        {(() => {
+                          const url = getBrochureUrl(p.productCode);
+                          return url ? (
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-1 mt-0.5 text-[11px] text-teal-700 hover:text-teal-900 hover:underline transition"
+                              title="เปิดโบรชัวร์ในแท็บใหม่"
+                            >
+                              <FileText size={11} />
+                              ดูโบรชัวร์
+                            </a>
+                          ) : null;
+                        })()}
                       </div>
                       <div className="text-[12px] text-gray-500 shrink-0">
                         ปัจจุบัน {fmt(p.premium)}/ปี
