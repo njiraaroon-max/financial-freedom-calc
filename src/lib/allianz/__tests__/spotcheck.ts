@@ -43,6 +43,12 @@ import {
   getCIPlan,
   formatCICell,
 } from "../ci";
+import {
+  OPD_PRODUCTS,
+  OPD_CATEGORIES,
+  getOPDPlan,
+  formatOPDCell,
+} from "../opd";
 
 let passed = 0;
 let failed = 0;
@@ -2540,6 +2546,141 @@ check("Every CI plan's brochure state is known", () => {
     unknowns,
     [],
     `CI product codes with unknown brochure state: ${unknowns.join(", ")}`,
+  );
+});
+
+// ─── OPD / Dental benefits (Phase E) ───────────────────────────────────────
+// Phase E: opd_benefits.json feeds the fourth compare tab (OPD + ทันตกรรม).
+// Like CI, cells are descriptive Thai strings — these checks guard structure
+// (product coverage, plan pairing, cell population by family), not numeric
+// rank-ability.
+section("OPD / Dental benefits (Phase E)");
+
+check("OPD_PRODUCTS has 5 products (2 OPDMFCPN variants + OPDMFCPD + 2 DVMFCPN)", () => {
+  const codes = OPD_PRODUCTS.map((p) => p.productCode).sort();
+  assert.deepEqual(codes, [
+    "DVMFCPN_ALL",
+    "DVMFCPN_BDMS",
+    "OPDMFCPD",
+    "OPDMFCPN_ALL",
+    "OPDMFCPN_BDMS",
+  ]);
+});
+
+check("OPDMFCPN_ALL has BEYOND + PLATINUM plans, PLATINUM is default", () => {
+  const plat = getOPDPlan("OPDMFCPN_ALL", "PLATINUM");
+  const beyond = getOPDPlan("OPDMFCPN_ALL", "BEYOND");
+  assert.ok(plat, "PLATINUM plan must exist");
+  assert.ok(beyond, "BEYOND plan must exist");
+  assert.equal(plat.family, "opd-flat");
+  assert.equal(beyond.family, "opd-flat");
+  // No planCode → falls back to first plan.  JSON order matters: PLATINUM
+  // pairs with the current `opd-ultra-all` preset so it must be first.
+  const fallback = getOPDPlan("OPDMFCPN_ALL");
+  assert.equal(fallback?.planCode, "PLATINUM");
+});
+
+check("OPDMFCPD is Platinum-only (per-visit coverage, no extras)", () => {
+  const plan = getOPDPlan("OPDMFCPD");
+  assert.ok(plan);
+  assert.equal(plan.family, "opd-per-visit");
+  assert.ok(plan.cells["opd-per-visit"]?.includes("400"));
+  // Extras (หมวด 21-24, 26) must be explicit null for the per-visit variant —
+  // they're intentionally excluded, not "not disclosed".
+  assert.equal(plan.cells["opd-rehab"], null);
+  assert.equal(plan.cells["opd-equipment"], null);
+  assert.equal(plan.cells["opd-vaccine"], null);
+  assert.equal(plan.cells["opd-checkup"], null);
+  assert.equal(plan.cells["opd-vision"], null);
+});
+
+check("BEYOND OPD pays more than PLATINUM on every OPD extra (ALL network)", () => {
+  // Sanity check: the brochure tiers should never invert — Beyond is the
+  // more premium plan and should dominate on rehab/vaccine/checkup caps.
+  const plat = getOPDPlan("OPDMFCPN_ALL", "PLATINUM");
+  const beyond = getOPDPlan("OPDMFCPN_ALL", "BEYOND");
+  assert.ok(plat && beyond);
+  // opd-vision: PLATINUM=null (not covered), BEYOND covered.
+  assert.equal(plat.cells["opd-vision"], null);
+  assert.ok(beyond.cells["opd-vision"]?.includes("15,000"));
+  // opd-rehab: BEYOND 30k vs PLATINUM 20k.
+  assert.ok(beyond.cells["opd-rehab"]?.includes("30,000"));
+  assert.ok(plat.cells["opd-rehab"]?.includes("20,000"));
+});
+
+check("DVMFCPN_ALL BEYOND covers ฟันปลอม, PLATINUM explicitly doesn't", () => {
+  const plat = getOPDPlan("DVMFCPN_ALL", "PLATINUM");
+  const beyond = getOPDPlan("DVMFCPN_ALL", "BEYOND");
+  assert.ok(plat && beyond);
+  assert.ok(plat.cells["dental-scope"]?.includes("ไม่รวมฟันปลอม"));
+  assert.ok(beyond.cells["dental-scope"]?.includes("ฟันปลอม"));
+  assert.ok(beyond.cells["dental-scope"]?.includes("รากเทียม"));
+});
+
+check("BDMS Beyond dental hits the 100k ceiling (matches the brochure)", () => {
+  const beyond = getOPDPlan("DVMFCPN_BDMS", "BEYOND");
+  assert.ok(beyond);
+  assert.ok(beyond.cells["dental-annual"]?.includes("100,000"));
+  // BDMS Platinum dental is 45k (not 50k like ALL) — the 5k delta is an
+  // easy-to-regress transcription detail, lock it in.
+  const plat = getOPDPlan("DVMFCPN_BDMS", "PLATINUM");
+  assert.ok(plat?.cells["dental-annual"]?.includes("45,000"));
+});
+
+check("OPD plans populate OPD cells, Dental plans populate dental cells", () => {
+  // Cell isolation — an `opd-flat` plan should have dental cells as null,
+  // and a `dental` plan should have OPD cells as null.  Prevents us from
+  // accidentally spilling dental values into an OPD row or vice versa.
+  for (const prod of OPD_PRODUCTS) {
+    for (const plan of prod.plans) {
+      if (plan.family === "dental") {
+        assert.equal(plan.cells["opd-per-visit"], null, `${prod.productCode}/${plan.planCode} (dental) leaks opd-per-visit`);
+        assert.equal(plan.cells["opd-rehab"], null);
+        assert.equal(plan.cells["opd-vaccine"], null);
+      } else {
+        // OPD plans: dental-annual should be null or undefined, never a value.
+        const dental = plan.cells["dental-annual"];
+        assert.ok(
+          dental == null,
+          `${prod.productCode}/${plan.planCode} (${plan.family}) should not populate dental-annual (got ${dental})`,
+        );
+      }
+    }
+  }
+});
+
+check("Every OPD plan has a source field in {seed,brochure,vision,estimate}", () => {
+  const valid = new Set(["seed", "brochure", "vision", "estimate"]);
+  for (const prod of OPD_PRODUCTS) {
+    for (const plan of prod.plans) {
+      assert.ok(
+        valid.has(plan.source),
+        `${prod.productCode}/${plan.planCode ?? "(single)"} has invalid source: ${plan.source}`,
+      );
+    }
+  }
+});
+
+check("OPD_CATEGORIES covers 10 rows across 4 groups", () => {
+  assert.equal(OPD_CATEGORIES.length, 10);
+  const groups = new Set(OPD_CATEGORIES.map((c) => c.group));
+  assert.deepEqual([...groups].sort(), [1, 2, 3, 4]);
+});
+
+check("formatOPDCell: undefined→—, null→ไม่คุ้มครอง, string→as-is", () => {
+  assert.equal(formatOPDCell(undefined), "—");
+  assert.equal(formatOPDCell(null), "ไม่คุ้มครอง");
+  assert.equal(formatOPDCell("30 ครั้ง"), "30 ครั้ง");
+});
+
+check("Every OPD product code has known brochure state", () => {
+  const unknowns = OPD_PRODUCTS
+    .map((p) => p.productCode)
+    .filter((c) => !isBrochureStateKnown(c));
+  assert.deepEqual(
+    unknowns,
+    [],
+    `OPD product codes with unknown brochure state: ${unknowns.join(", ")}`,
   );
 });
 

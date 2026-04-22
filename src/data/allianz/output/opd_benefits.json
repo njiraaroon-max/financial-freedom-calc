@@ -1,0 +1,229 @@
+{
+  "_meta": {
+    "generated_at": "2026-04-22",
+    "schema": "OPD / Dental rider comparison — see src/lib/allianz/opd.ts",
+    "coverage": "Phase E v1 — OPDMFCPN_ALL, OPDMFCPN_BDMS, OPDMFCPD (Platinum-only), DVMFCPN_ALL, DVMFCPN_BDMS. All transcribed from First Class Ultra Apr-2026 brochures.  OPDMDC (ดับเบิล แคร์ OPD) intentionally omitted — brochure not yet published (see KNOWN_BROCHURE_GAPS).  OPDMSK (สบายกระเป๋า OPD) also omitted — SabaiKapao brochure doesn't disclose OPD cell values.",
+    "notes": "Cells are pre-formatted Thai strings. 'null' = explicitly 'ไม่คุ้มครอง' in the table. Missing keys = 'not disclosed'. Plan codes BEYOND/PLATINUM match the IPD tier the OPD rider is bundled with — same product code pays different amounts depending on its IPD partner."
+  },
+  "products": [
+    {
+      "productCode": "OPDMFCPN_ALL",
+      "productNameTh": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (แบบเหมาจ่าย)",
+      "plans": [
+        {
+          "productCode": "OPDMFCPN_ALL",
+          "planCode": "PLATINUM",
+          "planLabel": "คู่แพลทินัม 80MB",
+          "productNameTh": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม",
+          "family": "opd-flat",
+          "source": "brochure",
+          "note": "แนบกับ IPD First Class Ultra Platinum (HSMFCPN_ALL) แบบ ALL network 80MB",
+          "cells": {
+            "opd-per-visit": "จ่ายตามจริง",
+            "opd-visits-year": "30 ครั้ง",
+            "opd-rehab": "20,000 บาท/ปี",
+            "opd-equipment": "10,000 บาท/ปี",
+            "opd-vision": null,
+            "opd-vaccine": "50,000 บาท/ปี",
+            "opd-checkup": "15,000 บาท/ปี",
+            "dental-annual": null,
+            "dental-copay": null,
+            "dental-scope": null
+          }
+        },
+        {
+          "productCode": "OPDMFCPN_ALL",
+          "planCode": "BEYOND",
+          "planLabel": "คู่บียอนด์ 100MB",
+          "productNameTh": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม",
+          "family": "opd-flat",
+          "source": "brochure",
+          "note": "แนบกับ IPD First Class Beyond Platinum (HSMFCBN_ALL) แบบ ALL network 100MB — เพดานสูงกว่าคู่แพลทินัม",
+          "cells": {
+            "opd-per-visit": "จ่ายตามจริง",
+            "opd-visits-year": "30 ครั้ง",
+            "opd-rehab": "30,000 บาท/ปี",
+            "opd-equipment": "10,000 บาท/ปี",
+            "opd-vision": "15,000 บาท/ปี",
+            "opd-vaccine": "80,000 บาท/ปี",
+            "opd-checkup": "20,000 บาท/ปี",
+            "dental-annual": null,
+            "dental-copay": null,
+            "dental-scope": null
+          }
+        }
+      ]
+    },
+    {
+      "productCode": "OPDMFCPN_BDMS",
+      "productNameTh": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (รพ.บีดีเอ็มเอส, เหมาจ่าย)",
+      "plans": [
+        {
+          "productCode": "OPDMFCPN_BDMS",
+          "planCode": "PLATINUM",
+          "planLabel": "คู่แพลทินัม 60MB (BDMS)",
+          "productNameTh": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม @BDMS",
+          "family": "opd-flat",
+          "source": "brochure",
+          "note": "แนบกับ IPD First Class Ultra Platinum @BDMS (HSMFCPN_BDMS) 60MB",
+          "cells": {
+            "opd-per-visit": "จ่ายตามจริง",
+            "opd-visits-year": "30 ครั้ง",
+            "opd-rehab": "20,000 บาท/ปี",
+            "opd-equipment": "10,000 บาท/ปี",
+            "opd-vision": null,
+            "opd-vaccine": "50,000 บาท/ปี",
+            "opd-checkup": "15,000 บาท/ปี",
+            "dental-annual": null,
+            "dental-copay": null,
+            "dental-scope": null
+          }
+        },
+        {
+          "productCode": "OPDMFCPN_BDMS",
+          "planCode": "BEYOND",
+          "planLabel": "คู่บียอนด์ 120MB (BDMS)",
+          "productNameTh": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม @BDMS",
+          "family": "opd-flat",
+          "source": "brochure",
+          "note": "แนบกับ IPD First Class Beyond Platinum @BDMS (HSMFCBN_BDMS) 120MB — เพดานสูงสุดในตระกูล BDMS",
+          "cells": {
+            "opd-per-visit": "จ่ายตามจริง",
+            "opd-visits-year": "30 ครั้ง",
+            "opd-rehab": "40,000 บาท/ปี",
+            "opd-equipment": "40,000 บาท/ปี",
+            "opd-vision": "15,000 บาท/ปี",
+            "opd-vaccine": "80,000 บาท/ปี",
+            "opd-checkup": "30,000 บาท/ปี",
+            "dental-annual": null,
+            "dental-copay": null,
+            "dental-scope": null
+          }
+        }
+      ]
+    },
+    {
+      "productCode": "OPDMFCPD",
+      "productNameTh": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (แบบ ค — วงเงินต่อครั้ง)",
+      "plans": [
+        {
+          "productCode": "OPDMFCPD",
+          "planCode": "PLATINUM",
+          "planLabel": "คู่แพลทินัม (วงเงินต่อครั้ง)",
+          "productNameTh": "OPD เฟิร์สคลาส อัลตร้า แพลทินัม (แบบ ค)",
+          "family": "opd-per-visit",
+          "source": "brochure",
+          "note": "รุ่นจำกัดวงเงินต่อครั้ง — แนบได้กับแผนแพลทินัมเท่านั้น (60MB @BDMS หรือ 80MB @ALL) ไม่ได้รับ หมวด 21-24, 26",
+          "cells": {
+            "opd-per-visit": "400 – 6,000 บาท/ครั้ง",
+            "opd-visits-year": "30 ครั้ง (1 ครั้ง/วัน)",
+            "opd-rehab": null,
+            "opd-equipment": null,
+            "opd-vision": null,
+            "opd-vaccine": null,
+            "opd-checkup": null,
+            "dental-annual": null,
+            "dental-copay": null,
+            "dental-scope": null
+          }
+        }
+      ]
+    },
+    {
+      "productCode": "DVMFCPN_ALL",
+      "productNameTh": "ทันตกรรม เฟิร์สคลาส อัลตร้า แพลทินัม (ALL)",
+      "plans": [
+        {
+          "productCode": "DVMFCPN_ALL",
+          "planCode": "PLATINUM",
+          "planLabel": "คู่แพลทินัม 80MB",
+          "productNameTh": "ทันตกรรม เฟิร์สคลาส อัลตร้า แพลทินัม",
+          "family": "dental",
+          "source": "brochure",
+          "note": "แนบได้กับ IPD Platinum 80MB พร้อม OPDMFCPN_ALL เท่านั้น — วงเงินรวมในเพดานผลประโยชน์ IPD (80MB)",
+          "cells": {
+            "opd-per-visit": null,
+            "opd-visits-year": null,
+            "opd-rehab": null,
+            "opd-equipment": null,
+            "opd-vision": null,
+            "opd-vaccine": null,
+            "opd-checkup": null,
+            "dental-annual": "50,000 บาท/ปี",
+            "dental-copay": "ชดเชย 80% ของจริง",
+            "dental-scope": "ขูดหินปูน + อุดฟัน + ถอน + รักษารากฟัน + ผ่าฟันคุด + ครอบฟัน + ตรวจ (ไม่รวมฟันปลอม)"
+          }
+        },
+        {
+          "productCode": "DVMFCPN_ALL",
+          "planCode": "BEYOND",
+          "planLabel": "คู่บียอนด์ 100MB",
+          "productNameTh": "ทันตกรรม เฟิร์สคลาส อัลตร้า แพลทินัม",
+          "family": "dental",
+          "source": "brochure",
+          "note": "แนบกับ IPD Beyond 100MB — วงเงินทันตกรรมสูงกว่า + คุ้มครองฟันปลอม/รากเทียม",
+          "cells": {
+            "opd-per-visit": null,
+            "opd-visits-year": null,
+            "opd-rehab": null,
+            "opd-equipment": null,
+            "opd-vision": null,
+            "opd-vaccine": null,
+            "opd-checkup": null,
+            "dental-annual": "100,000 บาท/ปี",
+            "dental-copay": "ชดเชย 80% ของจริง",
+            "dental-scope": "ครอบคลุมทั้งหมด รวมถึงฟันปลอม/รากเทียม (เฉพาะแผนบียอนด์ แพลทินัม)"
+          }
+        }
+      ]
+    },
+    {
+      "productCode": "DVMFCPN_BDMS",
+      "productNameTh": "ทันตกรรม เฟิร์สคลาส อัลตร้า แพลทินัม (BDMS)",
+      "plans": [
+        {
+          "productCode": "DVMFCPN_BDMS",
+          "planCode": "PLATINUM",
+          "planLabel": "คู่แพลทินัม 60MB (BDMS)",
+          "productNameTh": "ทันตกรรม เฟิร์สคลาส อัลตร้า แพลทินัม @BDMS",
+          "family": "dental",
+          "source": "brochure",
+          "note": "แนบกับ IPD Platinum 60MB @BDMS — วงเงินทันตกรรมนับรวมเพดาน IPD",
+          "cells": {
+            "opd-per-visit": null,
+            "opd-visits-year": null,
+            "opd-rehab": null,
+            "opd-equipment": null,
+            "opd-vision": null,
+            "opd-vaccine": null,
+            "opd-checkup": null,
+            "dental-annual": "45,000 บาท/ปี",
+            "dental-copay": "ชดเชย 80% ของจริง",
+            "dental-scope": "ขูดหินปูน + อุดฟัน + ถอน + รักษารากฟัน + ผ่าฟันคุด + ครอบฟัน (ไม่รวมฟันปลอม)"
+          }
+        },
+        {
+          "productCode": "DVMFCPN_BDMS",
+          "planCode": "BEYOND",
+          "planLabel": "คู่บียอนด์ 120MB (BDMS)",
+          "productNameTh": "ทันตกรรม เฟิร์สคลาส อัลตร้า แพลทินัม @BDMS",
+          "family": "dental",
+          "source": "brochure",
+          "note": "แนบกับ IPD Beyond 120MB @BDMS — วงเงินทันตกรรมสูงสุดในตระกูล",
+          "cells": {
+            "opd-per-visit": null,
+            "opd-visits-year": null,
+            "opd-rehab": null,
+            "opd-equipment": null,
+            "opd-vision": null,
+            "opd-vaccine": null,
+            "opd-checkup": null,
+            "dental-annual": "100,000 บาท/ปี",
+            "dental-copay": "ชดเชย 80% ของจริง",
+            "dental-scope": "ครอบคลุมทั้งหมด รวมถึงฟันปลอม/รากเทียม (เฉพาะแผนบียอนด์ แพลทินัม)"
+          }
+        }
+      ]
+    }
+  ]
+}
