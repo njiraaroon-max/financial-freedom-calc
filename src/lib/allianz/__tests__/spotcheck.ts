@@ -2132,10 +2132,10 @@ check("HSMHPDC plan 3000: NHS-1.1 = 3000, NHS-1.2 = 6000 (ICU 2×)", () => {
   assert.equal(getBenefitValue(plan, "1.2"), 6000);
 });
 
-check("HSMFCPN_BDMS: NHS-1.1 = 25000 (Platinum-tier room rate)", () => {
+check("HSMFCPN_BDMS: NHS-1.1 = 9000 (Platinum 60MB room rate @ BDMS)", () => {
   const plan = getPlanBenefits("HSMFCPN_BDMS");
   assert.ok(plan);
-  assert.equal(getBenefitValue(plan, "1.1"), 25000);
+  assert.equal(getBenefitValue(plan, "1.1"), 9000);
 });
 
 check("HSMFCPN_BDMS: most categories are 'as-charged' (unlimited within cap)", () => {
@@ -2146,10 +2146,41 @@ check("HSMFCPN_BDMS: most categories are 'as-charged' (unlimited within cap)", (
   assert.equal(getBenefitValue(plan, "10"),  "as-charged");
 });
 
-check("HSMFCPN_BDMS annualCap = 25,000,000 baht", () => {
+check("HSMFCPN_BDMS annualCap = 60,000,000 baht", () => {
   const plan = getPlanBenefits("HSMFCPN_BDMS");
   assert.ok(plan);
-  assert.equal(plan.annualCap, 25_000_000);
+  assert.equal(plan.annualCap, 60_000_000);
+});
+
+check("HSMFCBN_BDMS (Beyond 120MB): NHS-1.1 = 20000, cap = 120M", () => {
+  const plan = getPlanBenefits("HSMFCBN_BDMS");
+  assert.ok(plan);
+  assert.equal(getBenefitValue(plan, "1.1"), 20000);
+  assert.equal(plan.annualCap, 120_000_000);
+});
+
+check("HSMFCPN_ALL (Platinum 80MB, ANY network): NHS-1.1 = 10000, cap = 80M", () => {
+  const plan = getPlanBenefits("HSMFCPN_ALL");
+  assert.ok(plan);
+  assert.equal(getBenefitValue(plan, "1.1"), 10000);
+  assert.equal(plan.annualCap, 80_000_000);
+});
+
+check("HSMFCBN_ALL (Beyond 100MB, ANY network): NHS-1.1 = 15000, cap = 100M", () => {
+  const plan = getPlanBenefits("HSMFCBN_ALL");
+  assert.ok(plan);
+  assert.equal(getBenefitValue(plan, "1.1"), 15000);
+  assert.equal(plan.annualCap, 100_000_000);
+});
+
+check("HSMHPSK (Sabai Krapao): 2 plans ND+D, NHS-1.1 = 2000, cap = 1M", () => {
+  const nd = getPlanBenefits("HSMHPSK", "ND");
+  const d  = getPlanBenefits("HSMHPSK", "D");
+  assert.ok(nd && d);
+  assert.equal(getBenefitValue(nd, "1.1"), 2000);
+  assert.equal(getBenefitValue(d,  "1.1"), 2000);
+  assert.equal(nd.annualCap, 1_000_000);
+  assert.equal(d.annualCap,  1_000_000);
 });
 
 section("benefits.ts — ranking + winnerIndex");
@@ -2194,7 +2225,7 @@ check("winnerIndex HS_S 1500 vs 4500 vs HSMFCPN_BDMS on NHS-1.1", () => {
     getBenefitValue(p2, "1.1"),
     getBenefitValue(p3, "1.1"),
   ];
-  // 1500 < 4500 < 25000 → HSMFCPN_BDMS wins
+  // 1500 < 4500 < 9000 → HSMFCPN_BDMS wins
   assert.equal(winnerIndex(cells), 2);
 });
 
