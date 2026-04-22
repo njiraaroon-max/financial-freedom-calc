@@ -61,3 +61,41 @@ export function getBrochureUrl(code: string | undefined | null): string | undefi
 export function hasBrochure(code: string | undefined | null): boolean {
   return !!getBrochureUrl(code);
 }
+
+// ─── Known brochure gaps ──────────────────────────────────────────────────
+// Preset codes that legitimately have no public brochure. This exists so
+// spotcheck can tell *drift* (someone added a new preset without a brochure,
+// or shipped a PDF without mapping it) apart from *known absence* (Allianz
+// hasn't published a consumer brochure for this product).
+//
+// Rule of thumb:
+//  • Agency-only riders (HB, HBP, CI48) → no consumer brochure, only the
+//    Quick Rate agency PDF.  These live permanently in this set.
+//  • Products in the same family as one we *do* have (e.g. Beyond Platinum
+//    vs. Ultra Platinum) → we simply don't have the PDF yet; remove from
+//    this set when the brochure drops.
+//  • Main-policy variants we haven't been given (MWLA9021, TM1) → same.
+//
+// When adding a new rider preset, either drop a PDF into /public/brochures
+// and map it above, or add the code here with a one-line reason.
+export const KNOWN_BROCHURE_GAPS: Record<string, string> = {
+  // Agency Quick Rate products — no consumer-facing brochure exists.
+  HB:            "Agency Quick Rate only (ค่ารักษาพยาบาลรายวัน พื้นฐาน)",
+  HBP:           "Agency Quick Rate only (ค่ารักษาพยาบาลรายวันพิเศษ)",
+  CI48:          "Agency Quick Rate only (โรคร้ายแรง 48 คลาสสิก)",
+  // Newer / different tier — brochure not yet in /public/brochures.
+  MWLA9021:      "Brochure PDF pending (Whole Life A90/21)",
+  TM1:           "Brochure PDF pending (Term ปีต่อปี 1/1)",
+  HSMFCBN_BDMS:  "Brochure PDF pending (First Class Beyond Platinum @ BDMS)",
+  HSMFCBN_ALL:   "Brochure PDF pending (First Class Beyond Platinum @ ALL)",
+  HSMHPDC:       "Brochure PDF pending (ปลดล็อค ดับเบิล แคร์ IPD)",
+  OPDMDC:        "Brochure PDF pending (ปลดล็อค ดับเบิล แคร์ OPD)",
+};
+
+/** True when this code is either mapped to a brochure or documented as a
+ *  known gap.  Useful for drift checks — a code that's *neither* is a bug. */
+export function isBrochureStateKnown(code: string | undefined | null): boolean {
+  if (!code) return false;
+  const upper = code.trim().toUpperCase();
+  return upper in BROCHURES || upper in KNOWN_BROCHURE_GAPS;
+}

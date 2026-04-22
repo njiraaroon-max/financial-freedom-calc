@@ -27,8 +27,16 @@ import {
   rankBenefit,
   winnerIndex,
 } from "../benefits";
-import { RIDER_PRESETS } from "../../../components/allianz/compare/presets";
-import { getBrochureUrl } from "../../../data/allianz/brochures";
+import {
+  MAIN_PRESETS,
+  RIDER_PRESETS,
+} from "../../../components/allianz/compare/presets";
+import {
+  getBrochureUrl,
+  isBrochureStateKnown,
+  KNOWN_BROCHURE_GAPS,
+  BROCHURES,
+} from "../../../data/allianz/brochures";
 
 let passed = 0;
 let failed = 0;
@@ -2350,6 +2358,63 @@ check("Compare has HBCI presets (HB + 5 CI combo, to age 84)", () => {
   for (const p of matches) {
     assert.ok(p.dailyBenefit && p.dailyBenefit > 0, `HBCI preset ${p.id} needs a positive dailyBenefit`);
   }
+});
+
+// ─── Brochure coverage drift guard ─────────────────────────────────────────
+// Every preset code must be either mapped to a brochure PDF or explicitly
+// documented as a known gap.  A code that's *neither* means someone added a
+// preset without attaching a brochure (or documenting its absence) — and
+// users will silently see the "ดูโบรชัวร์" link disappear.  Catching this
+// here is cheaper than catching it in a screenshot review.
+check("Every MAIN preset code has known brochure state (mapped or documented gap)", () => {
+  const unknowns = MAIN_PRESETS
+    .map((p) => p.code)
+    .filter((c) => !isBrochureStateKnown(c));
+  assert.deepEqual(
+    unknowns,
+    [],
+    `MAIN preset codes with unknown brochure state (add to BROCHURES or KNOWN_BROCHURE_GAPS): ${unknowns.join(", ")}`,
+  );
+});
+
+check("Every RIDER preset code has known brochure state", () => {
+  const unknowns = RIDER_PRESETS
+    .map((p) => p.code)
+    .filter((c) => !isBrochureStateKnown(c));
+  assert.deepEqual(
+    unknowns,
+    [],
+    `RIDER preset codes with unknown brochure state: ${unknowns.join(", ")}`,
+  );
+});
+
+check("KNOWN_BROCHURE_GAPS is mutually exclusive with BROCHURES", () => {
+  // A code that lives in BOTH sets is a contradiction — either it has a
+  // brochure or it doesn't.  Happens when someone maps a PDF but forgets to
+  // remove the gap entry.
+  const overlap = Object.keys(KNOWN_BROCHURE_GAPS).filter((c) => c in BROCHURES);
+  assert.deepEqual(
+    overlap,
+    [],
+    `Codes that appear in both BROCHURES and KNOWN_BROCHURE_GAPS: ${overlap.join(", ")}`,
+  );
+});
+
+check("Every KNOWN_BROCHURE_GAPS entry is still referenced by at least one preset", () => {
+  // Prevents the gap list from drifting into noise — if no preset uses a
+  // code any more, its gap entry is dead weight.
+  const allPresetCodes = new Set([
+    ...MAIN_PRESETS.map((p) => p.code.toUpperCase()),
+    ...RIDER_PRESETS.map((p) => p.code.toUpperCase()),
+  ]);
+  const orphans = Object.keys(KNOWN_BROCHURE_GAPS).filter(
+    (c) => !allPresetCodes.has(c),
+  );
+  assert.deepEqual(
+    orphans,
+    [],
+    `KNOWN_BROCHURE_GAPS entries with no corresponding preset (remove them): ${orphans.join(", ")}`,
+  );
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
