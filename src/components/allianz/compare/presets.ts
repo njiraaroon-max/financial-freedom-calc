@@ -171,16 +171,37 @@ export const RIDER_PRESETS: RiderPreset[] = [
   { id: "opd-double-4000",  code: "OPDMDC", planCode: "4000", kind: "OPD", label: "OPD ดับเบิล แคร์ (ค) 4,000 บาท/ครั้ง", sub: "คู่กับปลดล็อค ดับเบิล แคร์" },
   // Dental
   { id: "dental-any",       code: "DVMFCPN_ALL",  kind: "DENTAL", label: "ทันตกรรม (ALL)", sub: "First Class ทันตกรรม" },
-  // Daily Hospital Benefit — user picks benefit amount
-  { id: "hb-1000",          code: "HB", kind: "HB", label: "HB 1,000 บาท/วัน",  dailyBenefit: 1000 },
-  { id: "hb-2000",          code: "HB", kind: "HB", label: "HB 2,000 บาท/วัน",  dailyBenefit: 2000 },
-  { id: "hb-3000",          code: "HB", kind: "HB", label: "HB 3,000 บาท/วัน",  dailyBenefit: 3000 },
-  { id: "hb-5000",          code: "HB", kind: "HB", label: "HB 5,000 บาท/วัน",  dailyBenefit: 5000 },
-  // Critical Illness
-  { id: "ci-500k",          code: "CI48", kind: "CI", label: "CI 500,000",    sumAssured: 500_000 },
-  { id: "ci-1m",            code: "CI48", kind: "CI", label: "CI 1,000,000",  sumAssured: 1_000_000 },
-  { id: "ci-2m",            code: "CI48", kind: "CI", label: "CI 2,000,000",  sumAssured: 2_000_000 },
-  { id: "ci-3m",            code: "CI48", kind: "CI", label: "CI 3,000,000",  sumAssured: 3_000_000 },
+  // Daily Hospital Benefit — ค่ารักษาพยาบาลรายวัน (HB) พื้นฐาน
+  // Pricing: product id 27, rate per 100 บาท/วัน, ต่ออายุได้ถึง 69, unisex.
+  { id: "hb-1000",          code: "HB", kind: "HB", label: "HB 1,000 บาท/วัน",  sub: "ค่ารักษาพยาบาลรายวัน (พื้นฐาน)", dailyBenefit: 1000 },
+  { id: "hb-2000",          code: "HB", kind: "HB", label: "HB 2,000 บาท/วัน",  sub: "ค่ารักษาพยาบาลรายวัน (พื้นฐาน)", dailyBenefit: 2000 },
+  { id: "hb-3000",          code: "HB", kind: "HB", label: "HB 3,000 บาท/วัน",  sub: "ค่ารักษาพยาบาลรายวัน (พื้นฐาน)", dailyBenefit: 3000 },
+  { id: "hb-5000",          code: "HB", kind: "HB", label: "HB 5,000 บาท/วัน",  sub: "ค่ารักษาพยาบาลรายวัน (พื้นฐาน)", dailyBenefit: 5000 },
+  // Daily Hospital Benefit — ค่ารักษาพยาบาลรายวันพิเศษ (HBP)
+  // Pricing: product id 28, rate per 100 บาท/วัน. ใช้ข้อดีคือซื้อได้ตั้งแต่อายุ 1 เดือน 1 วัน.
+  { id: "hbp-1000",         code: "HBP", kind: "HB", label: "HBP 1,000 บาท/วัน (พิเศษ)", sub: "ซื้อได้ตั้งแต่อายุ 1 เดือน 1 วัน", dailyBenefit: 1000 },
+  { id: "hbp-2000",         code: "HBP", kind: "HB", label: "HBP 2,000 บาท/วัน (พิเศษ)", sub: "ซื้อได้ตั้งแต่อายุ 1 เดือน 1 วัน", dailyBenefit: 2000 },
+  // ─── Critical Illness ────────────────────────────────────────────────
+  // CI48 (classic) — 48 โรค, จ่ายครั้งเดียว 100%, ต่ออายุได้ถึง 69.
+  { id: "ci-500k",          code: "CI48", kind: "CI", label: "CI48 500,000",    sub: "โรคร้ายแรง 48 (คลาสสิก)", sumAssured: 500_000 },
+  { id: "ci-1m",            code: "CI48", kind: "CI", label: "CI48 1,000,000",  sub: "โรคร้ายแรง 48 (คลาสสิก)", sumAssured: 1_000_000 },
+  { id: "ci-2m",            code: "CI48", kind: "CI", label: "CI48 2,000,000",  sub: "โรคร้ายแรง 48 (คลาสสิก)", sumAssured: 2_000_000 },
+  { id: "ci-3m",            code: "CI48", kind: "CI", label: "CI48 3,000,000",  sub: "โรคร้ายแรง 48 (คลาสสิก)", sumAssured: 3_000_000 },
+  // CI48B (Beyond) — 75 โรค, จ่ายแบ่งกลุ่ม 100/50/10/10 %, สะสมสูงสุด 170% ต่ออายุ 84.
+  { id: "ci48b-500k",       code: "CI48B", kind: "CI", label: "CI48 Beyond 500,000",   sub: "โรคร้ายแรง 48 บียอนด์ — 75 โรค, สูงสุด 170%", sumAssured: 500_000 },
+  { id: "ci48b-1m",         code: "CI48B", kind: "CI", label: "CI48 Beyond 1,000,000", sub: "โรคร้ายแรง 48 บียอนด์ — 75 โรค, สูงสุด 170%", sumAssured: 1_000_000 },
+  { id: "ci48b-2m",         code: "CI48B", kind: "CI", label: "CI48 Beyond 2,000,000", sub: "โรคร้ายแรง 48 บียอนด์ — 75 โรค, สูงสุด 170%", sumAssured: 2_000_000 },
+  { id: "ci48b-3m",         code: "CI48B", kind: "CI", label: "CI48 Beyond 3,000,000", sub: "โรคร้ายแรง 48 บียอนด์ — 75 โรค, สูงสุด 170%", sumAssured: 3_000_000 },
+  // CIMC (Multi-Care) — 81 โรค, เคลมซ้ำได้สูงสุด 13 ครั้ง, สะสม 840% ต่ออายุ 98.
+  { id: "cimc-500k",        code: "CIMC", kind: "CI", label: "CI Multi-Care 500,000",   sub: "โรคร้ายแรง มัลติ แคร์ — เคลมได้ 13 ครั้ง, สูงสุด 840%", sumAssured: 500_000 },
+  { id: "cimc-1m",          code: "CIMC", kind: "CI", label: "CI Multi-Care 1,000,000", sub: "โรคร้ายแรง มัลติ แคร์ — เคลมได้ 13 ครั้ง, สูงสุด 840%", sumAssured: 1_000_000 },
+  { id: "cimc-2m",          code: "CIMC", kind: "CI", label: "CI Multi-Care 2,000,000", sub: "โรคร้ายแรง มัลติ แคร์ — เคลมได้ 13 ครั้ง, สูงสุด 840%", sumAssured: 2_000_000 },
+  // CBN (Cancer Hai Huang) — มะเร็งเฉพาะ, เบิกตามจริง 3 แผน (1/2/3M ต่อมะเร็ง 1 ชนิด).
+  // Plan codes match product_plans.json (Thai "แผน N").  sumAssured is informational —
+  // CBN premium is plan-based (not SA-based) so pricing ignores it.
+  { id: "cbn-plan1",        code: "CBN", kind: "CI", planCode: "แผน 1", label: "มะเร็งหายห่วง แผน 1", sub: "เบิกตามจริง 1MB/มะเร็ง — รวม 3MB", sumAssured: 1_000_000 },
+  { id: "cbn-plan2",        code: "CBN", kind: "CI", planCode: "แผน 2", label: "มะเร็งหายห่วง แผน 2", sub: "เบิกตามจริง 2MB/มะเร็ง — รวม 6MB", sumAssured: 2_000_000 },
+  { id: "cbn-plan3",        code: "CBN", kind: "CI", planCode: "แผน 3", label: "มะเร็งหายห่วง แผน 3", sub: "เบิกตามจริง 3MB/มะเร็ง — รวม 9MB", sumAssured: 3_000_000 },
 ];
 
 // ─── Palette — one colour per bundle for the overlay chart ────────────────

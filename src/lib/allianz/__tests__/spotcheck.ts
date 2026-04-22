@@ -27,6 +27,8 @@ import {
   rankBenefit,
   winnerIndex,
 } from "../benefits";
+import { RIDER_PRESETS } from "../../../components/allianz/compare/presets";
+import { getBrochureUrl } from "../../../data/allianz/brochures";
 
 let passed = 0;
 let failed = 0;
@@ -86,6 +88,41 @@ check("CI48 age 50 F → 9.20", () => {
   const r = getRate("CI48", undefined, 50, "F", 50);
   assert.ok(r, "expected a rate row");
   assert.equal(r.rate, 9.2);
+});
+
+// ─── New rider presets (Phase C) — pricing smoke tests ─────────────────────
+// After adding CI48B / CIMC / CBN / HBP preset entries we want early warning
+// if any of those product codes loses its premium rows in the data files.
+// We don't assert the exact rate value (the source data may refresh); we just
+// check that getRate returns *something* at a typical entry age.
+check("CI48B (Beyond) age 40 M → has rate", () => {
+  const r = getRate("CI48B", undefined, 40, "M", 40);
+  assert.ok(r, "expected a CI48B rate row at age 40 M");
+  assert.ok(r.rate > 0, "rate should be positive");
+});
+
+check("CIMC (Multi-Care) age 40 F → has rate", () => {
+  const r = getRate("CIMC", undefined, 40, "F", 40);
+  assert.ok(r, "expected a CIMC rate row at age 40 F");
+  assert.ok(r.rate > 0, "rate should be positive");
+});
+
+check("CBN แผน 1 age 35 M → has rate", () => {
+  const r = getRate("CBN", "แผน 1", 35, "M", 35);
+  assert.ok(r, "expected a CBN plan-1 rate row at age 35 M");
+  assert.ok(r.rate > 0, "rate should be positive");
+});
+
+check("CBN แผน 3 age 35 M → has rate", () => {
+  const r = getRate("CBN", "แผน 3", 35, "M", 35);
+  assert.ok(r, "expected a CBN plan-3 rate row at age 35 M");
+  assert.ok(r.rate > 0, "rate should be positive");
+});
+
+check("HBP age 20 unisex → has rate", () => {
+  const r = getRate("HBP", undefined, 20, "M", 20);
+  assert.ok(r, "expected an HBP rate row at age 20");
+  assert.ok(r.rate > 0, "rate should be positive");
 });
 
 check("MDP 15/6 all ages → 230 (unisex flat)", () => {
@@ -2237,6 +2274,36 @@ check("winnerIndex HS_S 1500 vs 4500 vs HSMFCPN_BDMS on NHS-1.1", () => {
   ];
   // 1500 < 4500 < 9000 → HSMFCPN_BDMS wins
   assert.equal(winnerIndex(cells), 2);
+});
+
+// ─── Rider preset catalogue — Phase C ──────────────────────────────────────
+// Every CI/HB rider preset should point at a real Allianz product code so the
+// brochure link + premium lookup stay in sync with the compare-page UI.
+section("Rider preset catalogue (compare page)");
+
+check("Compare has CI48B Beyond presets (75 โรค, 170% max)", () => {
+  const matches = RIDER_PRESETS.filter((p) => p.code === "CI48B");
+  assert.ok(matches.length >= 3, `expected ≥3 CI48B presets, got ${matches.length}`);
+  assert.ok(getBrochureUrl("CI48B"), "CI48B must have a brochure mapped");
+});
+
+check("Compare has CIMC Multi-Care presets (13 claims, 840% max)", () => {
+  const matches = RIDER_PRESETS.filter((p) => p.code === "CIMC");
+  assert.ok(matches.length >= 2, `expected ≥2 CIMC presets, got ${matches.length}`);
+  assert.ok(getBrochureUrl("CIMC"), "CIMC must have a brochure mapped");
+});
+
+check("Compare has CBN cancer presets (3 plans, Thai plan codes)", () => {
+  const matches = RIDER_PRESETS.filter((p) => p.code === "CBN");
+  assert.equal(matches.length, 3, "expected exactly 3 CBN plans");
+  const codes = matches.map((p) => p.planCode).sort();
+  assert.deepEqual(codes, ["แผน 1", "แผน 2", "แผน 3"]);
+  assert.ok(getBrochureUrl("CBN"), "CBN must have a brochure mapped");
+});
+
+check("HBP (special daily HB) has at least one preset", () => {
+  const matches = RIDER_PRESETS.filter((p) => p.code === "HBP");
+  assert.ok(matches.length >= 1, `expected ≥1 HBP preset, got ${matches.length}`);
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
