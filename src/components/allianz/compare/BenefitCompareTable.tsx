@@ -57,7 +57,9 @@ function resolveColumn(b: BenefitBundleInput): ResolvedColumn {
   if (!preset) {
     return { label: b.label, color: b.color, plan: null, riderLabel: null, emptyReason: "no-data" };
   }
-  const plan = getPlanBenefits(preset.code);
+  // Pass planCode when the preset pins one (HS_S 1500/4500, HSMHPDC ND1/D1 …) so
+  // the compare column reflects the *selected* variant, not the first-listed plan.
+  const plan = getPlanBenefits(preset.code, preset.planCode);
   if (!plan) {
     return {
       label: b.label,

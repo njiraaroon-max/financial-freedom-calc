@@ -2125,11 +2125,21 @@ check("HS_S source tagged as 'seed' (trusted)", () => {
 
 section("health_benefits.json — HSMHPDC + HSMFCPN_BDMS");
 
-check("HSMHPDC plan 3000: NHS-1.1 = 3000, NHS-1.2 = 6000 (ICU 2×)", () => {
-  const plan = getPlanBenefits("HSMHPDC", "3000");
+check("HSMHPDC plan ND1: NHS-1.1 = 3000, NHS-1.2 = 6000 (ICU 2×)", () => {
+  const plan = getPlanBenefits("HSMHPDC", "ND1");
   assert.ok(plan);
   assert.equal(getBenefitValue(plan, "1.1"), 3000);
   assert.equal(getBenefitValue(plan, "1.2"), 6000);
+  assert.equal(plan.source, "estimate"); // un-audited placeholder
+});
+
+check("HSMHPDC has all 4 official plan codes (ND1/ND2/ND3/D1)", () => {
+  const codes = ["ND1", "ND2", "ND3", "D1"];
+  for (const c of codes) {
+    const plan = getPlanBenefits("HSMHPDC", c);
+    assert.ok(plan, `missing HSMHPDC plan ${c}`);
+    assert.equal(plan.planCode, c);
+  }
 });
 
 check("HSMFCPN_BDMS: NHS-1.1 = 9000 (Platinum 60MB room rate @ BDMS)", () => {

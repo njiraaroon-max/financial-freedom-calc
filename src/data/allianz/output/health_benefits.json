@@ -2,7 +2,7 @@
   "_meta": {
     "schema": "NHS-13 (Thailand OIC New Health Standard 2564)",
     "generated_at": "2026-04-22",
-    "coverage": "Phase B — 8 IPD products seeded across HS_S, HSMHPDC (2 plans each), HSMHPSK (2 plans), HSMFCPN_BDMS / HSMFCBN_BDMS / HSMFCPN_ALL / HSMFCBN_ALL (1 plan each — MFC Ultra family, extracted from April 2026 brochures).",
+    "coverage": "Phase B.1 — 7 IPD products seeded: HS_S (2 plans, seed), HSMHPSK (ND+D, brochure), HSMFCPN_BDMS / HSMFCBN_BDMS / HSMFCPN_ALL / HSMFCBN_ALL (brochure, Apr 2026). HSMHPDC: plan codes corrected to ND1/ND2/ND3/D1 per product_plans.json; ND1+ND2 carry forward Phase-A placeholder amounts (source=estimate) until the HSMHPDC brochure is audited; ND3+D1 are empty shells.",
     "legend": {
       "values": {
         "number": "fixed baht amount (unit shown in nhs.ts category metadata)",
@@ -75,12 +75,12 @@
       "plans": [
         {
           "productCode": "HSMHPDC",
-          "planCode": "3000",
-          "planLabel": "\u0e41\u0e1c\u0e19 3000",
+          "planCode": "ND1",
+          "planLabel": "\u0e14\u0e31\u0e1a\u0e40\u0e1a\u0e34\u0e25 \u0e41\u0e04\u0e23\u0e4c \u0e41\u0e1c\u0e19 1 (\u0e44\u0e21\u0e48\u0e21\u0e35 Deductible)",
           "network": "ANY",
           "annualCap": 1000000,
-          "source": "brochure",
-          "note": "\u0e40\u0e2b\u0e21\u0e32\u0e08\u0e48\u0e32\u0e22\u0e43\u0e19\u0e27\u0e07\u0e40\u0e07\u0e34\u0e19\u0e23\u0e27\u0e21 (\u0e2b\u0e21\u0e27\u0e14 2-4, 7, 8, 12, 13) \u2014 \u0e04\u0e48\u0e32\u0e2b\u0e49\u0e2d\u0e07\u0e41\u0e22\u0e01\u0e15\u0e32\u0e21\u0e41\u0e1c\u0e19. \u0e21\u0e30\u0e40\u0e23\u0e47\u0e07/\u0e25\u0e49\u0e32\u0e07\u0e44\u0e15\u0e08\u0e48\u0e32\u0e22\u0e15\u0e32\u0e21\u0e08\u0e23\u0e34\u0e07",
+          "source": "estimate",
+          "note": "\u0e04\u0e48\u0e32 annualCap / room-rate \u0e40\u0e1b\u0e47\u0e19 placeholder \u0e08\u0e32\u0e01 Phase A \u2014 \u0e23\u0e2d\u0e42\u0e1a\u0e23\u0e0a\u0e31\u0e27\u0e23\u0e4c HSMHPDC \u0e40\u0e1e\u0e37\u0e48\u0e2d audit",
           "benefits": {
             "1.1": 3000,
             "1.2": 6000,
@@ -108,11 +108,12 @@
         },
         {
           "productCode": "HSMHPDC",
-          "planCode": "6000",
-          "planLabel": "\u0e41\u0e1c\u0e19 6000",
+          "planCode": "ND2",
+          "planLabel": "\u0e14\u0e31\u0e1a\u0e40\u0e1a\u0e34\u0e25 \u0e41\u0e04\u0e23\u0e4c \u0e41\u0e1c\u0e19 2 (\u0e44\u0e21\u0e48\u0e21\u0e35 Deductible)",
           "network": "ANY",
           "annualCap": 2000000,
-          "source": "brochure",
+          "source": "estimate",
+          "note": "\u0e04\u0e48\u0e32 annualCap / room-rate \u0e40\u0e1b\u0e47\u0e19 placeholder \u0e08\u0e32\u0e01 Phase A \u2014 \u0e23\u0e2d\u0e42\u0e1a\u0e23\u0e0a\u0e31\u0e27\u0e23\u0e4c HSMHPDC \u0e40\u0e1e\u0e37\u0e48\u0e2d audit",
           "benefits": {
             "1.1": 6000,
             "1.2": 12000,
@@ -137,6 +138,26 @@
             "12": "included",
             "13": "included"
           }
+        },
+        {
+          "productCode": "HSMHPDC",
+          "planCode": "ND3",
+          "planLabel": "\u0e14\u0e31\u0e1a\u0e40\u0e1a\u0e34\u0e25 \u0e41\u0e04\u0e23\u0e4c \u0e41\u0e1c\u0e19 3 (\u0e44\u0e21\u0e48\u0e21\u0e35 Deductible)",
+          "network": "ANY",
+          "annualCap": null,
+          "source": "estimate",
+          "note": "\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e44\u0e14\u0e49 audit \u2014 \u0e15\u0e49\u0e2d\u0e07\u0e23\u0e2d\u0e42\u0e1a\u0e23\u0e0a\u0e31\u0e27\u0e23\u0e4c\u0e1e\u0e23\u0e49\u0e2d\u0e21\u0e04\u0e48\u0e32\u0e2b\u0e49\u0e2d\u0e07/\u0e27\u0e07\u0e40\u0e07\u0e34\u0e19\u0e15\u0e48\u0e2d\u0e1b\u0e35",
+          "benefits": {}
+        },
+        {
+          "productCode": "HSMHPDC",
+          "planCode": "D1",
+          "planLabel": "\u0e14\u0e31\u0e1a\u0e40\u0e1a\u0e34\u0e25 \u0e41\u0e04\u0e23\u0e4c \u0e41\u0e1c\u0e19 1 (\u0e21\u0e35 Deductible)",
+          "network": "ANY",
+          "annualCap": null,
+          "source": "estimate",
+          "note": "\u0e41\u0e1a\u0e1a\u0e21\u0e35\u0e04\u0e48\u0e32\u0e43\u0e0a\u0e49\u0e08\u0e48\u0e32\u0e22\u0e23\u0e48\u0e27\u0e21 \u2014 \u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e44\u0e14\u0e49 audit \u0e15\u0e49\u0e2d\u0e07\u0e23\u0e2d\u0e42\u0e1a\u0e23\u0e0a\u0e31\u0e27\u0e23\u0e4c",
+          "benefits": {}
         }
       ]
     },
