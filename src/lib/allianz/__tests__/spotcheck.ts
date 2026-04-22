@@ -125,6 +125,42 @@ check("HBP age 20 unisex → has rate", () => {
   assert.ok(r.rate > 0, "rate should be positive");
 });
 
+// HBCI (HB + 5 CI combo) — 12 age bands × M/F, rate_per 100.
+// Spot-checking 4 characteristic rates: the cheap 21-35 band, the mid-age
+// jump into 56-60, the 61-65 step-up, and the female vs male split at 41-45.
+check("HBCI age 30 M → 199 (21-35 band, plan 500 = 995)", () => {
+  const r = getRate("HBCI", undefined, 30, "M", 30);
+  assert.ok(r, "expected HBCI rate row at age 30 M");
+  assert.equal(r.rate, 199);
+});
+
+check("HBCI age 60 M → 326 (56-60 band)", () => {
+  const r = getRate("HBCI", undefined, 60, "M", 60);
+  assert.ok(r, "expected HBCI rate row at age 60 M");
+  assert.equal(r.rate, 326);
+});
+
+check("HBCI age 62 M → 664 (61-65 band — nearly doubles from 56-60)", () => {
+  const r = getRate("HBCI", undefined, 62, "M", 62);
+  assert.ok(r, "expected HBCI rate row at age 62 M");
+  assert.equal(r.rate, 664);
+});
+
+check("HBCI age 43 F → 259 (vs M 226 — female costlier at midlife)", () => {
+  const r = getRate("HBCI", undefined, 43, "F", 43);
+  assert.ok(r, "expected HBCI rate row at age 43 F");
+  assert.equal(r.rate, 259);
+});
+
+check("HBCI age 75 M → 1128 renewal-only (71-75* band, bought at 50)", () => {
+  // Renewal-only rows only resolve when age > currentAge, so simulate a policy
+  // started at 50 that's now in its 25th renewal year.
+  const r = getRate("HBCI", undefined, 75, "M", 50);
+  assert.ok(r, "expected HBCI renewal rate row at age 75 M");
+  assert.equal(r.rate, 1128);
+  assert.equal(r.is_renewal_only, true, "71-75 must be renewal-only");
+});
+
 check("MDP 15/6 all ages → 230 (unisex flat)", () => {
   const r = getRate("MDP", "15/6", 35, "F", 35);
   assert.ok(r, "expected a rate row");
@@ -2304,6 +2340,16 @@ check("Compare has CBN cancer presets (3 plans, Thai plan codes)", () => {
 check("HBP (special daily HB) has at least one preset", () => {
   const matches = RIDER_PRESETS.filter((p) => p.code === "HBP");
   assert.ok(matches.length >= 1, `expected ≥1 HBP preset, got ${matches.length}`);
+});
+
+check("Compare has HBCI presets (HB + 5 CI combo, to age 84)", () => {
+  const matches = RIDER_PRESETS.filter((p) => p.code === "HBCI");
+  assert.ok(matches.length >= 3, `expected ≥3 HBCI presets, got ${matches.length}`);
+  assert.ok(getBrochureUrl("HBCI"), "HBCI must have a brochure mapped");
+  // All HBCI presets must carry a dailyBenefit (they're HB-kind, not SA-kind).
+  for (const p of matches) {
+    assert.ok(p.dailyBenefit && p.dailyBenefit > 0, `HBCI preset ${p.id} needs a positive dailyBenefit`);
+  }
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

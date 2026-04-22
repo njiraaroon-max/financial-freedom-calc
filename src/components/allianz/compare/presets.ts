@@ -181,6 +181,13 @@ export const RIDER_PRESETS: RiderPreset[] = [
   // Pricing: product id 28, rate per 100 บาท/วัน. ใช้ข้อดีคือซื้อได้ตั้งแต่อายุ 1 เดือน 1 วัน.
   { id: "hbp-1000",         code: "HBP", kind: "HB", label: "HBP 1,000 บาท/วัน (พิเศษ)", sub: "ซื้อได้ตั้งแต่อายุ 1 เดือน 1 วัน", dailyBenefit: 1000 },
   { id: "hbp-2000",         code: "HBP", kind: "HB", label: "HBP 2,000 บาท/วัน (พิเศษ)", sub: "ซื้อได้ตั้งแต่อายุ 1 เดือน 1 วัน", dailyBenefit: 2000 },
+  // Daily Hospital Benefit + 5 CI combo — HBCI
+  // Pricing: product id 26, rate_per 100 บาท/วัน, gender-specific, ต่ออายุได้ถึง 84.
+  // รวม HB รายวัน + ก้อน 5 โรคร้ายแรง (นับ ICU×2 และ CI×2 เข้าในค่าห้องรายวัน).
+  { id: "hbci-1000",        code: "HBCI", kind: "HB", label: "HBCI 1,000 บาท/วัน", sub: "HB + 5 โรคร้ายแรง (ต่ออายุได้ถึง 84)", dailyBenefit: 1000 },
+  { id: "hbci-2000",        code: "HBCI", kind: "HB", label: "HBCI 2,000 บาท/วัน", sub: "HB + 5 โรคร้ายแรง (ต่ออายุได้ถึง 84)", dailyBenefit: 2000 },
+  { id: "hbci-3000",        code: "HBCI", kind: "HB", label: "HBCI 3,000 บาท/วัน", sub: "HB + 5 โรคร้ายแรง (ต่ออายุได้ถึง 84)", dailyBenefit: 3000 },
+  { id: "hbci-4000",        code: "HBCI", kind: "HB", label: "HBCI 4,000 บาท/วัน", sub: "HB + 5 โรคร้ายแรง (ต่ออายุได้ถึง 84)", dailyBenefit: 4000 },
   // ─── Critical Illness ────────────────────────────────────────────────
   // CI48 (classic) — 48 โรค, จ่ายครั้งเดียว 100%, ต่ออายุได้ถึง 69.
   { id: "ci-500k",          code: "CI48", kind: "CI", label: "CI48 500,000",    sub: "โรคร้ายแรง 48 (คลาสสิก)", sumAssured: 500_000 },
