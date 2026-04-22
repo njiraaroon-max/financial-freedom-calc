@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import {
   Shield, HeartPulse, Home, Landmark, Wallet, Plus,
   ClipboardList, ChevronRight, AlertCircle, CheckCircle2, TrendingUp,
-  Scale, Sparkles,
+  Scale, Sparkles, Activity,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { useInsuranceStore } from "@/store/insurance-store";
@@ -717,6 +717,25 @@ export default function InsuranceHubPage() {
                 </div>
                 <div className="text-[12px] text-gray-500 mt-0.5 leading-relaxed">
                   วาง 2-3 bundle เคียงกัน ดูเบี้ยรายปี + renewal shock ทุกช่วงอายุ
+                </div>
+              </div>
+              <ChevronRight size={16} className="text-gray-300 shrink-0 self-center" />
+            </div>
+          </Link>
+
+          <Link href="/calculators/insurance/ci-shock">
+            <div className="glass rounded-2xl p-4 flex items-start gap-3 hover:brightness-[1.03] active:scale-[0.99] transition-all cursor-pointer h-full">
+              <div className="w-11 h-11 rounded-xl shrink-0 flex items-center justify-center shadow-sm"
+                style={{ background: "linear-gradient(135deg, #a78bfa, #7c3aed)" }}>
+                <Activity size={22} className="text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <div className="text-sm font-bold text-gray-800">ถ้าป่วยตอนนั้น…</div>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-violet-100 text-violet-700">NEW</span>
+                </div>
+                <div className="text-[12px] text-gray-500 mt-0.5 leading-relaxed">
+                  CI Shock Simulator — เทียบเงินสะสมที่ได้รับ CI48 vs CI48B vs Multi-Care
                 </div>
               </div>
               <ChevronRight size={16} className="text-gray-300 shrink-0 self-center" />
