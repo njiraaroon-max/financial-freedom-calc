@@ -37,14 +37,24 @@ export interface CompareWorkspaceProps {
 }
 
 // ─── Defaults ─────────────────────────────────────────────────────────────
-function makeDefaultBundle(index: number): BundleConfig {
-  // Three sensible starter bundles so a first-time visitor immediately sees
-  // differences between product shapes.
+// Today - 35 years, ISO-formatted.  Used as the fallback birth date when the
+// profile store doesn't have one yet (first-time visitor).  Lives as a
+// function (not a const) because tests / SSR might mount the workspace at
+// different wall-clock times within a session.
+function today35yIso(): string {
   const today = new Date();
-  const iso = today.toISOString().slice(0, 10);
-  const birthDefault = new Date(today);
-  birthDefault.setFullYear(birthDefault.getFullYear() - 35);
-  const birthIso = birthDefault.toISOString().slice(0, 10);
+  const birth = new Date(today);
+  birth.setFullYear(birth.getFullYear() - 35);
+  return birth.toISOString().slice(0, 10);
+}
+
+function makeDefaultBundle(index: number, seedBirth?: string): BundleConfig {
+  // Three sensible starter bundles so a first-time visitor immediately sees
+  // differences between product shapes.  `seedBirth` lets the caller preseed
+  // from the profile store — falls back to today-35y when profile is empty.
+  const iso = new Date().toISOString().slice(0, 10);
+  const birthIso =
+    seedBirth && /^\d{4}-\d{2}-\d{2}$/.test(seedBirth) ? seedBirth : today35yIso();
 
   const defaults: Omit<BundleConfig, "label" | "color">[] = [
     { mainCode: "MWLA9906", sumAssured: 10_000_000, riderIds: ["ipd-ultra-bdms"], birthDate: birthIso, policyStartDate: iso },
@@ -148,6 +158,7 @@ export default function CompareWorkspace({ urlSync = false }: CompareWorkspacePr
   // (receiver may want to see "what if I were male/female" without changing
   // their own profile — `g` wins over profile when present).
   const profileGender = useProfileStore((s) => s.gender);
+  const profileBirthDate = useProfileStore((s) => s.birthDate);
   const setProfileGender = useProfileStore((s) => s.updateProfile);
   const [genderOverride, setGenderOverride] = useState<Gender | null>(null);
   const gender: Gender = genderOverride ?? profileGender;
@@ -218,8 +229,38 @@ export default function CompareWorkspace({ urlSync = false }: CompareWorkspacePr
 
   const addBundle = () => {
     if (bundles.length >= 3) return;
-    setBundles((prev) => [...prev, makeDefaultBundle(prev.length)]);
+    setBundles((prev) => [...prev, makeDefaultBundle(prev.length, profileBirthDate)]);
   };
+
+  // ─── Seed bundle birthdates from the profile store ───────────────────
+  // The component's initial render happens before zustand-persist has
+  // rehydrated from localStorage, so the useState initializer sees an empty
+  // profile and falls back to today-35y.  Once the rehydration fires, this
+  // effect swaps the placeholder into each bundle — but only while the
+  // bundle still carries the default seed, so user edits and URL-shared
+  // bundles (which set their own birthDate) are preserved.
+  const profileBirthSeeded = useRef(false);
+  useEffect(() => {
+    if (profileBirthSeeded.current) return;
+    if (!profileBirthDate || !/^\d{4}-\d{2}-\d{2}$/.test(profileBirthDate)) {
+      // No profile date to apply, but don't keep re-running if the user
+      // eventually sets one later — we only seed on first availability.
+      return;
+    }
+    profileBirthSeeded.current = true;
+    const seedIso = today35yIso();
+    setBundles((prev) => {
+      let mutated = false;
+      const next = prev.map((b) => {
+        if (b.birthDate === seedIso && b.birthDate !== profileBirthDate) {
+          mutated = true;
+          return { ...b, birthDate: profileBirthDate };
+        }
+        return b;
+      });
+      return mutated ? next : prev;
+    });
+  }, [profileBirthDate]);
 
   // ─── Adopt: push every product in a bundle into the insurance store ──
   const adoptBundle = (idx: number) => {
