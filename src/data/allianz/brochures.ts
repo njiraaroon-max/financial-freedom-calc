@@ -74,7 +74,8 @@ export function hasBrochure(code: string | undefined | null): boolean {
 //
 // Rule of thumb:
 //  • Agency-only riders (HB, HBP, CI48) → no consumer brochure, only the
-//    Quick Rate agency PDF.  These live permanently in this set.
+//    Quick Rate agency PDF (see QUICK_RATE_V2018.md for the archived 2018
+//    version we've spot-checked against).  These live permanently in this set.
 //  • Products in the same family as one we *do* have (e.g. Beyond Platinum
 //    vs. Ultra Platinum) → we simply don't have the PDF yet; remove from
 //    this set when the brochure drops.
