@@ -541,15 +541,12 @@ export default function AdminPage() {
                             <option value="professional">Professional</option>
                           </select>
                         </td>
-                        <td className="px-3 py-2.5 text-center">
-                          <button
-                            onClick={() => setFeaturesModal(row)}
+                        <td className="px-3 py-2.5">
+                          <FeaturesSummaryButton
+                            features={row.features}
                             disabled={busy}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-gray-200 bg-white text-[13px] text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition"
-                          >
-                            <Sliders size={12} />
-                            {countEnabledFeatures(row.features)} ที่เปิด
-                          </button>
+                            onClick={() => setFeaturesModal(row)}
+                          />
                         </td>
                         <td className="px-3 py-2.5 text-center">
                           <StatusBadge status={row.status} />
@@ -718,6 +715,98 @@ function countEnabledFeatures(features: FeatureFlags | null | undefined): number
     }
   }
   return n;
+}
+
+/** Summarise non-mode features as "on/total" so the table cell can show "5/6". */
+function countNonModeFeatures(features: FeatureFlags | null | undefined) {
+  let on = 0;
+  let total = 0;
+  for (const group of FEATURE_GROUPS) {
+    if (group.title === "Planning modes") continue;
+    for (const f of group.flags) {
+      total++;
+      if (flagValue(features, f)) on++;
+    }
+  }
+  return { on, total };
+}
+
+/**
+ * Features cell — shows Modular / Comprehensive mode state with pills
+ * (green=on, gray=off) plus a compact count of other features. The whole
+ * block is the click target that opens the full FeaturesModal.
+ */
+function FeaturesSummaryButton({
+  features,
+  disabled,
+  onClick,
+}: {
+  features: FeatureFlags | null | undefined;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  const modularOn = flagValue(features, {
+    key: "mode_modular_enabled",
+    label: "",
+    defaultTrue: true,
+  });
+  const compOn = flagValue(features, {
+    key: "mode_comprehensive_enabled",
+    label: "",
+    defaultTrue: true,
+  });
+  const { on, total } = countNonModeFeatures(features);
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      title="คลิกเพื่อแก้ไข features"
+      className="group inline-flex flex-col items-start gap-1 px-2 py-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-50 transition text-left"
+    >
+      {/* Mode pills */}
+      <div className="flex items-center gap-1">
+        <ModePill label="Modular" short="M" on={modularOn} />
+        <ModePill label="Comprehensive" short="C" on={compOn} />
+      </div>
+      {/* Other features count */}
+      <div className="flex items-center gap-1 text-[11px] text-gray-500 pl-0.5">
+        <Sliders size={10} />
+        <span className="tabular-nums">
+          <span className="font-semibold text-gray-700">{on}</span>
+          <span className="text-gray-400">/{total}</span> features
+        </span>
+      </div>
+    </button>
+  );
+}
+
+function ModePill({
+  label,
+  short,
+  on,
+}: {
+  label: string;
+  short: string;
+  on: boolean;
+}) {
+  return (
+    <span
+      title={`${label}: ${on ? "เปิดใช้งาน" : "ปิด"}`}
+      className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold tracking-wide border ${
+        on
+          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+          : "bg-gray-100 text-gray-400 border-gray-200 line-through"
+      }`}
+    >
+      <span
+        className={`inline-block w-1.5 h-1.5 rounded-full ${
+          on ? "bg-emerald-500" : "bg-gray-300"
+        }`}
+      />
+      <span className="leading-none">{short}</span>
+    </span>
+  );
 }
 
 function FeaturesModal({
