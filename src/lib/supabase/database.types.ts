@@ -35,9 +35,73 @@ export type PlanDomain =
   | "variables"
   | "selected_modules";
 
+/** Skin / Home-page layout assigned to an FA (admin-controlled). */
+export type Skin = "legacy" | "professional";
+
+/** Per-FA default planning flow — FA can toggle this themselves. */
+export type PlanningMode = "modular" | "comprehensive";
+
+/**
+ * Per-FA feature flags (JSONB in DB so new flags can ship without
+ * migrations). See migration 007 for defaults. Values are optional here
+ * because older rows or new flags may be absent — always read with a
+ * fallback.
+ */
+export interface FeatureFlags {
+  report_pdf?: boolean;
+  export_excel?: boolean;
+  ci_shock_simulator?: boolean;
+  allianz_deep_data?: boolean;
+  multi_insurer_compare?: boolean;
+  /** Numeric cap on how many clients this FA can create. 999 = effectively unlimited. */
+  client_limit?: number;
+  custom_branding?: boolean;
+  /** Room for future flags without breaking the type. */
+  [key: string]: Json | undefined;
+}
+
 export interface Database {
   public: {
     Tables: {
+      organizations: {
+        Row: {
+          id: string;
+          slug: string;
+          name: string;
+          tagline: string | null;
+          logo_url: string | null;
+          logo_dark_url: string | null;
+          favicon_url: string | null;
+          color_primary: string;
+          color_primary_dark: string | null;
+          color_accent: string | null;
+          font_display: string | null;
+          font_body: string | null;
+          default_skin: Skin;
+          nav_config: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          slug: string;
+          name: string;
+          tagline?: string | null;
+          logo_url?: string | null;
+          logo_dark_url?: string | null;
+          favicon_url?: string | null;
+          color_primary?: string;
+          color_primary_dark?: string | null;
+          color_accent?: string | null;
+          font_display?: string | null;
+          font_body?: string | null;
+          default_skin?: Skin;
+          nav_config?: Json;
+        };
+        Update: Partial<Database["public"]["Tables"]["organizations"]["Insert"]>;
+        Relationships: [];
+      };
+
       fa_profiles: {
         Row: {
           user_id: string;
@@ -50,6 +114,10 @@ export interface Database {
           role: "fa" | "admin";
           status: "pending" | "approved" | "rejected";
           expires_at: string | null;
+          organization_id: string;
+          skin: Skin;
+          planning_mode: PlanningMode;
+          features: FeatureFlags;
           created_at: string;
           updated_at: string;
         };
@@ -64,6 +132,10 @@ export interface Database {
           role?: "fa" | "admin";
           status?: "pending" | "approved" | "rejected";
           expires_at?: string | null;
+          organization_id?: string;
+          skin?: Skin;
+          planning_mode?: PlanningMode;
+          features?: FeatureFlags;
         };
         Update: Partial<Database["public"]["Tables"]["fa_profiles"]["Insert"]>;
         Relationships: [];
