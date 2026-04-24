@@ -12,6 +12,49 @@ import { calcPVDProjection } from "@/types/retirement";
 
 function fmt(n: number): string { return Math.round(n).toLocaleString("th-TH"); }
 
+/**
+ * Percent input with a local text buffer so typing isn't fought by
+ * `.toFixed(1)` on every keystroke. Without the buffer, appending "5"
+ * to a displayed "0.0" briefly becomes "0.05" → onChange stores 0.0005
+ * → re-renders as "0.1". Users perceive that as "frozen / can't type".
+ *
+ * We re-sync the buffer when the external value drifts (e.g. "ดึงค่าจาก
+ * Cash Flow" auto-fills the field) using a key on `value`. Round-tripping
+ * the current text through parseFloat avoids clobbering mid-edit if the
+ * store echoed back an equivalent value.
+ */
+function PercentInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [text, setText] = useState((value * 100).toFixed(1));
+  // Sync from outside when the prop changes to something we didn't type.
+  useEffect(() => {
+    const parsed = parseFloat(text);
+    const sameAsText = !isNaN(parsed) && Math.abs(parsed / 100 - value) < 1e-9;
+    if (!sameAsText) setText((value * 100).toFixed(1));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+  return (
+    <div className="flex items-center gap-1">
+      <input
+        type="text"
+        inputMode="decimal"
+        value={text}
+        onChange={(e) => {
+          setText(e.target.value);
+          const n = parseFloat(e.target.value);
+          if (!isNaN(n)) onChange(n / 100);
+        }}
+        onBlur={() => {
+          // Normalize formatting on blur so stray input like "5." settles
+          // back to "5.0" without fighting the user while they're typing.
+          setText((value * 100).toFixed(1));
+        }}
+        className="w-16 text-sm font-semibold bg-gray-50 rounded-xl px-2 py-2 outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-right"
+      />
+      <span className="text-xs text-gray-400">%</span>
+    </div>
+  );
+}
+
 export default function PVDPage() {
   const { pvdParams: p, updatePVDParam, assumptions, markStepCompleted } = useRetirementStore();
   const { setVariable, variables } = useVariableStore();
@@ -221,15 +264,10 @@ export default function PVDPage() {
                 {f.hint && <div className="text-[13px] text-gray-400 mt-0.5 leading-tight">{f.hint}</div>}
               </div>
               {f.type === "percent" ? (
-                <div className="flex items-center gap-1">
-                  <input
-                    type="text" inputMode="decimal"
-                    value={((p[f.key] as number) * 100).toFixed(1)}
-                    onChange={(e) => updatePVDParam(f.key, Number(e.target.value) / 100 || 0)}
-                    className="w-16 text-sm font-semibold bg-gray-50 rounded-xl px-2 py-2 outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-right"
-                  />
-                  <span className="text-xs text-gray-400">%</span>
-                </div>
+                <PercentInput
+                  value={p[f.key] as number}
+                  onChange={(v) => updatePVDParam(f.key, v)}
+                />
               ) : f.type === "months" ? (
                 <div className="flex items-center gap-1">
                   <select
