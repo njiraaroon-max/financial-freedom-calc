@@ -13,6 +13,7 @@
  */
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   ShieldCheck,
   CheckCircle2,
@@ -22,17 +23,27 @@ import {
   Users,
   Loader2,
   RefreshCw,
+  Building2,
+  Palette,
+  Sliders,
+  X,
 } from "lucide-react";
 import {
   listAllFas,
+  listOrganizations,
   getAdminStats,
   setFaStatus,
   setFaRole,
   setFaExpiresAt,
+  setFaSkin,
+  setFaOrganization,
+  setFaFeatures,
   sendResetEmail,
   type FaAdminRow,
   type AdminStats,
+  type OrganizationRow,
 } from "@/lib/supabase/admin";
+import type { FeatureFlags, Skin } from "@/lib/supabase/database.types";
 import { toast } from "@/store/toast-store";
 
 function formatDate(iso: string | null): string {
@@ -149,18 +160,25 @@ function StatusBadge({ status }: { status: FaAdminRow["status"] }) {
 
 export default function AdminPage() {
   const [fas, setFas] = useState<FaAdminRow[]>([]);
+  const [orgs, setOrgs] = useState<OrganizationRow[]>([]);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [featuresModal, setFeaturesModal] = useState<FaAdminRow | null>(null);
 
   const refresh = async () => {
     setRefreshing(true);
     setError(null);
     try {
-      const [rows, s] = await Promise.all([listAllFas(), getAdminStats()]);
+      const [rows, orgRows, s] = await Promise.all([
+        listAllFas(),
+        listOrganizations(),
+        getAdminStats(),
+      ]);
       setFas(rows);
+      setOrgs(orgRows);
       setStats(s);
     } catch (e) {
       setError(e instanceof Error ? e.message : "โหลดข้อมูลไม่สำเร็จ");
@@ -233,6 +251,60 @@ export default function AdminPage() {
     }
   };
 
+  const handleSkinChange = async (row: FaAdminRow, next: Skin) => {
+    if (next === row.skin) return;
+    setBusyId(row.user_id);
+    try {
+      await setFaSkin(row.user_id, next);
+      toast.success(
+        `เปลี่ยน skin ของ ${row.email} เป็น ${next === "professional" ? "Professional" : "Legacy"}`,
+      );
+      await refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "เปลี่ยน skin ไม่สำเร็จ");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleOrgChange = async (row: FaAdminRow, nextOrgId: string) => {
+    if (nextOrgId === row.organization_id) return;
+    const nextOrg = orgs.find((o) => o.id === nextOrgId);
+    if (
+      !confirm(
+        `ย้าย ${row.email} ไปยังองค์กร "${nextOrg?.name ?? nextOrgId}"?`,
+      )
+    )
+      return;
+    setBusyId(row.user_id);
+    try {
+      await setFaOrganization(row.user_id, nextOrgId);
+      toast.success(`ย้าย ${row.email} เรียบร้อย`);
+      await refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "ย้ายองค์กรไม่สำเร็จ");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleFeaturesSave = async (
+    row: FaAdminRow,
+    features: FeatureFlags,
+  ) => {
+    setBusyId(row.user_id);
+    try {
+      await setFaFeatures(row.user_id, features);
+      toast.success(`อัปเดต features ของ ${row.email}`);
+      setFeaturesModal(null);
+      await refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "บันทึก features ไม่สำเร็จ");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   const handleRoleChange = async (row: FaAdminRow, next: "fa" | "admin") => {
     if (next === row.role) return;
     if (
@@ -270,18 +342,27 @@ export default function AdminPage() {
             </p>
           </div>
         </div>
-        <button
-          onClick={refresh}
-          disabled={refreshing}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-60 transition"
-        >
-          {refreshing ? (
-            <Loader2 size={13} className="animate-spin" />
-          ) : (
-            <RefreshCw size={13} />
-          )}
-          Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/organizations"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition"
+          >
+            <Building2 size={13} />
+            จัดการองค์กร
+          </Link>
+          <button
+            onClick={refresh}
+            disabled={refreshing}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-60 transition"
+          >
+            {refreshing ? (
+              <Loader2 size={13} className="animate-spin" />
+            ) : (
+              <RefreshCw size={13} />
+            )}
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -325,6 +406,16 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* Features modal */}
+      {featuresModal && (
+        <FeaturesModal
+          row={featuresModal}
+          busy={busyId === featuresModal.user_id}
+          onClose={() => setFeaturesModal(null)}
+          onSave={(features) => handleFeaturesSave(featuresModal, features)}
+        />
+      )}
+
       {/* Table */}
       <div className="px-4 md:px-8 pb-8">
         {loading ? (
@@ -344,8 +435,15 @@ export default function AdminPage() {
                   <tr>
                     <th className="text-left px-3 py-2.5 font-medium">อีเมล</th>
                     <th className="text-left px-3 py-2.5 font-medium">ชื่อ</th>
+                    <th className="text-left px-3 py-2.5 font-medium">
+                      องค์กร
+                    </th>
                     <th className="text-center px-3 py-2.5 font-medium">
                       สิทธิ์
+                    </th>
+                    <th className="text-center px-3 py-2.5 font-medium">Skin</th>
+                    <th className="text-center px-3 py-2.5 font-medium">
+                      Features
                     </th>
                     <th className="text-center px-3 py-2.5 font-medium">
                       สถานะ
@@ -384,6 +482,28 @@ export default function AdminPage() {
                         <td className="px-3 py-2.5 text-gray-600">
                           {row.display_name || "-"}
                         </td>
+                        <td className="px-3 py-2.5">
+                          <select
+                            value={row.organization_id}
+                            disabled={busy || orgs.length === 0}
+                            onChange={(e) =>
+                              handleOrgChange(row, e.target.value)
+                            }
+                            className="text-[13px] rounded-lg px-2 py-1 border border-gray-200 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-indigo-300 disabled:opacity-50 cursor-pointer max-w-[180px]"
+                            title={row.organization_name ?? ""}
+                          >
+                            {orgs.length === 0 && (
+                              <option value={row.organization_id}>
+                                {row.organization_name ?? "-"}
+                              </option>
+                            )}
+                            {orgs.map((o) => (
+                              <option key={o.id} value={o.id}>
+                                {o.name}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
                         <td className="px-3 py-2.5 text-center">
                           <select
                             value={row.role}
@@ -403,6 +523,33 @@ export default function AdminPage() {
                             <option value="fa">fa</option>
                             <option value="admin">admin</option>
                           </select>
+                        </td>
+                        <td className="px-3 py-2.5 text-center">
+                          <select
+                            value={row.skin}
+                            disabled={busy}
+                            onChange={(e) =>
+                              handleSkinChange(row, e.target.value as Skin)
+                            }
+                            className={`text-[13px] font-medium rounded-full px-2 py-1 border outline-none focus:ring-2 focus:ring-indigo-300 disabled:opacity-50 cursor-pointer ${
+                              row.skin === "professional"
+                                ? "bg-amber-100 text-amber-800 border-amber-200"
+                                : "bg-gray-100 text-gray-600 border-gray-200"
+                            }`}
+                          >
+                            <option value="legacy">Legacy</option>
+                            <option value="professional">Professional</option>
+                          </select>
+                        </td>
+                        <td className="px-3 py-2.5 text-center">
+                          <button
+                            onClick={() => setFeaturesModal(row)}
+                            disabled={busy}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-gray-200 bg-white text-[13px] text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition"
+                          >
+                            <Sliders size={12} />
+                            {countEnabledFeatures(row.features)} ที่เปิด
+                          </button>
                         </td>
                         <td className="px-3 py-2.5 text-center">
                           <StatusBadge status={row.status} />
@@ -494,6 +641,153 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Features ──────────────────────────────────────────────────────────
+// Known flags rendered as checkboxes; unknown/extra keys are preserved
+// on save (so flags added later via DB aren't nuked by the UI).
+
+const KNOWN_BOOL_FLAGS: {
+  key: keyof FeatureFlags;
+  label: string;
+  hint?: string;
+}[] = [
+  { key: "report_pdf", label: "Export PDF report" },
+  { key: "export_excel", label: "Export Excel" },
+  { key: "ci_shock_simulator", label: "CI Shock simulator" },
+  { key: "allianz_deep_data", label: "Allianz deep data" },
+  { key: "multi_insurer_compare", label: "Multi-insurer compare" },
+  { key: "custom_branding", label: "Custom branding" },
+];
+
+function countEnabledFeatures(features: FeatureFlags | null | undefined): number {
+  if (!features) return 0;
+  let n = 0;
+  for (const f of KNOWN_BOOL_FLAGS) {
+    if (features[f.key] === true) n++;
+  }
+  return n;
+}
+
+function FeaturesModal({
+  row,
+  busy,
+  onClose,
+  onSave,
+}: {
+  row: FaAdminRow;
+  busy: boolean;
+  onClose: () => void;
+  onSave: (features: FeatureFlags) => void;
+}) {
+  // Start from the row's current flags so unknown keys are preserved.
+  const [draft, setDraft] = useState<FeatureFlags>({ ...row.features });
+  const clientLimit = typeof draft.client_limit === "number"
+    ? draft.client_limit
+    : 999;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl w-full max-w-md shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center">
+              <Sliders size={14} className="text-white" />
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-gray-800">
+                Features
+              </div>
+              <div className="text-[11px] text-gray-500">{row.email}</div>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"
+          >
+            <X size={14} />
+          </button>
+        </div>
+
+        <div className="px-5 py-4 space-y-3">
+          {KNOWN_BOOL_FLAGS.map((f) => {
+            const on = draft[f.key] === true;
+            return (
+              <label
+                key={String(f.key)}
+                className="flex items-center justify-between gap-3 py-1.5 cursor-pointer"
+              >
+                <div className="text-sm text-gray-700">{f.label}</div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDraft((d) => ({ ...d, [f.key]: !on }))
+                  }
+                  className={`relative w-10 h-6 rounded-full transition ${
+                    on ? "bg-indigo-500" : "bg-gray-200"
+                  }`}
+                  aria-pressed={on}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                      on ? "translate-x-4" : ""
+                    }`}
+                  />
+                </button>
+              </label>
+            );
+          })}
+
+          <div className="pt-2 border-t border-gray-100">
+            <label className="block">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm text-gray-700">Client limit</span>
+                <span className="text-[11px] text-gray-400">
+                  999 = ไม่จำกัด
+                </span>
+              </div>
+              <input
+                type="number"
+                min={0}
+                value={clientLimit}
+                onChange={(e) =>
+                  setDraft((d) => ({
+                    ...d,
+                    client_limit: Number(e.target.value) || 0,
+                  }))
+                }
+                className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-indigo-300"
+              />
+            </label>
+          </div>
+        </div>
+
+        <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2">
+          <button
+            onClick={onClose}
+            disabled={busy}
+            className="px-3 py-1.5 rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+          >
+            ยกเลิก
+          </button>
+          <button
+            onClick={() => onSave(draft)}
+            disabled={busy}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 transition"
+          >
+            {busy && <Loader2 size={13} className="animate-spin" />}
+            บันทึก
+          </button>
+        </div>
       </div>
     </div>
   );
