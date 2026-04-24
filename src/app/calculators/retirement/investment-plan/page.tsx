@@ -362,7 +362,20 @@ function InvestmentPlanPageInner() {
     const plotH = chartH - topPad - bottomPad;
 
     const last = investResult[investResult.length - 1];
-    const maxVal = Math.max(last.goodCase, shortage, last.cost) * 1.15;
+    // Scale rule:
+    //   When the target (shortage) dwarfs the projected portfolio (>1.5×
+    //   the best-case), including it in maxVal squashes all 3 scenario
+    //   lines to a tiny band at the bottom — impossible to read. In that
+    //   case we scale to the data itself and render the target as an
+    //   "above-chart" badge so the user still sees how far off they are
+    //   without losing resolution on the lines.
+    //   When the target is within ~1.5× of best-case, include it so the
+    //   dashed reference line stays inside the plot area.
+    const dataMax = Math.max(last.goodCase, last.cost);
+    const targetOffChart = shortage > dataMax * 1.5;
+    const maxVal = targetOffChart
+      ? dataMax * 1.15
+      : Math.max(dataMax, shortage) * 1.15;
     const minVal = 0;
 
     const valToY = (v: number) => topPad + plotH - ((v - minVal) / (maxVal - minVal)) * plotH;
@@ -452,32 +465,68 @@ function InvestmentPlanPageInner() {
           );
         })}
 
-        {/* Target line (shortage) */}
-        {shortage > 0 && shortage < maxVal && (
+        {/* Target line (shortage)
+            - In range: normal dashed horizontal line with a centered label.
+            - Off-chart (target >> data lines): render a compact "↑ เป้าหมาย
+              Xm" badge pinned to the top strip so the user still sees how
+              much more they need to accumulate — without the line yanking
+              Y-axis scale and flattening the 3 scenario lines. */}
+        {shortage > 0 && !targetOffChart && shortage < maxVal && (
           <>
             <line x1={leftPad} y1={valToY(shortage)} x2={chartW - rightPad} y2={valToY(shortage)} stroke="#ef4444" strokeWidth={1} strokeDasharray="4,3" />
-            {/* Label at center — white halo so it reads over grid lines, avoids overlapping the end-point labels on the right */}
             {(() => {
               const labelText = `เป้าหมาย ${fmtM(shortage)}`;
               const labelX = leftPad + plotW / 2;
               const labelY = valToY(shortage) - 4;
               return (
-                <>
-                  <text
-                    x={labelX}
-                    y={labelY}
-                    textAnchor="middle"
-                    stroke="white"
-                    strokeWidth={3}
-                    paintOrder="stroke"
-                    className="text-[12px] fill-red-500 font-bold"
-                  >
-                    {labelText}
-                  </text>
-                </>
+                <text
+                  x={labelX}
+                  y={labelY}
+                  textAnchor="middle"
+                  stroke="white"
+                  strokeWidth={3}
+                  paintOrder="stroke"
+                  className="text-[12px] fill-red-500 font-bold"
+                >
+                  {labelText}
+                </text>
               );
             })()}
           </>
+        )}
+        {shortage > 0 && targetOffChart && (
+          <g>
+            {/* Dashed line at the very top of the plot area, signaling
+                the chart's upper edge is NOT the target — target is
+                higher, off-screen. */}
+            <line
+              x1={leftPad}
+              y1={topPad + 2}
+              x2={chartW - rightPad}
+              y2={topPad + 2}
+              stroke="#ef4444"
+              strokeWidth={1}
+              strokeDasharray="2,3"
+              opacity={0.55}
+            />
+            {/* Badge with up-arrow and target value */}
+            {(() => {
+              const badge = `↑ เป้าหมาย ${fmtM(shortage)} (สูงเกินกราฟ)`;
+              return (
+                <text
+                  x={leftPad + plotW / 2}
+                  y={topPad - 4}
+                  textAnchor="middle"
+                  stroke="white"
+                  strokeWidth={3}
+                  paintOrder="stroke"
+                  className="text-[12px] fill-red-500 font-bold"
+                >
+                  {badge}
+                </text>
+              );
+            })()}
+          </g>
         )}
 
         {/* Cost line */}
