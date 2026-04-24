@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { Save, User, Briefcase, Heart, Calendar, Banknote, Clock, ShieldCheck, Trash2 } from "lucide-react";
-import { useProfileStore, OCCUPATION_OPTIONS, MARITAL_OPTIONS, GENDER_OPTIONS } from "@/store/profile-store";
+import {
+  useProfileStore,
+  OCCUPATION_OPTIONS,
+  MARITAL_OPTIONS,
+  GENDER_OPTIONS,
+  monthlyIncomeLabel,
+} from "@/store/profile-store";
 import { flushAllStores } from "@/lib/sync/flush-all";
 import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
@@ -269,7 +275,7 @@ export default function PersonalInfoPage() {
           <div>
             <label className="text-[14px] text-gray-500 mb-1 block">
               <Banknote size={11} className="inline mr-1" />
-              เงินเดือน (บาท/เดือน)
+              {monthlyIncomeLabel(draft.occupation)} (บาท/เดือน)
             </label>
             <MoneyInput
               value={draft.salary}
@@ -373,7 +379,7 @@ export default function PersonalInfoPage() {
                 <div className="font-bold">{OCCUPATION_OPTIONS.find((o) => o.value === draft.occupation)?.label}</div>
               </div>
               <div className="bg-white/15 rounded-lg p-2">
-                <div className="opacity-70 text-[13px]">เงินเดือน</div>
+                <div className="opacity-70 text-[13px]">{monthlyIncomeLabel(draft.occupation)}</div>
                 <div className="font-bold">฿{fmt(draft.salary)}</div>
               </div>
             </div>

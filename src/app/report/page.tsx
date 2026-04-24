@@ -20,7 +20,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { Printer, ArrowLeft } from "lucide-react";
 import { useVariableStore } from "@/store/variable-store";
-import { useProfileStore } from "@/store/profile-store";
+import { useProfileStore, OCCUPATION_OPTIONS } from "@/store/profile-store";
 import { useBalanceSheetStore } from "@/store/balance-sheet-store";
 import { useRetirementStore } from "@/store/retirement-store";
 import { useInsuranceStore } from "@/store/insurance-store";
@@ -553,12 +553,12 @@ export default function ReportPage() {
     day: "numeric",
   });
   const ownerName = profile.name || "เจ้าของแผน";
+  // Pull the label from OCCUPATION_OPTIONS so new occupation types
+  // (state_enterprise, business_owner) render correctly without
+  // having to update this branch.
   const occupationLabel =
-    profile.occupation === "private"
-      ? "พนักงานเอกชน"
-      : profile.occupation === "government"
-      ? "ข้าราชการ"
-      : "Freelance / อาชีพอิสระ";
+    OCCUPATION_OPTIONS.find((o) => o.value === profile.occupation)?.label ??
+    "Freelance / อาชีพอิสระ";
   const maritalLabel =
     profile.maritalStatus === "single"
       ? "โสด"
