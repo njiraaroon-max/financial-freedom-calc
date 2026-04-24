@@ -276,6 +276,14 @@ export default function HomePro() {
   }, [planningMode, modularEnabled, comprehensiveEnabled, setPlanningMode]);
 
   const bothDisabled = !modularEnabled && !comprehensiveEnabled;
+  // When only one mode is enabled by admin, the mode selector has no
+  // real choice to offer — hide it entirely. This is the path used by
+  // tenants like Avenger Planner (Comprehensive-only). The tool grid
+  // below still renders because `planningMode` is forced to the
+  // enabled mode via the auto-fallback useEffect above.
+  const onlyOneMode =
+    (modularEnabled && !comprehensiveEnabled) ||
+    (!modularEnabled && comprehensiveEnabled);
 
   // "Start New Plan" is only shown when the client's foundational info is
   // missing — once name + birthDate are filled the FA is deep into the
@@ -309,7 +317,11 @@ export default function HomePro() {
         <InsightPanel insights={insights} clientName={clientName} />
       </section>
 
-      {/* ═══ 4. Mode selector ════════════════════════════════════════ */}
+      {/* ═══ 4. Mode selector ════════════════════════════════════════
+          Skipped entirely when the org/admin has gated the FA to a
+          single planning mode (e.g. Avenger Planner = Comprehensive
+          only). The tool grid below takes the forced mode from state. */}
+      {!onlyOneMode && (
       <section className="max-w-6xl mx-auto px-6 md:px-10 mt-14 md:mt-20">
         <SectionHeader
           kicker="Planning Style"
@@ -356,6 +368,7 @@ export default function HomePro() {
           />
         </div>
       </section>
+      )}
 
       {/* ═══ 5. Tool modules ═════════════════════════════════════════ */}
       <section className="max-w-6xl mx-auto px-6 md:px-10 mt-16 md:mt-24 pb-20">

@@ -88,6 +88,7 @@ export interface Database {
           font_body: string | null;
           default_skin: Skin;
           nav_config: Json;
+          default_features: FeatureFlags;
           created_at: string;
           updated_at: string;
         };
@@ -106,6 +107,7 @@ export interface Database {
           font_body?: string | null;
           default_skin?: Skin;
           nav_config?: Json;
+          default_features?: FeatureFlags;
         };
         Update: Partial<Database["public"]["Tables"]["organizations"]["Insert"]>;
         Relationships: [];
