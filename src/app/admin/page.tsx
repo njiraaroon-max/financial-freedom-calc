@@ -270,9 +270,15 @@ export default function AdminPage() {
   const handleOrgChange = async (row: FaAdminRow, nextOrgId: string) => {
     if (nextOrgId === row.organization_id) return;
     const nextOrg = orgs.find((o) => o.id === nextOrgId);
+    // Skin follows org by default (DB trigger sync_skin_with_org). Tell
+    // the admin up-front so the auto-flip isn't a surprise.
+    const skinNote =
+      nextOrg && nextOrg.default_skin !== row.skin
+        ? `\n\nSkin จะเปลี่ยนเป็น "${nextOrg.default_skin === "professional" ? "Professional" : "Legacy"}" อัตโนมัติตาม default ของ org นี้`
+        : "";
     if (
       !confirm(
-        `ย้าย ${row.email} ไปยังองค์กร "${nextOrg?.name ?? nextOrgId}"?`,
+        `ย้าย ${row.email} ไปยังองค์กร "${nextOrg?.name ?? nextOrgId}"?${skinNote}`,
       )
     )
       return;
