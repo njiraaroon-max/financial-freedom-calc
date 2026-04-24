@@ -36,6 +36,7 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { useProfileStore } from "@/store/profile-store";
+import { useSkin, useOrganization } from "@/store/fa-session-store";
 
 const STORAGE_KEY = "ffc-sidebar-collapsed";
 const EXPANDED_W = "17rem"; // 272px
@@ -71,6 +72,16 @@ export default function Sidebar() {
   const pathname = usePathname() || "/";
   const profile = useProfileStore();
   const firstName = profile.name ? profile.name.split(" ")[0] : "";
+  // Skin drives the sidebar's visual language:
+  //   legacy       → keep the multi-color Tailwind icons + cartoon avatar
+  //                  (existing users expect this, everything stays as-is)
+  //   professional → collapse every icon to the brand navy via the already-
+  //                  flipped --color-primary token; swap the cartoon for
+  //                  the org's dark logo so the whole rail feels cohesive
+  const skin = useSkin();
+  const org = useOrganization();
+  const isPro = skin === "professional";
+  const brandLogo = org?.logoUrl ?? null;
 
   const [collapsed, setCollapsed] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -134,20 +145,34 @@ export default function Sidebar() {
             pathname === "/" ? "bg-white/60" : "hover:bg-white/40"
           }`}
         >
-          <img
-            src="/character/icon-home.png"
-            alt="Financial Friend"
-            className="w-9 h-9 object-contain shrink-0 drop-shadow"
-          />
+          {isPro && brandLogo ? (
+            // Professional skin: org's colored logo (navy V for Victory)
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={brandLogo}
+              alt={org?.name ?? "Organization"}
+              className="w-9 h-9 object-contain shrink-0 drop-shadow"
+            />
+          ) : (
+            // Legacy skin: original Financial Friend cartoon
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src="/character/icon-home.png"
+              alt="Financial Friend"
+              className="w-9 h-9 object-contain shrink-0 drop-shadow"
+            />
+          )}
           <div
             className={`min-w-0 overflow-hidden whitespace-nowrap transition-opacity duration-150 ${
               expanded ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}
           >
             <div className="text-[16px] font-bold leading-tight truncate">
-              Financial Friend
+              {isPro ? (org?.name ?? "Financial Planner") : "Financial Friend"}
             </div>
-            <div className="text-[13px] text-gray-500">วางแผนแบบองค์รวม</div>
+            <div className="text-[13px] text-gray-500">
+              {isPro ? "วางแผนการเงินมืออาชีพ" : "วางแผนแบบองค์รวม"}
+            </div>
           </div>
         </Link>
         <button
@@ -176,7 +201,23 @@ export default function Sidebar() {
             isActive("/profile") ? "bg-white/60" : "hover:bg-white/40"
           }`}
         >
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white flex items-center justify-center text-xs font-bold shrink-0">
+          <div
+            className={`w-9 h-9 rounded-full text-white flex items-center justify-center text-xs font-bold shrink-0 ${
+              // Professional: single navy token so the avatar matches the
+              // rest of the brand. Legacy: original indigo→purple gradient.
+              isPro
+                ? ""
+                : "bg-gradient-to-br from-indigo-500 to-purple-500"
+            }`}
+            style={
+              isPro
+                ? {
+                    background:
+                      "linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))",
+                  }
+                : undefined
+            }
+          >
             {firstName.charAt(0).toUpperCase()}
           </div>
           <div
@@ -197,18 +238,31 @@ export default function Sidebar() {
             item={{ name: "Dashboard", href: "/", icon: Home, color: "text-indigo-500" }}
             active={pathname === "/"}
             expanded={expanded}
+            isPro={isPro}
           />
         </NavGroup>
 
         <NavGroup label="Modules" expanded={expanded}>
           {MAIN_NAV.map((item) => (
-            <NavRow key={item.href} item={item} active={isActive(item.href)} expanded={expanded} />
+            <NavRow
+              key={item.href}
+              item={item}
+              active={isActive(item.href)}
+              expanded={expanded}
+              isPro={isPro}
+            />
           ))}
         </NavGroup>
 
         <NavGroup label="Reports" expanded={expanded}>
           {REPORTS_NAV.map((item) => (
-            <NavRow key={item.href} item={item} active={isActive(item.href)} expanded={expanded} />
+            <NavRow
+              key={item.href}
+              item={item}
+              active={isActive(item.href)}
+              expanded={expanded}
+              isPro={isPro}
+            />
           ))}
         </NavGroup>
       </div>
@@ -220,6 +274,7 @@ export default function Sidebar() {
             item={{ name: "จัดการลูกค้า", href: "/clients", icon: Users, color: "text-gray-500" }}
             active={isActive("/clients")}
             expanded={expanded}
+            isPro={isPro}
           />
         </NavGroup>
         <div
@@ -265,12 +320,20 @@ function NavRow({
   item,
   active,
   expanded,
+  isPro,
 }: {
   item: NavItem;
   active: boolean;
   expanded: boolean;
+  isPro: boolean;
 }) {
   const Icon = item.icon;
+  // Professional: collapse every per-category Tailwind color class to a
+  // single brand navy (via --color-primary, which FaSessionSync already
+  // flipped to the org's palette). Legacy: use whatever the item defined.
+  const iconClass = isPro
+    ? "text-[var(--color-primary)]"
+    : item.color || "text-gray-500";
   return (
     <Link
       href={item.href}
@@ -281,13 +344,18 @@ function NavRow({
           : "text-gray-700 hover:bg-white/40"
       }`}
     >
-      {/* Active indicator bar on the far left — visible in both states */}
+      {/* Active indicator bar on the far left — visible in both states.
+          Uses --color-primary so it automatically follows the brand
+          palette (navy on professional, indigo on legacy). */}
       {active && (
-        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-indigo-500" />
+        <span
+          className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full"
+          style={{ background: "var(--color-primary)" }}
+        />
       )}
       <Icon
         size={18}
-        className={`${item.color || "text-gray-500"} shrink-0 ${
+        className={`${iconClass} shrink-0 ${
           active ? "" : "opacity-80 group-hover:opacity-100"
         }`}
       />
