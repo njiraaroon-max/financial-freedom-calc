@@ -56,6 +56,15 @@ export interface FeatureFlags {
   /** Numeric cap on how many clients this FA can create. 999 = effectively unlimited. */
   client_limit?: number;
   custom_branding?: boolean;
+  /**
+   * Per-FA planning-mode gates. Admin-controlled.
+   * Missing / undefined === true (enabled) so existing FAs aren't
+   * silently locked out. Set to `false` to hide + disable that mode
+   * on the Professional home — HomePro auto-falls-back to the
+   * remaining enabled mode if the FA's current one got turned off.
+   */
+  mode_modular_enabled?: boolean;
+  mode_comprehensive_enabled?: boolean;
   /** Room for future flags without breaking the type. */
   [key: string]: Json | undefined;
 }

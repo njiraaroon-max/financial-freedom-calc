@@ -48,6 +48,7 @@ import {
   Sparkles,
   Plus,
   Coins,
+  Lock,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -248,10 +249,33 @@ export default function HomePro() {
   const org = useOrganization();
   const planningMode = usePlanningMode();
   const setPlanningMode = useFaSessionStore((s) => s.setPlanningMode);
+  const features = useFaSessionStore((s) => s.session?.features ?? null);
   const clientName = useProfileStore((s) => s.name);
   const birthDate = useProfileStore((s) => s.birthDate);
   const firstName = clientName ? clientName.split(" ")[0] : "";
   const insights = useClientInsights();
+
+  // Admin-controlled mode gates. Missing key → treat as enabled so
+  // existing FAs aren't silently locked out when flags are added.
+  const modularEnabled = features?.mode_modular_enabled !== false;
+  const comprehensiveEnabled = features?.mode_comprehensive_enabled !== false;
+
+  // Auto-fallback: if the FA's current mode was just disabled by admin,
+  // flip to whichever mode is still on. (If both disabled, we leave the
+  // state alone and render a banner — the cards themselves are locked.)
+  useEffect(() => {
+    if (planningMode === "modular" && !modularEnabled && comprehensiveEnabled) {
+      setPlanningMode("comprehensive");
+    } else if (
+      planningMode === "comprehensive" &&
+      !comprehensiveEnabled &&
+      modularEnabled
+    ) {
+      setPlanningMode("modular");
+    }
+  }, [planningMode, modularEnabled, comprehensiveEnabled, setPlanningMode]);
+
+  const bothDisabled = !modularEnabled && !comprehensiveEnabled;
 
   // "Start New Plan" is only shown when the client's foundational info is
   // missing — once name + birthDate are filled the FA is deep into the
@@ -292,9 +316,26 @@ export default function HomePro() {
           title="เลือกรูปแบบการวางแผน"
           subtitle="เริ่มจากโมดูลเดี่ยวที่จับประเด็น หรือวางแผนองค์รวมเต็มรูปแบบ"
         />
+        {bothDisabled && (
+          <div
+            className="mt-6 rounded-2xl px-5 py-4 flex items-start gap-3"
+            style={{
+              background: "rgba(214,181,109,0.10)",
+              border: `1px solid ${PALETTE.hairline}`,
+              color: PALETTE.textPrimary,
+            }}
+          >
+            <Lock size={16} style={{ marginTop: 2, color: PALETTE.royalBlue }} />
+            <div className="text-[13.5px] leading-[1.6]">
+              โหมดการวางแผนทั้งสองถูกปิดใช้งานสำหรับบัญชีของคุณ — กรุณาติดต่อ
+              ผู้ดูแลระบบเพื่อเปิดใช้งาน
+            </div>
+          </div>
+        )}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
           <ModeCard
-            active={planningMode === "modular"}
+            active={planningMode === "modular" && modularEnabled}
+            disabled={!modularEnabled}
             onSelect={() => setPlanningMode("modular")}
             icon={Layers}
             label="Modular"
@@ -303,7 +344,8 @@ export default function HomePro() {
             badge="5 เครื่องมือ"
           />
           <ModeCard
-            active={planningMode === "comprehensive"}
+            active={planningMode === "comprehensive" && comprehensiveEnabled}
+            disabled={!comprehensiveEnabled}
             onSelect={() => setPlanningMode("comprehensive")}
             icon={LayoutGrid}
             label="Comprehensive"
@@ -1167,6 +1209,8 @@ interface ModeCardProps {
   description: string;
   badge: string;
   featured?: boolean;
+  /** Admin has turned this mode off for the FA — card is non-interactive. */
+  disabled?: boolean;
 }
 
 function ModeCard({
@@ -1178,32 +1222,54 @@ function ModeCard({
   description,
   badge,
   featured = false,
+  disabled = false,
 }: ModeCardProps) {
   return (
     <button
       type="button"
-      onClick={onSelect}
-      className="group text-left relative flex flex-col gap-4 p-7 md:p-8 rounded-[22px]"
+      onClick={disabled ? undefined : onSelect}
+      disabled={disabled}
+      aria-disabled={disabled}
+      className="group text-left relative flex flex-col gap-4 p-7 md:p-8 rounded-[22px] disabled:cursor-not-allowed"
       style={{
         background: PALETTE.card,
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
         boxShadow: featured ? SHADOWS.glassFeatured : SHADOWS.glass,
         transition: "all 0.25s ease",
+        opacity: disabled ? 0.55 : 1,
+        filter: disabled ? "grayscale(0.4)" : "none",
       }}
       onMouseEnter={(e) => {
+        if (disabled) return;
         e.currentTarget.style.transform = "translateY(-4px)";
         e.currentTarget.style.boxShadow = featured
           ? "0 28px 70px rgba(0,0,0,0.18), 0 0 40px rgba(214,181,109,0.22), 0 1px 0 rgba(255,255,255,0.5) inset"
           : "0 16px 44px rgba(0,0,0,0.12), 0 1px 0 rgba(255,255,255,0.4) inset";
       }}
       onMouseLeave={(e) => {
+        if (disabled) return;
         e.currentTarget.style.transform = "translateY(0)";
         e.currentTarget.style.boxShadow = featured
           ? SHADOWS.glassFeatured
           : SHADOWS.glass;
       }}
     >
+      {/* Lock overlay badge — sits top-right corner when admin disabled */}
+      {disabled && (
+        <div
+          className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-[0.14em] uppercase z-10"
+          style={{
+            background: "rgba(11,78,162,0.10)",
+            color: PALETTE.royalBlue,
+            border: `1px solid ${PALETTE.hairline}`,
+          }}
+          title="ผู้ดูแลระบบปิดการใช้งานโหมดนี้"
+        >
+          <Lock size={11} strokeWidth={2.2} />
+          ปิดใช้งาน
+        </div>
+      )}
       <div className="flex items-start justify-between gap-4">
         <div
           className="w-12 h-12 rounded-xl flex items-center justify-center"

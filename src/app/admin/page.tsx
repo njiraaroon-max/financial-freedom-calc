@@ -647,27 +647,75 @@ export default function AdminPage() {
 }
 
 // ─── Features ──────────────────────────────────────────────────────────
-// Known flags rendered as checkboxes; unknown/extra keys are preserved
+// Known flags rendered as toggles; unknown/extra keys are preserved
 // on save (so flags added later via DB aren't nuked by the UI).
+//
+// `defaultTrue` flags treat `undefined` / missing as ENABLED — used for
+// access gates we don't want to silently lock out on existing FAs
+// (e.g. planning modes). Explicit `false` turns them off.
 
-const KNOWN_BOOL_FLAGS: {
+type FeatureFlagDef = {
   key: keyof FeatureFlags;
   label: string;
   hint?: string;
-}[] = [
-  { key: "report_pdf", label: "Export PDF report" },
-  { key: "export_excel", label: "Export Excel" },
-  { key: "ci_shock_simulator", label: "CI Shock simulator" },
-  { key: "allianz_deep_data", label: "Allianz deep data" },
-  { key: "multi_insurer_compare", label: "Multi-insurer compare" },
-  { key: "custom_branding", label: "Custom branding" },
+  defaultTrue?: boolean;
+};
+
+const FEATURE_GROUPS: { title: string; flags: FeatureFlagDef[] }[] = [
+  {
+    title: "Planning modes",
+    flags: [
+      {
+        key: "mode_modular_enabled",
+        label: "Modular mode",
+        hint: "วางแผนเฉพาะจุด — 5 เครื่องมือ",
+        defaultTrue: true,
+      },
+      {
+        key: "mode_comprehensive_enabled",
+        label: "Comprehensive mode",
+        hint: "วางแผนครบวงจร — 12 เครื่องมือ",
+        defaultTrue: true,
+      },
+    ],
+  },
+  {
+    title: "Exports",
+    flags: [
+      { key: "report_pdf", label: "Export PDF report" },
+      { key: "export_excel", label: "Export Excel" },
+    ],
+  },
+  {
+    title: "Advanced tools",
+    flags: [
+      { key: "ci_shock_simulator", label: "CI Shock simulator" },
+      { key: "allianz_deep_data", label: "Allianz deep data" },
+      { key: "multi_insurer_compare", label: "Multi-insurer compare" },
+    ],
+  },
+  {
+    title: "Branding",
+    flags: [{ key: "custom_branding", label: "Custom branding" }],
+  },
 ];
 
+/** Resolve a flag value honoring its defaultTrue policy. */
+function flagValue(
+  features: FeatureFlags | null | undefined,
+  def: FeatureFlagDef,
+): boolean {
+  const v = features?.[def.key];
+  if (typeof v === "boolean") return v;
+  return def.defaultTrue === true; // undefined/null/non-bool → default
+}
+
 function countEnabledFeatures(features: FeatureFlags | null | undefined): number {
-  if (!features) return 0;
   let n = 0;
-  for (const f of KNOWN_BOOL_FLAGS) {
-    if (features[f.key] === true) n++;
+  for (const group of FEATURE_GROUPS) {
+    for (const f of group.flags) {
+      if (flagValue(features, f)) n++;
+    }
   }
   return n;
 }
@@ -718,34 +766,50 @@ function FeaturesModal({
           </button>
         </div>
 
-        <div className="px-5 py-4 space-y-3">
-          {KNOWN_BOOL_FLAGS.map((f) => {
-            const on = draft[f.key] === true;
-            return (
-              <label
-                key={String(f.key)}
-                className="flex items-center justify-between gap-3 py-1.5 cursor-pointer"
-              >
-                <div className="text-sm text-gray-700">{f.label}</div>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setDraft((d) => ({ ...d, [f.key]: !on }))
-                  }
-                  className={`relative w-10 h-6 rounded-full transition ${
-                    on ? "bg-indigo-500" : "bg-gray-200"
-                  }`}
-                  aria-pressed={on}
-                >
-                  <span
-                    className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                      on ? "translate-x-4" : ""
-                    }`}
-                  />
-                </button>
-              </label>
-            );
-          })}
+        <div className="px-5 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
+          {FEATURE_GROUPS.map((group) => (
+            <div key={group.title}>
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 mb-1.5">
+                {group.title}
+              </div>
+              <div className="space-y-1">
+                {group.flags.map((f) => {
+                  const on = flagValue(draft, f);
+                  return (
+                    <label
+                      key={String(f.key)}
+                      className="flex items-center justify-between gap-3 py-1.5 cursor-pointer"
+                    >
+                      <div className="min-w-0">
+                        <div className="text-sm text-gray-700">{f.label}</div>
+                        {f.hint && (
+                          <div className="text-[11px] text-gray-400">
+                            {f.hint}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setDraft((d) => ({ ...d, [f.key]: !on }))
+                        }
+                        className={`relative shrink-0 w-10 h-6 rounded-full transition ${
+                          on ? "bg-indigo-500" : "bg-gray-200"
+                        }`}
+                        aria-pressed={on}
+                      >
+                        <span
+                          className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                            on ? "translate-x-4" : ""
+                          }`}
+                        />
+                      </button>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
 
           <div className="pt-2 border-t border-gray-100">
             <label className="block">
