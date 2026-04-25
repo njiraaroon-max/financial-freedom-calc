@@ -28,6 +28,7 @@ import { detectRenewalShocks } from "@/lib/allianz/shocks";
 import { buildPolicyFromQuote } from "@/lib/allianz/toPolicy";
 import { useInsuranceStore } from "@/store/insurance-store";
 import { useProfileStore } from "@/store/profile-store";
+import { useFeatureFlag } from "@/store/fa-session-store";
 import type { CalcInput, CalcRiderInput, Gender, OccClass } from "@/lib/allianz/types";
 
 export interface CompareWorkspaceProps {
@@ -173,6 +174,18 @@ export default function CompareWorkspace({ urlSync = false }: CompareWorkspacePr
   const [adoptedIdx, setAdoptedIdx] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<"cost" | "benefits" | "ci" | "opd">("cost");
+  // Feature gates — defaultTrue=true on admin so missing values resolve to ON.
+  // multiInsurer: hides "เพิ่ม Bundle" + "ลบ Bundle" → forces 1-bundle view.
+  // allianzDeep:  hides CI + OPD compare tabs → user only sees cost + benefits.
+  const multiInsurerEnabled = useFeatureFlag("multi_insurer_compare", true);
+  const allianzDeepEnabled = useFeatureFlag("allianz_deep_data", true);
+  // If the user lands on a tab that just got disabled (admin flipped flag
+  // mid-session, or a stale URL pointed at ci/opd), bounce them to cost.
+  useEffect(() => {
+    if (!allianzDeepEnabled && (activeTab === "ci" || activeTab === "opd")) {
+      setActiveTab("cost");
+    }
+  }, [allianzDeepEnabled, activeTab]);
   const hydrated = useRef(false);
   const addPolicy = useInsuranceStore((s) => s.addPolicy);
   const salary = useProfileStore((s) => s.salary);
@@ -401,7 +414,7 @@ export default function CompareWorkspace({ urlSync = false }: CompareWorkspacePr
               {copied ? "คัดลอกแล้ว" : "แชร์ลิงก์"}
             </button>
           )}
-          {bundles.length < 3 && (
+          {bundles.length < 3 && multiInsurerEnabled && (
             <button
               type="button"
               onClick={addBundle}
@@ -431,7 +444,7 @@ export default function CompareWorkspace({ urlSync = false }: CompareWorkspacePr
               onAdopt={() => adoptBundle(i)}
               adopted={adoptedIdx === i}
             />
-            {bundles.length > 2 && (
+            {bundles.length > 2 && multiInsurerEnabled && (
               <button
                 type="button"
                 onClick={() => removeBundle(i)}
@@ -472,30 +485,34 @@ export default function CompareWorkspace({ urlSync = false }: CompareWorkspacePr
           <Stethoscope size={14} />
           ความคุ้มครอง (NHS 13)
         </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("ci")}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] transition ${
-            activeTab === "ci"
-              ? "bg-indigo-600 text-white font-bold shadow-sm"
-              : "text-gray-600 hover:bg-white/60"
-          }`}
-        >
-          <HeartPulse size={14} />
-          CI / มะเร็ง
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("opd")}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] transition ${
-            activeTab === "opd"
-              ? "bg-indigo-600 text-white font-bold shadow-sm"
-              : "text-gray-600 hover:bg-white/60"
-          }`}
-        >
-          <Activity size={14} />
-          OPD / ทันตกรรม
-        </button>
+        {allianzDeepEnabled && (
+          <button
+            type="button"
+            onClick={() => setActiveTab("ci")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] transition ${
+              activeTab === "ci"
+                ? "bg-indigo-600 text-white font-bold shadow-sm"
+                : "text-gray-600 hover:bg-white/60"
+            }`}
+          >
+            <HeartPulse size={14} />
+            CI / มะเร็ง
+          </button>
+        )}
+        {allianzDeepEnabled && (
+          <button
+            type="button"
+            onClick={() => setActiveTab("opd")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] transition ${
+              activeTab === "opd"
+                ? "bg-indigo-600 text-white font-bold shadow-sm"
+                : "text-gray-600 hover:bg-white/60"
+            }`}
+          >
+            <Activity size={14} />
+            OPD / ทันตกรรม
+          </button>
+        )}
       </div>
 
       {/* ─── Active tab content ─────────────────────────────── */}

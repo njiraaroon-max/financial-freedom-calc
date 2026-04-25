@@ -33,6 +33,7 @@ import {
   Trophy,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
+import FlagGate from "@/components/FlagGate";
 import MoneyInput from "@/components/MoneyInput";
 import { useProfileStore } from "@/store/profile-store";
 
@@ -320,6 +321,24 @@ function ShockChart({
 
 // ─── Main page ───────────────────────────────────────────────────────────
 export default function CIShockPage() {
+  // Feature-flag gate. fallbackEnabled=true matches FEATURE_GROUPS so
+  // existing FAs without an explicit value keep access. Admin must
+  // toggle off to hide.
+  return (
+    <FlagGate
+      flag="ci_shock_simulator"
+      fallbackEnabled={true}
+      deniedTitle="CI Shock Simulator ถูกปิดใช้งาน"
+      deniedBody="ผู้ดูแลระบบของคุณได้ปิดการเข้าถึงเครื่องมือ CI Shock Simulator กรุณาติดต่อผู้ดูแลระบบเพื่อเปิดใช้งาน"
+      backHref="/calculators/insurance"
+      backLabel="กลับไปหน้า Risk Management"
+    >
+      <CIShockInner />
+    </FlagGate>
+  );
+}
+
+function CIShockInner() {
   const profile = useProfileStore();
   const currentAge = profile.getAge() || 35;
 

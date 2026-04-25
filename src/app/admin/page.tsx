@@ -685,16 +685,40 @@ const FEATURE_GROUPS: { title: string; flags: FeatureFlagDef[] }[] = [
   {
     title: "Exports",
     flags: [
-      { key: "report_pdf", label: "Export PDF report" },
-      { key: "export_excel", label: "Export Excel" },
+      {
+        key: "report_pdf",
+        label: "Export PDF report",
+        hint: "ปุ่ม PRINT/PDF ในหน้า /report — ปิดเพื่อไม่ให้ FA print แผน",
+        defaultTrue: true,
+      },
+      {
+        key: "export_excel",
+        label: "Export Excel",
+        hint: "ยังไม่มี feature นี้ในระบบ — placeholder สำหรับอนาคต",
+      },
     ],
   },
   {
     title: "Advanced tools",
     flags: [
-      { key: "ci_shock_simulator", label: "CI Shock simulator" },
-      { key: "allianz_deep_data", label: "Allianz deep data" },
-      { key: "multi_insurer_compare", label: "Multi-insurer compare" },
+      {
+        key: "ci_shock_simulator",
+        label: "CI Shock simulator",
+        hint: "หน้า /calculators/insurance/ci-shock — เทียบเงินสะสม CI48 vs Multi-Care",
+        defaultTrue: true,
+      },
+      {
+        key: "allianz_deep_data",
+        label: "Allianz deep data",
+        hint: "CI / OPD compare tabs ใน /policies?tab=compare + หน้า ci-needs",
+        defaultTrue: true,
+      },
+      {
+        key: "multi_insurer_compare",
+        label: "Multi-insurer compare",
+        hint: "เปรียบเทียบ bundle ข้าม insurer (เพิ่ม/ลบ bundle ใน compare workspace)",
+        defaultTrue: true,
+      },
     ],
   },
   {
@@ -709,7 +733,13 @@ const FEATURE_GROUPS: { title: string; flags: FeatureFlagDef[] }[] = [
   },
   {
     title: "Branding",
-    flags: [{ key: "custom_branding", label: "Custom branding" }],
+    flags: [
+      {
+        key: "custom_branding",
+        label: "Custom branding",
+        hint: "ยังไม่มี UI — placeholder สำหรับ FA upload โลโก้เอง",
+      },
+    ],
   },
 ];
 

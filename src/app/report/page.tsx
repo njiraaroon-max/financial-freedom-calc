@@ -21,6 +21,7 @@ import Link from "next/link";
 import { Printer, ArrowLeft } from "lucide-react";
 import { useVariableStore } from "@/store/variable-store";
 import { useProfileStore, OCCUPATION_OPTIONS } from "@/store/profile-store";
+import { useFeatureFlag } from "@/store/fa-session-store";
 import { useBalanceSheetStore } from "@/store/balance-sheet-store";
 import { useRetirementStore } from "@/store/retirement-store";
 import { useInsuranceStore } from "@/store/insurance-store";
@@ -104,6 +105,11 @@ function statusBg(s: HealthRatio["status"]): string {
 export default function ReportPage() {
   const variables = useVariableStore((s) => s.variables);
   const profile = useProfileStore();
+  // Page itself is always viewable — only the PRINT/PDF button is
+  // gated so FAs at orgs that don't allow print exports see the
+  // on-screen report but no export button. defaultTrue policy on
+  // the admin flag means missing values resolve to ON.
+  const printEnabled = useFeatureFlag("report_pdf", true);
   const bsStore = useBalanceSheetStore();
   const retireStore = useRetirementStore();
   const insurance = useInsuranceStore();
@@ -581,13 +587,15 @@ export default function ReportPage() {
           >
             <ArrowLeft size={16} /> หน้าหลัก
           </Link>
-          <button
-            onClick={() => window.print()}
-            className="flex items-center gap-2 px-4 py-2 rounded-md text-xs font-semibold text-white hover:opacity-90 transition"
-            style={{ backgroundColor: NAVY }}
-          >
-            <Printer size={14} /> PRINT / PDF
-          </button>
+          {printEnabled && (
+            <button
+              onClick={() => window.print()}
+              className="flex items-center gap-2 px-4 py-2 rounded-md text-xs font-semibold text-white hover:opacity-90 transition"
+              style={{ backgroundColor: NAVY }}
+            >
+              <Printer size={14} /> PRINT / PDF
+            </button>
+          )}
         </div>
       </div>
 

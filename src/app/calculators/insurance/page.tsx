@@ -143,6 +143,12 @@ export default function InsuranceHubPage() {
   // Sales-closing combo tool — gated to Victory FAs by org default.
   // Other orgs can grant per-FA via /admin Features modal.
   const comboEnabled = useFeatureFlag("health_savings_combo", false);
+  // Existing-feature flags — defaultTrue=true on the admin side so missing
+  // values resolve to ON. We pass `true` as the fallback here so the page
+  // doesn't flicker into a hidden state during session-loading.
+  const ciShockEnabled = useFeatureFlag("ci_shock_simulator", true);
+  const allianzDeepEnabled = useFeatureFlag("allianz_deep_data", true);
+  const multiInsurerEnabled = useFeatureFlag("multi_insurer_compare", true);
   // Shared inflation assumption (from retirement planner) — keeps Pillar-1
   // numbers on this overview identical to the planning page.
   const generalInflationPct = (retirement.assumptions.generalInflation ?? 0.03) * 100;
@@ -689,6 +695,11 @@ export default function InsuranceHubPage() {
 
         {/* ═══ DECISION TOOLS ══════════════════════════════════════ */}
         <div className="mx-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* CI sizing tool — gated by allianz_deep_data because the
+              tool's core calc and rate pull come from the Allianz
+              CI rider tables. Non-Allianz tenants don't get value
+              from this surface. */}
+          {allianzDeepEnabled && (
           <Link href="/calculators/insurance/ci-needs">
             <div className="glass rounded-2xl p-4 flex items-start gap-3 hover:brightness-[1.03] active:scale-[0.99] transition-all cursor-pointer h-full">
               <div className="w-11 h-11 rounded-xl shrink-0 flex items-center justify-center shadow-sm"
@@ -707,7 +718,12 @@ export default function InsuranceHubPage() {
               <ChevronRight size={16} className="text-gray-300 shrink-0 self-center" />
             </div>
           </Link>
+          )}
 
+          {/* Compare workspace tile — gated by multi_insurer_compare.
+              When off the user can still access /policies (single-bundle
+              view) but not the side-by-side compare tab. */}
+          {multiInsurerEnabled && (
           <Link href="/calculators/insurance/policies?tab=compare">
             <div className="glass rounded-2xl p-4 flex items-start gap-3 hover:brightness-[1.03] active:scale-[0.99] transition-all cursor-pointer h-full">
               <div className="w-11 h-11 rounded-xl shrink-0 flex items-center justify-center shadow-sm"
@@ -726,7 +742,10 @@ export default function InsuranceHubPage() {
               <ChevronRight size={16} className="text-gray-300 shrink-0 self-center" />
             </div>
           </Link>
+          )}
 
+          {/* CI Shock simulator — gated by ci_shock_simulator. */}
+          {ciShockEnabled && (
           <Link href="/calculators/insurance/ci-shock">
             <div className="glass rounded-2xl p-4 flex items-start gap-3 hover:brightness-[1.03] active:scale-[0.99] transition-all cursor-pointer h-full">
               <div className="w-11 h-11 rounded-xl shrink-0 flex items-center justify-center shadow-sm"
@@ -745,6 +764,7 @@ export default function InsuranceHubPage() {
               <ChevronRight size={16} className="text-gray-300 shrink-0 self-center" />
             </div>
           </Link>
+          )}
 
           <Link href="/calculators/insurance/policies">
             <div className="glass rounded-2xl p-4 flex items-start gap-3 hover:brightness-[1.03] active:scale-[0.99] transition-all cursor-pointer h-full">

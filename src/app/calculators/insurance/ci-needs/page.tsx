@@ -31,6 +31,7 @@ import {
 import PageHeader from "@/components/PageHeader";
 import MoneyInput from "@/components/MoneyInput";
 import ActionButton from "@/components/ActionButton";
+import FlagGate from "@/components/FlagGate";
 import { useProfileStore } from "@/store/profile-store";
 import { useInsuranceStore } from "@/store/insurance-store";
 import { flushAllStores } from "@/lib/sync/flush-all";
@@ -60,6 +61,24 @@ const YEARS_PRESETS = [1, 2, 3, 5] as const;
 
 // ─── Main page ───────────────────────────────────────────────────────────
 export default function CINeedsPage() {
+  // CI sizing tool consumes Allianz CI rider rate tables internally —
+  // gate behind allianz_deep_data so non-Allianz tenants don't hit a
+  // surface that pulls from a partner-specific dataset.
+  return (
+    <FlagGate
+      flag="allianz_deep_data"
+      fallbackEnabled={true}
+      deniedTitle="เครื่องมือนี้ใช้ข้อมูลเชิงลึกของ Allianz"
+      deniedBody="หน้าวิเคราะห์ทุน CI ใช้ตาราง CI rider ของ Allianz ซึ่งถูกปิดไว้สำหรับองค์กรของคุณ กรุณาติดต่อผู้ดูแลระบบเพื่อเปิดใช้งาน"
+      backHref="/calculators/insurance"
+      backLabel="กลับไปหน้า Risk Management"
+    >
+      <CINeedsInner />
+    </FlagGate>
+  );
+}
+
+function CINeedsInner() {
   const profile = useProfileStore();
   const store = useInsuranceStore();
   const policies = store.policies;
