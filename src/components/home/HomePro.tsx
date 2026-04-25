@@ -61,6 +61,7 @@ import { useCashFlowStore } from "@/store/cashflow-store";
 import { useBalanceSheetStore } from "@/store/balance-sheet-store";
 import { useInsuranceStore } from "@/store/insurance-store";
 import { useRetirementStore } from "@/store/retirement-store";
+import VictorySalesHome from "@/components/home/VictorySalesHome";
 
 // ─── Luxury palette ────────────────────────────────────────────────
 const PALETTE = {
@@ -250,6 +251,11 @@ export default function HomePro() {
   const planningMode = usePlanningMode();
   const setPlanningMode = useFaSessionStore((s) => s.setPlanningMode);
   const features = useFaSessionStore((s) => s.session?.features ?? null);
+  // Victory Insurance Tools — when on, replaces the standard 5-tile
+  // modular grid with the Pyramid sales surface (VictorySalesHome).
+  // Comprehensive mode is unaffected. Defaulted true for Victory FAs
+  // via migration 014; missing/undefined → off for everyone else.
+  const victoryToolsEnabled = features?.victory_insurance_tools === true;
   const clientName = useProfileStore((s) => s.name);
   const birthDate = useProfileStore((s) => s.birthDate);
   const firstName = clientName ? clientName.split(" ")[0] : "";
@@ -387,11 +393,22 @@ export default function HomePro() {
         />
 
         {planningMode === "modular" ? (
-          <div className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 md:gap-6">
-            {MODULAR_TOOLS.map((tool) => (
-              <ToolCard key={tool.href} tool={tool} />
-            ))}
-          </div>
+          victoryToolsEnabled ? (
+            // Victory's Modular = Pyramid sales surface, rendered as
+            // a self-contained section that replaces the tile grid.
+            // We deliberately keep the surrounding HomePro chrome
+            // (hero, mode selector) so the FA can flip back to
+            // Comprehensive without leaving the page.
+            <div className="-mx-6 md:-mx-10 mt-6">
+              <VictorySalesHome />
+            </div>
+          ) : (
+            <div className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 md:gap-6">
+              {MODULAR_TOOLS.map((tool) => (
+                <ToolCard key={tool.href} tool={tool} />
+              ))}
+            </div>
+          )
         ) : (
           <div className="mt-8 space-y-12 md:space-y-16">
             {TOOL_GROUPS.map((group) => (
