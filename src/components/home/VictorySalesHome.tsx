@@ -153,7 +153,7 @@ const LAYERS: PyramidLayer[] = [
     accentFrom: "#d6b56d",
     accentTo: "#b89150",
     href: "/calculators/sales/legacy",
-    ready: false, // will flip true in commit 2
+    ready: true, // ✅ live as of commit 2 — 5-Act sales journey ready
   },
 ];
 
