@@ -698,6 +698,16 @@ const FEATURE_GROUPS: { title: string; flags: FeatureFlagDef[] }[] = [
     ],
   },
   {
+    title: "Sales tools",
+    flags: [
+      {
+        key: "health_savings_combo",
+        label: "Health + Savings Combo",
+        hint: "HSMHPDC × MDP 25/20 — เครื่องมือปิดการขาย (Victory เปิดเป็น default)",
+      },
+    ],
+  },
+  {
     title: "Branding",
     flags: [{ key: "custom_branding", label: "Custom branding" }],
   },

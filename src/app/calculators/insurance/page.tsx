@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import {
   Shield, HeartPulse, Home, Landmark, Wallet, Plus,
   ClipboardList, ChevronRight, AlertCircle, CheckCircle2, TrendingUp,
-  Scale, Sparkles, Activity,
+  Scale, Sparkles, Activity, PiggyBank,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { useInsuranceStore } from "@/store/insurance-store";
@@ -14,6 +14,7 @@ import { useBalanceSheetStore } from "@/store/balance-sheet-store";
 import { useVariableStore } from "@/store/variable-store";
 import { useGoalsStore } from "@/store/goals-store";
 import { useRetirementStore } from "@/store/retirement-store";
+import { useFeatureFlag } from "@/store/fa-session-store";
 import { computePillar1Analysis } from "@/lib/pillar1Analysis";
 import { computePillar2Analysis } from "@/lib/pillar2Analysis";
 
@@ -139,6 +140,9 @@ export default function InsuranceHubPage() {
   const retirement = useRetirementStore();
   const policies = store.policies;
   const rm = store.riskManagement;
+  // Sales-closing combo tool — gated to Victory FAs by org default.
+  // Other orgs can grant per-FA via /admin Features modal.
+  const comboEnabled = useFeatureFlag("health_savings_combo", false);
   // Shared inflation assumption (from retirement planner) — keeps Pillar-1
   // numbers on this overview identical to the planning page.
   const generalInflationPct = (retirement.assumptions.generalInflation ?? 0.03) * 100;
@@ -757,6 +761,45 @@ export default function InsuranceHubPage() {
               <ChevronRight size={16} className="text-gray-300 shrink-0 self-center" />
             </div>
           </Link>
+
+          {/* Health + Savings Combo — Victory-only sales tool, gated
+              by `health_savings_combo` feature flag. The page itself
+              also gates server-side; this hides the entry point so
+              non-Victory FAs don't see a tile they can't use. The
+              tile uses Victory's signature navy + gold to read as
+              "premium / closer-only" vs the standard glass cards. */}
+          {comboEnabled && (
+            <Link href="/calculators/insurance/health-savings-combo">
+              <div
+                className="rounded-2xl p-4 flex items-start gap-3 hover:brightness-[1.05] active:scale-[0.99] transition-all cursor-pointer h-full text-white relative overflow-hidden md:col-span-2"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #1e3a5f 0%, #0f1e33 100%)",
+                }}
+              >
+                <div className="absolute -top-3 -right-3 opacity-15">
+                  <PiggyBank size={70} />
+                </div>
+                <div className="w-11 h-11 rounded-xl shrink-0 flex items-center justify-center shadow-sm"
+                  style={{ background: "linear-gradient(135deg, #d6b56d, #b89150)" }}>
+                  <Sparkles size={22} className="text-[#0f1e33]" />
+                </div>
+                <div className="flex-1 min-w-0 relative">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="text-sm font-bold">Health + Savings Combo</div>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-300/30 text-amber-200 border border-amber-200/30">
+                      VICTORY
+                    </span>
+                  </div>
+                  <div className="text-[12px] text-white/75 mt-0.5 leading-relaxed">
+                    ปิดการขายด้วย "ประกันสุขภาพฟรี" — HSMHPDC × MDP 25/20
+                    + กราฟ Break-even
+                  </div>
+                </div>
+                <ChevronRight size={16} className="text-amber-200/60 shrink-0 self-center relative" />
+              </div>
+            </Link>
+          )}
         </div>
 
         {/* ═══ OVERALL SCORE ═══════════════════════════════════════ */}

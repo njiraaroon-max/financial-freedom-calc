@@ -65,6 +65,18 @@ export interface FeatureFlags {
    */
   mode_modular_enabled?: boolean;
   mode_comprehensive_enabled?: boolean;
+  /**
+   * Sales tools — Victory-gated. Defaulted true on Victory's
+   * organizations.default_features (migration 013) so new Victory
+   * FAs auto-receive it; missing/undefined treated as OFF for other
+   * orgs because this is an opt-in premium feature.
+   *
+   * Health + Savings Combo: pairs an HSMHPDC health rider with an
+   * MDP 25/20 endowment whose maturity benefit ≈ 25 yrs of health
+   * premiums. Used by Victory FAs as a closing tool — "ประกันสุขภาพ
+   * ฟรี + กำไร" framing.
+   */
+  health_savings_combo?: boolean;
   /** Room for future flags without breaking the type. */
   [key: string]: Json | undefined;
 }
