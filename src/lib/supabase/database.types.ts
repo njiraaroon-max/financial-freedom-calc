@@ -77,6 +77,21 @@ export interface FeatureFlags {
    * ฟรี + กำไร" framing.
    */
   health_savings_combo?: boolean;
+  /**
+   * Victory Insurance Tools — umbrella flag for the entire 5-layer
+   * Pyramid sales-mode UI (Emergency / Life / Health / Annuity /
+   * Wealth Legacy + cross-cutting Tax + Combo decision tools).
+   *
+   * When true AND planningMode === "modular", HomePro renders the
+   * Victory Sales Pyramid (VictorySalesHome) instead of the standard
+   * 5-tile modular grid. Comprehensive mode is unaffected.
+   *
+   * Defaulted true on Victory's organizations.default_features
+   * (migration 014) and back-filled on existing Victory FAs.
+   * Missing/undefined → off for other orgs (admin can grant per-FA
+   * via the Features modal).
+   */
+  victory_insurance_tools?: boolean;
   /** Room for future flags without breaking the type. */
   [key: string]: Json | undefined;
 }

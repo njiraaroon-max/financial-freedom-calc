@@ -725,6 +725,11 @@ const FEATURE_GROUPS: { title: string; flags: FeatureFlagDef[] }[] = [
     title: "Sales tools",
     flags: [
       {
+        key: "victory_insurance_tools",
+        label: "Victory Insurance Tools (Pyramid)",
+        hint: "เปลี่ยน Modular mode เป็น Pyramid 5 ชั้น (Emergency / Life / Health / Saving / Legacy) — Victory เปิดเป็น default",
+      },
+      {
         key: "health_savings_combo",
         label: "Health + Savings Combo",
         hint: "HSMHPDC × MDP 25/20 — เครื่องมือปิดการขาย (Victory เปิดเป็น default)",
