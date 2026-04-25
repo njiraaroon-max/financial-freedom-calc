@@ -105,7 +105,7 @@ const LAYERS: PyramidLayer[] = [
     accentFrom: "#64748b",
     accentTo: "#475569",
     href: "/calculators/sales/emergency",
-    ready: false,
+    ready: true,
   },
   {
     key: "life",
@@ -117,7 +117,7 @@ const LAYERS: PyramidLayer[] = [
     accentFrom: "#dc2626",
     accentTo: "#991b1b",
     href: "/calculators/sales/life",
-    ready: false,
+    ready: true,
   },
   {
     key: "health",
@@ -129,7 +129,7 @@ const LAYERS: PyramidLayer[] = [
     accentFrom: "#0891b2",
     accentTo: "#0e7490",
     href: "/calculators/sales/health",
-    ready: false,
+    ready: true,
   },
   {
     key: "annuity",
@@ -141,7 +141,7 @@ const LAYERS: PyramidLayer[] = [
     accentFrom: "#10b981",
     accentTo: "#047857",
     href: "/calculators/sales/annuity",
-    ready: false,
+    ready: true,
   },
   {
     key: "legacy",
