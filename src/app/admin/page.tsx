@@ -671,7 +671,7 @@ const FEATURE_GROUPS: { title: string; flags: FeatureFlagDef[] }[] = [
       {
         key: "mode_modular_enabled",
         label: "Modular mode",
-        hint: "วางแผนเฉพาะจุด — 5 เครื่องมือ",
+        hint: "วางแผนเฉพาะเรื่อง — 5 เครื่องมือ",
         defaultTrue: true,
       },
       {

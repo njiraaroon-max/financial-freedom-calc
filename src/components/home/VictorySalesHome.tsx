@@ -360,43 +360,99 @@ function DemoBadge({ active }: { active: boolean }) {
 // ─── Pyramid SVG ───────────────────────────────────────────────────
 
 function PyramidSvg() {
-  // Each tier is a trapezoid, narrowing toward the top. We render with
-  // CSS clip-path on rectangular divs so the layer labels stay HTML
-  // (selectable, accessible) rather than baked into SVG text.
-  // Tier widths in % of pyramid base width.
+  // Single continuous isoceles triangle, divided into 4 horizontal
+  // tiers by internal divider lines. The geometry:
+  //
+  //   apex     ── (50, 0)  ───────┐
+  //              ╱ ╲                │ DISTRIBUTION (gold)
+  //             ╱   ╲   ── y=25 ────┤
+  //            ╱     ╲              │ SAVING
+  //           ╱       ╲ ── y=50 ────┤
+  //          ╱         ╲            │ PROTECTION
+  //         ╱           ╲ ── y=75 ──┤
+  //        ╱             ╲          │ FOUNDATION · INCOME
+  //   (0,100)─────────(100,100) ────┘
+  //
+  // At any y ∈ [0,100], the triangle's width = y, with x extents
+  // (50 - y/2) → (50 + y/2). We use this to clip the tier coordinates.
+  //
+  // Labels render as HTML overlays so Thai text stays selectable and
+  // crisp on retina (SVG text antialiasing is uneven).
+
+  const W = 100;
+  const H = 100;
+
+  // Tier metadata, top-down. y0/y1 are the % heights from the apex.
   const tiers = [
-    { width: 100, label: "FOUNDATION · INCOME" },
-    { width: 80, label: "PROTECTION" },
-    { width: 60, label: "SAVING" },
-    { width: 35, label: "DISTRIBUTION" },
+    { y0: 0,  y1: 25, label: "DISTRIBUTION",          gold: true  },
+    { y0: 25, y1: 50, label: "SAVING",                gold: false },
+    { y0: 50, y1: 75, label: "PROTECTION",            gold: false },
+    { y0: 75, y1: 100, label: "FOUNDATION · INCOME",  gold: false },
   ];
+
+  // Trapezoid points for a tier between y0 and y1.
+  const trap = (y0: number, y1: number) =>
+    `${50 - y0 / 2},${y0} ${50 + y0 / 2},${y0} ${50 + y1 / 2},${y1} ${50 - y1 / 2},${y1}`;
 
   return (
     <div className="relative w-full" style={{ aspectRatio: "5/3" }}>
-      <div className="absolute inset-0 flex flex-col-reverse items-center justify-end gap-1.5">
-        {tiers.map((t, i) => (
-          <div
-            key={i}
-            className="relative flex items-center justify-center text-[10px] md:text-[11px] font-bold tracking-[0.2em]"
-            style={{
-              width: `${t.width}%`,
-              height: `${(100 - i * 4) / tiers.length}%`,
-              background: i === tiers.length - 1
-                ? `linear-gradient(135deg, ${PALETTE.gold} 0%, ${PALETTE.goldDark} 100%)`
-                : "rgba(255,255,255,0.05)",
-              border: `1px solid ${i === tiers.length - 1 ? PALETTE.gold : "rgba(255,255,255,0.20)"}`,
-              clipPath:
-                i === tiers.length - 1
-                  ? "polygon(50% 0%, 100% 100%, 0% 100%)" // top = triangle
-                  : `polygon(${5 + i * 3}% 0%, ${95 - i * 3}% 0%, 100% 100%, 0% 100%)`,
-              color: i === tiers.length - 1 ? PALETTE.deepNavy : "rgba(255,255,255,0.7)",
-            }}
-          >
-            <span className="relative z-10 text-center px-2">
+      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet"
+           className="absolute inset-0 w-full h-full">
+        <defs>
+          <linearGradient id="navyTier" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"  stopColor="rgba(255,255,255,0.10)" />
+            <stop offset="100%" stopColor="rgba(255,255,255,0.04)" />
+          </linearGradient>
+          <linearGradient id="goldTier" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"  stopColor={PALETTE.gold} />
+            <stop offset="100%" stopColor={PALETTE.goldDark} />
+          </linearGradient>
+        </defs>
+
+        {/* Tier polygons — fill the triangle continuously, no gaps. */}
+        {tiers.map((t, i) => {
+          // Apex tier is a triangle (y0=0 collapses to a point), others trapezoids
+          const points = t.y0 === 0
+            ? `50,0 ${50 + t.y1 / 2},${t.y1} ${50 - t.y1 / 2},${t.y1}`
+            : trap(t.y0, t.y1);
+          return (
+            <polygon
+              key={i}
+              points={points}
+              fill={t.gold ? "url(#goldTier)" : "url(#navyTier)"}
+              stroke="rgba(255,255,255,0.18)"
+              strokeWidth={0.25}
+            />
+          );
+        })}
+
+        {/* Outer triangle outline — thin for crisp edge */}
+        <polygon
+          points={`50,0 100,100 0,100`}
+          fill="none"
+          stroke="rgba(255,255,255,0.30)"
+          strokeWidth={0.4}
+        />
+      </svg>
+
+      {/* Tier labels — HTML overlays, centered in each tier band */}
+      <div className="absolute inset-0">
+        {tiers.map((t, i) => {
+          const midY = (t.y0 + t.y1) / 2;
+          return (
+            <div
+              key={i}
+              className="absolute left-0 right-0 flex items-center justify-center text-[10px] md:text-[11px] font-bold tracking-[0.2em] pointer-events-none"
+              style={{
+                top: `${midY}%`,
+                transform: "translateY(-50%)",
+                color: t.gold ? PALETTE.deepNavy : "rgba(255,255,255,0.85)",
+              }}
+            >
               {t.label}
-            </span>
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -357,7 +357,7 @@ export default function HomePro() {
             onSelect={() => setPlanningMode("modular")}
             icon={Layers}
             label="Modular"
-            thai="วางแผนเฉพาะจุด"
+            thai="วางแผนเฉพาะเรื่อง"
             description="เลือกเฉพาะหัวข้อที่ต้องการ เช่น ภาษี เกษียณ ประกัน การศึกษา เหมาะกับการให้คำปรึกษาเจาะจง"
             badge="5 เครื่องมือ"
           />
@@ -387,7 +387,7 @@ export default function HomePro() {
           }
           subtitle={
             planningMode === "modular"
-              ? "5 เครื่องมือหลักสำหรับการวางแผนแบบเฉพาะจุด"
+              ? "5 เครื่องมือหลักสำหรับการวางแผนแบบเฉพาะเรื่อง"
               : "12 เครื่องมือ จัดกลุ่มตาม 4 เสาหลักของการวางแผนการเงิน"
           }
         />
