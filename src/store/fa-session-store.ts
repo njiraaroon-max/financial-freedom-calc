@@ -102,17 +102,33 @@ export const useFaSessionStore = create<FaSessionState>((set) => ({
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error, loading: false }),
 
-  setPlanningMode: (mode) =>
+  setPlanningMode: (mode) => {
+    // 1. Update local store immediately (optimistic) so the UI reacts
+    //    without waiting for the Supabase round-trip.
     set((state) =>
       state.session
         ? { session: { ...state.session, planningMode: mode } }
         : state,
-    ),
+    );
+    // 2. Write the localStorage cache so the next refresh restores
+    //    this mode synchronously (anti-flash).
+    writeCachedPlanningMode(mode);
+    // 3. Best-effort write back to Supabase so the choice survives
+    //    cross-device. Done in a separate fire-and-forget so a
+    //    network failure doesn't block the UI; the local state is
+    //    still correct, and the cache will preserve it locally.
+    void persistPlanningModeToServer(mode);
+  },
 
   setDemoMode: (demoMode) => set({ demoMode }),
 
   // Always reset demo mode on sign-out so the next FA doesn't inherit it.
-  clear: () => set({ session: null, loading: false, error: null, demoMode: false }),
+  // Also clear the planning-mode cache so the next FA on the same
+  // browser doesn't inherit the previous user's mode preference.
+  clear: () => {
+    writeCachedPlanningMode(null);
+    set({ session: null, loading: false, error: null, demoMode: false });
+  },
 }));
 
 // ─── Convenience selectors ──────────────────────────────────────────────
@@ -123,9 +139,20 @@ export const useFaSessionStore = create<FaSessionState>((set) => ({
 export const useSkin = () =>
   useFaSessionStore((s) => s.session?.skin ?? "legacy");
 
-/** `'modular' | 'comprehensive'` — default planning flow. */
-export const usePlanningMode = () =>
-  useFaSessionStore((s) => s.session?.planningMode ?? "comprehensive");
+/**
+ * `'modular' | 'comprehensive'` — default planning flow.
+ *
+ * Resolution order (so the UI never flashes the wrong mode after refresh):
+ *   1. session.planningMode    — once Supabase resolves (source of truth)
+ *   2. cached planning mode    — instant restore from localStorage during
+ *                                the loading flicker (anti-flash)
+ *   3. "comprehensive"         — final fallback for first-ever visit
+ */
+export const usePlanningMode = (): PlanningMode =>
+  useFaSessionStore((s) => {
+    if (s.session?.planningMode) return s.session.planningMode;
+    return readCachedPlanningMode() ?? "comprehensive";
+  });
 
 /**
  * Read one feature flag. Returns `false` (or the supplied fallback) if the
@@ -201,5 +228,71 @@ export function writeCachedSkin(skin: Skin | null): void {
     else window.localStorage.removeItem(SKIN_CACHE_KEY);
   } catch {
     /* ignore */
+  }
+}
+
+// ─── Planning-mode cache (anti-flash + refresh persistence) ────────
+// Same rationale as the skin cache: planning_mode lives in the DB
+// (source of truth across browsers/devices) but caching the latest
+// value in localStorage gives:
+//   1. Refresh-restoration on the same browser without waiting for
+//      the Supabase round-trip — the user's last choice "sticks"
+//   2. Anti-flash: usePlanningMode() falls through to this cache
+//      while session is still loading, so the UI doesn't briefly
+//      render Comprehensive before swapping to Modular
+//
+// Written by:
+//   • FaSessionSync after each successful session load (mirrors DB)
+//   • setPlanningMode in this store (immediate write on user click)
+// Cleared on sign-out via the `clear` action.
+
+const PLANNING_MODE_CACHE_KEY = "ffc-planning-mode-cache";
+
+export function readCachedPlanningMode(): PlanningMode | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const v = window.localStorage.getItem(PLANNING_MODE_CACHE_KEY);
+    return v === "modular" || v === "comprehensive" ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+export function writeCachedPlanningMode(mode: PlanningMode | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (mode) window.localStorage.setItem(PLANNING_MODE_CACHE_KEY, mode);
+    else window.localStorage.removeItem(PLANNING_MODE_CACHE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
+ * Best-effort write-back to Supabase. Called by setPlanningMode as a
+ * fire-and-forget side effect — failure is logged but doesn't block
+ * the UI because the local store + localStorage cache already reflect
+ * the new value. Cross-device persistence is the only thing we lose
+ * on network failure, which is acceptable.
+ *
+ * Lazy-imports the Supabase client to avoid pulling the @supabase/ssr
+ * bundle into the SSR build for any page that consumes this store.
+ */
+async function persistPlanningModeToServer(mode: PlanningMode): Promise<void> {
+  if (typeof window === "undefined") return;
+  try {
+    const { createClient } = await import("@/lib/supabase/client");
+    const supabase = createClient();
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) return; // not signed in (e.g. mid-logout) — nothing to do
+    const { error } = await supabase
+      .from("fa_profiles")
+      .update({ planning_mode: mode })
+      .eq("user_id", auth.user.id);
+    if (error) {
+      console.warn("[fa-session-store] planning_mode write-back failed:", error.message);
+    }
+  } catch (err) {
+    console.warn("[fa-session-store] planning_mode write-back threw:", err);
   }
 }

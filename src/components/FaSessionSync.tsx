@@ -24,6 +24,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   useFaSessionStore,
   writeCachedSkin,
+  writeCachedPlanningMode,
   type FaSession,
 } from "@/store/fa-session-store";
 import type { FeatureFlags } from "@/lib/supabase/database.types";
@@ -166,6 +167,7 @@ export default function FaSessionSync() {
         clear();
         applyBrandCssVars(null);
         writeCachedSkin(null);
+        writeCachedPlanningMode(null);
         return;
       }
       setLoading(true);
@@ -197,15 +199,18 @@ export default function FaSessionSync() {
           clear();
           applyBrandCssVars(null);
           writeCachedSkin(null);
+          writeCachedPlanningMode(null);
           return;
         }
 
         const session = shape(data);
         setSession(session);
         applyBrandCssVars(session);
-        // Cache the skin so the next cold load picks the right Home
-        // component synchronously, before this Supabase call finishes.
+        // Mirror the freshly-fetched values into localStorage so the
+        // next cold load can render the right surface synchronously,
+        // before this Supabase round-trip finishes.
         writeCachedSkin(session?.skin ?? null);
+        writeCachedPlanningMode(session?.planningMode ?? null);
       } catch (err) {
         if (cancelled) return;
         const msg =
