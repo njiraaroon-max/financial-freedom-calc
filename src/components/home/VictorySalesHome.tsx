@@ -219,6 +219,62 @@ export default function VictorySalesHome() {
         <PyramidLayers />
       </section>
 
+      {/* ── 2.5 Quick Plan CTA (60-sec public assessment) ───────── */}
+      <section className="max-w-5xl mx-auto px-5 md:px-8 mt-10">
+        <Link
+          href="/quick-plan"
+          className="group block rounded-2xl overflow-hidden relative transition hover:scale-[1.01]"
+          style={{
+            background: `linear-gradient(135deg, ${PALETTE.deepNavy} 0%, ${PALETTE.navy} 100%)`,
+            border: `1px solid ${PALETTE.gold}`,
+            boxShadow: "0 10px 30px rgba(15,30,51,0.15)",
+          }}
+        >
+          <div
+            aria-hidden
+            className="absolute pointer-events-none"
+            style={{
+              top: "-20%",
+              right: "-10%",
+              width: "45%",
+              height: "140%",
+              background:
+                "radial-gradient(circle, rgba(214,181,109,0.28) 0%, transparent 60%)",
+              filter: "blur(40px)",
+            }}
+          />
+          <div className="relative px-5 py-5 md:px-7 md:py-6 flex items-center gap-4 md:gap-5">
+            <div
+              className="flex-shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center"
+              style={{
+                background: `linear-gradient(135deg, ${PALETTE.gold} 0%, ${PALETTE.goldDark} 100%)`,
+                boxShadow: "0 4px 12px rgba(214,181,109,0.35)",
+              }}
+            >
+              <Sparkles size={22} className="text-white" strokeWidth={2.2} />
+            </div>
+            <div className="flex-1 text-white min-w-0">
+              <div
+                className="text-[10px] md:text-[11px] font-bold tracking-[0.2em] mb-1"
+                style={{ color: PALETTE.gold }}
+              >
+                QUICK PLAN · 60 วินาที
+              </div>
+              <div className="text-base md:text-lg font-bold leading-tight">
+                ประเมิน Pyramid Score ของคุณ
+              </div>
+              <div className="text-xs md:text-sm opacity-75 mt-1 leading-snug">
+                ตอบ 4 คำถามสั้นๆ ดูคะแนนและคำแนะนำเฉพาะคุณ
+              </div>
+            </div>
+            <ChevronRight
+              size={22}
+              className="flex-shrink-0 text-white opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition"
+            />
+          </div>
+        </Link>
+      </section>
+
       {/* ── 3. Side tools (Tax + Combo) ──────────────────────────── */}
       <section className="max-w-5xl mx-auto px-5 md:px-8 mt-10 pb-20">
         <div className="text-[11px] font-bold tracking-[0.2em] text-gray-500 mb-3">
