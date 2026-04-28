@@ -20,6 +20,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import ThaiDatePicker from "@/components/ThaiDatePicker";
 import {
   ChevronRight,
   ChevronLeft,
@@ -481,11 +482,13 @@ function Step1({
       />
 
       <Field icon={<Calendar size={14} />} label="วันเกิด">
-        <input
-          type="date"
+        <ThaiDatePicker
           value={inputs.dob}
-          onChange={(e) => update("dob", e.target.value)}
-          className="w-full text-base font-semibold bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-amber-500"
+          onChange={(v) => update("dob", v)}
+          label="วันเกิด"
+          placeholder="เลือกวันเกิด"
+          minYear={2453}
+          maxYear={2569}
         />
         {inputs.dob && (
           <div className="text-[11px] text-gray-500 mt-1">อายุ {calcAge(inputs.dob)} ปี</div>
