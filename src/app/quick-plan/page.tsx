@@ -21,6 +21,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import ThaiDatePicker from "@/components/ThaiDatePicker";
+import MoneyInput from "@/components/MoneyInput";
 import {
   ChevronRight,
   ChevronLeft,
@@ -514,16 +515,14 @@ function Step1({
       </Field>
 
       <Field icon={<Wallet size={14} />} label="รายได้ต่อเดือน">
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            value={inputs.monthlyIncome || ""}
-            onChange={(e) => update("monthlyIncome", Number(e.target.value) || 0)}
-            placeholder="50,000"
-            className="flex-1 text-base font-semibold bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-amber-500"
-          />
-          <span className="text-[12px] text-gray-400">บาท</span>
-        </div>
+        <MoneyInput
+          value={inputs.monthlyIncome}
+          onChange={(n) => update("monthlyIncome", n)}
+          placeholder="50,000"
+          unit="บาท"
+          className="flex-1 text-base font-semibold bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2"
+          ringClass="focus:ring-amber-500"
+        />
       </Field>
     </div>
   );
@@ -566,16 +565,14 @@ function Step2({
       </Field>
 
       <Field icon={<CreditCard size={14} />} label="ผ่อนหนี้/เดือน (ถ้ามี)">
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            value={inputs.monthlyDebt || ""}
-            onChange={(e) => update("monthlyDebt", Number(e.target.value) || 0)}
-            placeholder="0"
-            className="flex-1 text-base font-semibold bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-amber-500"
-          />
-          <span className="text-[12px] text-gray-400">บาท/ด.</span>
-        </div>
+        <MoneyInput
+          value={inputs.monthlyDebt}
+          onChange={(n) => update("monthlyDebt", n)}
+          placeholder="0"
+          unit="บาท/ด."
+          className="flex-1 text-base font-semibold bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2"
+          ringClass="focus:ring-amber-500"
+        />
         <div className="text-[11px] text-gray-400 mt-1">
           รวมผ่อนรถ บัตรเครดิต บ้าน หนี้อื่นๆ
         </div>
@@ -600,29 +597,25 @@ function Step3({
       <StepHeader n={3} title="ที่มีอยู่ตอนนี้" subtitle="ประกัน + เงินสำรอง" />
 
       <Field icon={<Heart size={14} />} label="ทุนประกันชีวิตที่มี">
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            value={inputs.existingLifeCoverage || ""}
-            onChange={(e) => update("existingLifeCoverage", Number(e.target.value) || 0)}
-            placeholder="0"
-            className="flex-1 text-base font-semibold bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-amber-500"
-          />
-          <span className="text-[12px] text-gray-400">บาท</span>
-        </div>
+        <MoneyInput
+          value={inputs.existingLifeCoverage}
+          onChange={(n) => update("existingLifeCoverage", n)}
+          placeholder="0"
+          unit="บาท"
+          className="flex-1 text-base font-semibold bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2"
+          ringClass="focus:ring-amber-500"
+        />
       </Field>
 
       <Field icon={<HeartPulse size={14} />} label="วงเงินค่ารักษา/ปี">
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            value={inputs.existingHealthCoverage || ""}
-            onChange={(e) => update("existingHealthCoverage", Number(e.target.value) || 0)}
-            placeholder="0"
-            className="flex-1 text-base font-semibold bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-amber-500"
-          />
-          <span className="text-[12px] text-gray-400">บาท</span>
-        </div>
+        <MoneyInput
+          value={inputs.existingHealthCoverage}
+          onChange={(n) => update("existingHealthCoverage", n)}
+          placeholder="0"
+          unit="บาท"
+          className="flex-1 text-base font-semibold bg-gray-50 rounded-xl px-3 py-3 outline-none focus:ring-2"
+          ringClass="focus:ring-amber-500"
+        />
         <div className="text-[11px] text-gray-400 mt-1">
           รวมประกันกลุ่มของบริษัท + ส่วนตัว
         </div>
