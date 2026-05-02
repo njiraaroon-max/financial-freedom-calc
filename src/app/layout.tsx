@@ -28,17 +28,37 @@ const promptFont = Prompt({
 });
 
 export const metadata: Metadata = {
-  title: "Financial Friend Calculator",
-  description: "เครื่องมือวางแผนการเงินส่วนบุคคลแบบองค์รวม",
+  metadataBase: new URL("https://wealthplanner.finance"),
+  title: {
+    default: "Wealth Planner — เครื่องมือวางแผนการเงินสำหรับ FA",
+    template: "%s · Wealth Planner",
+  },
+  description:
+    "เครื่องมือวางแผนการเงินองค์รวมสำหรับนักวางแผนการเงิน — ครอบคลุมงบดุล กระแสเงินสด ประกัน เกษียณ ภาษี และการศึกษาบุตร ในที่เดียว",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "FFC Planner",
+    title: "Wealth Planner",
   },
   icons: {
     icon: "/icon-192.png",
     apple: "/icon-192.png",
+  },
+  openGraph: {
+    type: "website",
+    locale: "th_TH",
+    url: "https://wealthplanner.finance",
+    siteName: "Wealth Planner",
+    title: "Wealth Planner — เครื่องมือวางแผนการเงินสำหรับ FA",
+    description:
+      "วางแผนการเงินทีละชั้น เริ่มจากฐานที่มั่นคง สู่ยอดที่ส่งต่อความมั่งคั่ง",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Wealth Planner",
+    description:
+      "เครื่องมือวางแผนการเงินองค์รวมสำหรับนักวางแผนการเงินมืออาชีพ",
   },
 };
 
