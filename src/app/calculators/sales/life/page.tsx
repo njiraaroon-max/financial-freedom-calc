@@ -164,7 +164,7 @@ function LifeInner() {
       <ProgressNav
         active={activeAct}
         onJump={jump}
-        labels={["ครอบครัว", "ทุนที่ต้องการ", "Time Machine", "เทียบประกัน", "ปิดดีล"]}
+        labels={["ครอบครัว", "ทุนที่ต้องการ", "Time Machine", "เทียบประกัน", "Action Plan"]}
       />
 
       <div className="px-4 md:px-8 max-w-3xl mx-auto pb-24 space-y-12">

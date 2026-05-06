@@ -255,7 +255,7 @@ function ProgressNav({
     { n: 2 as const, label: "สรุป" },
     { n: 3 as const, label: "Time Machine" },
     { n: 4 as const, label: "เทียบ" },
-    { n: 5 as const, label: "ปิดดีล" },
+    { n: 5 as const, label: "Action Plan" },
   ];
   return (
     <div

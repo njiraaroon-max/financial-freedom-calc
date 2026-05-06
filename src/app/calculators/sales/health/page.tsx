@@ -136,7 +136,7 @@ function HealthInner() {
       <ProgressNav
         active={activeAct}
         onJump={jump}
-        labels={["เริ่ม", "ค่ารักษา", "Time Machine", "เทียบ Tier", "ปิดดีล"]}
+        labels={["เริ่ม", "ค่ารักษา", "Time Machine", "เทียบ Tier", "Action Plan"]}
       />
 
       <div className="px-4 md:px-8 max-w-3xl mx-auto pb-24 space-y-12">

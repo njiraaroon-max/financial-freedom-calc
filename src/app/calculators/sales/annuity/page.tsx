@@ -119,7 +119,7 @@ function AnnuityInner() {
       <ProgressNav
         active={activeAct}
         onJump={jump}
-        labels={["เริ่ม", "สรุป", "Timeline", "เทียบ", "ปิดดีล"]}
+        labels={["เริ่ม", "สรุป", "Timeline", "เทียบ", "Action Plan"]}
       />
 
       <div className="px-4 md:px-8 max-w-3xl mx-auto pb-24 space-y-12">
