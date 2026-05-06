@@ -18,10 +18,12 @@
  * computeAnnuity for retirement). No new rate tables.
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import ThaiDatePicker from "@/components/ThaiDatePicker";
 import MoneyInput from "@/components/MoneyInput";
+import { useProfileStore } from "@/store/profile-store";
+import { useFaSessionStore } from "@/store/fa-session-store";
 import {
   ChevronRight,
   ChevronLeft,
@@ -332,9 +334,47 @@ type Step = 1 | 2 | 3 | 4 | 5;
 
 export default function QuickPlanPage() {
   const [step, setStep] = useState<Step>(1);
-  const [inputs, setInputs] = useState<QuickPlanInputs>(DEFAULT_INPUTS);
-  const update = <K extends keyof QuickPlanInputs>(k: K, v: QuickPlanInputs[K]) =>
+
+  // ── Profile-store sync (single source of truth) ────────────────────
+  // dob and gender are bound to the global profile-store so:
+  //   • Personal Info ↔ Quick Plan ↔ Pyramid layer pages all read the
+  //     same DOB/gender (no more Quick Plan inputs being ignored by
+  //     downstream calculations).
+  //   • If the FA already filled Personal Info, Quick Plan starts
+  //     pre-filled with their client's data instead of empty.
+  // Other fields (income/debt/insurance) stay local to Quick Plan
+  // because they don't have stable counterparts in profile-store.
+  const profileBirthDate = useProfileStore((s) => s.birthDate);
+  const profileGender = useProfileStore((s) => s.gender);
+  const updateProfile = useProfileStore((s) => s.updateProfile);
+  const isLoggedIn = useFaSessionStore((s) => s.session !== null);
+
+  const [inputs, setInputs] = useState<QuickPlanInputs>(() => ({
+    ...DEFAULT_INPUTS,
+    dob: profileBirthDate || "",
+    gender: profileGender || "M",
+  }));
+
+  // Mirror profile-store changes back into local inputs so the wizard
+  // re-renders when the user (or another tab) updates Personal Info.
+  useEffect(() => {
+    setInputs((prev) => ({
+      ...prev,
+      dob: profileBirthDate || prev.dob,
+      gender: profileGender || prev.gender,
+    }));
+  }, [profileBirthDate, profileGender]);
+
+  const update = <K extends keyof QuickPlanInputs>(
+    k: K,
+    v: QuickPlanInputs[K],
+  ) => {
     setInputs((prev) => ({ ...prev, [k]: v }));
+    // Bound fields write back to the global profile so Pyramid pages
+    // (which read profile-store directly) pick up the change.
+    if (k === "dob") updateProfile("birthDate", v as string);
+    else if (k === "gender") updateProfile("gender", v as "M" | "F");
+  };
 
   const result = useMemo(() => computeQuickPlan(inputs), [inputs]);
 
@@ -413,7 +453,9 @@ export default function QuickPlanPage() {
 
       {/* ── Step content ────────────────────────────────────────── */}
       <main className="max-w-2xl mx-auto px-5 md:px-8 py-6 pb-20">
-        {step === 1 && <Step1 inputs={inputs} update={update} />}
+        {step === 1 && (
+          <Step1 inputs={inputs} update={update} isLoggedIn={isLoggedIn} />
+        )}
         {step === 2 && <Step2 inputs={inputs} update={update} />}
         {step === 3 && <Step3 inputs={inputs} update={update} />}
         {step === 4 && <Step4 inputs={inputs} update={update} />}
@@ -470,9 +512,11 @@ export default function QuickPlanPage() {
 function Step1({
   inputs,
   update,
+  isLoggedIn,
 }: {
   inputs: QuickPlanInputs;
   update: <K extends keyof QuickPlanInputs>(k: K, v: QuickPlanInputs[K]) => void;
+  isLoggedIn: boolean;
 }) {
   return (
     <div className="space-y-5">
@@ -481,6 +525,24 @@ function Step1({
         title="เริ่มจากตัวคุณ"
         subtitle="ข้อมูลพื้นฐาน 30 วินาที"
       />
+
+      {isLoggedIn && (
+        <div
+          className="text-[12px] rounded-xl px-3.5 py-2.5 flex items-start gap-2"
+          style={{
+            background: PAL.goldSoft,
+            border: `1px solid ${PAL.gold}40`,
+            color: "#7a5a18",
+          }}
+        >
+          <Sparkles size={14} className="mt-0.5 flex-shrink-0" />
+          <div>
+            <span className="font-semibold">ข้อมูลซิงค์กับโปรไฟล์ลูกค้าหลัก</span>
+            {" "}
+            — แก้วันเกิดหรือเพศที่นี่จะอัปเดตหน้า Personal Info และทุก Pyramid layer ด้วย
+          </div>
+        </div>
+      )}
 
       <Field icon={<Calendar size={14} />} label="วันเกิด">
         <ThaiDatePicker

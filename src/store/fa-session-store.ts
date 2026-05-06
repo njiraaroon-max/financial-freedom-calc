@@ -61,22 +61,6 @@ interface FaSessionState {
   loading: boolean;
   error: string | null;
 
-  /**
-   * Demo Mode — when true, sales-mode UIs (Victory Pyramid layers)
-   * scope all input edits to local component state instead of writing
-   * back to the global profile/insurance stores. Used by Victory FAs
-   * who want to demo the calculators to a prospect (not a client)
-   * without polluting the real client's saved data.
-   *
-   * Stored in-memory only — not persisted, not synced to Supabase.
-   * Resets to false on every page reload (safer default = "Real").
-   *
-   * UI surface: toggle in the Settings menu, with a visible badge in
-   * the Pyramid header so the customer can SEE that their data isn't
-   * being saved (trust signal: "Demo · ไม่บันทึก").
-   */
-  demoMode: boolean;
-
   // Set the whole session (called by FaSessionSync after fetch).
   setSession: (session: FaSession | null) => void;
   setLoading: (loading: boolean) => void;
@@ -87,8 +71,6 @@ interface FaSessionState {
   // mirror on success so the UI reflects the change immediately.
   setPlanningMode: (mode: PlanningMode) => void;
 
-  setDemoMode: (demoMode: boolean) => void;
-
   clear: () => void;
 }
 
@@ -96,7 +78,6 @@ export const useFaSessionStore = create<FaSessionState>((set) => ({
   session: null,
   loading: true, // start in loading state — no session until FaSessionSync resolves
   error: null,
-  demoMode: false, // safe default — Real Mode unless FA explicitly toggles
 
   setSession: (session) => set({ session, loading: false, error: null }),
   setLoading: (loading) => set({ loading }),
@@ -120,14 +101,12 @@ export const useFaSessionStore = create<FaSessionState>((set) => ({
     void persistPlanningModeToServer(mode);
   },
 
-  setDemoMode: (demoMode) => set({ demoMode }),
-
-  // Always reset demo mode on sign-out so the next FA doesn't inherit it.
-  // Also clear the planning-mode cache so the next FA on the same
-  // browser doesn't inherit the previous user's mode preference.
+  // Clear on sign-out so the next FA doesn't inherit the previous user's
+  // session. Also clear the planning-mode cache so the next FA on the
+  // same browser doesn't inherit the previous user's mode preference.
   clear: () => {
     writeCachedPlanningMode(null);
-    set({ session: null, loading: false, error: null, demoMode: false });
+    set({ session: null, loading: false, error: null });
   },
 }));
 
@@ -183,15 +162,6 @@ export function useFeatureNumber(
 /** Organization branding for CSS-variable injection + logo/navbar UIs. */
 export const useOrganization = () =>
   useFaSessionStore((s) => s.session?.organization ?? null);
-
-/**
- * Demo Mode — true when the FA has flipped to "Demo" in the Settings
- * menu. Sales-mode UIs (Victory Pyramid layers) check this before
- * writing edits back to the shared profile/insurance stores; in Demo
- * Mode they keep edits in component-local state only, so a prospect
- * demo doesn't pollute a real client's saved record.
- */
-export const useDemoMode = () => useFaSessionStore((s) => s.demoMode);
 
 // ─── Skin cache (anti-flash) ────────────────────────────────────────────
 // We deliberately don't persist the whole session (see top-of-file note —

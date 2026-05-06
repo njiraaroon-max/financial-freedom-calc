@@ -32,7 +32,6 @@ import {
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import FlagGate from "@/components/FlagGate";
-import { useDemoMode } from "@/store/fa-session-store";
 import { useProfileStore } from "@/store/profile-store";
 import {
   computeAnnuity,
@@ -72,7 +71,6 @@ export default function AnnuityPage() {
 
 function AnnuityInner() {
   const profile = useProfileStore();
-  const demoMode = useDemoMode();
 
   const [dob, setDob] = useState(profile.birthDate || "");
   const [gender, setGender] = useState<"M" | "F">(profile.gender ?? "M");
@@ -122,7 +120,6 @@ function AnnuityInner() {
         active={activeAct}
         onJump={jump}
         labels={["เริ่ม", "สรุป", "Timeline", "เทียบ", "ปิดดีล"]}
-        demoMode={demoMode}
       />
 
       <div className="px-4 md:px-8 max-w-3xl mx-auto pb-24 space-y-12">

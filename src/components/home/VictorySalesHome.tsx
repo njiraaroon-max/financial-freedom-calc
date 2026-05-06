@@ -29,7 +29,6 @@
  * the pyramid never hits a 404.
  */
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ShieldAlert,    // Emergency
@@ -40,16 +39,8 @@ import {
   Receipt,        // Tax (cross-cutting)
   Sparkles,       // Combo
   ChevronRight,
-  Settings as SettingsIcon,
-  X,
-  CheckCircle2,
-  Lock,
 } from "lucide-react";
-import {
-  useFaSessionStore,
-  useDemoMode,
-  useOrganization,
-} from "@/store/fa-session-store";
+import { useOrganization } from "@/store/fa-session-store";
 import { useProfileStore } from "@/store/profile-store";
 
 // ─── Palette (Victory navy + gold) ─────────────────────────────────
@@ -188,12 +179,10 @@ const SIDE_TOOLS: PyramidLayer[] = [
 
 export default function VictorySalesHome() {
   const org = useOrganization();
-  const demoMode = useDemoMode();
   const profile = useProfileStore();
   const firstName = profile.name ? profile.name.split(" ")[0] : "";
   const orgName = org?.name ?? "Victory Group";
   const logoUrl = org?.logoDarkUrl ?? org?.logoUrl ?? null;
-  const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
     <div
@@ -210,8 +199,6 @@ export default function VictorySalesHome() {
         firstName={firstName}
         orgName={orgName}
         logoUrl={logoUrl}
-        demoMode={demoMode}
-        onOpenSettings={() => setSettingsOpen(true)}
       />
 
       {/* ── 2. Pyramid layer cards ───────────────────────────────── */}
@@ -287,11 +274,6 @@ export default function VictorySalesHome() {
         </div>
       </section>
 
-      {/* ── 4. Settings modal (Demo/Real toggle) ─────────────────── */}
-      {settingsOpen && (
-        <SettingsModal onClose={() => setSettingsOpen(false)} />
-      )}
-
       <footer
         className="max-w-5xl mx-auto px-5 md:px-8 pb-8 text-center text-[11px]"
         style={{ color: PALETTE.textSub, opacity: 0.6 }}
@@ -308,14 +290,10 @@ function Hero({
   firstName,
   orgName,
   logoUrl,
-  demoMode,
-  onOpenSettings,
 }: {
   firstName: string;
   orgName: string;
   logoUrl: string | null;
-  demoMode: boolean;
-  onOpenSettings: () => void;
 }) {
   return (
     <header
@@ -356,17 +334,6 @@ function Hero({
             </div>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          {/* Demo Mode badge — visible to customer for trust */}
-          <DemoBadge active={demoMode} />
-          <button
-            onClick={onOpenSettings}
-            className="p-2 rounded-lg hover:bg-white/10 transition"
-            aria-label="ตั้งค่า"
-          >
-            <SettingsIcon size={18} className="opacity-80" />
-          </button>
-        </div>
       </div>
 
       {/* Title */}
@@ -390,26 +357,6 @@ function Hero({
         <PyramidSvg />
       </div>
     </header>
-  );
-}
-
-function DemoBadge({ active }: { active: boolean }) {
-  if (!active) return null;
-  return (
-    <div
-      className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border"
-      style={{
-        background: "rgba(255,200,100,0.15)",
-        borderColor: "rgba(255,200,100,0.4)",
-        color: "#ffd285",
-      }}
-    >
-      <span
-        className="inline-block w-1.5 h-1.5 rounded-full"
-        style={{ background: "#ffd285" }}
-      />
-      DEMO · ไม่บันทึก
-    </div>
   );
 }
 
@@ -619,119 +566,3 @@ function LayerCard({
   );
 }
 
-// ─── Settings modal (Demo/Real toggle) ─────────────────────────────
-
-function SettingsModal({ onClose }: { onClose: () => void }) {
-  const demoMode = useDemoMode();
-  const setDemoMode = useFaSessionStore((s) => s.setDemoMode);
-
-  // Close on ESC
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  return (
-    <div
-      className="fixed inset-0 z-[80] flex items-end md:items-center justify-center bg-black/40"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white w-full max-w-md md:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div
-          className="sticky top-0 px-5 py-4 flex items-center justify-between z-10 md:rounded-t-2xl rounded-t-2xl"
-          style={{ background: PALETTE.deepNavy, color: "white" }}
-        >
-          <div className="flex items-center gap-2">
-            <SettingsIcon size={18} />
-            <h3 className="text-sm font-bold">ตั้งค่า</h3>
-          </div>
-          <button onClick={onClose} className="text-white/70 hover:text-white">
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="p-5 space-y-5">
-          {/* Demo / Real toggle */}
-          <div>
-            <div className="text-xs font-bold text-gray-700 mb-3">
-              โหมดการทำงาน
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => setDemoMode(false)}
-                className={`p-3 rounded-xl border-2 text-left transition ${
-                  !demoMode
-                    ? "border-emerald-500 bg-emerald-50"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2
-                    size={14}
-                    className={!demoMode ? "text-emerald-600" : "text-gray-300"}
-                  />
-                  <div className="text-[11px] font-bold tracking-[0.15em] text-gray-700">
-                    REAL
-                  </div>
-                </div>
-                <div className="text-sm font-bold mt-1 text-gray-800">
-                  ลูกค้าจริง
-                </div>
-                <div className="text-[11px] text-gray-500 mt-0.5 leading-tight">
-                  บันทึกข้อมูลในโปรไฟล์ลูกค้า
-                </div>
-              </button>
-              <button
-                onClick={() => setDemoMode(true)}
-                className={`p-3 rounded-xl border-2 text-left transition ${
-                  demoMode
-                    ? "border-amber-500 bg-amber-50"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                <div className="flex items-center gap-1.5">
-                  <Lock
-                    size={14}
-                    className={demoMode ? "text-amber-600" : "text-gray-300"}
-                  />
-                  <div className="text-[11px] font-bold tracking-[0.15em] text-gray-700">
-                    DEMO
-                  </div>
-                </div>
-                <div className="text-sm font-bold mt-1 text-gray-800">
-                  สาธิต / Prospect
-                </div>
-                <div className="text-[11px] text-gray-500 mt-0.5 leading-tight">
-                  ไม่บันทึก ข้อมูลลูกค้าจริงไม่ถูกแก้
-                </div>
-              </button>
-            </div>
-            <div className="text-[11px] text-gray-400 mt-2 leading-relaxed">
-              {demoMode
-                ? "🟡 อยู่ใน Demo Mode — ตัวเลขที่กรอกจะอยู่บนหน้าจอเท่านั้น ไม่บันทึกลงโปรไฟล์ลูกค้า รีเซ็ตเมื่อ refresh หน้า"
-                : "🟢 อยู่ใน Real Mode — ตัวเลขที่กรอกจะบันทึกลงโปรไฟล์ลูกค้าตามปกติ"}
-            </div>
-          </div>
-
-          {/* Future settings can be added here */}
-        </div>
-
-        <div className="sticky bottom-0 bg-white border-t border-gray-100 px-5 py-3">
-          <button
-            onClick={onClose}
-            className="w-full py-2.5 rounded-xl text-sm font-bold transition"
-            style={{ background: PALETTE.deepNavy, color: "white" }}
-          >
-            เสร็จสิ้น
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}

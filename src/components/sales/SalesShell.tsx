@@ -9,7 +9,6 @@
 
 import { forwardRef, useEffect, useState } from "react";
 import type { RefObject } from "react";
-import { Lock } from "lucide-react";
 
 // Shared Victory palette — kept identical to VictorySalesHome /
 // Wealth Legacy so the whole Pyramid feels like one product.
@@ -52,10 +51,9 @@ export interface ProgressNavProps {
   onJump: (act: 1 | 2 | 3 | 4 | 5) => void;
   /** Per-Act labels (5 items). Each layer customises these to its narrative. */
   labels: [string, string, string, string, string];
-  demoMode?: boolean;
 }
 
-export function ProgressNav({ active, onJump, labels, demoMode }: ProgressNavProps) {
+export function ProgressNav({ active, onJump, labels }: ProgressNavProps) {
   const acts = labels.map((label, i) => ({ n: (i + 1) as 1 | 2 | 3 | 4 | 5, label }));
   return (
     <div
@@ -65,7 +63,7 @@ export function ProgressNav({ active, onJump, labels, demoMode }: ProgressNavPro
         borderColor: "rgba(15,30,51,0.08)",
       }}
     >
-      <div className="max-w-3xl mx-auto px-4 md:px-8 py-2.5 flex items-center justify-between gap-3 overflow-x-auto">
+      <div className="max-w-3xl mx-auto px-4 md:px-8 py-2.5 flex items-center gap-3 overflow-x-auto">
         <div className="flex items-center gap-1 md:gap-1.5">
           {acts.map((a, i) => (
             <div key={a.n} className="flex items-center gap-1 md:gap-1.5">
@@ -92,18 +90,6 @@ export function ProgressNav({ active, onJump, labels, demoMode }: ProgressNavPro
             </div>
           ))}
         </div>
-        {demoMode && (
-          <div
-            className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap"
-            style={{
-              background: "#fffbeb",
-              borderColor: "#fcd34d",
-              color: "#92400e",
-            }}
-          >
-            <Lock size={10} /> DEMO · ไม่บันทึก
-          </div>
-        )}
       </div>
     </div>
   );

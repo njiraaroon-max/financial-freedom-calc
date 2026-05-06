@@ -33,7 +33,6 @@ import {
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import FlagGate from "@/components/FlagGate";
-import { useDemoMode } from "@/store/fa-session-store";
 import {
   ProgressNav,
   ActHeader,
@@ -96,8 +95,6 @@ export default function EmergencyPage() {
 }
 
 function EmergencyInner() {
-  const demoMode = useDemoMode();
-
   const [expenses, setExpenses] = useState<ExpenseItem[]>(DEFAULT_EXPENSES);
   const [currentSavings, setCurrentSavings] = useState<number>(50_000);
   const [bufferMonths, setBufferMonths] = useState<3 | 6 | 12>(6);
@@ -135,7 +132,6 @@ function EmergencyInner() {
         active={activeAct}
         onJump={jump}
         labels={["รายจ่าย", "สรุป", "Survival", "เก็บที่ไหน", "ปิดดีล"]}
-        demoMode={demoMode}
       />
 
       <div className="px-4 md:px-8 max-w-3xl mx-auto pb-24 space-y-12">

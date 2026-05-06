@@ -36,7 +36,6 @@ import {
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import FlagGate from "@/components/FlagGate";
-import { useDemoMode } from "@/store/fa-session-store";
 import { useProfileStore } from "@/store/profile-store";
 import {
   ProgressNav,
@@ -129,7 +128,6 @@ export default function LifePage() {
 
 function LifeInner() {
   const profile = useProfileStore();
-  const demoMode = useDemoMode();
 
   const [inputs, setInputs] = useState<LifeInputs>({
     monthlyIncome: profile.salary || 50_000,
@@ -167,7 +165,6 @@ function LifeInner() {
         active={activeAct}
         onJump={jump}
         labels={["ครอบครัว", "ทุนที่ต้องการ", "Time Machine", "เทียบประกัน", "ปิดดีล"]}
-        demoMode={demoMode}
       />
 
       <div className="px-4 md:px-8 max-w-3xl mx-auto pb-24 space-y-12">
