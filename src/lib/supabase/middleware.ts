@@ -3,7 +3,10 @@
  * request and gates protected routes.
  *
  * Rules:
- *  - Public: "/", "/login", "/signup", "/auth/*", "/forgot-password"
+ *  - Public: "/", "/login", "/signup", "/auth/*", "/forgot-password",
+ *            "/quick-plan/*" (lead-gen),
+ *            and Next.js metadata routes (opengraph-image, twitter-image,
+ *            icon, apple-icon, manifest, sitemap, robots).
  *  - Pending / rejected FAs → "/pending-approval" (except the page
  *    itself, the signout endpoint, and auth callbacks).
  *  - Admin-only: "/admin/*" — require role='admin'. Non-admin logged
@@ -17,8 +20,24 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PREFIXES = ["/login", "/signup", "/auth", "/forgot-password"];
+const PUBLIC_PREFIXES = [
+  "/login",
+  "/signup",
+  "/auth",
+  "/forgot-password",
+  "/quick-plan", // public 60-second lead-gen — must be reachable without auth
+];
 const PUBLIC_EXACT = new Set<string>(["/"]);
+
+/**
+ * Next.js auto-generates these metadata routes from convention files
+ * (opengraph-image.tsx, twitter-image.tsx, icon.tsx, apple-icon.tsx,
+ * manifest.ts, sitemap.ts, robots.ts). Social-media crawlers fetch
+ * them anonymously, so they MUST stay public regardless of which
+ * route segment they live under (e.g. /quick-plan/opengraph-image).
+ */
+const METADATA_FILE_RE =
+  /\/(opengraph-image|twitter-image|icon|apple-icon|manifest|sitemap|robots)(\/.*)?$/;
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -52,7 +71,8 @@ export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isPublic =
     PUBLIC_EXACT.has(pathname) ||
-    PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
+    PUBLIC_PREFIXES.some((p) => pathname.startsWith(p)) ||
+    METADATA_FILE_RE.test(pathname);
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();
@@ -92,8 +112,16 @@ export async function updateSession(request: NextRequest) {
 
     const blockedByStatus = status !== "approved" || isExpired;
 
-    // Not approved or expired → force /pending-approval (unless already there)
-    if (blockedByStatus && !isPendingPage && !isSignout && !isAuthCallback) {
+    // Not approved or expired → force /pending-approval (unless already there
+    // OR on a route that's explicitly public — pending FAs should still be
+    // able to see /quick-plan and OG image routes like everyone else).
+    if (
+      blockedByStatus &&
+      !isPendingPage &&
+      !isSignout &&
+      !isAuthCallback &&
+      !isPublic
+    ) {
       const url = request.nextUrl.clone();
       url.pathname = "/pending-approval";
       url.search = "";
