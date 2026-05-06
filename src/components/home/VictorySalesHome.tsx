@@ -345,10 +345,10 @@ function Hero({
           INSURANCE SALES SUITE
         </div>
         <h1 className="text-2xl md:text-4xl font-extrabold leading-tight">
-          {firstName ? `สวัสดี ${firstName}` : "Pyramid การเงิน"}
+          {firstName || "Pyramid การเงิน"}
         </h1>
         <p className="text-sm md:text-base opacity-80 mt-2 max-w-xl">
-          วางแผนการเงินทีละชั้น เริ่มจากฐานที่มั่นคง สู่ยอดที่ส่งต่อความมั่งคั่ง
+          วางแผนการเงินทีละชั้น เริ่มจากฐานที่มั่นคง สู่การส่งต่อความมั่งคั่ง
         </p>
       </div>
 
@@ -438,18 +438,29 @@ function PyramidSvg() {
         />
       </svg>
 
-      {/* Tier labels — HTML overlays, centered in each tier band */}
+      {/* Tier labels — HTML overlays, centered in each tier band.
+          Apex (DISTRIBUTION) is special: the tier is a narrow triangle
+          pointing up, so the geometric midpoint has very little width.
+          We push the apex label toward the bottom of its tier (where
+          the triangle is wider) and shrink the font so it fits inside.
+          All tier labels render in white for consistency on the navy
+          backdrop. */}
       <div className="absolute inset-0">
         {tiers.map((t, i) => {
-          const midY = (t.y0 + t.y1) / 2;
+          const isApex = t.y0 === 0;
+          const labelY = isApex ? t.y1 - 4 : (t.y0 + t.y1) / 2;
           return (
             <div
               key={i}
-              className="absolute left-0 right-0 flex items-center justify-center text-[10px] md:text-[11px] font-bold tracking-[0.2em] pointer-events-none"
+              className={`absolute left-0 right-0 flex items-center justify-center font-bold pointer-events-none ${
+                isApex
+                  ? "text-[6px] md:text-[7px] tracking-[0.15em]"
+                  : "text-[10px] md:text-[11px] tracking-[0.2em]"
+              }`}
               style={{
-                top: `${midY}%`,
+                top: `${labelY}%`,
                 transform: "translateY(-50%)",
-                color: t.gold ? PALETTE.deepNavy : "rgba(255,255,255,0.85)",
+                color: "rgba(255,255,255,0.92)",
               }}
             >
               {t.label}
