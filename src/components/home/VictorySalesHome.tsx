@@ -201,13 +201,8 @@ export default function VictorySalesHome() {
         logoUrl={logoUrl}
       />
 
-      {/* ── 2. Pyramid layer cards ───────────────────────────────── */}
+      {/* ── 2. Quick Plan CTA (top — public 5-min assessment) ────── */}
       <section className="max-w-5xl mx-auto px-5 md:px-8 -mt-10 relative z-10">
-        <PyramidLayers />
-      </section>
-
-      {/* ── 2.5 Quick Plan CTA (60-sec public assessment) ───────── */}
-      <section className="max-w-5xl mx-auto px-5 md:px-8 mt-10">
         <Link
           href="/quick-plan"
           className="group block rounded-2xl overflow-hidden relative transition hover:scale-[1.01]"
@@ -245,7 +240,7 @@ export default function VictorySalesHome() {
                 className="text-[10px] md:text-[11px] font-bold tracking-[0.2em] mb-1"
                 style={{ color: PALETTE.gold }}
               >
-                QUICK PLAN · 60 วินาที
+                QUICK PLAN · 5 นาที
               </div>
               <div className="text-base md:text-lg font-bold leading-tight">
                 ประเมิน Pyramid Score ของคุณ
@@ -262,7 +257,12 @@ export default function VictorySalesHome() {
         </Link>
       </section>
 
-      {/* ── 3. Side tools (Tax + Combo) ──────────────────────────── */}
+      {/* ── 3. Pyramid layer cards (Emergency → Legacy, bottom-up) ─ */}
+      <section className="max-w-5xl mx-auto px-5 md:px-8 mt-10">
+        <PyramidLayers />
+      </section>
+
+      {/* ── 4. Side tools (Tax + Combo) ──────────────────────────── */}
       <section className="max-w-5xl mx-auto px-5 md:px-8 mt-10 pb-20">
         <div className="text-[11px] font-bold tracking-[0.2em] text-gray-500 mb-3">
           เครื่องมือเสริม
@@ -475,10 +475,11 @@ function PyramidSvg() {
 // ─── Pyramid layer cards (interactive) ─────────────────────────────
 
 function PyramidLayers() {
-  // Render top-down so the customer reads "ยอด → ฐาน" matching the
-  // visual — Wealth Legacy first, Emergency last. This is also the
-  // sales narrative: "everything below supports the legacy on top."
-  const byTier = [4, 3, 2, 1];
+  // Render bottom-up: Emergency (foundation) → Life + Health
+  // (protection) → Annuity (saving) → Wealth Legacy (apex).
+  // Matches the actual planning order an FA walks through with a
+  // client — secure the base before chasing the top.
+  const byTier = [1, 2, 3, 4];
   return (
     <div className="space-y-4">
       {byTier.map((tier) => {

@@ -440,7 +440,7 @@ export default function QuickPlanPage() {
             </div>
             {step < 5 && (
               <div className="text-[11px] opacity-70">
-                ขั้น {step}/4 · ใช้เวลา ~60 วินาที
+                ขั้น {step}/4 · ใช้เวลา ~5 นาที
               </div>
             )}
           </div>
@@ -448,7 +448,7 @@ export default function QuickPlanPage() {
             Quick Plan
           </h1>
           <p className="text-[13px] md:text-sm opacity-85 mt-1">
-            ประเมินสถานะการเงินใน 60 วินาที — รู้ว่าควรเริ่มจากตรงไหน
+            ประเมินสถานะการเงินใน 5 นาที — รู้ว่าควรเริ่มจากตรงไหน
           </p>
         </div>
 

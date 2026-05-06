@@ -10,11 +10,11 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Quick Plan · ประเมินสถานะการเงินใน 60 วินาที",
+  title: "Quick Plan · ประเมินสถานะการเงินใน 5 นาที",
   description:
     "ตอบ 4 คำถามสั้นๆ — รับ Pyramid Score 0-100 + คำแนะนำเฉพาะคุณ ฟรี ไม่ต้อง login",
   openGraph: {
-    title: "Quick Plan · ประเมินสถานะการเงินใน 60 วินาที",
+    title: "Quick Plan · ประเมินสถานะการเงินใน 5 นาที",
     description:
       "ตอบ 4 คำถามสั้นๆ — รับ Pyramid Score 0-100 + คำแนะนำเฉพาะคุณ ฟรี ไม่ต้อง login",
     url: "https://wealthplanner.finance/quick-plan",
@@ -22,8 +22,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Quick Plan · 60 วินาที",
-    description: "ประเมินสถานะการเงินของคุณใน 60 วินาที",
+    title: "Quick Plan · 5 นาที",
+    description: "ประเมินสถานะการเงินของคุณใน 5 นาที",
   },
 };
 

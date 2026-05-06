@@ -113,7 +113,7 @@ export default async function OpenGraphImage() {
             display: "flex",
           }}
         >
-          QUICK PLAN · 60 SECONDS
+          QUICK PLAN · 5 MINUTES
         </div>
 
         {/* Headline */}
