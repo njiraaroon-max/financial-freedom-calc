@@ -240,7 +240,7 @@ export default function VictorySalesHome() {
                 className="text-[10px] md:text-[11px] font-bold tracking-[0.2em] mb-1"
                 style={{ color: PALETTE.gold }}
               >
-                QUICK PLAN · 5 นาที
+                QUICK PLAN · 5 MIN
               </div>
               <div className="text-base md:text-lg font-bold leading-tight">
                 ประเมิน Pyramid Score ของคุณ
