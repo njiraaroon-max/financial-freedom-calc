@@ -89,7 +89,8 @@ interface QuickPlanInputs {
   existingLifeCoverage: number;
   existingHealthCoverage: number;
   emergencyFundMonths: number; // self-reported (0 = none, 12+ = excellent)
-  priority: Priority | null;
+  /** Priorities the user cares about (multi-select). Empty = no preference. */
+  priorities: Priority[];
 }
 
 const DEFAULT_INPUTS: QuickPlanInputs = {
@@ -101,7 +102,7 @@ const DEFAULT_INPUTS: QuickPlanInputs = {
   existingLifeCoverage: 0,
   existingHealthCoverage: 0,
   emergencyFundMonths: 3,
-  priority: null,
+  priorities: [],
 };
 
 // ─── Pyramid Score engine ──────────────────────────────────────────
@@ -224,7 +225,6 @@ function scoreAnnuity(inputs: QuickPlanInputs): LayerScore {
   // age. If they prioritize retirement → mark warn unless very young.
   // Otherwise mark ok unless income is high (suggesting they should).
   const age = calcAge(inputs.dob);
-  const flagged = inputs.priority === "retirement" || inputs.priority === "tax";
   // Younger = lower urgency, older = higher
   const urgency = age < 35 ? "ok" : age < 50 ? "warn" : "danger";
   const score = urgency === "ok" ? 18 : urgency === "warn" ? 10 : 4;
@@ -251,7 +251,9 @@ function scoreLegacy(inputs: QuickPlanInputs): LayerScore {
   // Pure indicator: only relevant if priority = legacy/wealth OR
   // income > ฿100k/mo (HNW heuristic). Otherwise mark "ok" (n/a).
   const hnw = inputs.monthlyIncome >= 100_000;
-  const interested = inputs.priority === "legacy" || inputs.priority === "wealth";
+  const interested =
+    inputs.priorities.includes("legacy") ||
+    inputs.priorities.includes("wealth");
   const score = interested ? (inputs.dependents > 0 ? 8 : 12) : (hnw ? 10 : 18);
   const status: LayerScore["status"] = score >= 16 ? "ok" : score >= 8 ? "warn" : "danger";
   const insight = interested
@@ -308,21 +310,36 @@ function computeQuickPlan(inputs: QuickPlanInputs): QuickPlanResult {
   const totalScore = layers.reduce((sum, l) => sum + l.score, 0);
 
   // Recommendation logic:
-  //  1. If user picked a priority → that layer (matches what they care about)
-  //  2. Otherwise → lowest-score layer (biggest gap)
+  //  1. If user picked one or more priorities → among the layers those
+  //     map to, recommend the LOWEST-scoring one (biggest gap among
+  //     the things they actually care about).
+  //  2. Otherwise → globally lowest-score layer.
   let topRecommendation: LayerScore;
-  if (inputs.priority) {
-    const target = PRIORITY_LAYER[inputs.priority];
-    topRecommendation = layers.find((l) => l.key === target) ?? layers[0];
+  if (inputs.priorities.length > 0) {
+    const targetKeys = new Set(
+      inputs.priorities.map((p) => PRIORITY_LAYER[p]),
+    );
+    const targets = layers.filter((l) => targetKeys.has(l.key));
+    topRecommendation =
+      targets.length > 0
+        ? [...targets].sort((a, b) => a.score - b.score)[0]
+        : layers[0];
   } else {
     topRecommendation = [...layers].sort((a, b) => a.score - b.score)[0];
   }
+
+  // Combine selected priority labels into one human-readable line.
+  // Example: "วางแผนเกษียณ · ลดหย่อนภาษี"
+  const priorityLabel =
+    inputs.priorities.length > 0
+      ? inputs.priorities.map((p) => PRIORITY_LABELS[p]).join(" · ")
+      : "ภาพรวมการเงิน";
 
   return {
     totalScore,
     layers,
     topRecommendation,
-    priorityLabel: inputs.priority ? PRIORITY_LABELS[inputs.priority] : "ภาพรวมการเงิน",
+    priorityLabel,
   };
 }
 
@@ -383,7 +400,7 @@ export default function QuickPlanPage() {
     if (step === 1) return !!inputs.dob && inputs.monthlyIncome > 0;
     if (step === 2) return true; // dependents/debt can be 0
     if (step === 3) return true;
-    if (step === 4) return inputs.priority !== null;
+    if (step === 4) return inputs.priorities.length > 0;
     return true;
   })();
 
@@ -733,16 +750,27 @@ function Step4({
     { key: "wealth",     icon: <Sparkles size={20} />,   title: "สร้างเงินก้อน", subtitle: "เก็บเงินก้อนใหญ่",          accent: PAL.amber },
   ];
 
+  const togglePriority = (key: Priority) => {
+    const next = inputs.priorities.includes(key)
+      ? inputs.priorities.filter((p) => p !== key)
+      : [...inputs.priorities, key];
+    update("priorities", next);
+  };
+
   return (
     <div className="space-y-5">
-      <StepHeader n={4} title="คุณกังวลเรื่องไหนที่สุด?" subtitle="เลือก 1 ข้อ" />
+      <StepHeader
+        n={4}
+        title="คุณกังวลเรื่องไหนบ้าง?"
+        subtitle="เลือกได้หลายข้อ"
+      />
       <div className="grid grid-cols-2 gap-3">
         {priorities.map((p) => {
-          const active = inputs.priority === p.key;
+          const active = inputs.priorities.includes(p.key);
           return (
             <button
               key={p.key}
-              onClick={() => update("priority", p.key)}
+              onClick={() => togglePriority(p.key)}
               className={`text-left rounded-2xl border-2 p-4 transition active:scale-[0.99] ${
                 active ? "shadow-md" : "hover:shadow-sm"
               }`}
@@ -772,6 +800,11 @@ function Step4({
           );
         })}
       </div>
+      {inputs.priorities.length > 0 && (
+        <div className="text-[11px] text-gray-500 text-center">
+          เลือกแล้ว {inputs.priorities.length} เรื่อง
+        </div>
+      )}
     </div>
   );
 }
@@ -880,7 +913,7 @@ function ResultPage({
               {result.topRecommendation.insight}
             </div>
             <div className="text-[11px] text-gray-500 mt-2 italic">
-              ตรงกับสิ่งที่คุณกังวล: {result.priorityLabel}
+              ตรงกับเรื่องที่คุณกังวล: {result.priorityLabel}
             </div>
           </div>
         </div>
