@@ -4,102 +4,107 @@
 -- Purpose: confirm the recursive CTE in fa_can_view_data_of() stays
 -- fast enough at Victory's expected scale (200 FAs, 1000 clients).
 --
--- How to run:
+-- HOW TO RUN
+-- ----------
 --   1. Open Supabase Dashboard → SQL Editor → New query
---   2. Paste this whole file
+--   2. Paste this entire file
 --   3. Click Run
---   4. Read the EXPLAIN ANALYZE output blocks at the bottom
---   5. Whole script runs inside a transaction and ROLLBACKs at the
---      end — no permanent rows added to your DB.
+--   4. Read the EXPLAIN ANALYZE blocks in the Results panel
+--   5. Last statement drops the perf_test schema, so nothing
+--      permanent stays in your DB.
 --
--- What "good" looks like:
---   - Ultra-as-viewer query: < 5ms total
---   - Pro-as-viewer query: < 2ms total
---   - Basic-as-viewer query: < 1ms total
---   - Clients SELECT with RLS for Ultra: < 50ms for 1000 rows
+-- WHY NOT TEMP TABLES
+-- -------------------
+-- Supabase's SQL Editor auto-commits each statement separately.
+-- TEMP tables created in one statement are gone by the next, so
+-- bench 2-6 would fail with "relation does not exist". We use a
+-- regular schema (perf_test) instead and drop it at the end.
 --
--- If any of those are 10x slower, switch fa_can_view_data_of to a
--- materialized closure table (separate migration). Notes at bottom.
+-- WHAT "GOOD" LOOKS LIKE
+-- ----------------------
+--   - Bench 1 (Ultra recursive CTE):    < 5 ms
+--   - Bench 2 (Pro recursive CTE):      < 2 ms
+--   - Bench 3 (Basic recursive CTE):    < 1 ms
+--   - Bench 4 (Ultra clients via CTE):  < 50 ms
+--   - Bench 5 (Pro clients via CTE):    < 10 ms
+--   - Bench 6 (100x stress):            total < 3 s
+--
+-- If any benchmark is 10x slower than the target, switch
+-- fa_can_view_data_of() to a materialized closure table — see notes
+-- at the bottom of this file.
 -- ============================================================
 
-BEGIN;
+-- ── 0. Reset ──────────────────────────────────────────────────
+DROP SCHEMA IF EXISTS perf_test CASCADE;
+CREATE SCHEMA perf_test;
 
--- ── Synthetic FA tree (mirrors fa_profiles structure, no FK to auth.users) ──
-CREATE TEMP TABLE perf_fa (
+-- ── 1. Mirror tables (no FK to auth.users) ────────────────────
+CREATE TABLE perf_test.fa (
   user_id      uuid PRIMARY KEY,
   tier         text NOT NULL,
-  team_lead_id uuid REFERENCES perf_fa(user_id)
+  team_lead_id uuid REFERENCES perf_test.fa(user_id)
 );
+CREATE INDEX ON perf_test.fa(team_lead_id);
 
-CREATE INDEX ON perf_fa(team_lead_id);
+CREATE TABLE perf_test.clients (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  fa_user_id uuid NOT NULL REFERENCES perf_test.fa(user_id)
+);
+CREATE INDEX ON perf_test.clients(fa_user_id);
 
--- 8 Ultras (no team lead)
-INSERT INTO perf_fa (user_id, tier, team_lead_id)
+-- ── 2. Seed FA tree: 8 Ultra / 24 Pro / 168 Basic ─────────────
+
+-- 8 Ultras
+INSERT INTO perf_test.fa (user_id, tier, team_lead_id)
 SELECT gen_random_uuid(), 'ultra', NULL
 FROM generate_series(1, 8);
 
--- 24 Pros, randomly distributed under the 8 Ultras (avg 3 each)
-INSERT INTO perf_fa (user_id, tier, team_lead_id)
+-- 24 Pros (random Ultra parent)
+INSERT INTO perf_test.fa (user_id, tier, team_lead_id)
 SELECT
   gen_random_uuid(),
   'pro',
-  (SELECT user_id FROM perf_fa
+  (SELECT user_id FROM perf_test.fa
     WHERE tier = 'ultra'
     ORDER BY random() LIMIT 1)
 FROM generate_series(1, 24);
 
--- 168 Basics, randomly distributed under the 24 Pros (avg 7 each)
-INSERT INTO perf_fa (user_id, tier, team_lead_id)
+-- 168 Basics (random Pro parent)
+INSERT INTO perf_test.fa (user_id, tier, team_lead_id)
 SELECT
   gen_random_uuid(),
   'basic',
-  (SELECT user_id FROM perf_fa
+  (SELECT user_id FROM perf_test.fa
     WHERE tier = 'pro'
     ORDER BY random() LIMIT 1)
 FROM generate_series(1, 168);
 
--- Synthetic clients (5 per FA = 1000 rows)
-CREATE TEMP TABLE perf_clients (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  fa_user_id uuid NOT NULL REFERENCES perf_fa(user_id)
-);
+-- ── 3. Seed clients (5 per FA → ~1000 rows) ──────────────────
+INSERT INTO perf_test.clients (fa_user_id)
+SELECT user_id
+FROM perf_test.fa, generate_series(1, 5);
 
-INSERT INTO perf_clients (fa_user_id)
-SELECT user_id FROM perf_fa, generate_series(1, 5);
+ANALYZE perf_test.fa;
+ANALYZE perf_test.clients;
 
-CREATE INDEX ON perf_clients(fa_user_id);
-
-ANALYZE perf_fa;
-ANALYZE perf_clients;
-
--- Sanity counts
-SELECT 'Tree shape' as label,
-       (SELECT count(*) FROM perf_fa WHERE tier = 'ultra') as ultras,
-       (SELECT count(*) FROM perf_fa WHERE tier = 'pro')   as pros,
-       (SELECT count(*) FROM perf_fa WHERE tier = 'basic') as basics,
-       (SELECT count(*) FROM perf_clients)                 as clients;
+-- Sanity check
+SELECT
+  'Tree shape' AS label,
+  (SELECT count(*) FROM perf_test.fa WHERE tier = 'ultra') AS ultras,
+  (SELECT count(*) FROM perf_test.fa WHERE tier = 'pro')   AS pros,
+  (SELECT count(*) FROM perf_test.fa WHERE tier = 'basic') AS basics,
+  (SELECT count(*) FROM perf_test.clients)                 AS clients;
 
 
 -- ============================================================
 -- Bench 1: recursive CTE alone — Ultra viewer
 -- ============================================================
--- Picks one Ultra at random and walks their entire descendant tree.
--- Expect ~22 rows returned (1 self + ~3 pros + ~21 basics roughly).
-DO $$
-DECLARE
-  ultra_id uuid;
-BEGIN
-  SELECT user_id INTO ultra_id FROM perf_fa WHERE tier = 'ultra' LIMIT 1;
-  RAISE NOTICE 'Bench 1 viewer (ultra) = %', ultra_id;
-  PERFORM set_config('perf.ultra_id', ultra_id::text, true);
-END $$;
-
 EXPLAIN (ANALYZE, BUFFERS, TIMING)
 WITH RECURSIVE descendants(id) AS (
-  SELECT current_setting('perf.ultra_id')::uuid
+  SELECT user_id FROM perf_test.fa WHERE tier = 'ultra' LIMIT 1
   UNION ALL
   SELECT fp.user_id
-  FROM perf_fa fp
+  FROM perf_test.fa fp
   JOIN descendants d ON fp.team_lead_id = d.id
 )
 SELECT count(*) FROM descendants;
@@ -108,21 +113,12 @@ SELECT count(*) FROM descendants;
 -- ============================================================
 -- Bench 2: recursive CTE alone — Pro viewer
 -- ============================================================
-DO $$
-DECLARE
-  pro_id uuid;
-BEGIN
-  SELECT user_id INTO pro_id FROM perf_fa WHERE tier = 'pro' LIMIT 1;
-  RAISE NOTICE 'Bench 2 viewer (pro) = %', pro_id;
-  PERFORM set_config('perf.pro_id', pro_id::text, true);
-END $$;
-
 EXPLAIN (ANALYZE, BUFFERS, TIMING)
 WITH RECURSIVE descendants(id) AS (
-  SELECT current_setting('perf.pro_id')::uuid
+  SELECT user_id FROM perf_test.fa WHERE tier = 'pro' LIMIT 1
   UNION ALL
   SELECT fp.user_id
-  FROM perf_fa fp
+  FROM perf_test.fa fp
   JOIN descendants d ON fp.team_lead_id = d.id
 )
 SELECT count(*) FROM descendants;
@@ -131,22 +127,13 @@ SELECT count(*) FROM descendants;
 -- ============================================================
 -- Bench 3: recursive CTE alone — Basic viewer
 -- ============================================================
--- Should return exactly 1 row (just themselves).
-DO $$
-DECLARE
-  basic_id uuid;
-BEGIN
-  SELECT user_id INTO basic_id FROM perf_fa WHERE tier = 'basic' LIMIT 1;
-  RAISE NOTICE 'Bench 3 viewer (basic) = %', basic_id;
-  PERFORM set_config('perf.basic_id', basic_id::text, true);
-END $$;
-
+-- Should return 1 (themselves only).
 EXPLAIN (ANALYZE, BUFFERS, TIMING)
 WITH RECURSIVE descendants(id) AS (
-  SELECT current_setting('perf.basic_id')::uuid
+  SELECT user_id FROM perf_test.fa WHERE tier = 'basic' LIMIT 1
   UNION ALL
   SELECT fp.user_id
-  FROM perf_fa fp
+  FROM perf_test.fa fp
   JOIN descendants d ON fp.team_lead_id = d.id
 )
 SELECT count(*) FROM descendants;
@@ -155,19 +142,16 @@ SELECT count(*) FROM descendants;
 -- ============================================================
 -- Bench 4: full RLS-shaped query — Ultra reading clients
 -- ============================================================
--- This simulates what happens on /clients for an Ultra: SELECT * FROM
--- clients filtered by the recursive descendants. Should be the slowest
--- of the four because it joins clients (1000 rows) against the CTE.
 EXPLAIN (ANALYZE, BUFFERS, TIMING)
 WITH RECURSIVE descendants(id) AS (
-  SELECT current_setting('perf.ultra_id')::uuid
+  SELECT user_id FROM perf_test.fa WHERE tier = 'ultra' LIMIT 1
   UNION ALL
   SELECT fp.user_id
-  FROM perf_fa fp
+  FROM perf_test.fa fp
   JOIN descendants d ON fp.team_lead_id = d.id
 )
 SELECT c.*
-FROM perf_clients c
+FROM perf_test.clients c
 WHERE c.fa_user_id IN (SELECT id FROM descendants);
 
 
@@ -176,71 +160,80 @@ WHERE c.fa_user_id IN (SELECT id FROM descendants);
 -- ============================================================
 EXPLAIN (ANALYZE, BUFFERS, TIMING)
 WITH RECURSIVE descendants(id) AS (
-  SELECT current_setting('perf.pro_id')::uuid
+  SELECT user_id FROM perf_test.fa WHERE tier = 'pro' LIMIT 1
   UNION ALL
   SELECT fp.user_id
-  FROM perf_fa fp
+  FROM perf_test.fa fp
   JOIN descendants d ON fp.team_lead_id = d.id
 )
 SELECT c.*
-FROM perf_clients c
+FROM perf_test.clients c
 WHERE c.fa_user_id IN (SELECT id FROM descendants);
 
 
 -- ============================================================
 -- Bench 6: stress test — Ultra reading clients 100 times
 -- ============================================================
--- Single ANALYZE timing per call doesn't tell us about variance under
--- load. This wraps Bench 4 in a 100-iteration loop and reports total
--- elapsed time. Divide by 100 for per-call avg.
 DO $$
 DECLARE
   start_ts timestamptz;
-  elapsed interval;
-  ultra_id uuid := current_setting('perf.ultra_id')::uuid;
+  elapsed  interval;
+  ultra_id uuid;
 BEGIN
+  SELECT user_id INTO ultra_id FROM perf_test.fa WHERE tier = 'ultra' LIMIT 1;
   start_ts := clock_timestamp();
   FOR i IN 1..100 LOOP
     PERFORM count(*)
-    FROM perf_clients c
+    FROM perf_test.clients c
     WHERE c.fa_user_id IN (
       WITH RECURSIVE descendants(id) AS (
         SELECT ultra_id
         UNION ALL
         SELECT fp.user_id
-        FROM perf_fa fp
+        FROM perf_test.fa fp
         JOIN descendants d ON fp.team_lead_id = d.id
       )
       SELECT id FROM descendants
     );
   END LOOP;
   elapsed := clock_timestamp() - start_ts;
-  RAISE NOTICE '100x Ultra-clients-with-CTE took: % (avg per call: %)',
-    elapsed, elapsed / 100;
+  RAISE NOTICE '100x Ultra-clients-with-CTE total: %', elapsed;
+  RAISE NOTICE 'Average per call: %', elapsed / 100;
 END $$;
 
-ROLLBACK;
+
+-- ── Cleanup ───────────────────────────────────────────────────
+-- Drops the perf_test schema and all its tables. Comment this out
+-- if you want to inspect the synthetic data after running.
+DROP SCHEMA perf_test CASCADE;
+
 
 -- ============================================================
 -- Interpretation guide
 -- ============================================================
--- Read the "Execution Time" line at the bottom of each EXPLAIN block.
+-- Read the "Execution Time:" line at the bottom of each EXPLAIN block.
 --
--- BENCH 1 (Ultra recursive CTE alone): expect 0.5-3ms
--- BENCH 2 (Pro recursive CTE alone): expect 0.2-1ms
--- BENCH 3 (Basic recursive CTE alone): expect 0.1-0.3ms
--- BENCH 4 (Ultra clients with CTE): expect 5-30ms for 1000 clients
--- BENCH 5 (Pro clients with CTE): expect 1-10ms
--- BENCH 6 (100x stress): expect total < 3 seconds (=> ~30ms/call avg)
+-- BENCH 1 (Ultra recursive CTE alone):    expect 0.5 - 3 ms
+-- BENCH 2 (Pro recursive CTE alone):      expect 0.2 - 1 ms
+-- BENCH 3 (Basic recursive CTE alone):    expect 0.1 - 0.3 ms
+-- BENCH 4 (Ultra clients with CTE):       expect 5 - 30 ms
+-- BENCH 5 (Pro clients with CTE):         expect 1 - 10 ms
+-- BENCH 6 (100x stress):                  expect total < 3 s
+--                                         (≈ 30 ms per call)
 --
--- IF you see 10x worse:
---   - 100ms+ on Bench 4 → consider materialized closure table
---   - Open issue + ping me to swap fa_can_view_data_of()
+-- IF any benchmark is 10x worse than target:
+--   - Capture the EXPLAIN output and report it
+--   - Likely fix: swap fa_can_view_data_of() for a materialized
+--     closure table:
 --
--- The materialized closure table option (NOT applied yet, just sketch):
---   CREATE TABLE fa_descendants_closure (
---     ancestor_id uuid, descendant_id uuid, depth int,
---     PRIMARY KEY (ancestor_id, descendant_id)
---   );
---   -- refreshed by trigger on fa_profiles.team_lead_id changes
--- This trades write cost for O(1) read on the closure lookup.
+--     CREATE TABLE fa_descendants_closure (
+--       ancestor_id   uuid NOT NULL,
+--       descendant_id uuid NOT NULL,
+--       depth         int  NOT NULL,
+--       PRIMARY KEY (ancestor_id, descendant_id)
+--     );
+--     -- refreshed via triggers on fa_profiles when team_lead_id changes
+--
+--   This trades a small write-time cost for O(1) read performance,
+--   which is the right tradeoff because team membership changes
+--   far less often than clients are read.
