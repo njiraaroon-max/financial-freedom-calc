@@ -63,46 +63,29 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  // On the professional skin's landing page (HomePro), we hide the
-  // persistent sidebar so the cinematic hero gets the full viewport
-  // width. The sidebar comes back on every other route (calculators,
-  // settings, etc.) where it functions as the primary navigation.
-  // UserMenu stays — it's a small floating top-right element that
-  // doesn't disrupt the hero but keeps sign-out reachable.
-  const isPro = skin === "professional";
-  const isProHome = isPro && pathname === "/";
-
-  // Pick the rail implementation per skin.
-  //   legacy       → 272px Sidebar (hover-expand, colorful icons,
-  //                  full Thai labels, gets new Team nav group)
-  //   professional → also use the full Sidebar for now. The thin
-  //                  SidebarPro rail (kept around but unused) made
-  //                  the new tier features (Team, Inbox, drilldown)
-  //                  hard to discover for Victory's 200 FAs landing
-  //                  cold next week. Full labels + a less austere
-  //                  visual win out for launch. SidebarPro is still
-  //                  importable for any future "icon-only mode"
-  //                  toggle but no live route mounts it right now.
+  // Sidebar is now visible on EVERY authenticated route, including
+  // the home (`/`) page. Earlier the professional skin hid it on
+  // `/` so HomePro could render a full-width hero — but with 200
+  // FAs landing cold next week, persistent navigation beats a
+  // cinematic landing. The hero just absorbs the sidebar offset
+  // like every other page.
+  //
+  // SidebarPro (the 68px navy-and-gold rail) stays imported but
+  // unrendered — kept around for a future opt-in toggle.
   const SidebarComponent = Sidebar;
-  // SidebarPro stays imported for any future opt-in toggle, but no
-  // live route renders it right now.
   void SidebarPro;
+  void skin;
+  void pathname;
 
   return (
     <div className="relative min-h-dvh isolate">
-      {/* Main padding follows the pinned sidebar width (default 17rem / 272px).
-          Hover-expand is overlay-only so content does NOT shift when hovering.
-          On HomePro we drop the left padding so the hero bleeds to the edge. */}
-      <main
-        className={
-          isProHome
-            ? "relative z-0 min-h-dvh"
-            : "relative z-0 min-h-dvh transition-[padding] duration-200 ease-out lg:pl-[var(--sidebar-w,17rem)]"
-        }
-      >
+      {/* Main padding follows the pinned sidebar width (default 17rem
+          / 272px). Hover-expand is overlay-only so content does NOT
+          shift when the user hovers the rail. */}
+      <main className="relative z-0 min-h-dvh transition-[padding] duration-200 ease-out lg:pl-[var(--sidebar-w,17rem)]">
         {children}
       </main>
-      {!isProHome && <SidebarComponent />}
+      <SidebarComponent />
       <UserMenu />
       <ClientDataSync />
       <FaSessionSync />
