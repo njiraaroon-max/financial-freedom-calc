@@ -258,8 +258,15 @@ function FaRow({
   const [saving, setSaving] = useState(false);
 
   // Available leads depend on the (new) tier the user is choosing.
+  // Migration 022 relaxed the Basic rule — a Basic can now have either
+  // a Pro or an Ultra as lead (handy when a region has no Pros yet, or
+  // when a Pro just left and Basics need a temporary lead).
   const availableLeads =
-    tier === "basic" ? pros : tier === "pro" ? ultras : [];
+    tier === "basic"
+      ? [...pros, ...ultras]
+      : tier === "pro"
+        ? ultras
+        : [];
 
   const dirty = tier !== row.tier || leadId !== row.team_lead_id;
 
@@ -317,11 +324,15 @@ function FaRow({
             // doesn't reject the Save click below.
             if (next === "ultra") setLeadId(null);
             // If the previously-selected lead's tier no longer matches
-            // (e.g. moved from basic→pro), clear it.
+            // (e.g. moved from basic→pro, the lead must now be Ultra),
+            // clear it. Basic accepts both Pros and Ultras (post-022)
+            // so any non-Basic lead stays valid.
             if (next === "basic") {
-              if (leadId && !pros.some((p) => p.user_id === leadId)) {
-                setLeadId(null);
-              }
+              const validLead =
+                leadId &&
+                (pros.some((p) => p.user_id === leadId) ||
+                  ultras.some((u) => u.user_id === leadId));
+              if (!validLead) setLeadId(null);
             }
             if (next === "pro") {
               if (leadId && !ultras.some((u) => u.user_id === leadId)) {
@@ -350,7 +361,12 @@ function FaRow({
               { value: "", label: "— ยังไม่ผูก —" },
               ...availableLeads.map((l) => ({
                 value: l.user_id,
-                label: idToName.get(l.user_id) ?? l.email,
+                // Tag the option with the lead's tier so the admin can
+                // tell Pros from Ultras when picking a Basic's lead
+                // (post-022 a Basic can pick either).
+                label: `${idToName.get(l.user_id) ?? l.email} · ${
+                  l.tier === "ultra" ? "Ultra" : "Pro"
+                }`,
               })),
             ]}
           />
