@@ -68,6 +68,14 @@ export const CLIENT_STATUSES: ClientStatus[] = [
   "other",
 ];
 
+/** Lifecycle of a team invitation (migration 017). */
+export type InvitationStatus =
+  | "pending"
+  | "accepted"
+  | "rejected"
+  | "expired"
+  | "cancelled";
+
 /**
  * Per-FA feature flags (JSONB in DB so new flags can ship without
  * migrations). See migration 007 for defaults. Values are optional here
@@ -317,6 +325,31 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["plan_data"]["Insert"]>;
         Relationships: [];
       };
+
+      fa_team_invitations: {
+        Row: {
+          id: string;
+          inviter_id: string;
+          invitee_fa_code: string;
+          invitee_id: string | null;
+          status: InvitationStatus;
+          message: string | null;
+          created_at: string;
+          responded_at: string | null;
+          expires_at: string;
+        };
+        Insert: {
+          id?: string;
+          inviter_id: string;
+          invitee_fa_code: string;
+          invitee_id?: string | null;
+          status?: InvitationStatus;
+          message?: string | null;
+          expires_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["fa_team_invitations"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
     Functions: { [_ in never]: never };
@@ -338,3 +371,7 @@ export type CashflowItemInsert =
   Database["public"]["Tables"]["cashflow_items"]["Insert"];
 export type PlanDataRow =
   Database["public"]["Tables"]["plan_data"]["Row"];
+export type TeamInvitation =
+  Database["public"]["Tables"]["fa_team_invitations"]["Row"];
+export type TeamInvitationInsert =
+  Database["public"]["Tables"]["fa_team_invitations"]["Insert"];

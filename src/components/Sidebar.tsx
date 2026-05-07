@@ -32,11 +32,16 @@ import {
   HeartPulse,
   FileText,
   Users,
+  Inbox,
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
 import { useProfileStore } from "@/store/profile-store";
-import { useSkin, useOrganization } from "@/store/fa-session-store";
+import {
+  useSkin,
+  useOrganization,
+  useCanManageTeam,
+} from "@/store/fa-session-store";
 
 const STORAGE_KEY = "ffc-sidebar-collapsed";
 const EXPANDED_W = "17rem"; // 272px
@@ -69,10 +74,18 @@ const REPORTS_NAV: NavItem[] = [
   { name: "รายงาน (Report)", href: "/report", icon: FileText, color: "text-slate-600" },
 ];
 
+// Phase 2 team nav. /team is gated by tier (Pro/Ultra only); /inbox is
+// shown to everyone since any FA can receive invitations.
+const TEAM_NAV: NavItem[] = [
+  { name: "ทีม", href: "/team", icon: Users, color: "text-[var(--brand-primary)]" },
+  { name: "กล่องจดหมาย", href: "/inbox/invitations", icon: Inbox, color: "text-[var(--brand-primary)]" },
+];
+
 export default function Sidebar() {
   const pathname = usePathname() || "/";
   const profile = useProfileStore();
   const firstName = profile.name ? profile.name.split(" ")[0] : "";
+  const canManageTeam = useCanManageTeam();
   // Skin drives the sidebar's visual language:
   //   legacy       → keep the multi-color Tailwind icons + cartoon avatar
   //                  (existing users expect this, everything stays as-is)
@@ -257,6 +270,22 @@ export default function Sidebar() {
 
         <NavGroup label="Reports" expanded={expanded}>
           {REPORTS_NAV.map((item) => (
+            <NavRow
+              key={item.href}
+              item={item}
+              active={isActive(item.href)}
+              expanded={expanded}
+              isPro={isPro}
+            />
+          ))}
+        </NavGroup>
+
+        {/* Team management — Pro+Ultra see the /team page; everyone
+            sees /inbox/invitations because any FA can be invited. */}
+        <NavGroup label="Team" expanded={expanded}>
+          {TEAM_NAV.filter(
+            (item) => item.href !== "/team" || canManageTeam,
+          ).map((item) => (
             <NavRow
               key={item.href}
               item={item}
