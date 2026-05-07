@@ -73,11 +73,20 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isProHome = isPro && pathname === "/";
 
   // Pick the rail implementation per skin.
-  //   legacy       → 272px Sidebar (hover-expand, colorful icons)
-  //   professional → 68px SidebarPro (dark navy + gold, mode-aware)
-  // SidebarPro sets --sidebar-w itself on mount so the shell padding
-  // below works identically for both.
-  const SidebarComponent = isPro ? SidebarPro : Sidebar;
+  //   legacy       → 272px Sidebar (hover-expand, colorful icons,
+  //                  full Thai labels, gets new Team nav group)
+  //   professional → also use the full Sidebar for now. The thin
+  //                  SidebarPro rail (kept around but unused) made
+  //                  the new tier features (Team, Inbox, drilldown)
+  //                  hard to discover for Victory's 200 FAs landing
+  //                  cold next week. Full labels + a less austere
+  //                  visual win out for launch. SidebarPro is still
+  //                  importable for any future "icon-only mode"
+  //                  toggle but no live route mounts it right now.
+  const SidebarComponent = Sidebar;
+  // SidebarPro stays imported for any future opt-in toggle, but no
+  // live route renders it right now.
+  void SidebarPro;
 
   return (
     <div className="relative min-h-dvh isolate">
