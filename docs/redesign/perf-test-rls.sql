@@ -99,14 +99,21 @@ SELECT
 -- ============================================================
 -- Bench 1: recursive CTE alone — Ultra viewer
 -- ============================================================
+-- We pick the seed Ultra in a non-recursive CTE first so the
+-- recursive CTE's base case is a clean SELECT without LIMIT —
+-- PostgreSQL rejects LIMIT directly inside a recursive CTE term.
 EXPLAIN (ANALYZE, BUFFERS, TIMING)
-WITH RECURSIVE descendants(id) AS (
-  SELECT user_id FROM perf_test.fa WHERE tier = 'ultra' LIMIT 1
-  UNION ALL
-  SELECT fp.user_id
-  FROM perf_test.fa fp
-  JOIN descendants d ON fp.team_lead_id = d.id
-)
+WITH RECURSIVE
+  seed AS (
+    SELECT user_id FROM perf_test.fa WHERE tier = 'ultra' LIMIT 1
+  ),
+  descendants(id) AS (
+    SELECT user_id FROM seed
+    UNION ALL
+    SELECT fp.user_id
+    FROM perf_test.fa fp
+    JOIN descendants d ON fp.team_lead_id = d.id
+  )
 SELECT count(*) FROM descendants;
 
 
@@ -114,13 +121,17 @@ SELECT count(*) FROM descendants;
 -- Bench 2: recursive CTE alone — Pro viewer
 -- ============================================================
 EXPLAIN (ANALYZE, BUFFERS, TIMING)
-WITH RECURSIVE descendants(id) AS (
-  SELECT user_id FROM perf_test.fa WHERE tier = 'pro' LIMIT 1
-  UNION ALL
-  SELECT fp.user_id
-  FROM perf_test.fa fp
-  JOIN descendants d ON fp.team_lead_id = d.id
-)
+WITH RECURSIVE
+  seed AS (
+    SELECT user_id FROM perf_test.fa WHERE tier = 'pro' LIMIT 1
+  ),
+  descendants(id) AS (
+    SELECT user_id FROM seed
+    UNION ALL
+    SELECT fp.user_id
+    FROM perf_test.fa fp
+    JOIN descendants d ON fp.team_lead_id = d.id
+  )
 SELECT count(*) FROM descendants;
 
 
@@ -129,13 +140,17 @@ SELECT count(*) FROM descendants;
 -- ============================================================
 -- Should return 1 (themselves only).
 EXPLAIN (ANALYZE, BUFFERS, TIMING)
-WITH RECURSIVE descendants(id) AS (
-  SELECT user_id FROM perf_test.fa WHERE tier = 'basic' LIMIT 1
-  UNION ALL
-  SELECT fp.user_id
-  FROM perf_test.fa fp
-  JOIN descendants d ON fp.team_lead_id = d.id
-)
+WITH RECURSIVE
+  seed AS (
+    SELECT user_id FROM perf_test.fa WHERE tier = 'basic' LIMIT 1
+  ),
+  descendants(id) AS (
+    SELECT user_id FROM seed
+    UNION ALL
+    SELECT fp.user_id
+    FROM perf_test.fa fp
+    JOIN descendants d ON fp.team_lead_id = d.id
+  )
 SELECT count(*) FROM descendants;
 
 
@@ -143,13 +158,17 @@ SELECT count(*) FROM descendants;
 -- Bench 4: full RLS-shaped query — Ultra reading clients
 -- ============================================================
 EXPLAIN (ANALYZE, BUFFERS, TIMING)
-WITH RECURSIVE descendants(id) AS (
-  SELECT user_id FROM perf_test.fa WHERE tier = 'ultra' LIMIT 1
-  UNION ALL
-  SELECT fp.user_id
-  FROM perf_test.fa fp
-  JOIN descendants d ON fp.team_lead_id = d.id
-)
+WITH RECURSIVE
+  seed AS (
+    SELECT user_id FROM perf_test.fa WHERE tier = 'ultra' LIMIT 1
+  ),
+  descendants(id) AS (
+    SELECT user_id FROM seed
+    UNION ALL
+    SELECT fp.user_id
+    FROM perf_test.fa fp
+    JOIN descendants d ON fp.team_lead_id = d.id
+  )
 SELECT c.*
 FROM perf_test.clients c
 WHERE c.fa_user_id IN (SELECT id FROM descendants);
@@ -159,13 +178,17 @@ WHERE c.fa_user_id IN (SELECT id FROM descendants);
 -- Bench 5: full RLS-shaped query — Pro reading clients
 -- ============================================================
 EXPLAIN (ANALYZE, BUFFERS, TIMING)
-WITH RECURSIVE descendants(id) AS (
-  SELECT user_id FROM perf_test.fa WHERE tier = 'pro' LIMIT 1
-  UNION ALL
-  SELECT fp.user_id
-  FROM perf_test.fa fp
-  JOIN descendants d ON fp.team_lead_id = d.id
-)
+WITH RECURSIVE
+  seed AS (
+    SELECT user_id FROM perf_test.fa WHERE tier = 'pro' LIMIT 1
+  ),
+  descendants(id) AS (
+    SELECT user_id FROM seed
+    UNION ALL
+    SELECT fp.user_id
+    FROM perf_test.fa fp
+    JOIN descendants d ON fp.team_lead_id = d.id
+  )
 SELECT c.*
 FROM perf_test.clients c
 WHERE c.fa_user_id IN (SELECT id FROM descendants);
