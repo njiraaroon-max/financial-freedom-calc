@@ -29,7 +29,8 @@ import { useClients } from "@/hooks/useClients";
 import { useActiveClientStore } from "@/store/active-client-store";
 import { toast } from "@/store/toast-store";
 import PageHeader from "@/components/PageHeader";
-import type { Client } from "@/lib/supabase/database.types";
+import StatusToggle from "@/components/clients/StatusToggle";
+import type { Client, ClientStatus } from "@/lib/supabase/database.types";
 import { migrateLocalStorageToClient } from "@/lib/sync/migrate-local";
 
 function formatDate(iso: string | null): string {
@@ -201,6 +202,18 @@ export default function ClientsPage() {
     }
   };
 
+  const handleStatusChange = async (c: Client, next: ClientStatus) => {
+    try {
+      await update(c.id, { current_status: next });
+      // No toast — the badge flip is feedback enough; keeps it lightweight
+      // since FAs may flip statuses several times in a row.
+    } catch (e) {
+      toast.error(
+        e instanceof Error ? e.message : "เปลี่ยนสถานะไม่สำเร็จ",
+      );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
       <PageHeader
@@ -326,6 +339,14 @@ export default function ClientsPage() {
                           อัพเดท {formatDate(c.updated_at)}
                         </div>
                       </div>
+                    </div>
+
+                    {/* Status toggle (Phase 2 manual status — migration 016) */}
+                    <div className="mb-3">
+                      <StatusToggle
+                        status={c.current_status ?? "appointment"}
+                        onChange={(next) => handleStatusChange(c, next)}
+                      />
                     </div>
 
                     <div className="flex gap-2">
