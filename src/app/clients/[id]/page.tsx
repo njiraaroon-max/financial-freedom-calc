@@ -29,6 +29,7 @@ import {
   Briefcase,
   AlertCircle,
   Loader2,
+  Eye,
 } from "lucide-react";
 import { createClient as createSupabaseClient } from "@/lib/supabase/client";
 import { toast } from "@/store/toast-store";
@@ -46,6 +47,16 @@ import {
 
 type Tab = "overview" | "modules" | "status" | "reports";
 
+/**
+ * Augmented client shape returned by get_client_for_viewer RPC —
+ * includes can_edit + owner identity for read-only mode.
+ */
+type ClientWithVisibility = Client & {
+  can_edit: boolean;
+  owner_display_name: string | null;
+  owner_fa_code: string | null;
+};
+
 const TABS: { key: Tab; label: string }[] = [
   { key: "overview", label: "Overview" },
   { key: "modules",  label: "Modules" },
@@ -62,12 +73,14 @@ export default function ClientDetailPage({
   const router = useRouter();
   const setActive = useActiveClientStore((s) => s.setActive);
 
-  const [client, setClient] = useState<Client | null>(null);
+  const [client, setClient] = useState<ClientWithVisibility | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("overview");
 
-  // Initial fetch
+  // Initial fetch via the SECURITY DEFINER RPC so Pro/Ultra can pull
+  // a subordinate's client (read-only). For owners the RPC returns
+  // can_edit=true and behaves like the old direct SELECT.
   useEffect(() => {
     let cancelled = false;
     const supabase = createSupabaseClient();
@@ -75,19 +88,28 @@ export default function ClientDetailPage({
       setLoading(true);
       setError(null);
       try {
-        const { data, error } = await supabase
-          .from("clients")
-          .select("*")
-          .eq("id", id)
-          .maybeSingle();
+        const { data, error } = await (
+          supabase.rpc as unknown as (
+            fn: string,
+            args: Record<string, unknown>,
+          ) => Promise<{
+            data: ClientWithVisibility[] | null;
+            error: { message: string } | null;
+          }>
+        )("get_client_for_viewer", { target_id: id });
         if (cancelled) return;
         if (error) throw error;
-        if (!data) {
-          setError("ไม่พบข้อมูลลูกค้า");
+        const row = data?.[0];
+        if (!row) {
+          setError("ไม่พบข้อมูลลูกค้า หรือคุณไม่มีสิทธิ์เข้าถึง");
           return;
         }
-        setClient(data as Client);
-        setActive(data.id, data.name);
+        setClient(row);
+        // Only mark as active when we own the row — otherwise we'd
+        // confuse the existing per-client scope that drives module
+        // queries (we don't want a subordinate's client to leak into
+        // the calculator stores).
+        if (row.can_edit) setActive(row.id, row.name);
       } catch (e) {
         if (!cancelled) {
           setError(e instanceof Error ? e.message : "ไม่สามารถโหลดข้อมูลได้");
@@ -129,6 +151,7 @@ export default function ClientDetailPage({
   }
 
   const handleStatusChange = async (next: ClientStatus) => {
+    if (!client.can_edit) return; // safety — UI should already hide this
     const supabase = createSupabaseClient();
     const prev = client.current_status;
     setClient({ ...client, current_status: next }); // optimistic
@@ -145,6 +168,7 @@ export default function ClientDetailPage({
   };
 
   const handleNoteSave = async (note: string) => {
+    if (!client.can_edit) return; // safety
     const supabase = createSupabaseClient();
     const prev = client.status_note;
     setClient({ ...client, status_note: note || null });
@@ -164,6 +188,24 @@ export default function ClientDetailPage({
   return (
     <div className="min-h-screen" style={{ background: "#fafaf7" }}>
       <ClientHeader client={client} />
+
+      {/* Read-only banner — shown when viewing a subordinate's client */}
+      {!client.can_edit && (
+        <div className="bg-amber-50 border-b border-amber-200">
+          <div className="max-w-5xl mx-auto px-5 md:px-8 py-2.5 flex items-center gap-2 text-[12px] text-amber-800">
+            <Eye size={14} className="flex-shrink-0" />
+            <span>
+              <span className="font-bold">อ่านอย่างเดียว</span> — ลูกค้าของ{" "}
+              {client.owner_display_name ?? client.owner_fa_code ?? "FA ในทีม"}
+              {client.owner_fa_code && client.owner_display_name && (
+                <span className="text-amber-600 font-mono ml-1">
+                  ({client.owner_fa_code})
+                </span>
+              )}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <nav
@@ -192,10 +234,11 @@ export default function ClientDetailPage({
 
       <main className="max-w-5xl mx-auto px-5 md:px-8 py-6">
         {activeTab === "overview" && <OverviewTab client={client} />}
-        {activeTab === "modules"  && <ModulesTab />}
+        {activeTab === "modules"  && <ModulesTab canEdit={client.can_edit} />}
         {activeTab === "status"   && (
           <StatusTab
             client={client}
+            canEdit={client.can_edit}
             onStatusChange={handleStatusChange}
             onNoteSave={handleNoteSave}
           />
@@ -329,7 +372,7 @@ const MODULE_LINKS: { href: string; label: string }[] = [
   { href: "/calculators/goals",         label: "เป้าหมาย" },
 ];
 
-function ModulesTab() {
+function ModulesTab({ canEdit }: { canEdit: boolean }) {
   return (
     <section className="rounded-2xl bg-white border border-gray-100 p-5">
       <header className="mb-4">
@@ -337,22 +380,36 @@ function ModulesTab() {
           เครื่องมือวางแผนทั้งหมด
         </h2>
         <div className="text-[11px] text-gray-400 mt-1">
-          คลิกเพื่อเปิดในหน้าใหม่ — ข้อมูลจะ scope ตามลูกค้าที่เลือกอยู่
+          {canEdit
+            ? "คลิกเพื่อเปิดในหน้าใหม่ — ข้อมูลจะ scope ตามลูกค้าที่เลือกอยู่"
+            : "อ่านอย่างเดียว — ลิงก์ปิดเพื่อกันไม่ให้แก้ข้อมูลของลูกค้าคนอื่น"}
         </div>
       </header>
       <div className="divide-y divide-gray-100">
-        {MODULE_LINKS.map((m) => (
-          <Link
-            key={m.href}
-            href={m.href}
-            className="flex items-center justify-between py-3 first:pt-0 last:pb-0 group"
-          >
-            <span className="text-sm font-semibold text-gray-700 group-hover:text-[var(--brand-primary)] transition">
-              {m.label}
-            </span>
-            <ChevronRight size={14} className="text-gray-400 group-hover:translate-x-0.5 transition" />
-          </Link>
-        ))}
+        {MODULE_LINKS.map((m) =>
+          canEdit ? (
+            <Link
+              key={m.href}
+              href={m.href}
+              className="flex items-center justify-between py-3 first:pt-0 last:pb-0 group"
+            >
+              <span className="text-sm font-semibold text-gray-700 group-hover:text-[var(--brand-primary)] transition">
+                {m.label}
+              </span>
+              <ChevronRight size={14} className="text-gray-400 group-hover:translate-x-0.5 transition" />
+            </Link>
+          ) : (
+            <div
+              key={m.href}
+              className="flex items-center justify-between py-3 first:pt-0 last:pb-0 opacity-50 cursor-not-allowed"
+            >
+              <span className="text-sm font-semibold text-gray-500">
+                {m.label}
+              </span>
+              <Eye size={14} className="text-gray-300" />
+            </div>
+          ),
+        )}
       </div>
     </section>
   );
@@ -362,10 +419,12 @@ function ModulesTab() {
 
 function StatusTab({
   client,
+  canEdit,
   onStatusChange,
   onNoteSave,
 }: {
   client: Client;
+  canEdit: boolean;
   onStatusChange: (next: ClientStatus) => Promise<void>;
   onNoteSave: (note: string) => Promise<void>;
 }) {
@@ -392,12 +451,13 @@ function StatusTab({
             return (
               <button
                 key={s}
-                onClick={() => onStatusChange(s)}
+                onClick={() => canEdit && onStatusChange(s)}
+                disabled={!canEdit}
                 className={`rounded-xl border-2 px-3 py-2.5 text-left transition ${
                   active
                     ? "border-[var(--brand-primary)] bg-gray-50"
                     : "border-gray-200 hover:border-gray-300"
-                }`}
+                } ${!canEdit ? "opacity-50 cursor-not-allowed hover:border-gray-200" : ""}`}
               >
                 <div className="flex items-center gap-2">
                   <span
@@ -413,15 +473,17 @@ function StatusTab({
           })}
         </div>
 
-        {/* Inline status pill (compact alternative for FAs who'd rather
-            stay on the existing /clients-card workflow). */}
-        <div className="mt-4 pt-4 border-t border-gray-100 flex items-center gap-2 text-[12px] text-gray-500">
-          <span>หรือใช้ dropdown:</span>
-          <StatusToggle
-            status={(client.current_status ?? "appointment") as ClientStatus}
-            onChange={onStatusChange}
-          />
-        </div>
+        {canEdit && (
+          /* Inline status pill (compact alternative for FAs who'd rather
+              stay on the existing /clients-card workflow). */
+          <div className="mt-4 pt-4 border-t border-gray-100 flex items-center gap-2 text-[12px] text-gray-500">
+            <span>หรือใช้ dropdown:</span>
+            <StatusToggle
+              status={(client.current_status ?? "appointment") as ClientStatus}
+              onChange={onStatusChange}
+            />
+          </div>
+        )}
       </section>
 
       {/* Note — required spirit (not enforced) when status='other'. */}
@@ -439,31 +501,34 @@ function StatusTab({
           onChange={(e) => setDraftNote(e.target.value)}
           rows={4}
           maxLength={2000}
-          placeholder="พิมพ์ข้อความ..."
-          className="w-full rounded-xl bg-gray-50 px-3 py-2.5 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] resize-none"
+          placeholder={canEdit ? "พิมพ์ข้อความ..." : "ไม่มีหมายเหตุ"}
+          disabled={!canEdit}
+          className="w-full rounded-xl bg-gray-50 px-3 py-2.5 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] resize-none disabled:opacity-60 disabled:cursor-not-allowed"
         />
-        <div className="mt-3 flex items-center justify-between">
-          <div className="text-[11px] text-gray-400">
-            {draftNote.length} / 2,000 ตัวอักษร
+        {canEdit && (
+          <div className="mt-3 flex items-center justify-between">
+            <div className="text-[11px] text-gray-400">
+              {draftNote.length} / 2,000 ตัวอักษร
+            </div>
+            <button
+              onClick={async () => {
+                setSaving(true);
+                try {
+                  await onNoteSave(draftNote);
+                } finally {
+                  setSaving(false);
+                }
+              }}
+              disabled={!dirty || saving}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--brand-primary)] text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 transition"
+            >
+              {saving ? (
+                <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              ) : null}
+              บันทึก
+            </button>
           </div>
-          <button
-            onClick={async () => {
-              setSaving(true);
-              try {
-                await onNoteSave(draftNote);
-              } finally {
-                setSaving(false);
-              }
-            }}
-            disabled={!dirty || saving}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--brand-primary)] text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 transition"
-          >
-            {saving ? (
-              <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-            ) : null}
-            บันทึก
-          </button>
-        </div>
+        )}
       </section>
     </div>
   );

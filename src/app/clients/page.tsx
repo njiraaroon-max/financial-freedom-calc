@@ -312,6 +312,12 @@ export default function ClientsPage() {
                       </div>
                     )}
 
+                    {!c.can_edit && (
+                      <div className="absolute -top-2 -left-2 bg-amber-100 text-amber-700 text-[11px] font-bold px-2 py-0.5 rounded-full border border-amber-200 flex items-center gap-1">
+                        👁 อ่านอย่างเดียว
+                      </div>
+                    )}
+
                     <div className="flex items-center gap-2 mb-3">
                       <div
                         className={`w-10 h-10 rounded-full flex items-center justify-center ${
@@ -337,15 +343,28 @@ export default function ClientsPage() {
                         <div className="text-[13px] text-gray-400">
                           อัพเดท {formatDate(c.updated_at)}
                         </div>
+                        {!c.can_edit && c.owner_display_name && (
+                          <div className="text-[11px] text-amber-700 mt-0.5 truncate">
+                            ของ {c.owner_display_name}
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    {/* Status toggle (Phase 2 manual status — migration 016) */}
+                    {/* Status toggle (Phase 2 manual status — migration 016).
+                        Only the owner can mutate; subordinate viewers see a
+                        read-only badge instead. */}
                     <div className="mb-3">
-                      <StatusToggle
-                        status={c.current_status ?? "appointment"}
-                        onChange={(next) => handleStatusChange(c, next)}
-                      />
+                      {c.can_edit ? (
+                        <StatusToggle
+                          status={c.current_status ?? "appointment"}
+                          onChange={(next) => handleStatusChange(c, next)}
+                        />
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 rounded-full font-bold whitespace-nowrap px-2.5 py-1 text-[11px] bg-gray-100 text-gray-600">
+                          {c.current_status ?? "appointment"}
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex gap-2">
@@ -354,25 +373,28 @@ export default function ClientsPage() {
                         className="flex-1 flex items-center justify-center gap-1 py-2 rounded-lg bg-indigo-50 text-indigo-600 text-xs font-bold hover:bg-indigo-100 transition"
                       >
                         <FolderOpen size={13} />
-                        เปิด
+                        {c.can_edit ? "เปิด" : "ดู"}
                       </button>
                       <button
-                        onClick={() => openRename(c)}
-                        className="p-2 rounded-lg text-gray-300 hover:text-indigo-600 hover:bg-indigo-50 transition"
+                        onClick={() => c.can_edit && openRename(c)}
+                        disabled={!c.can_edit}
+                        className="p-2 rounded-lg text-gray-300 hover:text-indigo-600 hover:bg-indigo-50 transition disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-gray-300 disabled:hover:bg-transparent"
                         title="เปลี่ยนชื่อ"
                       >
                         <Pencil size={14} />
                       </button>
                       <button
-                        onClick={() => handleArchive(c)}
-                        className="p-2 rounded-lg text-gray-300 hover:text-amber-600 hover:bg-amber-50 transition"
+                        onClick={() => c.can_edit && handleArchive(c)}
+                        disabled={!c.can_edit}
+                        className="p-2 rounded-lg text-gray-300 hover:text-amber-600 hover:bg-amber-50 transition disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-gray-300 disabled:hover:bg-transparent"
                         title="จัดเก็บ"
                       >
                         <Archive size={14} />
                       </button>
                       <button
-                        onClick={() => setDeleteConfirm(c)}
-                        className="p-2 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition"
+                        onClick={() => c.can_edit && setDeleteConfirm(c)}
+                        disabled={!c.can_edit}
+                        className="p-2 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-gray-300 disabled:hover:bg-transparent"
                         title="ลบ"
                       >
                         <Trash2 size={14} />
