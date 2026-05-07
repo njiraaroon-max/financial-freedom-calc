@@ -45,6 +45,11 @@ export interface UseTeamResult {
   sendInvitation: (
     inviteeFaCode: string,
     message?: string,
+    /** Restrict invitation to invitees of these tiers. Throws an
+     *  upfront error if the resolved code's tier isn't in the list,
+     *  so the inviter doesn't blindly send an invite that the
+     *  invitee will only fail to accept. */
+    expectedTiers?: FaTier[],
   ) => Promise<TeamInvitation>;
   cancelInvitation: (invitationId: string) => Promise<void>;
 }
@@ -132,6 +137,7 @@ export function useTeam(): UseTeamResult {
     async (
       inviteeFaCode: string,
       message?: string,
+      expectedTiers?: FaTier[],
     ): Promise<TeamInvitation> => {
       const supabase = createClient();
       const { data: auth } = await supabase.auth.getUser();
@@ -168,6 +174,12 @@ export function useTeam(): UseTeamResult {
       }
       if (target.user_id === auth.user.id) {
         throw new Error("เชิญตัวเองไม่ได้");
+      }
+      if (expectedTiers && !expectedTiers.includes(target.tier)) {
+        throw new Error(
+          `รหัส ${code} เป็น ${tierLabelTH(target.tier)} ` +
+            `แต่คุณเลือกเชิญ ${expectedTiers.map(tierLabelTH).join(" หรือ ")}`,
+        );
       }
 
       const insertPayload = {
@@ -219,11 +231,20 @@ export function useTeam(): UseTeamResult {
 
 // ─── Helpers ────────────────────────────────────────────────────
 
-/** Tier of the invitee that a Pro / Ultra is allowed to invite. */
+/**
+ * Tiers the inviter can invite. After migration 022 relaxed the lead
+ * rule, an Ultra can have a Basic report directly to them — so they
+ * can invite either Pro or Basic.
+ */
+export function allowedInviteeTiers(inviterTier: FaTier): FaTier[] {
+  if (inviterTier === "pro") return ["basic"];
+  if (inviterTier === "ultra") return ["pro", "basic"];
+  return [];
+}
+
+/** Convenience for callers that only need the primary invitee tier. */
 export function allowedInviteeTier(inviterTier: FaTier): FaTier | null {
-  if (inviterTier === "pro") return "basic";
-  if (inviterTier === "ultra") return "pro";
-  return null; // basic and unknown tiers cannot invite
+  return allowedInviteeTiers(inviterTier)[0] ?? null;
 }
 
 /** Used in the invite form's UX validation message. */

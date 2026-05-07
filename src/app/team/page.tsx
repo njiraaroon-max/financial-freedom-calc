@@ -26,7 +26,11 @@ import {
   useFaTier,
   useCanManageTeam,
 } from "@/store/fa-session-store";
-import { useTeam, allowedInviteeTier, tierLabelTH } from "@/hooks/useTeam";
+import {
+  useTeam,
+  allowedInviteeTiers,
+  tierLabelTH,
+} from "@/hooks/useTeam";
 import type { TeamInvitation } from "@/lib/supabase/database.types";
 
 export default function TeamPage() {
@@ -165,7 +169,17 @@ function InviteSection({
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const targetTier = allowedInviteeTier(tier);
+  const allowedTiers = allowedInviteeTiers(tier);
+  // Ultra can invite either Pro or Basic; Pro can only invite Basic.
+  // The picker is only shown when there's a real choice (Ultra) so
+  // Pros don't see a redundant single-option dropdown.
+  const [inviteeKind, setInviteeKind] = useState<"basic" | "pro">(
+    allowedTiers[0] === "pro" ? "pro" : "basic",
+  );
+  const showKindPicker = allowedTiers.length > 1;
+  const helperText = showKindPicker
+    ? "เลือกประเภท FA ที่ต้องการเชิญ แล้วใส่รหัสของเขา"
+    : `ใส่รหัส FA ของ ${tierLabelTH(allowedTiers[0] ?? "basic")} ที่ต้องการเชิญ`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,7 +187,12 @@ function InviteSection({
     if (!trimmed) return;
     setSubmitting(true);
     try {
-      await sendInvitation(trimmed, message);
+      // When the picker is shown, restrict the lookup to that tier;
+      // otherwise pass the full allowed list (Pro can only invite
+      // Basic, so the picker is hidden but we still want server-side
+      // safety in case the inviter's tier ever expands).
+      const expected = showKindPicker ? [inviteeKind] : allowedTiers;
+      await sendInvitation(trimmed, message, expected);
       toast.success(`ส่งคำเชิญถึง ${trimmed} แล้ว`);
       setCode("");
       setMessage("");
@@ -191,14 +210,36 @@ function InviteSection({
           <Send size={16} className="text-gray-500" />
           เชิญสมาชิกใหม่
         </h2>
-        <div className="text-[11px] text-gray-400 mt-1">
-          ใส่รหัส FA ของ
-          {targetTier ? ` ${tierLabelTH(targetTier)}` : "สมาชิก"}{" "}
-          ที่ต้องการเชิญ
-        </div>
+        <div className="text-[11px] text-gray-400 mt-1">{helperText}</div>
       </header>
 
       <form onSubmit={handleSubmit} className="space-y-3">
+        {showKindPicker && (
+          <div>
+            <label className="text-[12px] text-gray-500 mb-1 block">
+              ประเภทสมาชิกที่เชิญ
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {allowedTiers.map((t) => {
+                const active = inviteeKind === t;
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setInviteeKind(t as "basic" | "pro")}
+                    className={`rounded-xl border-2 px-3 py-2 text-sm font-bold transition ${
+                      active
+                        ? "border-[var(--brand-primary)] bg-gray-50"
+                        : "border-gray-200 hover:border-gray-300 text-gray-600"
+                    }`}
+                  >
+                    {tierLabelTH(t)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
         <div>
           <label className="text-[12px] text-gray-500 mb-1 block">
             รหัส FA
