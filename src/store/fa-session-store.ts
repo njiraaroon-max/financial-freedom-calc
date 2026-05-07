@@ -38,6 +38,11 @@ export interface FaSession {
   planningMode: PlanningMode;
   features: FeatureFlags;
 
+  // Phase 2 hierarchy fields (from migration 015)
+  tier: "basic" | "pro" | "ultra";
+  faCode: string;                  // public-facing short code, e.g. "V8K3M2P"
+  teamLeadId: string | null;       // who this FA reports to (null for Ultra)
+
   organization: {
     id: string;
     slug: string;
@@ -162,6 +167,21 @@ export function useFeatureNumber(
 /** Organization branding for CSS-variable injection + logo/navbar UIs. */
 export const useOrganization = () =>
   useFaSessionStore((s) => s.session?.organization ?? null);
+
+/**
+ * FA tier — drives nav visibility and dashboard layout. Returns
+ * "basic" while the session is loading so we never accidentally
+ * surface Pro/Ultra UI to a logged-out or pending user.
+ */
+export const useFaTier = (): "basic" | "pro" | "ultra" =>
+  useFaSessionStore((s) => s.session?.tier ?? "basic");
+
+/** True when the FA can access the /team page (Pro or Ultra). */
+export const useCanManageTeam = (): boolean =>
+  useFaSessionStore((s) => {
+    const t = s.session?.tier;
+    return t === "pro" || t === "ultra";
+  });
 
 // ─── Skin cache (anti-flash) ────────────────────────────────────────────
 // We deliberately don't persist the whole session (see top-of-file note —

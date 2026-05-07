@@ -40,6 +40,10 @@ interface JoinedRow {
   skin: "legacy" | "professional";
   planning_mode: "modular" | "comprehensive";
   features: FeatureFlags | null;
+  // Phase 2 hierarchy (migration 015)
+  tier: "basic" | "pro" | "ultra";
+  fa_code: string;
+  team_lead_id: string | null;
   organization_id: string;
   organizations: {
     id: string;
@@ -72,6 +76,9 @@ function shape(row: JoinedRow): FaSession | null {
     skin: row.skin,
     planningMode: row.planning_mode,
     features: row.features ?? {},
+    tier: row.tier,
+    faCode: row.fa_code,
+    teamLeadId: row.team_lead_id,
     organization: {
       id: o.id,
       slug: o.slug,
@@ -178,6 +185,7 @@ export default function FaSessionSync() {
             `
             user_id, email, display_name, role, status, expires_at,
             skin, planning_mode, features, organization_id,
+            tier, fa_code, team_lead_id,
             organizations (
               id, slug, name, tagline,
               logo_url, logo_dark_url, favicon_url,

@@ -50,6 +50,7 @@ interface NavItem {
 }
 
 const MAIN_NAV: NavItem[] = [
+  { name: "Dashboard", href: "/dashboard", icon: Home, color: "text-[var(--brand-primary)]" },
   { name: "ข้อมูลส่วนตัว", href: "/calculators/personal-info", icon: UserCircle, color: "text-rose-500" },
   { name: "เป้าหมายชีวิต", href: "/calculators/goals", icon: Target, color: "text-amber-500" },
   { name: "Cash Flow", href: "/calculators/cashflow", icon: Wallet, color: "text-indigo-500" },
