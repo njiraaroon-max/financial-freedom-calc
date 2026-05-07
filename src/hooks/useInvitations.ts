@@ -20,13 +20,26 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { TeamInvitation } from "@/lib/supabase/database.types";
+import type {
+  TeamInvitation,
+  FaTier,
+} from "@/lib/supabase/database.types";
+
+/** Cached public-safe identity of an inviter, joined into the invitation row. */
+export interface InvitationWithInviter extends TeamInvitation {
+  inviter: {
+    displayName: string | null;
+    email: string;
+    faCode: string;
+    tier: FaTier;
+  } | null;
+}
 
 interface UseInvitationsResult {
   /** Pending invitations addressed to me — drives the badge count. */
-  pending: TeamInvitation[];
+  pending: InvitationWithInviter[];
   /** All historical invitations involving me as invitee. */
-  history: TeamInvitation[];
+  history: InvitationWithInviter[];
   loading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
@@ -35,7 +48,7 @@ interface UseInvitationsResult {
 }
 
 export function useInvitations(): UseInvitationsResult {
-  const [all, setAll] = useState<TeamInvitation[]>([]);
+  const [all, setAll] = useState<InvitationWithInviter[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -91,7 +104,53 @@ export function useInvitations(): UseInvitationsResult {
       const list = Array.from(merged.values()).sort((a, b) =>
         b.created_at.localeCompare(a.created_at),
       );
-      setAll(list);
+
+      // Resolve each unique inviter_id to a public-safe profile via
+      // the SECURITY DEFINER RPC. One round trip per unique inviter.
+      const inviterIds = Array.from(new Set(list.map((i) => i.inviter_id)));
+      const inviterCache = new Map<
+        string,
+        InvitationWithInviter["inviter"]
+      >();
+      await Promise.all(
+        inviterIds.map(async (id) => {
+          const r = await (
+            supabase.rpc as unknown as (
+              fn: string,
+              args: Record<string, unknown>,
+            ) => Promise<{
+              data:
+                | Array<{
+                    user_id: string;
+                    display_name: string | null;
+                    email: string;
+                    fa_code: string;
+                    tier: FaTier;
+                  }>
+                | null;
+              error: { message: string } | null;
+            }>
+          )("fa_lookup_public", { target_id: id });
+          const row = r.data?.[0];
+          inviterCache.set(
+            id,
+            row
+              ? {
+                  displayName: row.display_name,
+                  email: row.email,
+                  faCode: row.fa_code,
+                  tier: row.tier,
+                }
+              : null,
+          );
+        }),
+      );
+
+      const enriched: InvitationWithInviter[] = list.map((inv) => ({
+        ...inv,
+        inviter: inviterCache.get(inv.inviter_id) ?? null,
+      }));
+      setAll(enriched);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load invitations");
       setAll([]);
@@ -163,7 +222,7 @@ export function useInvitations(): UseInvitationsResult {
   }, []);
 
   const now = Date.now();
-  const isPending = (i: TeamInvitation) =>
+  const isPending = (i: InvitationWithInviter) =>
     i.status === "pending" && new Date(i.expires_at).getTime() > now;
 
   return {

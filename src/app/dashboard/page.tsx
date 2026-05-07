@@ -33,7 +33,7 @@ import {
   useCanManageTeam,
 } from "@/store/fa-session-store";
 import { useClientStats } from "@/hooks/useClientStats";
-import type { ClientStats } from "@/hooks/useClientStats";
+import type { ClientStats, TeamTotals } from "@/hooks/useClientStats";
 
 // ─── Status taxonomy ──────────────────────────────────────────────
 // Single source of truth for the 7 manual-toggle statuses defined
@@ -57,7 +57,12 @@ export default function DashboardPage() {
   const loading = useFaSessionStore((s) => s.loading);
   const tier = useFaTier();
   const canManageTeam = useCanManageTeam();
-  const { stats, loading: statsLoading } = useClientStats();
+  const {
+    stats,
+    teamStats,
+    teamTotals,
+    loading: statsLoading,
+  } = useClientStats();
 
   if (loading) {
     return (
@@ -87,10 +92,21 @@ export default function DashboardPage() {
         <QuickActions />
 
         {/* Tier-1 KPI cards (everyone sees these) */}
-        <KpiRow tier={tier} stats={stats} loading={statsLoading} />
+        <KpiRow
+          tier={tier}
+          stats={stats}
+          teamStats={teamStats}
+          teamTotals={teamTotals}
+          loading={statsLoading}
+        />
 
-        {/* Status breakdown bar */}
-        <StatusBreakdown stats={stats} loading={statsLoading} />
+        {/* Status breakdown bar — uses team rollup for Pro/Ultra so the
+            chart actually shows the whole tree, not just own clients. */}
+        <StatusBreakdown
+          stats={tier === "basic" ? stats : teamStats}
+          loading={statsLoading}
+          scopeLabel={tier === "basic" ? "ของคุณ" : "ทั้งทีม"}
+        />
 
         {/* Recent activity */}
         <RecentActivity />
@@ -135,14 +151,16 @@ function QuickActions() {
 function KpiRow({
   tier,
   stats,
+  teamStats,
+  teamTotals,
   loading,
 }: {
   tier: "basic" | "pro" | "ultra";
   stats: ClientStats;
+  teamStats: ClientStats;
+  teamTotals: TeamTotals;
   loading: boolean;
 }) {
-  // Phase 1 wires "own clients" only — tier-aware team rollups arrive
-  // in week 3 with the SECURITY-DEFINER RPC.
   const fmt = (n: number) => (loading ? "—" : n.toLocaleString());
 
   const cards =
@@ -156,15 +174,30 @@ function KpiRow({
       : tier === "pro"
         ? [
             { label: "ลูกค้าของฉัน", value: fmt(stats.total) },
-            { label: "ลูกค้าทีม", value: "—", hint: "Phase 1.5" },
-            { label: "Basics ในทีม", value: "—", hint: "Phase 1.5" },
-            { label: "Active (follow)", value: fmt(stats.byStatus.follow) },
+            {
+              label: "ลูกค้าทั้งทีม",
+              value: fmt(teamTotals.totalClients),
+              hint: "รวมที่ Basics ในทีมดูแลด้วย",
+            },
+            {
+              label: "Basics ในทีม",
+              value: fmt(teamTotals.totalBasics),
+            },
+            {
+              label: "Active (follow)",
+              value: fmt(teamStats.byStatus.follow),
+              hint: "ทั้งทีม",
+            },
           ]
         : [
             { label: "ลูกค้าของฉัน", value: fmt(stats.total) },
-            { label: "Pros ใต้ฉัน", value: "—", hint: "Phase 1.5" },
-            { label: "Basics ในต้นไม้", value: "—", hint: "Phase 1.5" },
-            { label: "ลูกค้าทั้งหมด", value: "—", hint: "Phase 1.5" },
+            { label: "Pros ใต้ฉัน", value: fmt(teamTotals.totalPros) },
+            { label: "Basics ในต้นไม้", value: fmt(teamTotals.totalBasics) },
+            {
+              label: "ลูกค้าทั้งหมด",
+              value: fmt(teamTotals.totalClients),
+              hint: "Pros + Basics + ของฉัน",
+            },
           ];
 
   return (
@@ -190,9 +223,11 @@ function KpiRow({
 function StatusBreakdown({
   stats,
   loading,
+  scopeLabel,
 }: {
   stats: ClientStats;
   loading: boolean;
+  scopeLabel: string;
 }) {
   const max = Math.max(1, ...Object.values(stats.byStatus));
   return (
@@ -200,7 +235,7 @@ function StatusBreakdown({
       <header className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-bold text-gray-700">Status breakdown</h2>
         <span className="text-[11px] text-gray-400">
-          จำนวนลูกค้าในแต่ละสถานะ
+          จำนวนลูกค้า {scopeLabel} ในแต่ละสถานะ
         </span>
       </header>
       <div className="space-y-2">

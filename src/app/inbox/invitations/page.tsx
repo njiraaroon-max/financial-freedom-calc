@@ -21,7 +21,7 @@ import {
 import PageHeader from "@/components/PageHeader";
 import { toast } from "@/store/toast-store";
 import { useInvitations } from "@/hooks/useInvitations";
-import type { TeamInvitation } from "@/lib/supabase/database.types";
+import type { InvitationWithInviter } from "@/hooks/useInvitations";
 
 export default function InboxInvitationsPage() {
   const { pending, history, loading, error, accept, reject } =
@@ -59,7 +59,7 @@ function PendingSection({
   accept,
   reject,
 }: {
-  pending: TeamInvitation[];
+  pending: InvitationWithInviter[];
   loading: boolean;
   accept: (id: string) => Promise<void>;
   reject: (id: string) => Promise<void>;
@@ -101,7 +101,7 @@ function PendingCard({
   accept,
   reject,
 }: {
-  inv: TeamInvitation;
+  inv: InvitationWithInviter;
   accept: (id: string) => Promise<void>;
   reject: (id: string) => Promise<void>;
 }) {
@@ -143,11 +143,16 @@ function PendingCard({
         <div className="flex-1 min-w-0">
           <div className="text-sm font-bold text-gray-800">
             คำเชิญเข้าทีมจาก{" "}
-            <span className="font-mono">{inv.invitee_fa_code}</span>
-            {/* invitee_fa_code shows MY code — TODO show inviter name when
-                we have a SECURITY DEFINER lookup; phase 1 just shows the
-                code that was used. Inviter name needs a profiles join we
-                can't do under strict-owner RLS. */}
+            {inv.inviter ? (
+              <>
+                <span>{inv.inviter.displayName ?? inv.inviter.email}</span>{" "}
+                <span className="text-[11px] font-mono font-normal text-gray-500">
+                  ({inv.inviter.faCode})
+                </span>
+              </>
+            ) : (
+              <span className="font-mono">{inv.invitee_fa_code}</span>
+            )}
           </div>
           {inv.message && (
             <div className="text-[13px] text-gray-700 mt-1 italic">
@@ -187,7 +192,7 @@ function HistorySection({
   history,
   loading,
 }: {
-  history: TeamInvitation[];
+  history: InvitationWithInviter[];
   loading: boolean;
 }) {
   if (loading || history.length === 0) return null;
@@ -205,7 +210,7 @@ function HistorySection({
   );
 }
 
-function HistoryRow({ inv }: { inv: TeamInvitation }) {
+function HistoryRow({ inv }: { inv: InvitationWithInviter }) {
   let icon: React.ReactNode;
   let label: string;
   let color: string;
@@ -243,9 +248,15 @@ function HistoryRow({ inv }: { inv: TeamInvitation }) {
         <div className="text-sm font-semibold text-gray-700">
           {label}
           {" — "}
-          <span className="font-mono text-[12px] font-normal text-gray-500">
-            {inv.invitee_fa_code}
-          </span>
+          {inv.inviter ? (
+            <span className="font-normal text-gray-500">
+              {inv.inviter.displayName ?? inv.inviter.email}
+            </span>
+          ) : (
+            <span className="font-mono text-[12px] font-normal text-gray-500">
+              {inv.invitee_fa_code}
+            </span>
+          )}
         </div>
         <div className="text-[11px] text-gray-400">
           {relativeTime(inv.responded_at ?? inv.created_at)}

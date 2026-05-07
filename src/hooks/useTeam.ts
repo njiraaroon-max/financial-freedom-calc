@@ -67,17 +67,28 @@ export function useTeam(): UseTeamResult {
         return;
       }
 
-      // Members: every fa_profile whose team_lead_id == me.
-      // Phase-1 RLS only lets owners see their own row, so we need
-      // a SECURITY DEFINER RPC for this in week 3+. For now we
-      // gracefully return [] until the RPC ships. The query stays
-      // here so we can flip the implementation in one place later.
-      const { data: memberRows, error: memberErr } = await supabase
-        .from("fa_profiles")
-        .select(
-          `user_id, display_name, email, fa_code, tier, updated_at`,
-        )
-        .eq("team_lead_id", auth.user.id);
+      // Members: direct subordinates with their client counts via the
+      // SECURITY DEFINER RPC from migration 020. The RPC bypasses RLS
+      // safely — it scopes by team_lead_id = auth.uid() inside the
+      // function body so we still only see our own team.
+      const { data: memberRows, error: memberErr } = await (
+        supabase.rpc as unknown as (
+          fn: string,
+        ) => Promise<{
+          data:
+            | Array<{
+                user_id: string;
+                display_name: string | null;
+                email: string;
+                fa_code: string;
+                tier: FaTier;
+                client_count: number;
+                last_activity_at: string | null;
+              }>
+            | null;
+          error: { message: string } | null;
+        }>
+      )("team_members_with_counts");
 
       if (memberErr) throw memberErr;
 
@@ -88,8 +99,8 @@ export function useTeam(): UseTeamResult {
           email: row.email,
           faCode: row.fa_code,
           tier: row.tier,
-          clientCount: 0,
-          lastActivityAt: row.updated_at ?? null,
+          clientCount: Number(row.client_count) || 0,
+          lastActivityAt: row.last_activity_at,
         }),
       );
 
@@ -126,20 +137,43 @@ export function useTeam(): UseTeamResult {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) throw new Error("ไม่ได้เข้าสู่ระบบ");
 
-      // Resolve the fa_code to a user_id + tier so the DB row carries
-      // the resolved invitee_id (faster invitee-side lookups).
-      // Note: RLS may hide the invitee row if they're not in our
-      // visibility scope. We work around by resolving via a public
-      // helper RPC in week 3; for now we just look up by fa_code
-      // and accept that the invitee must exist + accept manually.
       const code = inviteeFaCode.trim().toUpperCase();
 
-      // We can't query other fa_profiles directly under strict-owner
-      // RLS, so we let the DB resolve invitee_id later (set by the
-      // accept handler). Insert with invitee_id = null, fa_code only.
+      // Resolve the fa_code to user_id + tier via the RPC so we can
+      // (a) validate the invitee exists, (b) check tier compatibility
+      // upfront (Pro→Basic, Ultra→Pro), and (c) store the resolved
+      // invitee_id directly so the invitee's inbox query is fast.
+      const lookup = await (
+        supabase.rpc as unknown as (
+          fn: string,
+          args: Record<string, unknown>,
+        ) => Promise<{
+          data:
+            | Array<{
+                user_id: string;
+                display_name: string | null;
+                email: string;
+                fa_code: string;
+                tier: FaTier;
+              }>
+            | null;
+          error: { message: string } | null;
+        }>
+      )("fa_lookup_by_code", { code });
+
+      if (lookup.error) throw new Error(lookup.error.message);
+      const target = lookup.data?.[0];
+      if (!target) {
+        throw new Error(`ไม่พบ FA ที่มีรหัส ${code}`);
+      }
+      if (target.user_id === auth.user.id) {
+        throw new Error("เชิญตัวเองไม่ได้");
+      }
+
       const insertPayload = {
         inviter_id: auth.user.id,
         invitee_fa_code: code,
+        invitee_id: target.user_id,
         message: message?.trim() || null,
       };
 
