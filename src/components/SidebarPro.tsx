@@ -59,6 +59,7 @@ import {
   HeartPulse,
   FileText,
   Users,
+  Inbox,
   CreditCard,
   TrendingUp,
   type LucideIcon,
@@ -66,6 +67,7 @@ import {
 import {
   useOrganization,
   usePlanningMode,
+  useCanManageTeam,
 } from "@/store/fa-session-store";
 
 const RAIL_W = "4.25rem"; // 68px — just wide enough for a 40px button + 14px padding each side.
@@ -116,6 +118,7 @@ export default function SidebarPro() {
   const pathname = usePathname() || "/";
   const org = useOrganization();
   const mode = usePlanningMode();
+  const canManageTeam = useCanManageTeam();
   const tools = mode === "modular" ? TOOLS_MODULAR : TOOLS_COMPREHENSIVE;
   const brandLogo = org?.logoUrl ?? null;
 
@@ -203,6 +206,27 @@ export default function SidebarPro() {
             active={isActive(it.href)}
           />
         ))}
+      </div>
+
+      <Hairline />
+
+      {/* Team — Pro/Ultra see /team for managing subordinates;
+          everyone sees /inbox/invitations because anyone can be invited. */}
+      <div className="flex flex-col items-center gap-1 py-2">
+        {canManageTeam && (
+          <RailButton
+            item={{ name: "ทีม", href: "/team", icon: Users }}
+            active={isActive("/team")}
+          />
+        )}
+        <RailButton
+          item={{
+            name: "กล่องจดหมาย",
+            href: "/inbox/invitations",
+            icon: Inbox,
+          }}
+          active={isActive("/inbox")}
+        />
       </div>
 
       {/* Clients — pinned to the bottom. mt-auto pushes everything
