@@ -52,11 +52,19 @@ All 8 are idempotent. If a fresh DB needs setup, run them in order.
 - `src/components/clients/StatusToggle.tsx` — clickable badge that opens dropdown picker
 - `src/lib/supabase/admin.ts` — extended with setFaTier, setFaTeamLead, setFaTeamAssignment
 
-### Sidebar nav (both legacy + professional)
+### Sidebar nav
 
-Pro/Ultra now see "ทีม" + "กล่องจดหมาย" entries. Legacy Sidebar got
-them first; SidebarPro got them in commit `cc2bffd` (later — earlier
-oversight).
+Both skins now use the full **legacy Sidebar** with labelled Thai
+nav rows. Pre-launch decision (commit `6b027cb`): the icon-only
+SidebarPro rail was hiding the new Team nav from FAs who'd never
+hover the tooltips. Full labels win for Victory's 200-FA cold
+launch. SidebarPro stays imported for a future opt-in "rail mode"
+but nothing renders it today.
+
+The Team group ("ทีม" + "กล่องจดหมาย") sits between Reports and
+the bottom-pinned "จัดการลูกค้า" item. /team is gated by
+useCanManageTeam (Pro+Ultra only); /inbox/invitations is visible
+to everyone.
 
 ### Key UX decisions made along the way
 
