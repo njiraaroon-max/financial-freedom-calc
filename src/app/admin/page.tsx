@@ -350,6 +350,13 @@ export default function AdminPage() {
         </div>
         <div className="flex items-center gap-2">
           <Link
+            href="/admin/org-chart"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition"
+          >
+            <Users size={13} />
+            ผังองค์กร
+          </Link>
+          <Link
             href="/admin/organizations"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition"
           >

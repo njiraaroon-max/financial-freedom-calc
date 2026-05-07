@@ -30,6 +30,11 @@ export interface FaAdminRow {
   skin: Skin;
   features: FeatureFlags;
 
+  // Hierarchy fields (migration 015)
+  tier: "basic" | "pro" | "ultra";
+  fa_code: string;
+  team_lead_id: string | null;
+
   // Client stats (from admin_fa_stats RPC)
   client_count: number;
   active_count: number;          // #clients updated in last 30 days
@@ -60,6 +65,7 @@ export async function listAllFas(): Promise<FaAdminRow[]> {
         `user_id, email, display_name, company, license_no,
          role, status, expires_at, created_at,
          organization_id, skin, features,
+         tier, fa_code, team_lead_id,
          organizations ( name )`,
       )
       .order("created_at", { ascending: false }),
@@ -103,6 +109,9 @@ export async function listAllFas(): Promise<FaAdminRow[]> {
     organization_id: string;
     skin: Skin;
     features: FeatureFlags;
+    tier: "basic" | "pro" | "ultra";
+    fa_code: string;
+    team_lead_id: string | null;
     organizations: { name: string } | { name: string }[] | null;
   };
 
@@ -130,6 +139,9 @@ export async function listAllFas(): Promise<FaAdminRow[]> {
         organization_name: org?.name ?? null,
         skin: p.skin,
         features: p.features ?? {},
+        tier: p.tier,
+        fa_code: p.fa_code,
+        team_lead_id: p.team_lead_id,
         client_count,
         active_count,
         active_pct:
@@ -240,6 +252,65 @@ export async function setFaFeatures(
   const { error } = await sb
     .from("fa_profiles")
     .update({ features })
+    .eq("user_id", userId);
+  if (error) throw new Error(error.message);
+}
+
+/**
+ * Promote / demote an FA's tier (basic | pro | ultra).
+ *
+ * The DB trigger `tg_fa_profiles_validate_lead` will reject combinations
+ * that violate the hierarchy (e.g. setting tier='ultra' while keeping a
+ * non-null team_lead_id). When promoting through the chain, callers
+ * should typically clear team_lead_id in the same operation — see
+ * `setFaTeamAssignment` below for the atomic version.
+ */
+export async function setFaTier(
+  userId: string,
+  tier: "basic" | "pro" | "ultra",
+): Promise<void> {
+  const sb = createClient();
+  const { error } = await sb
+    .from("fa_profiles")
+    .update({ tier })
+    .eq("user_id", userId);
+  if (error) throw new Error(error.message);
+}
+
+/**
+ * Set / clear an FA's team_lead_id. Use null to detach the FA from
+ * any team. The DB trigger validates that the new lead's tier is
+ * exactly one above the FA's tier; an attempt to assign an invalid
+ * lead returns a constraint error which surfaces as a thrown Error
+ * from this setter.
+ */
+export async function setFaTeamLead(
+  userId: string,
+  teamLeadId: string | null,
+): Promise<void> {
+  const sb = createClient();
+  const { error } = await sb
+    .from("fa_profiles")
+    .update({ team_lead_id: teamLeadId })
+    .eq("user_id", userId);
+  if (error) throw new Error(error.message);
+}
+
+/**
+ * Atomic tier + team_lead update. Use this when the two need to
+ * change together (e.g. promoting Basic→Pro AND moving them under
+ * a different Ultra). Single UPDATE so the trigger validates the
+ * pair as a unit instead of in two separate transactions.
+ */
+export async function setFaTeamAssignment(
+  userId: string,
+  tier: "basic" | "pro" | "ultra",
+  teamLeadId: string | null,
+): Promise<void> {
+  const sb = createClient();
+  const { error } = await sb
+    .from("fa_profiles")
+    .update({ tier, team_lead_id: teamLeadId })
     .eq("user_id", userId);
   if (error) throw new Error(error.message);
 }
