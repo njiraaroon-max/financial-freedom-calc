@@ -230,7 +230,7 @@ export function allowedInviteeTier(inviterTier: FaTier): FaTier | null {
 export function tierLabelTH(tier: FaTier): string {
   if (tier === "ultra") return "FA Ultra";
   if (tier === "pro") return "FA Pro";
-  return "FA Basic";
+  return "FA";
 }
 
 // Re-export for components that want the shape without importing

@@ -99,7 +99,7 @@ function MyTeamSection({
   loading: boolean;
   tier: "basic" | "pro" | "ultra";
 }) {
-  const heading = tier === "pro" ? "Basics ในทีม" : "Pros ใต้ฉัน";
+  const heading = tier === "pro" ? "FA ในทีม" : "Team FA Pro";
   return (
     <section className="rounded-2xl bg-white border border-gray-100 p-5">
       <header className="flex items-center justify-between mb-4">

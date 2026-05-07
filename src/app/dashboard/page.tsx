@@ -177,10 +177,10 @@ function KpiRow({
             {
               label: "ลูกค้าทั้งทีม",
               value: fmt(teamTotals.totalClients),
-              hint: "รวมที่ Basics ในทีมดูแลด้วย",
+              hint: "รวมที่ FA ในทีมดูแลด้วย",
             },
             {
-              label: "Basics ในทีม",
+              label: "FA ในทีม",
               value: fmt(teamTotals.totalBasics),
             },
             {
@@ -191,12 +191,12 @@ function KpiRow({
           ]
         : [
             { label: "ลูกค้าของฉัน", value: fmt(stats.total) },
-            { label: "Pros ใต้ฉัน", value: fmt(teamTotals.totalPros) },
-            { label: "Basics ในต้นไม้", value: fmt(teamTotals.totalBasics) },
+            { label: "Team FA Pro", value: fmt(teamTotals.totalPros) },
+            { label: "FA ในต้นไม้", value: fmt(teamTotals.totalBasics) },
             {
               label: "ลูกค้าทั้งหมด",
               value: fmt(teamTotals.totalClients),
-              hint: "Pros + Basics + ของฉัน",
+              hint: "FA Pro + FA + ของฉัน",
             },
           ];
 
@@ -296,9 +296,9 @@ function RecentActivity() {
 
 function TeamPanel({ tier }: { tier: "pro" | "ultra" | "basic" }) {
   const isPro = tier === "pro";
-  const heading = isPro ? "ทีมของฉัน" : "Pros ใต้ฉัน";
+  const heading = isPro ? "ทีมของฉัน" : "Team FA Pro";
   const subheading = isPro
-    ? "FA Basic ในทีมที่คุณดูแล"
+    ? "FA ในทีมที่คุณดูแล"
     : "FA Pro ที่อยู่ในต้นไม้องค์กรของคุณ";
 
   return (
@@ -359,6 +359,6 @@ function tierLabel(t: "basic" | "pro" | "ultra"): string {
   switch (t) {
     case "ultra": return "FA Ultra";
     case "pro":   return "FA Pro";
-    case "basic": return "FA Basic";
+    case "basic": return "FA";
   }
 }
