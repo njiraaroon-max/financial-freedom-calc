@@ -257,22 +257,50 @@ function OutgoingSection({
   loading: boolean;
   onCancel: (id: string) => Promise<void>;
 }) {
+  const [showHistory, setShowHistory] = useState(false);
+
   if (loading) return null;
   if (outgoing.length === 0) return null;
 
+  // Active = pending invites the inviter still cares about. Everything
+  // else (accepted / rejected / expired / cancelled) is "history" the
+  // user can opt to see but doesn't clutter the default view.
+  const active = outgoing.filter((inv) => inv.status === "pending");
+  const history = outgoing.filter((inv) => inv.status !== "pending");
+  const visible = showHistory ? outgoing : active;
+
   return (
     <section className="rounded-2xl bg-white border border-gray-100 p-5">
-      <header className="mb-3">
-        <h2 className="text-sm font-bold text-gray-700">คำเชิญที่ส่งไปแล้ว</h2>
-        <div className="text-[11px] text-gray-400 mt-1">
-          ทั้งหมด {outgoing.length} รายการ
+      <header className="mb-3 flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-bold text-gray-700">คำเชิญที่ส่งไปแล้ว</h2>
+          <div className="text-[11px] text-gray-400 mt-1">
+            {active.length} รอตอบรับ
+            {history.length > 0 && ` · ${history.length} ในประวัติ`}
+          </div>
         </div>
+        {history.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowHistory((v) => !v)}
+            className="text-[11px] font-semibold text-[var(--brand-primary)] hover:underline whitespace-nowrap"
+          >
+            {showHistory ? "ซ่อนประวัติ" : "แสดงประวัติ"}
+          </button>
+        )}
       </header>
-      <div className="divide-y divide-gray-100">
-        {outgoing.map((inv) => (
-          <InvitationRow key={inv.id} inv={inv} onCancel={onCancel} />
-        ))}
-      </div>
+
+      {visible.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-gray-200 p-6 text-center text-[13px] text-gray-500">
+          ไม่มีคำเชิญที่รอตอบรับ
+        </div>
+      ) : (
+        <div className="divide-y divide-gray-100">
+          {visible.map((inv) => (
+            <InvitationRow key={inv.id} inv={inv} onCancel={onCancel} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
