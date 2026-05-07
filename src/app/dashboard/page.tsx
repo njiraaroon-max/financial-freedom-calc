@@ -32,6 +32,8 @@ import {
   useFaTier,
   useCanManageTeam,
 } from "@/store/fa-session-store";
+import { useClientStats } from "@/hooks/useClientStats";
+import type { ClientStats } from "@/hooks/useClientStats";
 
 // ─── Status taxonomy ──────────────────────────────────────────────
 // Single source of truth for the 7 manual-toggle statuses defined
@@ -55,6 +57,7 @@ export default function DashboardPage() {
   const loading = useFaSessionStore((s) => s.loading);
   const tier = useFaTier();
   const canManageTeam = useCanManageTeam();
+  const { stats, loading: statsLoading } = useClientStats();
 
   if (loading) {
     return (
@@ -84,10 +87,10 @@ export default function DashboardPage() {
         <QuickActions />
 
         {/* Tier-1 KPI cards (everyone sees these) */}
-        <KpiRow tier={tier} />
+        <KpiRow tier={tier} stats={stats} loading={statsLoading} />
 
         {/* Status breakdown bar */}
-        <StatusBreakdown />
+        <StatusBreakdown stats={stats} loading={statsLoading} />
 
         {/* Recent activity */}
         <RecentActivity />
@@ -129,28 +132,39 @@ function QuickActions() {
   );
 }
 
-function KpiRow({ tier }: { tier: "basic" | "pro" | "ultra" }) {
-  // Phase 1 placeholder values — week 3 wires these to useClients()
+function KpiRow({
+  tier,
+  stats,
+  loading,
+}: {
+  tier: "basic" | "pro" | "ultra";
+  stats: ClientStats;
+  loading: boolean;
+}) {
+  // Phase 1 wires "own clients" only — tier-aware team rollups arrive
+  // in week 3 with the SECURITY-DEFINER RPC.
+  const fmt = (n: number) => (loading ? "—" : n.toLocaleString());
+
   const cards =
     tier === "basic"
       ? [
-          { label: "ลูกค้าทั้งหมด", value: "—", hint: "Phase 1: TBD" },
-          { label: "นัดทำแผน", value: "—", hint: "" },
-          { label: "Active (follow)", value: "—", hint: "" },
-          { label: "Done", value: "—", hint: "" },
+          { label: "ลูกค้าทั้งหมด", value: fmt(stats.total) },
+          { label: "นัดทำแผน", value: fmt(stats.byStatus.appointment) },
+          { label: "Follow", value: fmt(stats.byStatus.follow) },
+          { label: "Done", value: fmt(stats.byStatus.done) },
         ]
       : tier === "pro"
         ? [
-            { label: "ลูกค้าของฉัน", value: "—", hint: "" },
-            { label: "ลูกค้าทีม", value: "—", hint: "นับรวม Basics ในทีม" },
-            { label: "Basics ในทีม", value: "—", hint: "" },
-            { label: "Active ทั้งหมด", value: "—", hint: "" },
+            { label: "ลูกค้าของฉัน", value: fmt(stats.total) },
+            { label: "ลูกค้าทีม", value: "—", hint: "Phase 1.5" },
+            { label: "Basics ในทีม", value: "—", hint: "Phase 1.5" },
+            { label: "Active (follow)", value: fmt(stats.byStatus.follow) },
           ]
         : [
-            { label: "ลูกค้าของฉัน", value: "—", hint: "" },
-            { label: "Pros ใต้ฉัน", value: "—", hint: "" },
-            { label: "Basics ในต้นไม้", value: "—", hint: "" },
-            { label: "ลูกค้าทั้งหมด", value: "—", hint: "Pros + Basics + ของฉัน" },
+            { label: "ลูกค้าของฉัน", value: fmt(stats.total) },
+            { label: "Pros ใต้ฉัน", value: "—", hint: "Phase 1.5" },
+            { label: "Basics ในต้นไม้", value: "—", hint: "Phase 1.5" },
+            { label: "ลูกค้าทั้งหมด", value: "—", hint: "Phase 1.5" },
           ];
 
   return (
@@ -164,7 +178,7 @@ function KpiRow({ tier }: { tier: "basic" | "pro" | "ultra" }) {
           <div className="text-2xl font-bold text-[var(--brand-primary)]">
             {c.value}
           </div>
-          {c.hint && (
+          {"hint" in c && c.hint && (
             <div className="text-[10px] text-gray-400 mt-1">{c.hint}</div>
           )}
         </div>
@@ -173,7 +187,14 @@ function KpiRow({ tier }: { tier: "basic" | "pro" | "ultra" }) {
   );
 }
 
-function StatusBreakdown() {
+function StatusBreakdown({
+  stats,
+  loading,
+}: {
+  stats: ClientStats;
+  loading: boolean;
+}) {
+  const max = Math.max(1, ...Object.values(stats.byStatus));
   return (
     <section className="rounded-2xl bg-white border border-gray-100 p-5">
       <header className="flex items-center justify-between mb-4">
@@ -183,30 +204,36 @@ function StatusBreakdown() {
         </span>
       </header>
       <div className="space-y-2">
-        {STATUSES.map((s) => (
-          <div key={s.key} className="flex items-center gap-3">
-            <div
-              className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
-              style={{ background: s.color }}
-            />
-            <div className="text-[13px] text-gray-700 w-44 flex-shrink-0">
-              {s.th}
-            </div>
-            <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+        {STATUSES.map((s) => {
+          const count = stats.byStatus[s.key];
+          const pct = (count / max) * 100;
+          return (
+            <div key={s.key} className="flex items-center gap-3">
               <div
-                className="h-full rounded-full"
-                style={{ background: s.color, width: "0%" }}
+                className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
+                style={{ background: s.color }}
               />
+              <div className="text-[13px] text-gray-700 w-44 flex-shrink-0">
+                {s.th}
+              </div>
+              <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ background: s.color, width: `${pct}%` }}
+                />
+              </div>
+              <div className="text-[13px] font-semibold text-gray-700 w-8 text-right">
+                {loading ? "—" : count}
+              </div>
             </div>
-            <div className="text-[13px] font-semibold text-gray-700 w-8 text-right">
-              0
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
-      <div className="mt-3 text-[10px] text-gray-400">
-        Phase 1 wireframe — counts wire to live data in week 3.
-      </div>
+      {stats.total === 0 && !loading && (
+        <div className="mt-3 text-[12px] text-gray-400 italic">
+          ยังไม่มีลูกค้า — เริ่มต้นด้วย “เพิ่มลูกค้า” ด้านบน
+        </div>
+      )}
     </section>
   );
 }

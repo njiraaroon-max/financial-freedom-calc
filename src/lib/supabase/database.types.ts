@@ -41,6 +41,33 @@ export type Skin = "legacy" | "professional";
 /** Per-FA default planning flow — FA can toggle this themselves. */
 export type PlanningMode = "modular" | "comprehensive";
 
+/** FA hierarchy tier (migration 015). Drives /team visibility and dashboard layout. */
+export type FaTier = "basic" | "pro" | "ultra";
+
+/**
+ * Manual client status the FA toggles on each client (migration 016).
+ * 'other' carries a free-form note in clients.status_note.
+ */
+export type ClientStatus =
+  | "appointment"   // นัดทำแผน
+  | "fact_finding"  // เก็บข้อมูล
+  | "proposed"      // นำเสนอแผน
+  | "done"          // Done
+  | "follow"        // Follow
+  | "deny"          // Deny
+  | "other";        // Other
+
+/** All client statuses in display order. Single source of truth. */
+export const CLIENT_STATUSES: ClientStatus[] = [
+  "appointment",
+  "fact_finding",
+  "proposed",
+  "done",
+  "follow",
+  "deny",
+  "other",
+];
+
 /**
  * Per-FA feature flags (JSONB in DB so new flags can ship without
  * migrations). See migration 007 for defaults. Values are optional here
@@ -156,6 +183,10 @@ export interface Database {
           skin: Skin;
           planning_mode: PlanningMode;
           features: FeatureFlags;
+          // Phase 2 hierarchy (migration 015)
+          tier: "basic" | "pro" | "ultra";
+          fa_code: string;
+          team_lead_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -174,6 +205,9 @@ export interface Database {
           skin?: Skin;
           planning_mode?: PlanningMode;
           features?: FeatureFlags;
+          tier?: "basic" | "pro" | "ultra";
+          fa_code?: string;
+          team_lead_id?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["fa_profiles"]["Insert"]>;
         Relationships: [];
@@ -197,6 +231,11 @@ export interface Database {
           status: "active" | "archived";
           last_reviewed_at: string | null;
           notes: string | null;
+          // Phase 2 manual status (migration 016)
+          current_status: ClientStatus;
+          status_note: string | null;
+          status_updated_at: string;
+          last_activity_at: string;
           created_at: string;
           updated_at: string;
         };
@@ -217,6 +256,8 @@ export interface Database {
           status?: "active" | "archived";
           last_reviewed_at?: string | null;
           notes?: string | null;
+          current_status?: ClientStatus;
+          status_note?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["clients"]["Insert"]>;
         Relationships: [];
