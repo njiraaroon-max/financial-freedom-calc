@@ -11,6 +11,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Users,
   Send,
@@ -18,6 +19,7 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
+  ChevronRight,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { toast } from "@/store/toast-store";
@@ -128,9 +130,10 @@ function MyTeamSection({
       ) : (
         <div className="divide-y divide-gray-100">
           {members.map((m) => (
-            <div
+            <Link
               key={m.userId}
-              className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"
+              href={`/team/${m.userId}`}
+              className="group flex items-center gap-3 py-3 first:pt-0 last:pb-0 hover:bg-gray-50/50 -mx-2 px-2 rounded-lg transition"
             >
               <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500 flex-shrink-0">
                 {(m.displayName ?? m.email).slice(0, 1).toUpperCase()}
@@ -148,7 +151,11 @@ function MyTeamSection({
               <span className="text-[11px] text-gray-400 flex-shrink-0">
                 {m.clientCount} ลูกค้า
               </span>
-            </div>
+              <ChevronRight
+                size={14}
+                className="text-gray-300 group-hover:text-gray-500 group-hover:translate-x-0.5 transition flex-shrink-0"
+              />
+            </Link>
           ))}
         </div>
       )}
