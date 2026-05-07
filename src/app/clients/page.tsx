@@ -143,8 +143,7 @@ export default function ClientsPage() {
 
   const handleOpen = (c: Client) => {
     setActive(c.id, c.name);
-    toast.success(`เปิดข้อมูล ${c.name}`);
-    router.push("/");
+    router.push(`/clients/${c.id}`);
   };
 
   const handleDelete = async () => {
